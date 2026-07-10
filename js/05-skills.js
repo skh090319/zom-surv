@@ -410,6 +410,4 @@ function updateGravitySkill() {
     triggerGravityField();
     player.gravityTimer = 720;
   }
-}
-
-
+} 
