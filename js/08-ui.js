@@ -864,11 +864,12 @@ function drawCharacterSelectScreen() {
   ctx.fillText(`☠  누적 처치  ${totalZombieKills.toLocaleString()}`, centerX, 118);
 
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
-  const maxCardsPerRow = 5;
+  const maxCardsPerRow = 3;
   const characterIds = ["default", "suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra"];
-  const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
-  const cardH = 390;
+  const cardW = Math.min(250, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
+  const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
+  const cardH = Math.max(205, Math.min(390, (canvas.height - y - 18 - gap * (rowCount - 1)) / rowCount));
   const rowStartX = centerX - (cardW * maxCardsPerRow + gap * (maxCardsPerRow - 1)) / 2;
   characterCards = characterIds.map((id, index) => {
     const row = Math.floor(index / maxCardsPerRow);
@@ -896,6 +897,7 @@ function drawCharacterSelectScreen() {
   };
 
   for (const card of characterCards) {
+    const cardScale = card.h / 390;
     const isSelected = selectedCharacter === card.id;
     const unlocked = card.id === "default" || card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
     const hover = pointInRect(mouse.x, mouse.y, card);
@@ -913,13 +915,13 @@ function drawCharacterSelectScreen() {
     drawRoundedRect(card.x, displayY, card.w, card.h, 18, cardGradient, stroke, isSelected ? 3 : 1.5);
     ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.roundRect(card.x + 1, displayY + 1, card.w - 2, 205, [17, 17, 0, 0]);
+    ctx.roundRect(card.x + 1, displayY + 1, card.w - 2, 205 * cardScale, [17, 17, 0, 0]);
     ctx.clip();
     const portraitGlow = ctx.createRadialGradient(card.x + card.w / 2, displayY + 118, 5, card.x + card.w / 2, displayY + 118, card.w * 0.68);
     portraitGlow.addColorStop(0, unlocked ? `${theme.color}3d` : "rgba(70,74,84,0.18)");
     portraitGlow.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = portraitGlow;
-    ctx.fillRect(card.x, displayY, card.w, 205);
+    ctx.fillRect(card.x, displayY, card.w, 205 * cardScale);
     ctx.restore();
 
     ctx.fillStyle = unlocked ? `${theme.color}dd` : "#646a76";
@@ -938,43 +940,43 @@ function drawCharacterSelectScreen() {
       ctx.save();
       if (!unlocked) ctx.globalAlpha = 0.24;
       const maxSpriteW = Math.max(42, card.w - (card.w < 110 ? 16 : 60));
-      const maxSpriteH = card.w < 110 ? 150 : 205;
+      const maxSpriteH = (card.w < 110 ? 150 : 205) * cardScale;
       const spriteScale = Math.min(maxSpriteW / sprite.naturalWidth, maxSpriteH / sprite.naturalHeight);
       const spriteW = sprite.naturalWidth * spriteScale;
       const spriteH = sprite.naturalHeight * spriteScale;
       ctx.shadowColor = unlocked ? theme.color : "transparent";
       ctx.shadowBlur = unlocked ? 16 : 0;
-      ctx.drawImage(sprite, card.x + (card.w - spriteW) / 2, displayY + 28 + (maxSpriteH - spriteH) / 2, spriteW, spriteH);
+      ctx.drawImage(sprite, card.x + (card.w - spriteW) / 2, displayY + 28 * cardScale + (maxSpriteH - spriteH) / 2, spriteW, spriteH);
       ctx.restore();
     }
 
     const name = card.id === "default" ? "기본 캐릭터" : card.id === "suncall" ? "썬콜" : card.id === "luminous" ? "루미너스" : card.id === "yupiter" ? "유피테르" : card.id === "ren" ? "렌" : card.id === "nightLord" ? "나이트 로드" : card.id === "zero" ? "제로" : card.id === "paladin" ? "팔라딘" : card.id === "arc" ? "아크" : "테라";
     const passive = card.id === "default" ? "기본 능력치" : card.id === "suncall" ? "패시브: 이동속도 +15% · 공격 시 10% 확률로 얼음 지대 생성" : card.id === "luminous" ? "패시브: 총알이 자동으로 적을 추적" : card.id === "yupiter" ? "패시브: 3가지 무기를 골라서 사용" : card.id === "ren" ? "패시브: 그림자를 수집해 분신 강화" : card.id === "nightLord" ? "패시브: 잃은 체력에 비례해 공격 강화" : card.id === "zero" ? "패시브: 레벨당 검술 피해 +4% · 평타 적중 시 스킬 쿨타임 감소" : card.id === "paladin" ? "패시브: 콤보에 따라 성검과 공격 방식이 해방" : card.id === "arc" ? "패시브: 다수 적중 시 열기를 모아 태양 기술 강화" : "패시브: 평타 다중 적중으로 진동을 모아 지형 스킬 강화";
     ctx.fillStyle = unlocked ? "#f4f7ff" : "#777d88";
-    ctx.font = `bold ${card.w < 145 ? 16 : 23}px Arial`;
-    ctx.fillText(name, card.x + card.w / 2, displayY + 252);
+    ctx.font = `bold ${Math.max(12, (card.w < 145 ? 16 : 23) * Math.min(1, cardScale + .12))}px Arial`;
+    ctx.fillText(name, card.x + card.w / 2, displayY + 252 * cardScale);
     ctx.fillStyle = unlocked ? theme.color : "#59606d";
-    ctx.fillRect(card.x + card.w / 2 - 18, displayY + 266, 36, 2);
-    ctx.font = `${card.w < 145 ? 11 : 14}px Arial`;
+    ctx.fillRect(card.x + card.w / 2 - 18, displayY + 266 * cardScale, 36, 2);
+    ctx.font = `${Math.max(8, (card.w < 145 ? 11 : 14) * Math.min(1, cardScale + .18))}px Arial`;
     ctx.fillStyle = unlocked ? "#b7c7df" : "#747985";
-    wrapText(passive, card.x + card.w / 2, displayY + 291, card.w - 26, 18);
+    wrapText(passive, card.x + card.w / 2, displayY + 291 * cardScale, card.w - 26, Math.max(10, 18 * cardScale));
 
     if (unlocked) {
-      drawRoundedRect(card.x + 22, displayY + 339, card.w - 44, 31, 15, isSelected ? `${theme.color}28` : "rgba(255,255,255,0.035)", isSelected ? theme.color : "rgba(255,255,255,0.12)", 1);
+      drawRoundedRect(card.x + 22, displayY + 339 * cardScale, card.w - 44, Math.max(20, 31 * cardScale), 15, isSelected ? `${theme.color}28` : "rgba(255,255,255,0.035)", isSelected ? theme.color : "rgba(255,255,255,0.12)", 1);
       ctx.fillStyle = isSelected ? theme.color : "rgba(224,231,244,0.62)";
       ctx.font = `bold ${card.w < 145 ? 10 : 13}px Arial`;
-      ctx.fillText(isSelected ? "✓  현재 선택됨" : "선택하기", card.x + card.w / 2, displayY + 360);
+      ctx.fillText(isSelected ? "✓  현재 선택됨" : "선택하기", card.x + card.w / 2, displayY + 360 * cardScale);
     } else {
       const unlockKills = card.id === "luminous" ? 1000 : 200;
       const remaining = Math.max(0, unlockKills - totalZombieKills);
       const progress = Math.min(1, totalZombieKills / unlockKills);
       ctx.fillStyle = "rgba(255,255,255,0.08)";
-      ctx.fillRect(card.x + 21, displayY + 336, card.w - 42, 4);
+      ctx.fillRect(card.x + 21, displayY + 336 * cardScale, card.w - 42, 4);
       ctx.fillStyle = "#ff657e";
-      ctx.fillRect(card.x + 21, displayY + 336, (card.w - 42) * progress, 4);
+      ctx.fillRect(card.x + 21, displayY + 336 * cardScale, (card.w - 42) * progress, 4);
       ctx.fillStyle = "#e0798b";
       ctx.font = `bold ${card.w < 145 ? 9 : (card.w < 210 ? 12 : 13)}px Arial`;
-      ctx.fillText(`🔒 ${remaining} 처치 남음`, card.x + card.w / 2, displayY + 360);
+      ctx.fillText(`🔒 ${remaining} 처치 남음`, card.x + card.w / 2, displayY + 360 * cardScale);
     }
   }
 
