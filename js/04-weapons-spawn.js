@@ -9,6 +9,40 @@ function reload() {
 function shoot() {
   if (player.fireCooldown > 0 || player.reloadTime > 0) return;
 
+  if (selectedCharacter === "ren") {
+    attackWithRen();
+    return;
+  }
+
+  if (selectedCharacter === "nightLord") {
+    attackWithNightLord();
+    return;
+  }
+
+  if (selectedCharacter === "zero") {
+    attackWithZero();
+    return;
+  }
+
+  if (selectedCharacter === "paladin") {
+    attackWithPaladin();
+    return;
+  }
+
+  if (selectedCharacter === "arc") {
+    attackWithArc();
+    return;
+  }
+  if (selectedCharacter === "terra") {
+    attackWithTerra();
+    return;
+  }
+
+  if (selectedCharacter === "yupiter") {
+    attackWithYupiterWeapon();
+    return;
+  }
+
   const isGatling = player.gatlingLevel > 0;
 
   if (!isGatling && player.ammo <= 0) {
@@ -16,10 +50,15 @@ function shoot() {
     return;
   }
 
-  const angle = Math.atan2(
+  let angle = Math.atan2(
     mouse.worldY - player.y,
     mouse.worldX - player.x
   );
+
+  if (selectedCharacter === "luminous" && zombies.length > 0) {
+    const target = findNearestHomingTarget(player.x, player.y, []);
+    if (target) angle = Math.atan2(target.y - player.y, target.x - player.x);
+  }
 
   bullets.push({
     x: player.x + Math.cos(angle) * player.r,
@@ -30,18 +69,88 @@ function shoot() {
     damage: scaledDamage(isGatling ? Math.max(12, Math.floor(player.damage * 0.55)) : player.damage),
     life: isGatling ? 80 : 100,
     bounceLeft: player.ricochetLevel > 0 ? 2 + player.ricochetLevel : 0,
+    homing: selectedCharacter === "luminous",
+    sourceCharacter: selectedCharacter,
     hitIds: []
   });
+
+  if (selectedCharacter === "luminous") {
+    player.luminousAttackTime = 8;
+    player.luminousAttackAngle = angle;
+    const palmX = player.x + Math.cos(angle) * 37;
+    const palmY = player.y + Math.sin(angle) * 37 - 8;
+    for (let i = 0; i < 7; i++) {
+      particles.push({
+        x: palmX,
+        y: palmY,
+        vx: Math.cos(angle) * (1.5 + Math.random() * 3) + (Math.random() - 0.5) * 2,
+        vy: Math.sin(angle) * (1.5 + Math.random() * 3) + (Math.random() - 0.5) * 2,
+        life: 10 + Math.random() * 8,
+        color: i % 2 === 0 ? "#d974ff" : "#6ff7ff"
+      });
+    }
+  }
 
   if (!isGatling) {
     player.ammo--;
   }
 
   if (isGatling) {
-    player.fireCooldown = 2;
+    player.fireCooldown = selectedCharacter === "luminous" ? 3 : 2;
   } else {
     player.fireCooldown = Math.max(4, 9 - player.fireRateBonus);
   }
+}
+
+function throwCrescentBlade() {
+  const maxBlades = player.crescentOverdriveTime > 0 ? 4 : 1;
+  if (crescentBlades.length >= maxBlades) return;
+
+  const aimAngle = Math.atan2(mouse.worldY - player.y, mouse.worldX - player.x);
+  let target = null;
+  let bestScore = Infinity;
+
+  for (const zombie of zombies) {
+    const dx = zombie.x - player.x;
+    const dy = zombie.y - player.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance > 900) continue;
+    const targetAngle = Math.atan2(dy, dx);
+    const angleError = Math.abs(Math.atan2(Math.sin(targetAngle - aimAngle), Math.cos(targetAngle - aimAngle)));
+    if (angleError > 0.42) continue;
+    const score = angleError * 500 + distance * 0.15;
+    if (score < bestScore) {
+      bestScore = score;
+      target = zombie;
+    }
+  }
+
+  const angle = target
+    ? Math.atan2(target.y - player.y, target.x - player.x)
+    : aimAngle;
+  const targetDistance = target
+    ? Math.hypot(target.x - player.x, target.y - player.y)
+    : Math.min(520, Math.hypot(mouse.worldX - player.x, mouse.worldY - player.y));
+  const clampedDistance = Math.max(80, Math.min(700, targetDistance));
+
+  crescentBlades.push({
+    x: player.x + Math.cos(angle) * 30,
+    y: player.y + Math.sin(angle) * 30,
+    vx: Math.cos(angle) * 15,
+    vy: Math.sin(angle) * 15,
+    r: 25,
+    angle: 0,
+    distance: 0,
+    maxDistance: Math.max(180, Math.min(520, targetDistance + 55)),
+    returnSpeed: (20 - clampedDistance * 0.014) * player.crescentReturnMultiplier,
+    returning: false,
+    outwardHitIds: [],
+    returnHitIds: [],
+    loyaltyRelaunches: 0,
+    damage: scaledDamage(player.damage)
+  });
+
+  player.fireCooldown = Math.max(10, 24 - player.fireRateBonus * 2);
 }
 
 function spawnZombie() {
@@ -83,7 +192,7 @@ function spawnItem() {
   else if (rand < 0.62) type = "slow";
   else if (rand < 0.82) type = "magnet";
   else type = "bomb";
-  items.push({ x: Math.random() * WORLD.width, y: Math.random() * WORLD.height, r: 16, type, life: 1200 });
+  items.push({ x: Math.random() * WORLD.width, y: Math.random() * WORLD.height, r: 16, type });
 }
 
 function createDaggers(count) {
@@ -182,6 +291,8 @@ function killZombie(index, zombie, allowExplosion = true) {
     player.hp = Math.min(player.maxHp, player.hp + player.maxHp * 0.01);
   }
 
+  onRenZombieKilled(zombie);
+
   dropExp(zombie.x, zombie.y, zombie.boss ? 8 : 3);
 
   if (player.kills % 10 === 0) {
@@ -253,6 +364,20 @@ function findNearestZombie(x, y, excludeIds) {
     }
   }
 
+  return target;
+}
+
+function findNearestHomingTarget(x, y, excludeIds) {
+  let target = null;
+  let bestDist = Infinity;
+  for (const z of zombies) {
+    if (excludeIds.includes(z.id)) continue;
+    const dist = Math.hypot(z.x - x, z.y - y);
+    if (dist < bestDist) {
+      bestDist = dist;
+      target = z;
+    }
+  }
   return target;
 }
 

@@ -131,8 +131,15 @@ function distancePointToSegment(px, py, x1, y1, x2, y2) {
   return Math.hypot(px - cx, py - cy);
 }
 
-function fireDroneBurst() {
-  if (player.droneLevel <= 0 || zombies.length === 0) return;
+function hasWorldEnder() {
+  return player.worldEnderLevel > 0;
+}
+
+function fireDroneBurst(droneType) {
+  const enabled = droneType === "W"
+    ? hasWorldEnder()
+    : (droneType === "B" ? player.droneBLevel > 0 : player.droneLevel > 0);
+  if (!enabled || zombies.length === 0) return;
 
   const target = [...zombies].sort(
     (a, b) =>
@@ -142,8 +149,8 @@ function fireDroneBurst() {
 
   if (!target) return;
 
-  const droneX = player.x + 36;
-  const droneY = player.y - 36;
+  const droneX = player.x + (droneType === "W" ? 0 : (droneType === "B" ? -36 : 36));
+  const droneY = player.y - (droneType === "W" ? 48 : 36);
   const angle = Math.atan2(target.y - droneY, target.x - droneX);
 
   droneBullets.push({
@@ -153,18 +160,85 @@ function fireDroneBurst() {
     vy: Math.sin(angle) * 18,
     r: 4,
     damageRatio: 0.05,
+    droneType,
     life: 90
   });
 }
 
 function updateDrone() {
-  if (player.droneLevel <= 0) return;
+  if (hasWorldEnder()) {
+    player.droneTimer--;
+    if (player.droneTimer <= 0) {
+      fireDroneBurst("W");
+      player.droneTimer = 12;
+    }
+    return;
+  }
 
-  player.droneTimer--;
+  if (player.droneLevel > 0) {
+    player.droneTimer--;
+    if (player.droneTimer <= 0) {
+      fireDroneBurst("A");
+      player.droneTimer = 12;
+    }
+  }
 
-  if (player.droneTimer <= 0) {
-    fireDroneBurst();
-    player.droneTimer = 12;
+  if (player.droneBLevel > 0) {
+    player.droneBTimer--;
+    if (player.droneBTimer <= 0) {
+      fireDroneBurst("B");
+      player.droneBTimer = 18;
+    }
+  }
+}
+
+function updateTimeRewind() {
+  if (player.timeRewindLevel <= 0) return;
+
+  player.timeRewindTimer--;
+  if (player.timeRewindEffectTime > 0) player.timeRewindEffectTime--;
+  if (player.timeRewindTimer > 0) return;
+
+  const missingHp = Math.max(0, player.maxHp - player.hp);
+  if (missingHp > 0) {
+    player.hp = Math.min(player.maxHp, player.hp + missingHp * 0.7);
+    player.timeRewindEffectTime = 45;
+    for (let i = 0; i < 36; i++) {
+      const angle = Math.PI * 2 * i / 36;
+      particles.push({
+        x: player.x + Math.cos(angle) * 48,
+        y: player.y + Math.sin(angle) * 48,
+        vx: -Math.cos(angle) * (1.5 + Math.random() * 2.5),
+        vy: -Math.sin(angle) * (1.5 + Math.random() * 2.5),
+        life: 24 + Math.random() * 18,
+        color: i % 2 === 0 ? "#78fff1" : "#b987ff"
+      });
+    }
+  }
+  player.timeRewindTimer = 1200;
+}
+
+function triggerWorldEnderExplosion(x, y) {
+  const radius = 260;
+
+  for (let i = zombies.length - 1; i >= 0; i--) {
+    const z = zombies[i];
+    if (Math.hypot(z.x - x, z.y - y) > radius) continue;
+    z.hp -= z.maxHp * 0.1 * (player.crownLevel > 0 ? 2 : 1);
+    if (z.hp <= 0) killZombie(i, z);
+  }
+
+  for (let p = 0; p < 64; p++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 11;
+    particles.push({
+      x,
+      y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 28 + Math.random() * 24,
+      color: p % 3 === 0 ? "#fff0a8" : (p % 2 === 0 ? "#00e5ff" : "#ff4fd8")
+    });
   }
 }
 
@@ -201,7 +275,9 @@ function updateDroneBullets() {
       const z = zombies[j];
 
       if (Math.hypot(b.x - z.x, b.y - z.y) < b.r + z.r) {
-        z.hp -= z.maxHp * b.damageRatio * (player.crownLevel > 0 ? 2 : 1);
+        const worldEnder = b.droneType === "W" && hasWorldEnder();
+        const damageRatio = worldEnder ? 0.125 : b.damageRatio;
+        z.hp -= z.maxHp * damageRatio * (player.crownLevel > 0 ? 2 : 1);
         hit = true;
 
         for (let k = 0; k < 8; k++) {
@@ -211,12 +287,15 @@ function updateDroneBullets() {
             vx: (Math.random() - 0.5) * 5,
             vy: (Math.random() - 0.5) * 5,
             life: 18,
-            color: "#00e5ff"
+            color: worldEnder ? (k % 3 === 0 ? "#ffe878" : (k % 2 ? "#00e5ff" : "#ff4fd8")) : (b.droneType === "B" ? "#ff4fd8" : "#00e5ff")
           });
         }
 
         if (z.hp <= 0) {
+          const deathX = z.x;
+          const deathY = z.y;
           killZombie(j, z);
+          if (worldEnder) triggerWorldEnderExplosion(deathX, deathY);
         }
 
         break;
@@ -410,4 +489,4 @@ function updateGravitySkill() {
     triggerGravityField();
     player.gravityTimer = 720;
   }
-} 
+}

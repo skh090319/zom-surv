@@ -11,10 +11,32 @@ const upgradeCount = {
   greed: 0,
   gravity: 0,
   drone: 0,
+  droneB: 0,
+  worldEnder: 0,
+  timeRewind: 0,
+  recall: 0,
+  swordAura: 0,
   dodge: 0,
   immortal: 0,
   crown: 0,
-  maliciousProfit: 0
+  maliciousProfit: 0,
+  afterimage: 0,
+  darkDevour: 0
+  ,nightReach: 0
+  ,nightBlood: 0
+  ,nightExecution: 0
+  ,zeroThrust: 0
+  ,zeroVital: 0
+  ,zeroJudgment: 0
+  ,paladinCombo: 0
+  ,paladinSpeed: 0
+  ,paladinRelease: 0
+  ,arcBrand: 0
+  ,arcCorona: 0
+  ,arcHeat: 0
+  ,terraResonance: 0
+  ,terraFault: 0
+  ,terraRampart: 0
 
 
 };
@@ -30,10 +52,32 @@ const transcended = {
   greed: false,
   gravity: false,
   drone: false,
+  droneB: false,
+  worldEnder: false,
+  timeRewind: false,
+  recall: false,
+  swordAura: false,
   dodge: false,
   immortal: false,
   crown: false,
-  maliciousProfit: false
+  maliciousProfit: false,
+  afterimage: false,
+  darkDevour: false
+  ,nightReach: false
+  ,nightBlood: false
+  ,nightExecution: false
+  ,zeroThrust: false
+  ,zeroVital: false
+  ,zeroJudgment: false
+  ,paladinCombo: false
+  ,paladinSpeed: false
+  ,paladinRelease: false
+  ,arcBrand: false
+  ,arcCorona: false
+  ,arcHeat: false
+  ,terraResonance: false
+  ,terraFault: false
+  ,terraRampart: false
 
 
 };
@@ -47,8 +91,85 @@ const upgrades = [
     apply() { upgradeCount.hp++; if (upgradeCount.hp < 4) { player.maxHp += 25; player.hp = player.maxHp; } else if (!transcended.hp) { transcended.hp = true; player.regenLevel = 1; } } },
   { id: "speed", category: "support", name: "이동속도 증가", desc: "이동속도 +0.25", transcendName: "초월: 화염 질주", transcendDesc: "이동 경로에 불 자취를 남김",
     apply() { upgradeCount.speed++; if (upgradeCount.speed < 4) { player.speed += 0.25; } else if (!transcended.speed) { transcended.speed = true; player.fireTrailLevel = 1; } } },
-  { id: "fireRate", category: "support", name: "연사속도 증가", desc: "발사 쿨타임 감소", transcendName: "초월: 튕기는 총알", transcendDesc: "총알이 좀비 사이에서 튕김",
+  { id: "fireRate", category: "support", name: "연사속도 증가", desc: "발사 쿨타임 감소", transcendName: "초월: 춤추는 유탄", transcendDesc: "유탄이 좀비 사이를 춤추듯 튕깁니다",
     apply() { upgradeCount.fireRate++; if (upgradeCount.fireRate < 4) { player.fireRateBonus++; } else if (!transcended.fireRate) { transcended.fireRate = true; player.ricochetLevel++; } } },
+  { id: "recall", category: "support", name: "회수", desc: "반월검의 귀환 속도가 20% 증가합니다", transcendName: "초월: 계엄령", transcendDesc: "반월검 타격이 적을 강하게 밀어냅니다. 귀환 타격은 더 강한 넉백을 적용합니다",
+    requires() { return selectedCharacter === "yupiter"; },
+    apply() {
+      upgradeCount.recall++;
+      if (upgradeCount.recall < 4) {
+        player.crescentReturnMultiplier += 0.2;
+      } else if (!transcended.recall) {
+        transcended.recall = true;
+        player.crescentMartialLawLevel = 1;
+      }
+    } },
+  { id: "swordAura", category: "support", name: "검의 기운", desc: "절단검으로 베는 각도가 30도 증가합니다", transcendName: "초월: 추적자", transcendDesc: "더 넓은 범위의 360도 참격으로 모든 방향을 베고 출혈과 둔화를 적용합니다",
+    requires() { return selectedCharacter === "yupiter"; },
+    apply() {
+      upgradeCount.swordAura++;
+      if (upgradeCount.swordAura < 4) player.swordAuraLevel++;
+      else if (!transcended.swordAura) { transcended.swordAura = true; player.trackerLevel = 1; }
+    } },
+  { id: "afterimage", category: "support", name: "잔영", desc: "순간이동 공격 후 그림자 분신이 공격을 반복합니다", transcendName: "초월: 개기일식", transcendDesc: "분신 최대치가 8개로 증가합니다",
+    requires() { return selectedCharacter === "ren"; },
+    getDesc() {
+      const current = upgradeCount.afterimage || 0;
+      if (current >= 3) return this.transcendDesc;
+      const nextRepeats = current + 1;
+      return `이번 선택 시 잔영 ${nextRepeats}회 · 총 추가 피해 ${nextRepeats * 42}%`;
+    },
+    apply() {
+      upgradeCount.afterimage++;
+      if (upgradeCount.afterimage < 4) player.renAfterimageLevel++;
+      else if (!transcended.afterimage) { transcended.afterimage = true; player.renTotalEclipseLevel = 1; }
+    } },
+  { id: "darkDevour", category: "support", name: "어둠 포식", desc: "그림자 조각 획득 시 단계마다 최대 체력의 0.5%를 회복합니다", transcendName: "초월: 사신의 발자국", transcendDesc: "처치한 적의 위치에 피해와 둔화를 주는 그림자 지대를 생성합니다",
+    requires() { return selectedCharacter === "ren"; },
+    apply() {
+      upgradeCount.darkDevour++;
+      if (upgradeCount.darkDevour < 4) player.renDarkDevourLevel++;
+      else if (!transcended.darkDevour) { transcended.darkDevour = true; player.renReaperFootstepsLevel = 1; }
+    } },
+  { id: "nightReach", category: "support", name: "긴 월도", desc: "기본 공격 범위가 단계마다 15% 증가합니다", transcendName: "초월: 보랏빛 폭풍", transcendDesc: "모든 기본 공격이 360도 그림자 참격으로 변합니다",
+    requires() { return selectedCharacter === "nightLord"; },
+    apply() { upgradeCount.nightReach++; if (upgradeCount.nightReach < 4) player.nightLordReachLevel++; else if (!transcended.nightReach) transcended.nightReach = true; } },
+  { id: "nightBlood", category: "support", name: "들끓는 그림자", desc: "잃은 체력에 따른 공격력 증가량이 단계마다 20% 상승합니다", transcendName: "초월: 죽음 거부", transcendDesc: "불사의 밤 동안 공격할 때 더 강한 흡혈을 얻습니다",
+    requires() { return selectedCharacter === "nightLord"; },
+    apply() { upgradeCount.nightBlood++; if (upgradeCount.nightBlood < 4) player.nightLordBloodLevel++; else if (!transcended.nightBlood) transcended.nightBlood = true; } },
+  { id: "nightExecution", category: "support", name: "사냥의 전율", desc: "처형 가능한 체력 기준이 단계마다 3% 증가합니다", transcendName: "초월: 학살자", transcendDesc: "처형한 적이 보랏빛 폭발을 일으켜 주변 적에게 피해를 줍니다",
+    requires() { return selectedCharacter === "nightLord"; },
+    apply() { upgradeCount.nightExecution++; if (upgradeCount.nightExecution < 4) player.nightLordExecutionLevel++; else if (!transcended.nightExecution) transcended.nightExecution = true; } },
+  { id: "zeroThrust", category: "support", name: "관통의 보법", desc: "참격의 이동 거리 +15%, 피해량 +25%", transcendName: "초월: 지평선 절단", transcendDesc: "참격의 거리가 크게 증가하고 적 처치 시 쿨타임이 절반으로 감소합니다",
+    requires() { return selectedCharacter === "zero"; },
+    apply() { upgradeCount.zeroThrust++; if (upgradeCount.zeroThrust < 4) player.zeroThrustLevel++; else if (!transcended.zeroThrust) transcended.zeroThrust = true; } },
+  { id: "zeroVital", category: "support", name: "급소 개방", desc: "급소 강화 피해량 +20%, 지속시간 +1초", transcendName: "초월: 절대 급소", transcendDesc: "급소 지속 중 피해가 추가로 증가하고 체력 12% 이하의 적을 처형합니다",
+    requires() { return selectedCharacter === "zero"; },
+    apply() { upgradeCount.zeroVital++; if (upgradeCount.zeroVital < 4) player.zeroVitalLevel++; else if (!transcended.zeroVital) transcended.zeroVital = true; } },
+  { id: "zeroJudgment", category: "support", name: "심판의 비", desc: "심판 범위 +15%, 검의 피해량 증가", transcendName: "초월: 무한 검무", transcendDesc: "심판에 더 많은 검이 빠르게 쏟아져 지속 피해 주기가 감소합니다",
+    requires() { return selectedCharacter === "zero"; },
+    apply() { upgradeCount.zeroJudgment++; if (upgradeCount.zeroJudgment < 4) player.zeroJudgmentLevel++; else if (!transcended.zeroJudgment) transcended.zeroJudgment = true; } },
+  { id: "paladinCombo", category: "support", name: "전투 감각", desc: "콤보 유지시간이 단계마다 0.5초 증가합니다", transcendName: "초월: 멈추지 않는 심장", transcendDesc: "콤보 감소 속도가 크게 느려지고 피격 시에도 콤보를 잃지 않습니다",
+    requires() { return selectedCharacter === "paladin"; },
+    apply() { upgradeCount.paladinCombo++; if (upgradeCount.paladinCombo < 4) player.paladinComboLevel++; else if (!transcended.paladinCombo) transcended.paladinCombo = true; } },
+  { id: "paladinSpeed", category: "support", name: "가속하는 검", desc: "해방 단계별 기본 공격 간격이 감소합니다", transcendName: "초월: 광속", transcendDesc: "기본 공격이 푸른 잔상을 남겨 45% 피해로 한 번 더 타격합니다",
+    requires() { return selectedCharacter === "paladin"; },
+    apply() { upgradeCount.paladinSpeed++; if (upgradeCount.paladinSpeed < 4) player.paladinSpeedLevel++; else if (!transcended.paladinSpeed) transcended.paladinSpeed = true; } },
+  { id: "paladinRelease", category: "support", name: "해방 압축", desc: "콤보 전환이 소모하는 콤보가 단계마다 5 감소합니다", transcendName: "초월: 완전 해방", transcendDesc: "콤보 전환을 사용해도 현재 해방 단계 아래로 콤보가 감소하지 않습니다",
+    requires() { return selectedCharacter === "paladin"; },
+    apply() { upgradeCount.paladinRelease++; if (upgradeCount.paladinRelease < 4) player.paladinReleaseLevel++; else if (!transcended.paladinRelease) transcended.paladinRelease = true; } },
+  { id: "arcBrand", category: "support", name: "태양 각인", desc: "표식이 있는 적에게 주는 광역 피해가 단계마다 15% 증가합니다", transcendName: "초월: 연쇄 점화", transcendDesc: "표식 폭발이 주변의 다른 표식까지 연쇄적으로 점화합니다",
+    requires() { return selectedCharacter === "arc"; },
+    apply() { upgradeCount.arcBrand++; if (upgradeCount.arcBrand < 4) player.arcBrandLevel++; else if (!transcended.arcBrand) transcended.arcBrand = true; } },
+  { id: "arcCorona", category: "support", name: "팽창하는 코로나", desc: "모든 태양 기술의 범위가 단계마다 12% 증가합니다", transcendName: "초월: 태양의 지배", transcendDesc: "일륜 생성 시 작은 일륜을 하나 더 생성합니다",
+    requires() { return selectedCharacter === "arc"; },
+    apply() { upgradeCount.arcCorona++; if (upgradeCount.arcCorona < 4) player.arcCoronaLevel++; else if (!transcended.arcCorona) transcended.arcCorona = true; } },
+  { id: "arcHeat", category: "support", name: "열기 순환", desc: "열기 획득량이 단계마다 20% 증가합니다", transcendName: "초월: 백색왜성", transcendDesc: "열기가 더 이상 자연 감소하지 않습니다",
+    requires() { return selectedCharacter === "arc"; },
+    apply() { upgradeCount.arcHeat++; if (upgradeCount.arcHeat < 4) player.arcHeatLevel++; else if (!transcended.arcHeat) transcended.arcHeat = true; } },
+  { id:"terraResonance",category:"support",name:"공명핵",desc:"진동 획득량이 단계마다 20% 증가합니다",transcendName:"초월: 세계의 맥동",transcendDesc:"진동이 더 이상 자연 감소하지 않습니다",requires(){return selectedCharacter==="terra";},apply(){upgradeCount.terraResonance++;if(upgradeCount.terraResonance<4)player.terraResonanceLevel++;else transcended.terraResonance=true;}},
+  { id:"terraFault",category:"support",name:"확장 단층",desc:"단층 붕괴의 길이와 피해가 증가합니다",transcendName:"초월: 끝없는 여진",transcendDesc:"강화 스킬이 추가 여진을 일으킵니다",requires(){return selectedCharacter==="terra";},apply(){upgradeCount.terraFault++;if(upgradeCount.terraFault<4)player.terraFaultLevel++;else transcended.terraFault=true;}},
+  { id:"terraRampart",category:"support",name:"암석 지배",desc:"암벽 융기의 범위가 단계마다 10% 증가합니다",transcendName:"초월: 가이아의 심장",transcendDesc:"지형 붕괴의 피해와 최대 범위가 크게 증가합니다",requires(){return selectedCharacter==="terra";},apply(){upgradeCount.terraRampart++;if(upgradeCount.terraRampart<4)player.terraRampartLevel++;else transcended.terraRampart=true;}},
   { id: "greed", category: "support", name: "탐욕", desc: "다음 선택 시 경험치 획득량 +10%", transcendName: "초월: 흡혈 군주", transcendDesc: "적 처치 시 최대 체력의 1% 회복",
     getDesc() {
       const next = Math.min(3, (upgradeCount.greed || 0) + 1);
@@ -62,8 +183,25 @@ const upgrades = [
     apply() { upgradeCount.quantum++; if (!transcended.quantum) { transcended.quantum = true; player.quantumLevel = 1; player.quantumTimer = 120; triggerQuantumLaser(); } } },
   { id: "gravity", category: "combat", minLevel: 5, name: "중력장", desc: "화면 안에서 적이 가장 많은 곳에 중력장을 생성하고 최대체력 30% 피해", transcendName: "중력장", transcendDesc: "선택 즉시 활성화 · 화면 내 최대 밀집 지역에 블랙홀 생성",
     apply() { upgradeCount.gravity++; if (!transcended.gravity) { transcended.gravity = true; player.gravityLevel = 1; player.gravityTimer = 420; triggerGravityField(); } } },
-  { id: "drone", category: "combat", minLevel: 5, name: "드론", desc: "0.2초마다 가장 가까운 적을 따라가는 탄환 1발, 발당 최대체력 5% 피해", transcendName: "드론", transcendDesc: "선택 즉시 활성화 · 유도 드론 탄환",
+  { id: "drone", category: "combat", minLevel: 5, name: "드론 A", desc: "0.2초마다 가장 가까운 적을 추적해 최대 체력의 5% 피해를 줍니다", transcendName: "드론 A", transcendDesc: "선택 즉시 활성화 · 청록색 유도 드론",
     apply() { upgradeCount.drone++; if (!transcended.drone) { transcended.drone = true; player.droneLevel = 1; player.droneTimer = 12; } } },
+  { id: "droneB", category: "combat", minLevel: 5, name: "드론 B", desc: "0.3초마다 가장 가까운 적을 추적해 최대 체력의 5% 피해를 줍니다", transcendName: "드론 B", transcendDesc: "선택 즉시 활성화 · 자홍색 유도 드론",
+    apply() { upgradeCount.droneB++; if (!transcended.droneB) { transcended.droneB = true; player.droneBLevel = 1; player.droneBTimer = 18; } } },
+  { id: "worldEnder", category: "combat", minLevel: 5, singleChoice: true, name: "세계의 종결자", desc: "드론 A와 B를 합체합니다. 공격마다 적 최대 체력의 12.5% 피해를 주며, 처치한 적은 넓은 범위에 최대 체력 10%의 폭발 피해를 줍니다",
+    requires() { return player.droneLevel > 0 && player.droneBLevel > 0; },
+    apply() {
+      upgradeCount.worldEnder = 1;
+      transcended.worldEnder = true;
+      player.worldEnderLevel = 1;
+      player.droneTimer = 12;
+    } },
+  { id: "timeRewind", category: "combat", minLevel: 5, singleChoice: true, name: "시간 역행", desc: "20초마다 잃은 체력의 70%를 회복합니다",
+    apply() {
+      upgradeCount.timeRewind = 1;
+      transcended.timeRewind = true;
+      player.timeRewindLevel = 1;
+      player.timeRewindTimer = 1200;
+    } },
   { id: "dodge", category: "combat", minLevel: 5, singleChoice: true, name: "그건 제 잔상입니다만", desc: "30% 확률로 적의 공격을 회피합니다",
     apply() {
       upgradeCount.dodge = 1;
@@ -98,7 +236,7 @@ function gainExp(value) {
   while (player.exp >= player.expNeed) {
     player.exp -= player.expNeed;
     player.level++;
-    player.expNeed = Math.floor(player.expNeed * 1.25 + 2);
+    player.expNeed = Math.max(1, Math.floor(player.expNeed * 1.25 + 1.5));
     openUpgradeMenu();
   }
 
@@ -117,6 +255,7 @@ function openUpgradeMenu() {
     pool = upgrades.filter(u => {
       if (u.category !== "combat") return false;
       if (transcended[u.id]) return false;
+      if (typeof u.requires === "function" && !u.requires()) return false;
       return true;
     });
   } else {
@@ -124,6 +263,14 @@ function openUpgradeMenu() {
     const normalPool = upgrades.filter(u => {
       if (u.category === "combat") return false;
       if (u.category === "emerald") return false;
+      if (selectedCharacter === "yupiter" && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if (selectedCharacter === "ren" && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if (selectedCharacter === "nightLord" && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if (selectedCharacter === "zero" && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if (selectedCharacter === "paladin" && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if (selectedCharacter === "arc" && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if (selectedCharacter === "terra" && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if (typeof u.requires === "function" && !u.requires()) return false;
       if (transcended[u.id]) return false;
       return true;
     });
@@ -151,6 +298,8 @@ function openUpgradeMenu() {
   choosingUpgrade = true;
   upgradeChoices = [];
   upgradeAnimTime = 0;
+  upgradeSelectionEffect = null;
+  mouse.down = false;
 
   for (let i = 0; i < 3 && pool.length > 0; i++) {
     const index = Math.floor(Math.random() * pool.length);
@@ -160,6 +309,24 @@ function openUpgradeMenu() {
 }
 
 function chooseUpgrade(index) {
+  if (upgradeSelectionEffect) return;
+  const upgrade = upgradeChoices[index];
+  if (!upgrade) return;
+
+  const rect = upgradeCardRects[index];
+  const centerX = rect && rect.w > 0 ? rect.x + rect.w / 2 : canvas.width / 2;
+  const centerY = rect && rect.h > 0 ? rect.y + rect.h / 2 : canvas.height / 2;
+  upgradeSelectionEffect = {
+    index,
+    time: 0,
+    centerX,
+    centerY,
+    particles: []
+  };
+  mouse.down = false;
+}
+
+function finalizeUpgradeChoice(index) {
   const upgrade = upgradeChoices[index];
   if (!upgrade) return;
 
@@ -183,6 +350,7 @@ function chooseUpgrade(index) {
   upgrade.apply();
   choosingUpgrade = false;
   upgradeChoices = [];
+  upgradeSelectionEffect = null;
 
   if (player.exp >= player.expNeed) {
     gainExp(0);
