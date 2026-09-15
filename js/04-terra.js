@@ -51,15 +51,16 @@ function attackWithTerra() {
     }
     for (let s = terraStructures.length - 1; s >= 0; s--) {
       const structure = terraStructures[s];
-      if (structure.type !== "wall" || !structure.rocks) continue;
-      for (let r = structure.rocks.length - 1; r >= 0; r--) {
-        const rock = structure.rocks[r], dx = rock.x - player.x, dy = rock.y - player.y;
+      const structureRocks = structure.type === "wall" ? structure.rocks : (structure.type === "collapseField" ? structure.borderRocks : null);
+      if (!structureRocks) continue;
+      for (let r = structureRocks.length - 1; r >= 0; r--) {
+        const rock = structureRocks[r], dx = rock.x - player.x, dy = rock.y - player.y;
         if (Math.hypot(dx, dy) > range + rock.size || Math.abs(paladinAngleDifference(Math.atan2(dy, dx), angle)) > arc / 2) continue;
         const spread = paladinAngleDifference(Math.atan2(dy, dx), angle) * .22;
         terraRockProjectiles.push({ x:rock.x,y:rock.y,r:rock.size,variant:rock.variant??r%4,angle:rock.angle||0,vx:Math.cos(angle+spread)*14,vy:Math.sin(angle+spread)*14,damage:scaledDamage(player.damage*2.1),life:48,spin:(r%2?1:-1)*.16 });
-        structure.rocks.splice(r,1);
+        structureRocks.splice(r,1);
       }
-      if (structure.rocks.length === 0) terraStructures.splice(s,1);
+      if (structure.type === "wall" && structureRocks.length === 0) terraStructures.splice(s,1);
     }
     terraEffects.push({ type: "shockwave", x: player.x, y: player.y, angle, range, arc, life: 30, maxLife: 30 });
   }
@@ -101,12 +102,12 @@ function activateTerraE() {
 function activateTerraX() {
   if(player.terraXCooldown>0)return;
   const state=prepareTerraSkill(45);
-  const destructible=terraStructures.filter(s=>s.type!=="collapseField");
+  const destructible=terraStructures.filter(s=>s.type!=="collapseField"||(s.borderRocks&&s.borderRocks.length));
   let x=player.x,y=player.y;
   if(destructible.length){x=destructible.reduce((s,v)=>s+(v.x2??v.x),0)/destructible.length;y=destructible.reduce((s,v)=>s+(v.y2??v.y),0)/destructible.length;}
   const count=destructible.length,r=(250+count*28)*(state.wide?1.25:1)*(transcended.terraRampart?1.3:1);
   const debris=[];
-  for(const s of destructible){if(s.type==="wall"&&s.rocks)debris.push(...s.rocks.map(v=>({...v})));else if(s.type==="fault")for(let n=1;n<=9;n++){const t=n/10;debris.push({x:s.x+(s.x2-s.x)*t+(n%2?1:-1)*s.width*.22,y:s.y+(s.y2-s.y)*t,size:13+n%3*5,angle:n});}}
+  for(const s of destructible){if(s.type==="wall"&&s.rocks)debris.push(...s.rocks.map(v=>({...v})));else if(s.type==="collapseField"&&s.borderRocks){debris.push(...s.borderRocks.map(v=>({...v})));s.borderRocks.length=0;}else if(s.type==="fault")for(let n=1;n<=9;n++){const t=n/10;debris.push({x:s.x+(s.x2-s.x)*t+(n%2?1:-1)*s.width*.22,y:s.y+(s.y2-s.y)*t,size:13+n%3*5,angle:n});}}
   debris.forEach((rock,n)=>{const launchAngle=n*Math.PI*2/Math.max(1,debris.length)+(Math.sin(n*8.31)*.16);const speed=10+(n%5)*1.15;terraRockProjectiles.push({x,y,r:rock.size,variant:rock.variant??n%4,angle:rock.angle||launchAngle,vx:Math.cos(launchAngle)*speed,vy:Math.sin(launchAngle)*speed,damage:scaledDamage(player.damage*1.75),life:52+(n%4)*5,delay:8+(n%3)*2,spin:(n%2?1:-1)*(.13+(n%3)*.03)});});
   for(const z of zombies){if(Math.hypot(z.x-x,z.y-y)<r*1.8){z.x+=(x-z.x)*0.55;z.y+=(y-z.y)*0.55;}}
   terraDamageCircle(x,y,r,scaledDamage(player.damage*(3.2+count*0.35)*(transcended.terraRampart?1.45:1)),state.double?0.05:0);
