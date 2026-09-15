@@ -40,6 +40,7 @@ const upgradeCount = {
   ,voidCapacity: 0
   ,voidTerrain: 0
   ,voidChain: 0
+  ,carmillaPreserve:0,carmillaResonance:0,carmillaFeast:0
 
 
 };
@@ -84,6 +85,7 @@ const transcended = {
   ,voidCapacity: false
   ,voidTerrain: false
   ,voidChain: false
+  ,carmillaPreserve:false,carmillaResonance:false,carmillaFeast:false
 
 
 };
@@ -179,6 +181,9 @@ const upgrades = [
   {id:"voidCapacity",category:"support",name:"고밀도 특이점",desc:"공허 질량 최대치가 20 증가하고 궁극기 범위가 커집니다",transcendName:"초월: 무한 밀도",transcendDesc:"지면 포식 시 획득하는 질량이 2배가 됩니다",requires(){return selectedCharacter==="void";},apply(){upgradeCount.voidCapacity++;if(upgradeCount.voidCapacity<4)player.voidCapacityLevel++;else transcended.voidCapacity=true;}},
   {id:"voidTerrain",category:"support",name:"포식 지형",desc:"지면 포식과 토해낸 대지의 범위가 증가합니다",transcendName:"초월: 공허 결정",transcendDesc:"토해낸 지형이 적에게 지속 피해를 줍니다",requires(){return selectedCharacter==="void";},apply(){upgradeCount.voidTerrain++;if(upgradeCount.voidTerrain<4)player.voidTerrainLevel++;else transcended.voidTerrain=true;}},
   {id:"voidChain",category:"support",name:"연쇄 붕괴",desc:"지반 붕괴 피해가 단계마다 18% 증가합니다",transcendName:"초월: 세계 포식자",transcendDesc:"붕괴한 지형마다 추가 소형 특이점이 생성됩니다",requires(){return selectedCharacter==="void";},apply(){upgradeCount.voidChain++;if(upgradeCount.voidChain<4)player.voidChainLevel++;else transcended.voidChain=true;}},
+  {id:"carmillaPreserve",category:"support",name:"선혈 보존",desc:"피 방울 생성량과 회수 피해가 증가합니다",transcendName:"초월: 피의 바다",transcendDesc:"기본 공격 적중 시 피 방울을 추가 생성합니다",requires(){return selectedCharacter==="carmilla";},apply(){upgradeCount.carmillaPreserve++;if(upgradeCount.carmillaPreserve<4)player.carmillaPreserveLevel=(player.carmillaPreserveLevel||0)+1;else transcended.carmillaPreserve=true;}},
+  {id:"carmillaResonance",category:"support",name:"혈액 공명",desc:"혈월 발동에 필요한 피 방울 수가 감소합니다",transcendName:"초월: 영원한 적월",transcendDesc:"혈월 지속시간이 크게 증가합니다",requires(){return selectedCharacter==="carmilla";},apply(){upgradeCount.carmillaResonance++;if(upgradeCount.carmillaResonance<4)player.carmillaResonanceLevel=(player.carmillaResonanceLevel||0)+1;else transcended.carmillaResonance=true;}},
+  {id:"carmillaFeast",category:"support",name:"탐식",desc:"회수한 피 방울의 회복량이 증가합니다",transcendName:"초월: 진조",transcendDesc:"혈월 동안 체력이 1 아래로 내려가지 않습니다",requires(){return selectedCharacter==="carmilla";},apply(){upgradeCount.carmillaFeast++;if(upgradeCount.carmillaFeast<4)player.carmillaFeastLevel++;else transcended.carmillaFeast=true;}},
   { id: "greed", category: "support", name: "탐욕", desc: "다음 선택 시 경험치 획득량 +10%", transcendName: "초월: 흡혈 군주", transcendDesc: "적 처치 시 최대 체력의 1% 회복",
     getDesc() {
       const next = Math.min(3, (upgradeCount.greed || 0) + 1);

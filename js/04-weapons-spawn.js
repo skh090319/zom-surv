@@ -38,6 +38,7 @@ function shoot() {
     return;
   }
   if (selectedCharacter === "void") { attackWithVoid(); return; }
+  if(selectedCharacter==="carmilla"){attackWithCarmilla();return;}
 
   if (selectedCharacter === "yupiter") {
     attackWithYupiterWeapon();

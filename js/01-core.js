@@ -189,6 +189,9 @@ const voidSprite = new Image(); voidSprite.src = "assets/void.png";
 let voidSpriteLoaded = false; voidSprite.onload = () => { voidSpriteLoaded = true; };
 const voidSkillIconAtlas = new Image(); voidSkillIconAtlas.src = "assets/void-skill-icons.png";
 const voidAugmentIconAtlas = new Image(); voidAugmentIconAtlas.src = "assets/void-augment-icons.png";
+const carmillaSprite=new Image();carmillaSprite.src="assets/carmilla.png";let carmillaSpriteLoaded=false;carmillaSprite.onload=()=>carmillaSpriteLoaded=true;
+const carmillaSkillIconAtlas=new Image();carmillaSkillIconAtlas.src="assets/carmilla-skill-icons.png";
+const carmillaAugmentIconAtlas=new Image();carmillaAugmentIconAtlas.src="assets/carmilla-augment-icons.png";
 
 const renHudPortrait = new Image();
 renHudPortrait.src = "assets/ren-hud-portrait.png";
@@ -441,6 +444,7 @@ const player = {
   terraRampartLevel: 0,
   voidMass: 0, voidQCooldown: 0, voidECooldown: 0, voidXCooldown: 0, voidRCooldown: 0,
   voidUltimateTime: 0, voidUltimateTick: 0, voidCapacityLevel: 0, voidTerrainLevel: 0, voidChainLevel: 0,
+  carmillaQCooldown:0,carmillaBloodMoonTime:0,carmillaFeastLevel:0,carmillaPreserveLevel:0,carmillaResonanceLevel:0,
   immortalLevel: 0,
   immortalUsed: false,
   dodgeLevel: 0,
@@ -487,6 +491,7 @@ let terraEffects = [];
 let terraRockProjectiles = [];
 let voidTerrains = [];
 let voidEffects = [];
+let bloodDrops=[],bloodEffects=[];
 
 let wave = 1;
 let gameOver = false;

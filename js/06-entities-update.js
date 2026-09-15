@@ -525,6 +525,7 @@ function update() {
   updateArc();
   updateTerra();
   updateVoid();
+  updateCarmilla();
   updateZombies();
   updateDaggers();
   updateItems();

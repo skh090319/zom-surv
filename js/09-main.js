@@ -25,6 +25,7 @@ function draw() {
   drawVoidEffects();
   drawVoidUltimateDarkness();
   drawVoidUltimateDetail();
+  drawCarmillaEffects();
   drawItems();
   drawExpOrbs();
   drawBullets();
@@ -47,6 +48,7 @@ function draw() {
   drawArcInterface();
   drawTerraInterface();
   drawVoidInterface();
+  drawCarmillaInterface();
   drawReloadingOverlay();
   drawExpBar();
   drawMiniMap();
@@ -201,6 +203,7 @@ function restart() {
   player.terraFaultLevel = 0;
   player.terraRampartLevel = 0;
   player.voidMass=0;player.voidQCooldown=0;player.voidECooldown=0;player.voidXCooldown=0;player.voidRCooldown=0;player.voidUltimateTime=0;player.voidUltimateTick=0;player.voidCapacityLevel=0;player.voidTerrainLevel=0;player.voidChainLevel=0;
+  player.carmillaQCooldown=0;player.carmillaBloodMoonTime=0;player.carmillaFeastLevel=0;player.carmillaPreserveLevel=0;player.carmillaResonanceLevel=0;
 
   player.dodgeLevel = 0;
   player.crownLevel = 0;
@@ -258,6 +261,7 @@ function restart() {
   terraRockProjectiles = [];
   voidTerrains = [];
   voidEffects = [];
+  bloodDrops=[];bloodEffects=[];
   laserSlashes = [];
   gravityFields = [];
   droneBullets = [];

@@ -138,6 +138,8 @@ function drawPlayer() {
   const nightLordIsAttacking = Boolean((nightLordSlash || nightLordAttackHeld) && nightLordAttackSpriteLoaded);
   const activeSprite = selectedCharacter === "terra"
     ? terraSprite
+    : selectedCharacter === "carmilla"
+    ? carmillaSprite
     : selectedCharacter === "void"
     ? voidSprite
     : selectedCharacter === "arc"
@@ -161,6 +163,8 @@ function drawPlayer() {
         : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSprite : renSprite) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSprite : nightLordSprite) : playerSprite))));
   const activeLoaded = selectedCharacter === "terra"
     ? terraSpriteLoaded
+    : selectedCharacter === "carmilla"
+    ? carmillaSpriteLoaded
     : selectedCharacter === "void"
     ? voidSpriteLoaded
     : selectedCharacter === "arc"
@@ -201,7 +205,7 @@ function drawPlayer() {
     ctx.fill();
   }
 
-  if (gunSpriteLoaded && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void") {
+  if (gunSpriteLoaded && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla") {
     const gunW = 68;
     const gunH = 30;
 
