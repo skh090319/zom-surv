@@ -23,6 +23,7 @@ function draw() {
   drawArcEffects();
   drawTerraEffects();
   drawVoidEffects();
+  drawVoidUltimateDetail();
   drawItems();
   drawExpOrbs();
   drawBullets();
