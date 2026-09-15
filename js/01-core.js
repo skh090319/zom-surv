@@ -181,6 +181,10 @@ const terraSkillIconAtlas = new Image();
 terraSkillIconAtlas.src = "assets/terra-skill-icons.png";
 const terraAugmentIconAtlas = new Image();
 terraAugmentIconAtlas.src = "assets/terra-augment-icons.png";
+const terraRockAtlas = new Image();
+terraRockAtlas.src = "assets/terra-rock-atlas.png";
+let terraRockAtlasLoaded = false;
+terraRockAtlas.onload = () => { terraRockAtlasLoaded = true; };
 
 const renHudPortrait = new Image();
 renHudPortrait.src = "assets/ren-hud-portrait.png";
@@ -474,6 +478,7 @@ let arcZones = [];
 let arcEffects = [];
 let terraStructures = [];
 let terraEffects = [];
+let terraRockProjectiles = [];
 
 let wave = 1;
 let gameOver = false;

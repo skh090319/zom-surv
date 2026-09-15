@@ -90,11 +90,11 @@ canvas.addEventListener("mousedown", () => {
         selectedCharacter = "default";
       }
 
-      if (card.id === "suncall" && isSuncallUnlocked()) {
+      if (card.id === "suncall") {
         selectedCharacter = "suncall";
       }
 
-      if (card.id === "luminous" && isLuminousUnlocked()) {
+      if (card.id === "luminous") {
         selectedCharacter = "luminous";
       }
 

@@ -628,11 +628,11 @@ function flushTotalKills() {
 addEventListener("beforeunload", flushTotalKills);
 
 function isSuncallUnlocked() {
-  return totalZombieKills >= 200;
+  return true;
 }
 
 function isLuminousUnlocked() {
-  return totalZombieKills >= 1000;
+  return true;
 }
 
 function pointInRect(px, py, rect) {

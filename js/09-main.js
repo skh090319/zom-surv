@@ -250,6 +250,7 @@ function restart() {
   arcEffects = [];
   terraStructures = [];
   terraEffects = [];
+  terraRockProjectiles = [];
   laserSlashes = [];
   gravityFields = [];
   droneBullets = [];
