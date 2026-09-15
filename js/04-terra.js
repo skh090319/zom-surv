@@ -8,10 +8,10 @@ function addTerraVibration(amount) {
 
 function prepareTerraSkill(cost) {
   const vibration = player.terraVibration;
-  const free = vibration >= 100;
-  if (!free) player.terraVibration = Math.max(0, vibration - cost);
-  else player.terraVibration = 0;
-  return { vibration, wide: vibration >= 30, double: vibration >= 60, overdrive: free };
+  const empowered = vibration >= 100;
+  // 진동은 스킬 비용으로 쓰지 않는다. 100에 도달했을 때만 강화 발동 후 전부 소모한다.
+  if (empowered) player.terraVibration = 0;
+  return { vibration, wide: empowered, double: empowered, overdrive: empowered };
 }
 
 function terraDamageCircle(x, y, radius, damage, maxHpRatio = 0) {
