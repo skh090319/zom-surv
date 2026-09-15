@@ -109,7 +109,6 @@ function activateTerraX() {
   const debris=[];
   for(const s of destructible){if(s.type==="wall"&&s.rocks)debris.push(...s.rocks.map(v=>({...v})));else if(s.type==="collapseField"&&s.borderRocks){debris.push(...s.borderRocks.map(v=>({...v})));s.borderRocks.length=0;}else if(s.type==="fault")for(let n=1;n<=9;n++){const t=n/10;debris.push({x:s.x+(s.x2-s.x)*t+(n%2?1:-1)*s.width*.22,y:s.y+(s.y2-s.y)*t,size:13+n%3*5,angle:n});}}
   debris.forEach((rock,n)=>{const launchAngle=n*Math.PI*2/Math.max(1,debris.length)+(Math.sin(n*8.31)*.16);const speed=10+(n%5)*1.15;terraRockProjectiles.push({x,y,r:rock.size,variant:rock.variant??n%4,angle:rock.angle||launchAngle,vx:Math.cos(launchAngle)*speed,vy:Math.sin(launchAngle)*speed,damage:scaledDamage(player.damage*1.75),life:52+(n%4)*5,delay:8+(n%3)*2,spin:(n%2?1:-1)*(.13+(n%3)*.03)});});
-  for(const z of zombies){if(Math.hypot(z.x-x,z.y-y)<r*1.8){z.x+=(x-z.x)*0.55;z.y+=(y-z.y)*0.55;}}
   terraDamageCircle(x,y,r,scaledDamage(player.damage*(3.2+count*0.35)*(transcended.terraRampart?1.45:1)),state.double?0.05:0);
   if(state.double) terraEffects.push({type:"aftershock",x,y,r:r*1.12,delay:20,life:52,maxLife:52,damage:scaledDamage(player.damage*2.1)});
   if(state.overdrive) terraEffects.push({type:"aftershock",x,y,r:r*1.35,delay:38,life:70,maxLife:70,damage:scaledDamage(player.damage*2.8)});
