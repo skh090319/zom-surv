@@ -129,17 +129,17 @@ function drawYupiterInterface() {
 
   const weaponSprites = [crescentBladeSprite, severingBladeSprite, flameCannonSprite];
   drawYupiterHudIcon(weaponX, cy, radius, weaponSprites[player.yupiterWeapon], true);
-  drawYupiterHudLabel(weaponX, panelY + 111, YUPITER_WEAPON_NAMES[player.yupiterWeapon]);
+  drawSkillHudLabel(weaponX, panelY + 103, YUPITER_WEAPON_NAMES[player.yupiterWeapon], "Q", "#ffffff");
 
   const skillCooldown = player.yupiterSkillCooldowns[player.yupiterWeapon];
   drawYupiterHudIcon(skillX, cy, radius, yupiterESkillIcons[player.yupiterWeapon], skillCooldown <= 0, true);
   if (skillCooldown > 0) drawCooldownCover(skillX, cy, radius, skillCooldown / YUPITER_SKILL_COOLDOWNS[player.yupiterWeapon], skillCooldown);
-  drawYupiterHudLabel(skillX, panelY + 111, "E");
+  drawSkillHudLabel(skillX, panelY + 103, "무기 기술", "E", "#ffffff");
 
   const ultimateCooldown = player.yupiterUltimateCooldown;
   drawYupiterHudIcon(ultimateX, cy, radius, yupiterUltimateIcon, ultimateCooldown <= 0, true);
   if (ultimateCooldown > 0) drawCooldownCover(ultimateX, cy, radius, ultimateCooldown / YUPITER_ULTIMATE_COOLDOWN, ultimateCooldown);
-  drawYupiterHudLabel(ultimateX, panelY + 111, "R");
+  drawSkillHudLabel(ultimateX, panelY + 103, "궁극기", "R", "#ffffff");
   ctx.restore();
 }
 
@@ -194,24 +194,24 @@ function drawRenInterface() {
   drawYupiterHudIcon(qX, cy, radius, renSkillIcons[0], qReady, true);
   if (player.renDeployCooldown > 0) drawCooldownCover(qX, cy, radius, player.renDeployCooldown / REN_DEPLOY_COOLDOWN, player.renDeployCooldown);
   else if (cloneCapacity <= 0) drawRenLockedSkill(qX, cy, "조각 필요");
-  drawYupiterHudLabel(qX, panelY + 111, placedCount >= cloneCapacity && cloneCapacity > 0 ? "Q · 전체 회수" : "Q · 분신 배치");
+  drawSkillHudLabel(qX, panelY + 99, placedCount >= cloneCapacity && cloneCapacity > 0 ? "전체 회수" : "분신 배치", "Q");
 
   const xReady = placedCount > 0 && player.renSwapCooldown <= 0;
   drawYupiterHudIcon(xX, cy, radius, renSkillIcons[1], xReady, true);
   if (player.renSwapCooldown > 0) drawCooldownCover(xX, cy, radius, player.renSwapCooldown / REN_SWAP_COOLDOWN, player.renSwapCooldown);
   else if (placedCount <= 0) drawRenLockedSkill(xX, cy, "배치 필요");
-  drawYupiterHudLabel(xX, panelY + 111, "X · 그림자 귀환");
+  drawSkillHudLabel(xX, panelY + 99, "그림자 귀환", "X");
 
   const eReady = placedCount > 0 && player.renSkillCooldown <= 0;
   drawYupiterHudIcon(eX, cy, radius, renSkillIcons[2], eReady, true);
   if (player.renSkillCooldown > 0) drawCooldownCover(eX, cy, radius, player.renSkillCooldown / REN_SKILL_COOLDOWN, player.renSkillCooldown);
   else if (placedCount <= 0) drawRenLockedSkill(eX, cy, "배치 필요");
-  drawYupiterHudLabel(eX, panelY + 111, "E · 분신 습격");
+  drawSkillHudLabel(eX, panelY + 99, "분신 습격", "E");
 
   const rReady = player.renUltimateCooldown <= 0;
   drawYupiterHudIcon(rX, cy, radius, renSkillIcons[3], rReady, true);
   if (player.renUltimateCooldown > 0) drawCooldownCover(rX, cy, radius, player.renUltimateCooldown / REN_ULTIMATE_COOLDOWN, player.renUltimateCooldown);
-  drawYupiterHudLabel(rX, panelY + 111, "R · 밤의 군주");
+  drawSkillHudLabel(rX, panelY + 99, "밤의 군주", "R");
   ctx.restore();
 }
 
@@ -268,7 +268,7 @@ function drawNightLordInterface() {
     }
     ctx.restore();
     if (skill[2] > 0) drawCooldownCover(x, y, radius, skill[2] / skill[3], skill[2]);
-    ctx.fillStyle = "#d8c9e7"; ctx.font = "bold 10px Arial"; ctx.textAlign = "center"; ctx.fillText(skill[1], x, panelY + 96);
+    drawSkillHudLabel(x, panelY + 91, skill[1], skill[0], "#d8c9e7");
   });
   ctx.restore();
 }
@@ -333,7 +333,7 @@ function drawZeroInterface() {
     else { ctx.fillStyle = "#fff"; ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(skill[0], 0, 1); }
     ctx.restore();
     if (skill[2] > 0) drawCooldownCover(x, y, radius, skill[2] / skill[3], skill[2]);
-    ctx.fillStyle = "#eadfc7"; ctx.font = "bold 10px Arial"; ctx.textAlign = "center"; ctx.fillText(skill[1], x, panelY + 96);
+    drawSkillHudLabel(x, panelY + 91, skill[1], skill[0], "#eadfc7");
   });
   ctx.restore();
 }
@@ -381,7 +381,7 @@ function drawPaladinInterface() {
     ctx.restore();
     if (skill[2] > 0) drawCooldownCover(x, y, radius, skill[2] / skill[3], skill[2]);
     if (locked) { ctx.fillStyle = "#d6dae0"; ctx.font = "bold 17px Arial"; ctx.textAlign = "center"; ctx.fillText("🔒", x, y + 6); }
-    ctx.fillStyle = "#e8dfc8"; ctx.font = "bold 10px Arial"; ctx.textAlign = "center"; ctx.fillText(skill[1], x, panelY + 103);
+    drawSkillHudLabel(x, panelY + 98, skill[1], skill[0], "#e8dfc8");
   });
   ctx.restore();
 }
@@ -407,7 +407,7 @@ function drawArcInterface() {
     ctx.save(); ctx.translate(x,y); ctx.beginPath(); ctx.arc(0,0,radius,0,Math.PI*2); ctx.fillStyle = skill[2] > 0 || locked ? "#29231f" : "#42120b"; ctx.fill(); ctx.strokeStyle = skill[2] > 0 || locked ? "#665b54" : "#ff9b35"; ctx.lineWidth=2; ctx.stroke(); ctx.clip();
     if (arcSkillIconAtlas.complete && arcSkillIconAtlas.naturalWidth > 0) { const sw=arcSkillIconAtlas.naturalWidth/2, sh=arcSkillIconAtlas.naturalHeight/2; ctx.globalAlpha=skill[2]>0||locked?0.3:1; ctx.drawImage(arcSkillIconAtlas,(index%2)*sw,Math.floor(index/2)*sh,sw,sh,-radius,-radius,radius*2,radius*2); } ctx.restore();
     if (skill[2] > 0) drawCooldownCover(x,y,radius,skill[2]/skill[3],skill[2]);
-    ctx.fillStyle="#f3d3b7"; ctx.font="bold 10px Arial"; ctx.textAlign="center"; ctx.fillText(skill[1],x,panelY+101);
+    drawSkillHudLabel(x,panelY+96,skill[1],skill[0],"#f3d3b7");
   });
   ctx.restore();
 }
@@ -421,7 +421,7 @@ function drawTerraInterface(){
   const bw=160,by=y+61;drawRoundedRect(sx,by,bw,12,6,"rgba(255,255,255,.09)","rgba(190,220,90,.25)",1);if(player.terraVibration>0){const bg=ctx.createLinearGradient(sx,0,sx+bw,0);bg.addColorStop(0,"#6e7936");bg.addColorStop(.65,"#c59d3f");bg.addColorStop(1,"#cfff82");drawRoundedRect(sx,by,bw*player.terraVibration/100,12,6,bg);}
   ctx.fillStyle="#c9c4a0";ctx.font="11px Arial";ctx.fillText(player.terraVibration>=100?"공명 폭주: 다음 스킬 무료 · 여진 추가":player.terraVibration>=60?"강진: 스킬 2회 타격":player.terraVibration>=30?"진동 활성: 범위 증가":"평타 다중 적중으로 진동 획득",sx,y+95);
   const skills=[["Q","단층 붕괴",player.terraQCooldown,TERRA_Q_COOLDOWN],["E","암벽 융기",player.terraECooldown,TERRA_E_COOLDOWN],["X","지각 압축",player.terraXCooldown,TERRA_X_COOLDOWN],["R",player.level<10?"10레벨 해금":"대륙 분쇄",player.terraRCooldown,TERRA_R_COOLDOWN]];
-  skills.forEach((s,i)=>{const ix=x+w-325+i*78,iy=y+49,r=27,locked=i===3&&player.level<10;ctx.save();ctx.translate(ix,iy);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=s[2]>0||locked?"#292b25":"#25230f";ctx.fill();ctx.strokeStyle=s[2]>0||locked?"#64675d":"#cddc65";ctx.lineWidth=2;ctx.stroke();ctx.clip();if(terraSkillIconAtlas.complete&&terraSkillIconAtlas.naturalWidth){const sw=terraSkillIconAtlas.naturalWidth/2,sh=terraSkillIconAtlas.naturalHeight/2;ctx.globalAlpha=s[2]>0||locked?.3:1;ctx.drawImage(terraSkillIconAtlas,(i%2)*sw,Math.floor(i/2)*sh,sw,sh,-r,-r,r*2,r*2);}ctx.restore();if(s[2]>0)drawCooldownCover(ix,iy,r,s[2]/s[3],s[2]);ctx.fillStyle="#e7dfb7";ctx.font="bold 10px Arial";ctx.textAlign="center";ctx.fillText(s[1],ix,y+101);});ctx.restore();
+  skills.forEach((s,i)=>{const ix=x+w-325+i*78,iy=y+49,r=27,locked=i===3&&player.level<10;ctx.save();ctx.translate(ix,iy);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=s[2]>0||locked?"#292b25":"#25230f";ctx.fill();ctx.strokeStyle=s[2]>0||locked?"#64675d":"#cddc65";ctx.lineWidth=2;ctx.stroke();ctx.clip();if(terraSkillIconAtlas.complete&&terraSkillIconAtlas.naturalWidth){const sw=terraSkillIconAtlas.naturalWidth/2,sh=terraSkillIconAtlas.naturalHeight/2;ctx.globalAlpha=s[2]>0||locked?.3:1;ctx.drawImage(terraSkillIconAtlas,(i%2)*sw,Math.floor(i/2)*sh,sw,sh,-r,-r,r*2,r*2);}ctx.restore();if(s[2]>0)drawCooldownCover(ix,iy,r,s[2]/s[3],s[2]);drawSkillHudLabel(ix,y+96,s[1],s[0],"#e7dfb7");});ctx.restore();
 }
 
 function roundedRectPath(x, y, w, h, r) {
@@ -515,6 +515,12 @@ function drawCooldownCover(x, y, radius, ratio, frames) {
   ctx.textBaseline = "middle";
   ctx.fillText(`${Math.ceil(frames / 60)}`, x, y);
   ctx.restore();
+}
+
+function drawSkillHudLabel(x, nameY, name, key, color = "#eadfc7") {
+  ctx.fillStyle = color; ctx.font = "bold 10px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.fillText(name, x, nameY);
+  ctx.fillStyle = "#ffffff"; ctx.font = "900 11px Arial"; ctx.fillText(key, x, nameY + 13);
 }
 
 function drawYupiterHudLabel(x, y, text) {

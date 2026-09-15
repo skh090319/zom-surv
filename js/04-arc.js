@@ -49,6 +49,7 @@ function activateArcQ() {
   const radius = 150 * arcAreaScale();
   spendArcHeat(12);
   arcZones.push({ x, y, r: radius, life: 240, tick: 0, type: "sun" });
+  arcEffects.push({ type: "sunCast", x, y, r: radius, life: 34, maxLife: 34 });
   if (transcended.arcCorona) arcZones.push({ x: x + 95, y: y - 55, r: radius * 0.72, life: 240, tick: 8, type: "sun" });
   player.arcQCooldown = ARC_Q_COOLDOWN;
 }
@@ -159,14 +160,18 @@ function drawArcEffects() {
     ctx.strokeStyle = zone.type === "sun" ? "rgba(255,190,48,0.8)" : "rgba(255,80,25,0.55)"; ctx.shadowColor = "#ff6d18"; ctx.shadowBlur = 18; ctx.lineWidth = 4;
     ctx.beginPath(); ctx.arc(zone.x, zone.y, zone.r * pulse, 0, Math.PI * 2); ctx.stroke();
     ctx.beginPath(); ctx.arc(zone.x, zone.y, zone.r * 0.58, -zone.life * 0.02, Math.PI * 1.5 - zone.life * 0.02); ctx.stroke();
+    for(let ray=0;ray<12;ray++){const q=ray*Math.PI/6-zone.life*.006,inner=zone.r*.64,outer=zone.r*(.78+(ray%3)*.055);ctx.strokeStyle=`rgba(255,205,72,${zone.type==="sun"?.34:.18})`;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(zone.x+Math.cos(q)*inner,zone.y+Math.sin(q)*inner);ctx.lineTo(zone.x+Math.cos(q)*outer,zone.y+Math.sin(q)*outer);ctx.stroke();}
   }
   for (const p of arcProjectiles) { ctx.fillStyle = "#fff4a8"; ctx.shadowColor = "#ff6b16"; ctx.shadowBlur = 18; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
   for (const effect of arcEffects) {
     const progress = 1 - effect.life / effect.maxLife, alpha = Math.max(0, 1 - progress);
-    if (effect.type === "wave" || effect.type === "burst" || effect.type === "supernova") {
+    if(effect.type==="sunCast"){
+      const radius=effect.r*(.25+progress*.75);ctx.strokeStyle=`rgba(255,231,129,${alpha})`;ctx.lineWidth=5;ctx.shadowColor="#ff7b18";ctx.shadowBlur=28;for(let ring=0;ring<3;ring++){ctx.beginPath();ctx.arc(effect.x,effect.y,radius*(.45+ring*.25),-progress*4+ring,Math.PI*1.5-progress*4+ring);ctx.stroke();}for(let ray=0;ray<8;ray++){const q=ray*Math.PI/4+progress*1.8;ctx.beginPath();ctx.moveTo(effect.x+Math.cos(q)*radius*.18,effect.y+Math.sin(q)*radius*.18);ctx.lineTo(effect.x+Math.cos(q)*radius,effect.y+Math.sin(q)*radius);ctx.stroke();}
+    } else if (effect.type === "wave" || effect.type === "burst" || effect.type === "supernova") {
       const radius = effect.r * Math.min(1, progress * 2.3); ctx.strokeStyle = effect.type === "supernova" ? `rgba(255,250,210,${alpha})` : `rgba(255,122,25,${alpha})`; ctx.shadowColor = "#ff9d20"; ctx.shadowBlur = effect.type === "supernova" ? 48 : 25; ctx.lineWidth = effect.type === "supernova" ? 22 : 9; ctx.beginPath(); ctx.arc(effect.x, effect.y, radius, 0, Math.PI * 2); ctx.stroke();
+      const rays=effect.type==="supernova"?28:12;for(let n=0;n<rays;n++){const q=n*Math.PI*2/rays+progress*(effect.type==="supernova"?1.2:-.7),inner=radius*(effect.type==="supernova"?.18:.55),outer=radius*(.82+(n%4)*.08);ctx.strokeStyle=`rgba(255,${effect.type==="supernova"?240:145},70,${alpha*.72})`;ctx.lineWidth=effect.type==="supernova"?5:3;ctx.beginPath();ctx.moveTo(effect.x+Math.cos(q)*inner,effect.y+Math.sin(q)*inner);ctx.lineTo(effect.x+Math.cos(q)*outer,effect.y+Math.sin(q)*outer);ctx.stroke();}
     } else if (effect.type === "meteor") {
-      const warning = effect.delay > 0; ctx.strokeStyle = warning ? "rgba(255,105,22,0.8)" : `rgba(255,245,190,${alpha})`; ctx.shadowColor = "#ff5417"; ctx.shadowBlur = 30; ctx.lineWidth = 7; ctx.beginPath(); ctx.arc(effect.x, effect.y, effect.r * (warning ? 0.9 + Math.sin(effect.delay * 0.3) * 0.05 : Math.min(1, progress * 2)), 0, Math.PI * 2); ctx.stroke(); if (!warning) { ctx.fillStyle = `rgba(255,90,10,${alpha * 0.2})`; ctx.fill(); }
+      const warning = effect.delay > 0; ctx.strokeStyle = warning ? "rgba(255,105,22,0.8)" : `rgba(255,245,190,${alpha})`; ctx.shadowColor = "#ff5417"; ctx.shadowBlur = 30; ctx.lineWidth = 7; ctx.beginPath(); ctx.arc(effect.x, effect.y, effect.r * (warning ? 0.9 + Math.sin(effect.delay * 0.3) * 0.05 : Math.min(1, progress * 2)), 0, Math.PI * 2); ctx.stroke(); if(warning){const fall=1-effect.delay/42;const mx=effect.x+effect.r*(.55-fall*.55),my=effect.y-effect.r*(1.8-fall*1.8);const trail=ctx.createLinearGradient(mx,my,mx-effect.r*.42,my-effect.r*.75);trail.addColorStop(0,"rgba(255,248,190,.95)");trail.addColorStop(1,"rgba(255,55,8,0)");ctx.strokeStyle=trail;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx-effect.r*.42,my-effect.r*.75);ctx.stroke();ctx.fillStyle="#fff4b0";ctx.beginPath();ctx.arc(mx,my,12+fall*14,0,Math.PI*2);ctx.fill();}else{ctx.fillStyle=`rgba(255,90,10,${alpha * 0.2})`;ctx.fill();for(let n=0;n<16;n++){const q=n*Math.PI/8,rr=effect.r*progress*(.2+(n%4)*.12);ctx.fillStyle=`rgba(255,176,55,${alpha})`;ctx.beginPath();ctx.arc(effect.x+Math.cos(q)*rr,effect.y+Math.sin(q)*rr,3+n%3,0,Math.PI*2);ctx.fill();}}
     }
   }
   ctx.restore(); worldEnd();
