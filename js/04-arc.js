@@ -47,7 +47,7 @@ function activateArcQ() {
   const length = Math.hypot(dx, dy) || 1, distance = Math.min(520, length);
   const x = player.x + dx / length * distance, y = player.y + dy / length * distance;
   const radius = 150 * arcAreaScale();
-  spendArcHeat(12);
+  spendArcHeat(24);
   arcZones.push({ x, y, r: radius, life: 240, tick: 0, type: "sun" });
   arcEffects.push({ type: "sunCast", x, y, r: radius, life: 34, maxLife: 34 });
   if (transcended.arcCorona) arcZones.push({ x: x + 95, y: y - 55, r: radius * 0.72, life: 240, tick: 8, type: "sun" });
@@ -58,7 +58,7 @@ function activateArcE() {
   if (player.arcECooldown > 0) return;
   const heatBeforeCast = player.arcHeat;
   const radius = 245 * arcAreaScale();
-  spendArcHeat(18);
+  spendArcHeat(36);
   for (let i = zombies.length - 1; i >= 0; i--) {
     const z = zombies[i], dx = z.x - player.x, dy = z.y - player.y, distance = Math.hypot(dx, dy);
     if (distance > radius + z.r) continue;
@@ -83,7 +83,7 @@ function activateArcX() {
   const dx = mouse.worldX - player.x, dy = mouse.worldY - player.y, length = Math.hypot(dx, dy) || 1;
   const distance = Math.min(620, length);
   const radius = 255 * arcAreaScale();
-  spendArcHeat(25);
+  spendArcHeat(50);
   arcEffects.push({ type: "meteor", x: player.x + dx / length * distance, y: player.y + dy / length * distance, r: radius, highHeat: heatBeforeCast >= 50, doubleBurst: heatBeforeCast >= 100, delay: 42, life: 76, maxLife: 76 });
   player.arcXCooldown = ARC_X_COOLDOWN;
 }
