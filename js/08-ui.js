@@ -58,7 +58,7 @@ function drawHUD() {
     ? `Weapon: ${YUPITER_WEAPON_NAMES[player.yupiterWeapon]}`
     : (selectedCharacter === "ren"
       ? "렌 · 그림자 암살자"
-      : (selectedCharacter === "nightLord" ? "나이트 로드 · 암흑 월도" : (selectedCharacter === "zero" ? "제로 · 성검" : (selectedCharacter === "paladin" ? "팔라딘 · 해방검" : (selectedCharacter === "arc" ? "아크 · 태양술사" : (selectedCharacter === "terra" ? "테라 · 대지 권사" : (selectedCharacter === "void" ? "보이드 · 공허 포식자" : (player.gatlingLevel > 0 ? "Ammo: ∞" : `Ammo: ${player.ammo}/${player.maxAmmo}`))))))));
+      : (selectedCharacter === "nightLord" ? "나이트 로드 · 암흑 월도" : (selectedCharacter === "zero" ? "제로 · 성검" : (selectedCharacter === "paladin" ? "팔라딘 · 해방검" : (selectedCharacter === "arc" ? "아크 · 태양술사" : (selectedCharacter === "terra" ? "테라 · 대지 권사" : (selectedCharacter === "void" ? "보이드 · 공허 포식자" : (selectedCharacter === "carmilla" ? "카르밀라 · 혈조" : (player.gatlingLevel > 0 ? "Ammo: ∞" : `Ammo: ${player.ammo}/${player.maxAmmo}`)))))))));
   ctx.fillText(weaponText, x, y);
   y += gap;
   if (selectedCharacter === "yupiter") {

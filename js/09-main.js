@@ -26,6 +26,7 @@ function draw() {
   drawVoidUltimateDarkness();
   drawVoidUltimateDetail();
   drawCarmillaEffects();
+  drawCarmillaPolish();
   drawItems();
   drawExpOrbs();
   drawBullets();
