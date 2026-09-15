@@ -70,6 +70,7 @@ canvas.addEventListener("mousedown", () => {
     }
 
     if (pointInRect(mouse.x, mouse.y, homeCharacterRect)) {
+      characterScrollY = 0;
       screenMode = "character";
       return;
     }
@@ -83,6 +84,7 @@ canvas.addEventListener("mousedown", () => {
       return;
     }
 
+    if (mouse.y < 138 || mouse.y > canvas.height - 8) return;
     for (const card of characterCards) {
       if (!pointInRect(mouse.x, mouse.y, card)) continue;
 
@@ -173,6 +175,12 @@ canvas.addEventListener("mousedown", () => {
     mouse.down = true;
   }
 });
+
+canvas.addEventListener("wheel", e => {
+  if (screenMode !== "character") return;
+  e.preventDefault();
+  characterScrollY = Math.max(0, Math.min(characterScrollMax, characterScrollY + e.deltaY * 0.82));
+}, { passive: false });
 
 
 canvas.addEventListener("mouseup", () => {

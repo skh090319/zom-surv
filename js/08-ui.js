@@ -866,10 +866,13 @@ function drawCharacterSelectScreen() {
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
   const maxCardsPerRow = 3;
   const characterIds = ["default", "suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra"];
-  const cardW = Math.min(250, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
+  const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
-  const cardH = Math.max(205, Math.min(390, (canvas.height - y - 18 - gap * (rowCount - 1)) / rowCount));
+  const cardH = 390;
+  const contentHeight = rowCount * cardH + (rowCount - 1) * gap;
+  characterScrollMax = Math.max(0, contentHeight - (canvas.height - y - 18));
+  characterScrollY = Math.max(0, Math.min(characterScrollMax, characterScrollY));
   const rowStartX = centerX - (cardW * maxCardsPerRow + gap * (maxCardsPerRow - 1)) / 2;
   characterCards = characterIds.map((id, index) => {
     const row = Math.floor(index / maxCardsPerRow);
@@ -877,7 +880,7 @@ function drawCharacterSelectScreen() {
     return {
       id,
       x: rowStartX + (cardW + gap) * column,
-      y: y + row * (cardH + gap),
+      y: y + row * (cardH + gap) - characterScrollY,
       w: cardW,
       h: cardH
     };
@@ -896,8 +899,13 @@ function drawCharacterSelectScreen() {
     terra: { color: "#c5d965", color2: "#526b2d", role: "EARTH BREAKER", number: "10" }
   };
 
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, y - 8, canvas.width, canvas.height - y + 8);
+  ctx.clip();
   for (const card of characterCards) {
-    const cardScale = card.h / 390;
+    const cardScale = 1;
+    if (card.y + card.h < y - 8 || card.y > canvas.height) continue;
     const isSelected = selectedCharacter === card.id;
     const unlocked = card.id === "default" || card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
     const hover = pointInRect(mouse.x, mouse.y, card);
@@ -978,6 +986,15 @@ function drawCharacterSelectScreen() {
       ctx.font = `bold ${card.w < 145 ? 9 : (card.w < 210 ? 12 : 13)}px Arial`;
       ctx.fillText(`🔒 ${remaining} 처치 남음`, card.x + card.w / 2, displayY + 360 * cardScale);
     }
+  }
+  ctx.restore();
+
+  if (characterScrollMax > 0) {
+    const trackY = y, trackH = canvas.height - y - 18;
+    const thumbH = Math.max(48, trackH * trackH / contentHeight);
+    const thumbY = trackY + (trackH - thumbH) * characterScrollY / characterScrollMax;
+    drawRoundedRect(canvas.width - 13, trackY, 5, trackH, 3, "rgba(255,255,255,.08)");
+    drawRoundedRect(canvas.width - 13, thumbY, 5, thumbH, 3, "rgba(174,132,255,.72)");
   }
 
   const compactSelect = canvas.width < 760;

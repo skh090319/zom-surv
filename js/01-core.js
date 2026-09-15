@@ -491,6 +491,8 @@ try {
   totalZombieKills = 0;
 }
 let characterCards = [];
+let characterScrollY = 0;
+let characterScrollMax = 0;
 
 let paused = false;
 let selectedAugments = [];
