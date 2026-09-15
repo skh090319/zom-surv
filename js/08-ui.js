@@ -58,7 +58,7 @@ function drawHUD() {
     ? `Weapon: ${YUPITER_WEAPON_NAMES[player.yupiterWeapon]}`
     : (selectedCharacter === "ren"
       ? "렌 · 그림자 암살자"
-      : (selectedCharacter === "nightLord" ? "나이트 로드 · 암흑 월도" : (selectedCharacter === "zero" ? "제로 · 성검" : (selectedCharacter === "paladin" ? "팔라딘 · 해방검" : (selectedCharacter === "arc" ? "아크 · 태양술사" : (selectedCharacter === "terra" ? "테라 · 대지 권사" : (player.gatlingLevel > 0 ? "Ammo: ∞" : `Ammo: ${player.ammo}/${player.maxAmmo}`)))))));
+      : (selectedCharacter === "nightLord" ? "나이트 로드 · 암흑 월도" : (selectedCharacter === "zero" ? "제로 · 성검" : (selectedCharacter === "paladin" ? "팔라딘 · 해방검" : (selectedCharacter === "arc" ? "아크 · 태양술사" : (selectedCharacter === "terra" ? "테라 · 대지 권사" : (selectedCharacter === "void" ? "보이드 · 공허 포식자" : (player.gatlingLevel > 0 ? "Ammo: ∞" : `Ammo: ${player.ammo}/${player.maxAmmo}`))))))));
   ctx.fillText(weaponText, x, y);
   y += gap;
   if (selectedCharacter === "yupiter") {
@@ -423,6 +423,8 @@ function drawTerraInterface(){
   const skills=[["Q","단층 붕괴",player.terraQCooldown,TERRA_Q_COOLDOWN],["E","암벽 융기",player.terraECooldown,TERRA_E_COOLDOWN],["X","지각 압축",player.terraXCooldown,TERRA_X_COOLDOWN],["R",player.level<10?"10레벨 해금":"대륙 분쇄",player.terraRCooldown,TERRA_R_COOLDOWN]];
   skills.forEach((s,i)=>{const ix=x+w-325+i*78,iy=y+49,r=27,locked=i===3&&player.level<10;ctx.save();ctx.translate(ix,iy);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=s[2]>0||locked?"#292b25":"#25230f";ctx.fill();ctx.strokeStyle=s[2]>0||locked?"#64675d":"#cddc65";ctx.lineWidth=2;ctx.stroke();ctx.clip();if(terraSkillIconAtlas.complete&&terraSkillIconAtlas.naturalWidth){const sw=terraSkillIconAtlas.naturalWidth/2,sh=terraSkillIconAtlas.naturalHeight/2;ctx.globalAlpha=s[2]>0||locked?.3:1;ctx.drawImage(terraSkillIconAtlas,(i%2)*sw,Math.floor(i/2)*sh,sw,sh,-r,-r,r*2,r*2);}ctx.restore();if(s[2]>0)drawCooldownCover(ix,iy,r,s[2]/s[3],s[2]);drawSkillHudLabel(ix,y+96,s[1],s[0],"#e7dfb7");});ctx.restore();
 }
+
+function drawVoidInterface(){if(selectedCharacter!=="void"||screenMode!=="game")return;const w=Math.min(690,canvas.width-32),h=120,x=(canvas.width-w)/2,y=canvas.height-178;ctx.save();const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,"rgba(7,5,15,.97)");g.addColorStop(.52,"rgba(35,10,58,.97)");g.addColorStop(1,"rgba(4,7,18,.97)");drawRoundedRect(x,y,w,h,24,g,"#a85cff",2);ctx.save();ctx.beginPath();ctx.arc(x+55,y+58,40,0,Math.PI*2);ctx.clip();ctx.fillStyle="#100718";ctx.fillRect(x+15,y+18,80,80);if(voidSpriteLoaded)ctx.drawImage(voidSprite,x+9,y+8,92,92);ctx.restore();ctx.strokeStyle="#bd73ff";ctx.shadowColor="#7f24ff";ctx.shadowBlur=18;ctx.beginPath();ctx.arc(x+55,y+58,40,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;const sx=x+108,max=100+player.voidCapacityLevel*20;ctx.textAlign="left";ctx.fillStyle="#f5eaff";ctx.font="bold 18px Arial";ctx.fillText("보이드",sx,y+28);ctx.fillStyle="#ca8cff";ctx.font="bold 13px Arial";ctx.fillText(`공허 질량 ${Math.floor(player.voidMass)} / ${max}`,sx,y+49);drawRoundedRect(sx,y+61,160,12,6,"rgba(255,255,255,.08)","rgba(188,100,255,.24)",1);if(player.voidMass>0){const bg=ctx.createLinearGradient(sx,0,sx+160,0);bg.addColorStop(0,"#43205c");bg.addColorStop(.7,"#a13be2");bg.addColorStop(1,"#eee3ff");drawRoundedRect(sx,y+61,160*Math.min(1,player.voidMass/max),12,6,bg);}ctx.fillStyle="#bfaaca";ctx.font="11px Arial";ctx.fillText(player.voidMass>=100?"특이점 준비 완료":"지면을 포식해 질량 획득",sx,y+95);const skills=[["Q","심층 포식",player.voidQCooldown,VOID_Q_COOLDOWN],["E","대지 방출",player.voidECooldown,VOID_E_COOLDOWN],["X","지반 붕괴",player.voidXCooldown,VOID_X_COOLDOWN],["R",player.level<10?"10레벨 해금":"제어 불능",player.voidRCooldown,VOID_R_COOLDOWN]];skills.forEach((s,i)=>{const ix=x+w-325+i*78,iy=y+49,r=27,locked=i===3&&(player.level<10||player.voidMass<100);ctx.save();ctx.translate(ix,iy);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=s[2]>0||locked?"#29252d":"#1b092b";ctx.fill();ctx.strokeStyle=s[2]>0||locked?"#645d69":"#be6cff";ctx.lineWidth=2;ctx.stroke();ctx.clip();if(voidSkillIconAtlas.complete&&voidSkillIconAtlas.naturalWidth){const sw=voidSkillIconAtlas.naturalWidth/2,sh=voidSkillIconAtlas.naturalHeight/2;ctx.globalAlpha=s[2]>0||locked?.3:1;ctx.drawImage(voidSkillIconAtlas,(i%2)*sw,Math.floor(i/2)*sh,sw,sh,-r,-r,r*2,r*2);}ctx.restore();if(s[2]>0)drawCooldownCover(ix,iy,r,s[2]/s[3],s[2]);drawSkillHudLabel(ix,y+96,s[1],s[0],"#e5ccf2");});ctx.restore();}
 
 function roundedRectPath(x, y, w, h, r) {
   const radius = Math.min(r, w / 2, h / 2);
@@ -817,7 +819,7 @@ function drawHomeScreen() {
   drawMenuButton(homeStartRect, startHover, "#22d9ff", "게임 시작", "선택한 캐릭터로 생존 시작", "▶");
   drawMenuButton(homeCharacterRect, charHover, "#b46cff", "캐릭터 선택", "생존자와 전투 방식을 변경", "◆");
 
-  const selectedName = selectedCharacter === "default" ? "기본 캐릭터" : selectedCharacter === "suncall" ? "썬콜" : selectedCharacter === "luminous" ? "루미너스" : selectedCharacter === "yupiter" ? "유피테르" : selectedCharacter === "ren" ? "렌" : selectedCharacter === "nightLord" ? "나이트 로드" : selectedCharacter === "zero" ? "제로" : selectedCharacter === "paladin" ? "팔라딘" : selectedCharacter === "arc" ? "아크" : "테라";
+  const selectedName = selectedCharacter === "default" ? "기본 캐릭터" : selectedCharacter === "suncall" ? "썬콜" : selectedCharacter === "luminous" ? "루미너스" : selectedCharacter === "yupiter" ? "유피테르" : selectedCharacter === "ren" ? "렌" : selectedCharacter === "nightLord" ? "나이트 로드" : selectedCharacter === "zero" ? "제로" : selectedCharacter === "paladin" ? "팔라딘" : selectedCharacter === "arc" ? "아크" : selectedCharacter === "terra" ? "테라" : "보이드";
   ctx.textAlign = "center";
   ctx.fillStyle = "rgba(255,255,255,0.36)";
   ctx.font = "12px Arial";
@@ -865,7 +867,7 @@ function drawCharacterSelectScreen() {
 
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
   const maxCardsPerRow = 3;
-  const characterIds = ["default", "suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra"];
+  const characterIds = ["default", "suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void"];
   const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
@@ -896,7 +898,8 @@ function drawCharacterSelectScreen() {
     zero: { color: "#ffd85a", color2: "#bf342f", role: "SWORD DANCER", number: "07" },
     paladin: { color: "#ffe48b", color2: "#315a94", role: "COMBO KNIGHT", number: "08" },
     arc: { color: "#ff8b32", color2: "#7d1e12", role: "SOLAR MAGE", number: "09" },
-    terra: { color: "#c5d965", color2: "#526b2d", role: "EARTH BREAKER", number: "10" }
+    terra: { color: "#c5d965", color2: "#526b2d", role: "EARTH BREAKER", number: "10" },
+    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "11" }
   };
 
   ctx.save();
@@ -907,7 +910,7 @@ function drawCharacterSelectScreen() {
     const cardScale = 1;
     if (card.y + card.h < y - 8 || card.y > canvas.height) continue;
     const isSelected = selectedCharacter === card.id;
-    const unlocked = card.id === "default" || card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
+    const unlocked = card.id === "default" || card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
     const hover = pointInRect(mouse.x, mouse.y, card);
     const theme = themes[card.id];
     const displayY = card.y + (hover && unlocked ? -7 : 0);
@@ -942,8 +945,8 @@ function drawCharacterSelectScreen() {
     }
     ctx.textAlign = "center";
 
-    const sprite = card.id === "default" ? playerSprite : card.id === "suncall" ? suncallSprite : card.id === "luminous" ? luminousSprite : card.id === "yupiter" ? yupiterSprite : card.id === "ren" ? renSprite : card.id === "nightLord" ? nightLordSprite : card.id === "zero" ? zeroSprite : card.id === "paladin" ? paladinSprite : card.id === "arc" ? arcSprite : terraSprite;
-    const loaded = card.id === "default" ? playerSpriteLoaded : card.id === "suncall" ? suncallSpriteLoaded : card.id === "luminous" ? luminousSpriteLoaded : card.id === "yupiter" ? yupiterSpriteLoaded : card.id === "ren" ? renSpriteLoaded : card.id === "nightLord" ? nightLordSpriteLoaded : card.id === "zero" ? zeroSpriteLoaded : card.id === "paladin" ? paladinSpriteLoaded : card.id === "arc" ? arcSpriteLoaded : terraSpriteLoaded;
+    const sprite = card.id === "default" ? playerSprite : card.id === "suncall" ? suncallSprite : card.id === "luminous" ? luminousSprite : card.id === "yupiter" ? yupiterSprite : card.id === "ren" ? renSprite : card.id === "nightLord" ? nightLordSprite : card.id === "zero" ? zeroSprite : card.id === "paladin" ? paladinSprite : card.id === "arc" ? arcSprite : card.id === "terra" ? terraSprite : voidSprite;
+    const loaded = card.id === "default" ? playerSpriteLoaded : card.id === "suncall" ? suncallSpriteLoaded : card.id === "luminous" ? luminousSpriteLoaded : card.id === "yupiter" ? yupiterSpriteLoaded : card.id === "ren" ? renSpriteLoaded : card.id === "nightLord" ? nightLordSpriteLoaded : card.id === "zero" ? zeroSpriteLoaded : card.id === "paladin" ? paladinSpriteLoaded : card.id === "arc" ? arcSpriteLoaded : card.id === "terra" ? terraSpriteLoaded : voidSpriteLoaded;
     if (loaded) {
       ctx.save();
       if (!unlocked) ctx.globalAlpha = 0.24;
@@ -958,8 +961,8 @@ function drawCharacterSelectScreen() {
       ctx.restore();
     }
 
-    const name = card.id === "default" ? "기본 캐릭터" : card.id === "suncall" ? "썬콜" : card.id === "luminous" ? "루미너스" : card.id === "yupiter" ? "유피테르" : card.id === "ren" ? "렌" : card.id === "nightLord" ? "나이트 로드" : card.id === "zero" ? "제로" : card.id === "paladin" ? "팔라딘" : card.id === "arc" ? "아크" : "테라";
-    const passive = card.id === "default" ? "기본 능력치" : card.id === "suncall" ? "패시브: 이동속도 +15% · 공격 시 10% 확률로 얼음 지대 생성" : card.id === "luminous" ? "패시브: 총알이 자동으로 적을 추적" : card.id === "yupiter" ? "패시브: 3가지 무기를 골라서 사용" : card.id === "ren" ? "패시브: 그림자를 수집해 분신 강화" : card.id === "nightLord" ? "패시브: 잃은 체력에 비례해 공격 강화" : card.id === "zero" ? "패시브: 레벨당 검술 피해 +4% · 평타 적중 시 스킬 쿨타임 감소" : card.id === "paladin" ? "패시브: 콤보에 따라 성검과 공격 방식이 해방" : card.id === "arc" ? "패시브: 다수 적중 시 열기를 모아 태양 기술 강화" : "패시브: 평타 다중 적중으로 진동을 모아 지형 스킬 강화";
+    const name = card.id === "default" ? "기본 캐릭터" : card.id === "suncall" ? "썬콜" : card.id === "luminous" ? "루미너스" : card.id === "yupiter" ? "유피테르" : card.id === "ren" ? "렌" : card.id === "nightLord" ? "나이트 로드" : card.id === "zero" ? "제로" : card.id === "paladin" ? "팔라딘" : card.id === "arc" ? "아크" : card.id === "terra" ? "테라" : "보이드";
+    const passive = card.id === "default" ? "기본 능력치" : card.id === "suncall" ? "패시브: 이동속도 +15% · 공격 시 10% 확률로 얼음 지대 생성" : card.id === "luminous" ? "패시브: 총알이 자동으로 적을 추적" : card.id === "yupiter" ? "패시브: 3가지 무기를 골라서 사용" : card.id === "ren" ? "패시브: 그림자를 수집해 분신 강화" : card.id === "nightLord" ? "패시브: 잃은 체력에 비례해 공격 강화" : card.id === "zero" ? "패시브: 레벨당 검술 피해 +4% · 평타 적중 시 스킬 쿨타임 감소" : card.id === "paladin" ? "패시브: 콤보에 따라 성검과 공격 방식이 해방" : card.id === "arc" ? "패시브: 다수 적중 시 열기를 모아 태양 기술 강화" : card.id === "terra" ? "패시브: 평타 다중 적중으로 진동을 모아 지형 스킬 강화" : "패시브: 지면을 삼켜 공허 질량으로 변환";
     ctx.fillStyle = unlocked ? "#f4f7ff" : "#777d88";
     ctx.font = `bold ${Math.max(12, (card.w < 145 ? 16 : 23) * Math.min(1, cardScale + .12))}px Arial`;
     ctx.fillText(name, card.x + card.w / 2, displayY + 252 * cardScale);
@@ -1452,6 +1455,7 @@ const transcendIconCells = {
 };
 
 function drawAugmentIcon(id, x, y, size, transcendent = false) {
+  if(id==="voidCapacity"||id==="voidTerrain"||id==="voidChain"){if(voidAugmentIconAtlas.complete&&voidAugmentIconAtlas.naturalWidth){const cell={voidCapacity:0,voidTerrain:1,voidChain:2}[id]+(transcendent?1:0);const sw=voidAugmentIconAtlas.naturalWidth/2,sh=voidAugmentIconAtlas.naturalHeight/2,col=cell%2,row=Math.floor(cell/2)%2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(voidAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
   if (id === "terraResonance" || id === "terraFault" || id === "terraRampart") {
     if (terraAugmentIconAtlas.complete && terraAugmentIconAtlas.naturalWidth > 0) {
       const column = { terraResonance: 0, terraFault: 1, terraRampart: 2 }[id], row = transcendent ? 1 : 0;

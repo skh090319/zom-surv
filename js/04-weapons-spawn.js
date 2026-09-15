@@ -37,6 +37,7 @@ function shoot() {
     attackWithTerra();
     return;
   }
+  if (selectedCharacter === "void") { attackWithVoid(); return; }
 
   if (selectedCharacter === "yupiter") {
     attackWithYupiterWeapon();

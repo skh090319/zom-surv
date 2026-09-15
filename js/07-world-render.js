@@ -138,6 +138,8 @@ function drawPlayer() {
   const nightLordIsAttacking = Boolean((nightLordSlash || nightLordAttackHeld) && nightLordAttackSpriteLoaded);
   const activeSprite = selectedCharacter === "terra"
     ? terraSprite
+    : selectedCharacter === "void"
+    ? voidSprite
     : selectedCharacter === "arc"
     ? arcSprite
     : selectedCharacter === "paladin"
@@ -159,6 +161,8 @@ function drawPlayer() {
         : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSprite : renSprite) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSprite : nightLordSprite) : playerSprite))));
   const activeLoaded = selectedCharacter === "terra"
     ? terraSpriteLoaded
+    : selectedCharacter === "void"
+    ? voidSpriteLoaded
     : selectedCharacter === "arc"
     ? arcSpriteLoaded
     : selectedCharacter === "paladin"
@@ -172,7 +176,7 @@ function drawPlayer() {
       : (selectedCharacter === "yupiter" ? yupiterSpriteLoaded : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSpriteLoaded : renSpriteLoaded) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSpriteLoaded : nightLordSpriteLoaded) : playerSpriteLoaded))));
 
   if (activeLoaded) {
-    const size = (selectedCharacter === "luminous" || selectedCharacter === "ren" || selectedCharacter === "nightLord" || selectedCharacter === "zero" || selectedCharacter === "paladin" || selectedCharacter === "arc" || selectedCharacter === "terra") ? 112 : ((selectedCharacter === "suncall" || selectedCharacter === "yupiter") ? 104 : 96);
+    const size = (selectedCharacter === "luminous" || selectedCharacter === "ren" || selectedCharacter === "nightLord" || selectedCharacter === "zero" || selectedCharacter === "paladin" || selectedCharacter === "arc" || selectedCharacter === "terra" || selectedCharacter === "void") ? 112 : ((selectedCharacter === "suncall" || selectedCharacter === "yupiter") ? 104 : 96);
 
     ctx.save();
     const castLunge = luminousIsAttacking ? 4 * Math.min(1, player.luminousAttackTime / 4) : 0;
@@ -187,6 +191,7 @@ function drawPlayer() {
     if (selectedCharacter === "paladin" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "arc" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "terra" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
+    if (selectedCharacter === "void" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     ctx.drawImage(activeSprite, -size / 2, -size / 2 - 18, size, size);
     ctx.restore();
   } else {
@@ -196,7 +201,7 @@ function drawPlayer() {
     ctx.fill();
   }
 
-  if (gunSpriteLoaded && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra") {
+  if (gunSpriteLoaded && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void") {
     const gunW = 68;
     const gunH = 30;
 

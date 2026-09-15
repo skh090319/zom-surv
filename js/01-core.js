@@ -185,6 +185,10 @@ const terraRockAtlas = new Image();
 terraRockAtlas.src = "assets/terra-rock-atlas.png";
 let terraRockAtlasLoaded = false;
 terraRockAtlas.onload = () => { terraRockAtlasLoaded = true; };
+const voidSprite = new Image(); voidSprite.src = "assets/void.png";
+let voidSpriteLoaded = false; voidSprite.onload = () => { voidSpriteLoaded = true; };
+const voidSkillIconAtlas = new Image(); voidSkillIconAtlas.src = "assets/void-skill-icons.png";
+const voidAugmentIconAtlas = new Image(); voidAugmentIconAtlas.src = "assets/void-augment-icons.png";
 
 const renHudPortrait = new Image();
 renHudPortrait.src = "assets/ren-hud-portrait.png";
@@ -435,6 +439,8 @@ const player = {
   terraResonanceLevel: 0,
   terraFaultLevel: 0,
   terraRampartLevel: 0,
+  voidMass: 0, voidQCooldown: 0, voidECooldown: 0, voidXCooldown: 0, voidRCooldown: 0,
+  voidUltimateTime: 0, voidUltimateTick: 0, voidCapacityLevel: 0, voidTerrainLevel: 0, voidChainLevel: 0,
   immortalLevel: 0,
   immortalUsed: false,
   dodgeLevel: 0,
@@ -479,6 +485,8 @@ let arcEffects = [];
 let terraStructures = [];
 let terraEffects = [];
 let terraRockProjectiles = [];
+let voidTerrains = [];
+let voidEffects = [];
 
 let wave = 1;
 let gameOver = false;

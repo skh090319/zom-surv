@@ -37,6 +37,9 @@ const upgradeCount = {
   ,terraResonance: 0
   ,terraFault: 0
   ,terraRampart: 0
+  ,voidCapacity: 0
+  ,voidTerrain: 0
+  ,voidChain: 0
 
 
 };
@@ -78,6 +81,9 @@ const transcended = {
   ,terraResonance: false
   ,terraFault: false
   ,terraRampart: false
+  ,voidCapacity: false
+  ,voidTerrain: false
+  ,voidChain: false
 
 
 };
@@ -170,6 +176,9 @@ const upgrades = [
   { id:"terraResonance",category:"support",name:"공명핵",desc:"진동 획득량이 단계마다 20% 증가합니다",transcendName:"초월: 세계의 맥동",transcendDesc:"진동이 더 이상 자연 감소하지 않습니다",requires(){return selectedCharacter==="terra";},apply(){upgradeCount.terraResonance++;if(upgradeCount.terraResonance<4)player.terraResonanceLevel++;else transcended.terraResonance=true;}},
   { id:"terraFault",category:"support",name:"확장 단층",desc:"단층 붕괴의 길이와 피해가 증가합니다",transcendName:"초월: 끝없는 여진",transcendDesc:"강화 스킬이 추가 여진을 일으킵니다",requires(){return selectedCharacter==="terra";},apply(){upgradeCount.terraFault++;if(upgradeCount.terraFault<4)player.terraFaultLevel++;else transcended.terraFault=true;}},
   { id:"terraRampart",category:"support",name:"암석 지배",desc:"암벽 융기의 범위가 단계마다 10% 증가합니다",transcendName:"초월: 가이아의 심장",transcendDesc:"지형 붕괴의 피해와 최대 범위가 크게 증가합니다",requires(){return selectedCharacter==="terra";},apply(){upgradeCount.terraRampart++;if(upgradeCount.terraRampart<4)player.terraRampartLevel++;else transcended.terraRampart=true;}},
+  {id:"voidCapacity",category:"support",name:"고밀도 특이점",desc:"공허 질량 최대치가 20 증가하고 궁극기 범위가 커집니다",transcendName:"초월: 무한 밀도",transcendDesc:"지면 포식 시 획득하는 질량이 2배가 됩니다",requires(){return selectedCharacter==="void";},apply(){upgradeCount.voidCapacity++;if(upgradeCount.voidCapacity<4)player.voidCapacityLevel++;else transcended.voidCapacity=true;}},
+  {id:"voidTerrain",category:"support",name:"포식 지형",desc:"지면 포식과 토해낸 대지의 범위가 증가합니다",transcendName:"초월: 공허 결정",transcendDesc:"토해낸 지형이 적에게 지속 피해를 줍니다",requires(){return selectedCharacter==="void";},apply(){upgradeCount.voidTerrain++;if(upgradeCount.voidTerrain<4)player.voidTerrainLevel++;else transcended.voidTerrain=true;}},
+  {id:"voidChain",category:"support",name:"연쇄 붕괴",desc:"지반 붕괴 피해가 단계마다 18% 증가합니다",transcendName:"초월: 세계 포식자",transcendDesc:"붕괴한 지형마다 추가 소형 특이점이 생성됩니다",requires(){return selectedCharacter==="void";},apply(){upgradeCount.voidChain++;if(upgradeCount.voidChain<4)player.voidChainLevel++;else transcended.voidChain=true;}},
   { id: "greed", category: "support", name: "탐욕", desc: "다음 선택 시 경험치 획득량 +10%", transcendName: "초월: 흡혈 군주", transcendDesc: "적 처치 시 최대 체력의 1% 회복",
     getDesc() {
       const next = Math.min(3, (upgradeCount.greed || 0) + 1);
@@ -269,7 +278,7 @@ function openUpgradeMenu() {
       if (selectedCharacter === "zero" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "paladin" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "arc" && (u.id === "ammo" || u.id === "fireRate")) return false;
-      if (selectedCharacter === "terra" && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if ((selectedCharacter === "terra" || selectedCharacter === "void") && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (typeof u.requires === "function" && !u.requires()) return false;
       if (transcended[u.id]) return false;
       return true;

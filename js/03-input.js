@@ -40,7 +40,11 @@ addEventListener("keydown", e => {
     if (key === "e" && selectedCharacter === "terra") activateTerraE();
     if (key === "x" && selectedCharacter === "terra") activateTerraX();
     if (key === "r" && selectedCharacter === "terra") activateTerraR();
-    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra") reload();
+    if (key === "q" && selectedCharacter === "void") activateVoidQ();
+    if (key === "e" && selectedCharacter === "void") activateVoidE();
+    if (key === "x" && selectedCharacter === "void") activateVoidX();
+    if (key === "r" && selectedCharacter === "void") activateVoidR();
+    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void") reload();
   }
   if (gameOver && key === "enter") {
     restart();
@@ -126,6 +130,7 @@ canvas.addEventListener("mousedown", () => {
       if (card.id === "terra") {
         selectedCharacter = "terra";
       }
+      if (card.id === "void") selectedCharacter = "void";
 
       return;
     }
