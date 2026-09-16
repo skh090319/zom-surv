@@ -860,21 +860,41 @@ const characterSkillGuide = {
 
 function getCharacterPreviewSprite(id){return id==="default"?playerSprite:id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:carmillaSprite;}
 
+const characterSkillVideoKeys = {
+  default:["attack","reload"], suncall:["attack","reload"], luminous:["attack","gatling"],
+  yupiter:["q","e","r"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
+  zero:["q","e","x","r"], paladin:["q","e","x","r"], arc:["q","e","x","r"],
+  terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"]
+};
+const characterSkillVideoCache = new Map();
+function getCharacterSkillVideo(id, skillIndex) {
+  const key = characterSkillVideoKeys[id]?.[skillIndex];
+  if (!key) return null;
+  const path = `assets/skill-videos/${id}-${key}.webm`;
+  if (!characterSkillVideoCache.has(path)) {
+    const video = document.createElement("video");
+    video.src = path;
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = "metadata";
+    characterSkillVideoCache.set(path, video);
+  }
+  return characterSkillVideoCache.get(path);
+}
+
 function drawCharacterGameplayPreview(id,skillIndex,skillName,x,y,w,h,color){
-  const t=(performance.now()-characterDetailOpenedAt)*.001;
-  ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,18);ctx.clip();
-  const bg=ctx.createLinearGradient(x,y,x+w,y+h);bg.addColorStop(0,"#111827");bg.addColorStop(1,"#070911");ctx.fillStyle=bg;ctx.fillRect(x,y,w,h);
-  ctx.strokeStyle="rgba(255,255,255,.055)";ctx.lineWidth=1;for(let gx=x-(t*18)%38;gx<x+w;gx+=38){ctx.beginPath();ctx.moveTo(gx,y);ctx.lineTo(gx,y+h);ctx.stroke();}for(let gy=y;gy<y+h;gy+=38){ctx.beginPath();ctx.moveTo(x,gy);ctx.lineTo(x+w,gy);ctx.stroke();}
-  const cx=x+w*.38,cy=y+h*.58,aim=t*.55-.35;const targetX=x+w*.75,targetY=y+h*.43+Math.sin(t*2)*18;
-  ctx.save();ctx.translate(cx,cy);if(Math.cos(aim)>0)ctx.scale(-1,1);const sprite=getCharacterPreviewSprite(id);if(sprite&&sprite.complete&&sprite.naturalWidth)ctx.drawImage(sprite,-54,-72,108,108);ctx.restore();
-  ctx.save();ctx.translate(targetX,targetY);ctx.fillStyle="#27352e";ctx.strokeStyle="#79e276";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,25,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle="#ff5165";ctx.fillRect(-25,-38,50,5);ctx.restore();
-  const phase=(t%1.35)/1.35;ctx.save();ctx.globalCompositeOperation="lighter";ctx.strokeStyle=color;ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=20;
-  const mode=skillIndex%4;
-  if(mode===0){const px=cx+(targetX-cx)*phase,py=cy-18+(targetY-cy+18)*phase;ctx.beginPath();ctx.arc(px,py,id==="luminous"?10:7,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.35;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx,cy-18);ctx.lineTo(px,py);ctx.stroke();}
-  else if(mode===1){const r=35+phase*115;ctx.globalAlpha=1-phase;ctx.lineWidth=12-phase*7;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();for(let k=0;k<8;k++){const a=k*Math.PI/4+t;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*25,cy+Math.sin(a)*25);ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);ctx.stroke();}}
-  else if(mode===2){ctx.globalAlpha=1-phase*.72;for(let k=0;k<9;k++){const rainX=targetX-75+k*18,rainY=y+24+((phase*220+k*31)%210);ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(rainX-10,rainY-30);ctx.lineTo(rainX,rainY);ctx.stroke();}ctx.lineWidth=7;ctx.beginPath();ctx.arc(targetX,targetY,28+phase*70,0,Math.PI*2);ctx.stroke();}
-  else{const r=55+Math.sin(t*3)*8;ctx.globalAlpha=.78;ctx.lineWidth=9;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=.42;ctx.lineWidth=18;ctx.beginPath();ctx.arc(cx,cy,90+phase*125,0,Math.PI*2);ctx.stroke();for(let k=0;k<10;k++){const a=k*Math.PI/5+t*1.6;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*65,cy+Math.sin(a)*65);ctx.lineTo(cx+Math.cos(a)*170,cy+Math.sin(a)*170);ctx.stroke();}}
-  ctx.restore();ctx.fillStyle="rgba(4,7,14,.84)";ctx.fillRect(x,y+h-34,w,34);ctx.fillStyle="#d9e5fa";ctx.font="bold 11px Arial";ctx.textAlign="left";ctx.fillText(`LIVE  ·  ${skillName}`,x+13,y+h-13);ctx.restore();
+  const video=getCharacterSkillVideo(id,skillIndex);
+  ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,18);ctx.clip();ctx.fillStyle="#070911";ctx.fillRect(x,y,w,h);
+  if(video){
+    if(video.dataset.openedAt!==String(characterDetailOpenedAt)){video.dataset.openedAt=String(characterDetailOpenedAt);video.currentTime=0;video.play().catch(()=>{});}
+    if(video.readyState>=2){
+      const scale=Math.max(w/video.videoWidth,h/video.videoHeight),dw=video.videoWidth*scale,dh=video.videoHeight*scale;
+      ctx.drawImage(video,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+    } else {ctx.fillStyle="#aab8d0";ctx.font="bold 15px Arial";ctx.textAlign="center";ctx.fillText("실제 플레이 영상 불러오는 중…",x+w/2,y+h/2);}
+  }
+  const shade=ctx.createLinearGradient(0,y+h-58,0,y+h);shade.addColorStop(0,"rgba(4,7,14,0)");shade.addColorStop(1,"rgba(4,7,14,.9)");ctx.fillStyle=shade;ctx.fillRect(x,y+h-58,w,58);
+  ctx.fillStyle="#d9e5fa";ctx.font="bold 11px Arial";ctx.textAlign="left";ctx.fillText(`RECORDED GAMEPLAY  ·  ${skillName}`,x+13,y+h-13);ctx.restore();
   drawRoundedRect(x,y,w,h,18,"rgba(0,0,0,0)",`${color}aa`,2);
 }
 
