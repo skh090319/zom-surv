@@ -103,7 +103,7 @@ canvas.addEventListener("mousedown", event => {
 
   if (screenMode === "character") {
     if (characterDetailId) {
-      if (pointInRect(mouse.x, mouse.y, characterDetailCloseRect) || event.button === 2) {
+      if (pointInRect(event.clientX, event.clientY, characterDetailCloseRect)) {
         characterDetailId = null;
       } else {
         for (let i = 0; i < characterDetailSkillRects.length; i++) {
