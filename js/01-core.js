@@ -508,6 +508,8 @@ let characterScrollY = 0;
 let characterScrollMax = 0;
 let characterDetailId = null;
 let characterDetailOpenedAt = 0;
+let characterDetailSkillIndex = 0;
+let characterDetailSkillRects = [];
 let characterDetailCloseRect = { x: 0, y: 0, w: 46, h: 46 };
 
 // 화면 밖 오브젝트는 그리지 않되 게임 로직과 이펙트 자체는 그대로 유지한다.

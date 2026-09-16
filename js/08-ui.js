@@ -860,7 +860,7 @@ const characterSkillGuide = {
 
 function getCharacterPreviewSprite(id){return id==="default"?playerSprite:id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:carmillaSprite;}
 
-function drawCharacterGameplayPreview(id,x,y,w,h,color){
+function drawCharacterGameplayPreview(id,skillIndex,skillName,x,y,w,h,color){
   const t=(performance.now()-characterDetailOpenedAt)*.001;
   ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,18);ctx.clip();
   const bg=ctx.createLinearGradient(x,y,x+w,y+h);bg.addColorStop(0,"#111827");bg.addColorStop(1,"#070911");ctx.fillStyle=bg;ctx.fillRect(x,y,w,h);
@@ -869,10 +869,12 @@ function drawCharacterGameplayPreview(id,x,y,w,h,color){
   ctx.save();ctx.translate(cx,cy);if(Math.cos(aim)>0)ctx.scale(-1,1);const sprite=getCharacterPreviewSprite(id);if(sprite&&sprite.complete&&sprite.naturalWidth)ctx.drawImage(sprite,-54,-72,108,108);ctx.restore();
   ctx.save();ctx.translate(targetX,targetY);ctx.fillStyle="#27352e";ctx.strokeStyle="#79e276";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,25,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle="#ff5165";ctx.fillRect(-25,-38,50,5);ctx.restore();
   const phase=(t%1.35)/1.35;ctx.save();ctx.globalCompositeOperation="lighter";ctx.strokeStyle=color;ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=20;
-  if(["default","suncall","luminous","arc"].includes(id)){const px=cx+(targetX-cx)*phase,py=cy-18+(targetY-cy+18)*phase;ctx.beginPath();ctx.arc(px,py,id==="luminous"?10:6,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.35;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx,cy-18);ctx.lineTo(px,py);ctx.stroke();}
-  else if(["terra","void"].includes(id)){const r=28+phase*95;ctx.globalAlpha=1-phase;ctx.lineWidth=10-phase*6;ctx.beginPath();ctx.arc(targetX,targetY,r,0,Math.PI*2);ctx.stroke();for(let k=0;k<6;k++){const a=k*Math.PI/3+t;ctx.beginPath();ctx.moveTo(targetX+Math.cos(a)*25,targetY+Math.sin(a)*25);ctx.lineTo(targetX+Math.cos(a)*r,targetY+Math.sin(a)*r);ctx.stroke();}}
-  else{ctx.translate(cx,cy);ctx.rotate(aim);ctx.globalAlpha=1-phase*.65;ctx.lineWidth=16-phase*9;ctx.beginPath();ctx.arc(0,0,58+phase*34,-1.1,-1.1+2.15*Math.min(1,phase*2));ctx.stroke();}
-  ctx.restore();ctx.fillStyle="rgba(4,7,14,.82)";ctx.fillRect(x,y+h-30,w,30);ctx.fillStyle="#d9e5fa";ctx.font="bold 11px Arial";ctx.textAlign="left";ctx.fillText("LIVE  ·  실제 전투 연출 미리보기",x+13,y+h-11);ctx.restore();
+  const mode=skillIndex%4;
+  if(mode===0){const px=cx+(targetX-cx)*phase,py=cy-18+(targetY-cy+18)*phase;ctx.beginPath();ctx.arc(px,py,id==="luminous"?10:7,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.35;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx,cy-18);ctx.lineTo(px,py);ctx.stroke();}
+  else if(mode===1){const r=35+phase*115;ctx.globalAlpha=1-phase;ctx.lineWidth=12-phase*7;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();for(let k=0;k<8;k++){const a=k*Math.PI/4+t;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*25,cy+Math.sin(a)*25);ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);ctx.stroke();}}
+  else if(mode===2){ctx.globalAlpha=1-phase*.72;for(let k=0;k<9;k++){const rainX=targetX-75+k*18,rainY=y+24+((phase*220+k*31)%210);ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(rainX-10,rainY-30);ctx.lineTo(rainX,rainY);ctx.stroke();}ctx.lineWidth=7;ctx.beginPath();ctx.arc(targetX,targetY,28+phase*70,0,Math.PI*2);ctx.stroke();}
+  else{const r=55+Math.sin(t*3)*8;ctx.globalAlpha=.78;ctx.lineWidth=9;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=.42;ctx.lineWidth=18;ctx.beginPath();ctx.arc(cx,cy,90+phase*125,0,Math.PI*2);ctx.stroke();for(let k=0;k<10;k++){const a=k*Math.PI/5+t*1.6;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*65,cy+Math.sin(a)*65);ctx.lineTo(cx+Math.cos(a)*170,cy+Math.sin(a)*170);ctx.stroke();}}
+  ctx.restore();ctx.fillStyle="rgba(4,7,14,.84)";ctx.fillRect(x,y+h-34,w,34);ctx.fillStyle="#d9e5fa";ctx.font="bold 11px Arial";ctx.textAlign="left";ctx.fillText(`LIVE  ·  ${skillName}`,x+13,y+h-13);ctx.restore();
   drawRoundedRect(x,y,w,h,18,"rgba(0,0,0,0)",`${color}aa`,2);
 }
 
@@ -882,9 +884,9 @@ function drawCharacterDetailOverlay(){
   const w=Math.min(1040,canvas.width-36),h=Math.min(650,canvas.height-40),x=(canvas.width-w)/2,y=(canvas.height-h)/2;const panel=ctx.createLinearGradient(x,y,x+w,y+h);panel.addColorStop(0,"rgba(15,21,36,.99)");panel.addColorStop(1,"rgba(7,9,18,.99)");drawRoundedRect(x,y,w,h,24,panel,info.color,2);
   characterDetailCloseRect={x:x+w-58,y:y+14,w:42,h:42};drawRoundedRect(characterDetailCloseRect.x,characterDetailCloseRect.y,42,42,12,"rgba(255,255,255,.06)","rgba(255,255,255,.18)",1);ctx.fillStyle="#fff";ctx.font="bold 24px Arial";ctx.textAlign="center";ctx.fillText("×",characterDetailCloseRect.x+21,characterDetailCloseRect.y+29);
   ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 32px Arial";ctx.fillText(info.name,x+30,y+47);ctx.fillStyle=info.color;ctx.font="bold 13px Arial";ctx.fillText("우클릭 상세 정보  ·  ESC 또는 × 닫기",x+30,y+70);
-  const previewW=Math.min(540,w*.54),previewH=Math.min(440,h-120);drawCharacterGameplayPreview(characterDetailId,x+26,y+92,previewW,previewH,info.color);
+  const previewW=Math.min(540,w*.54),previewH=Math.min(440,h-120);const activeSkill=info.skills[Math.min(characterDetailSkillIndex,info.skills.length-1)];drawCharacterGameplayPreview(characterDetailId,characterDetailSkillIndex,activeSkill[0],x+26,y+92,previewW,previewH,info.color);
   const tx=x+previewW+52,tw=w-previewW-80;ctx.fillStyle="#f3f6ff";ctx.font="bold 18px Arial";ctx.fillText("패시브",tx,y+108);ctx.fillStyle="#b9c5d8";ctx.font="14px Arial";wrapTextLeft(info.passive,tx,y+136,tw,22);
-  let sy=y+202;for(const skill of info.skills){drawRoundedRect(tx,sy,tw,72,12,"rgba(255,255,255,.035)",`${info.color}55`,1);ctx.fillStyle=info.color;ctx.font="bold 15px Arial";ctx.fillText(skill[0],tx+14,sy+23);ctx.fillStyle="#c9d2e2";ctx.font="13px Arial";wrapTextLeft(skill[1],tx+14,sy+46,tw-28,18);sy+=82;}
+  characterDetailSkillRects=[];let sy=y+202;for(let i=0;i<info.skills.length;i++){const skill=info.skills[i],selected=i===characterDetailSkillIndex,rect={x:tx,y:sy,w:tw,h:72};characterDetailSkillRects.push(rect);const hover=pointInRect(mouse.x,mouse.y,rect);drawRoundedRect(tx,sy,tw,72,12,selected?`${info.color}24`:(hover?"rgba(255,255,255,.075)":"rgba(255,255,255,.035)"),selected?info.color:`${info.color}55`,selected?2:1);ctx.fillStyle=info.color;ctx.font="bold 15px Arial";ctx.fillText(`${selected?"▶ ":""}${skill[0]}`,tx+14,sy+23);ctx.fillStyle="#c9d2e2";ctx.font="13px Arial";wrapTextLeft(skill[1],tx+14,sy+46,tw-28,18);sy+=82;}
   ctx.restore();
 }
 

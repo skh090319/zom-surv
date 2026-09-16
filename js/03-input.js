@@ -77,6 +77,7 @@ canvas.addEventListener("mousedown", event => {
       if (!pointInRect(event.clientX, event.clientY, card)) continue;
       characterDetailId = card.id;
       characterDetailOpenedAt = performance.now();
+      characterDetailSkillIndex = 0;
       mouse.down = false;
       return;
     }
@@ -104,6 +105,13 @@ canvas.addEventListener("mousedown", event => {
     if (characterDetailId) {
       if (pointInRect(mouse.x, mouse.y, characterDetailCloseRect) || event.button === 2) {
         characterDetailId = null;
+      } else {
+        for (let i = 0; i < characterDetailSkillRects.length; i++) {
+          if (!pointInRect(event.clientX, event.clientY, characterDetailSkillRects[i])) continue;
+          characterDetailSkillIndex = i;
+          characterDetailOpenedAt = performance.now();
+          return;
+        }
       }
       return;
     }
@@ -214,6 +222,7 @@ canvas.addEventListener("contextmenu", event => {
     if (!pointInRect(point.x, point.y, card)) continue;
     characterDetailId = card.id;
     characterDetailOpenedAt = performance.now();
+    characterDetailSkillIndex = 0;
     mouse.down = false;
     return;
   }
