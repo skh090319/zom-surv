@@ -847,7 +847,7 @@ const characterSkillGuide = {
   default:{name:"기본 캐릭터",color:"#b05cff",passive:"안정적인 능력치로 총기와 공용 증강을 자유롭게 조합합니다.",skills:[["기본 공격","마우스 방향으로 총알을 발사합니다."],["R 재장전","탄창을 다시 채웁니다."]]},
   suncall:{name:"썬콜",color:"#48d8ff",passive:"이동속도가 15% 증가하며 공격 시 10% 확률로 둔화 얼음 지대를 만듭니다.",skills:[["기본 공격","빠른 총격으로 적을 공격하고 얼음 지대를 생성합니다."],["R 재장전","탄창을 다시 채웁니다."]]},
   luminous:{name:"루미너스",color:"#59e9ff",passive:"8개의 마력탄이 발사 순간 지정한 적을 자동 추적합니다.",skills:[["유도 마력탄","손끝에서 발사한 마력탄이 궤도를 휘어 적을 끝까지 추적합니다."]]},
-  yupiter:{name:"유피테르",color:"#64ef91",passive:"Q로 반월검·절단검·화염포를 전환하며 각 무기마다 E와 R이 달라집니다.",skills:[["Q 무기 전환","세 무기를 순서대로 교체합니다."],["E 무기 기술","현재 무기의 강화 기술을 사용합니다."],["R 무기 궁극기","현재 무기에 맞는 강력한 궁극기를 사용합니다."]]},
+  yupiter:{name:"유피테르",color:"#64ef91",passive:"Q로 반월검·절단검·화염포를 전환하며 각 무기마다 E와 R이 달라집니다.",skills:[["Q 무기 전환","반월검·절단검·화염포를 교체하며 각 무기의 기본 공격을 확인합니다."],["E 반월검 증식","반월검을 4개로 늘려 한 번의 공격으로 더 큰 피해를 줍니다."],["E 절단검 가속","공격속도를 폭발적으로 높여 연속 참격을 가합니다."],["E 화염포 폭파","화염포 표식이 묻은 적들을 한꺼번에 폭발시킵니다."],["R 반월검 궁극기","10개의 반월검이 점점 넓게 공전하며 적을 공격합니다."],["R 절단검 궁극기","이동속도·공격 범위가 증가하고 낮은 체력의 적을 처형합니다."],["R 화염포 궁극기","에너지 구체 적중 지점에서 모든 적에게 화염탄을 퍼뜨립니다."]]},
   ren:{name:"렌",color:"#ff496f",passive:"그림자 조각을 흡수해 공격력을 높이고 분신을 강화합니다.",skills:[["Q 분신 배치","분신을 커서 방향의 제한 거리까지 내보냅니다."],["X 그림자 이동","가장 최근 분신 위치로 순간이동합니다."],["E 분신 습격","분신이 적을 찾아 강하게 습격합니다."],["R 그림자 지대","거대한 마법진을 펼쳐 적을 둔화하고 지속 피해를 줍니다."]]},
   nightLord:{name:"나이트 로드",color:"#a855f7",passive:"잃은 체력에 비례해 공격력이 증가하며 처형과 흡혈로 역전합니다.",skills:[["Q 그림자 추격","적에게 파고들어 베고 잠시 공격속도가 증가합니다."],["E 광란","현재 체력을 대가로 연속 참격을 사용합니다."],["X 처형","기준 이하 체력의 적을 마무리합니다."],["R 불사의 밤","체력이 1 아래로 내려가지 않는 강화 상태가 됩니다."]]},
   zero:{name:"제로",color:"#ffd85a",passive:"평타 적중으로 Q·E·X의 쿨타임을 줄이며 후반으로 갈수록 검술 피해가 증가합니다.",skills:[["Q 참격","짧게 돌진해 전방의 적을 찌릅니다."],["E 급소","평타를 강화하고 다음 강화 평타를 적중할 때까지 보존합니다."],["X 심판","원형 지역에 다수의 칼을 쏟아붓습니다."],["R 검의 왈츠","가까운 적부터 연속으로 빠르게 베어냅니다."]]},
@@ -862,7 +862,7 @@ function getCharacterPreviewSprite(id){return id==="default"?playerSprite:id==="
 
 const characterSkillVideoKeys = {
   default:["attack","reload"], suncall:["attack","reload"], luminous:["attack"],
-  yupiter:["q","e","r"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
+  yupiter:["q","e-crescent","e-severing","e-flame","r-crescent","r-severing","r-flame"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
   zero:["q","e","x","r"], paladin:["q","e","x","r"], arc:["q","e","x","r"],
   terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"]
 };
@@ -907,7 +907,7 @@ function drawCharacterDetailOverlay(){
   ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 32px Arial";ctx.fillText(info.name,x+30,y+47);ctx.fillStyle=info.color;ctx.font="bold 13px Arial";ctx.fillText("우클릭 상세 정보  ·  ESC 또는 × 닫기",x+30,y+70);
   const previewW=Math.min(540,w*.54),previewH=Math.min(440,h-120);const activeSkill=info.skills[Math.min(characterDetailSkillIndex,info.skills.length-1)];drawCharacterGameplayPreview(characterDetailId,characterDetailSkillIndex,activeSkill[0],x+26,y+92,previewW,previewH,info.color);
   const tx=x+previewW+52,tw=w-previewW-80;ctx.fillStyle="#f3f6ff";ctx.font="bold 18px Arial";ctx.fillText("패시브",tx,y+108);ctx.fillStyle="#b9c5d8";ctx.font="14px Arial";wrapTextLeft(info.passive,tx,y+136,tw,22);
-  characterDetailSkillRects=[];let sy=y+202;for(let i=0;i<info.skills.length;i++){const skill=info.skills[i],selected=i===characterDetailSkillIndex,rect={x:tx,y:sy,w:tw,h:72};characterDetailSkillRects.push(rect);const hover=pointInRect(mouse.x,mouse.y,rect);drawRoundedRect(tx,sy,tw,72,12,selected?`${info.color}24`:(hover?"rgba(255,255,255,.075)":"rgba(255,255,255,.035)"),selected?info.color:`${info.color}55`,selected?2:1);ctx.fillStyle=info.color;ctx.font="bold 15px Arial";ctx.fillText(`${selected?"▶ ":""}${skill[0]}`,tx+14,sy+23);ctx.fillStyle="#c9d2e2";ctx.font="13px Arial";wrapTextLeft(skill[1],tx+14,sy+46,tw-28,18);sy+=82;}
+  characterDetailSkillRects=[];const compact=info.skills.length>5,itemH=compact?50:72,itemGap=compact?56:82;let sy=compact?y+174:y+202;for(let i=0;i<info.skills.length;i++){const skill=info.skills[i],selected=i===characterDetailSkillIndex,rect={x:tx,y:sy,w:tw,h:itemH};characterDetailSkillRects.push(rect);const hover=pointInRect(mouse.x,mouse.y,rect);drawRoundedRect(tx,sy,tw,itemH,12,selected?`${info.color}24`:(hover?"rgba(255,255,255,.075)":"rgba(255,255,255,.035)"),selected?info.color:`${info.color}55`,selected?2:1);ctx.fillStyle=info.color;ctx.font=`bold ${compact?13:15}px Arial`;ctx.fillText(`${selected?"▶ ":""}${skill[0]}`,tx+12,sy+(compact?18:23));ctx.fillStyle="#c9d2e2";ctx.font=`${compact?11:13}px Arial`;wrapTextLeft(skill[1],tx+12,sy+(compact?36:46),tw-24,compact?14:18);sy+=itemGap;}
   ctx.restore();
 }
 
