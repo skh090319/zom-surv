@@ -843,6 +843,51 @@ function drawHomeScreen() {
   ctx.textAlign = "left";
 }
 
+const characterSkillGuide = {
+  default:{name:"기본 캐릭터",color:"#b05cff",passive:"안정적인 능력치로 총기와 공용 증강을 자유롭게 조합합니다.",skills:[["기본 공격","마우스 방향으로 총알을 발사합니다."],["R 재장전","탄창을 다시 채웁니다."]]},
+  suncall:{name:"썬콜",color:"#48d8ff",passive:"이동속도가 15% 증가하며 공격 시 10% 확률로 둔화 얼음 지대를 만듭니다.",skills:[["기본 공격","빠른 총격으로 적을 공격하고 얼음 지대를 생성합니다."],["R 재장전","탄창을 다시 채웁니다."]]},
+  luminous:{name:"루미너스",color:"#59e9ff",passive:"8개의 마력탄이 발사 순간 지정한 적을 자동 추적합니다.",skills:[["마력탄","총을 들지 않고 손끝에서 유도 마력탄을 발사합니다."],["게틀링건","연사 속도가 다소 감소하지만 유도 능력을 유지합니다."]]},
+  yupiter:{name:"유피테르",color:"#64ef91",passive:"Q로 반월검·절단검·화염포를 전환하며 각 무기마다 E와 R이 달라집니다.",skills:[["Q 무기 전환","세 무기를 순서대로 교체합니다."],["E 무기 기술","현재 무기의 강화 기술을 사용합니다."],["R 무기 궁극기","현재 무기에 맞는 강력한 궁극기를 사용합니다."]]},
+  ren:{name:"렌",color:"#ff496f",passive:"그림자 조각을 흡수해 공격력을 높이고 분신을 강화합니다.",skills:[["Q 분신 배치","분신을 커서 방향의 제한 거리까지 내보냅니다."],["X 그림자 이동","가장 최근 분신 위치로 순간이동합니다."],["E 분신 습격","분신이 적을 찾아 강하게 습격합니다."],["R 그림자 지대","거대한 마법진을 펼쳐 적을 둔화하고 지속 피해를 줍니다."]]},
+  nightLord:{name:"나이트 로드",color:"#a855f7",passive:"잃은 체력에 비례해 공격력이 증가하며 처형과 흡혈로 역전합니다.",skills:[["Q 그림자 추격","적에게 파고들어 베고 잠시 공격속도가 증가합니다."],["E 광란","현재 체력을 대가로 연속 참격을 사용합니다."],["X 처형","기준 이하 체력의 적을 마무리합니다."],["R 불사의 밤","체력이 1 아래로 내려가지 않는 강화 상태가 됩니다."]]},
+  zero:{name:"제로",color:"#ffd85a",passive:"평타 적중으로 Q·E·X의 쿨타임을 줄이며 후반으로 갈수록 검술 피해가 증가합니다.",skills:[["Q 참격","짧게 돌진해 전방의 적을 찌릅니다."],["E 급소","평타를 강화하고 다음 강화 평타를 적중할 때까지 보존합니다."],["X 심판","원형 지역에 다수의 칼을 쏟아붓습니다."],["R 검의 왈츠","가까운 적부터 연속으로 빠르게 베어냅니다."]]},
+  paladin:{name:"팔라딘",color:"#ffe48b",passive:"공격과 반격으로 콤보를 쌓아 성검의 공격 방식과 파동을 해방합니다.",skills:[["Q 성스러운 반격","방어 중 받은 피해를 무효화하고 넓게 반격합니다."],["E 연속 절단","전방을 빠르게 여러 번 베어 콤보를 쌓습니다."],["X 콤보 전환","현재 콤보 단계의 성검 공격을 사용합니다."],["R 한계 돌파","10레벨부터 최고 콤보 상태와 강화된 반격을 사용합니다."]]},
+  arc:{name:"아크",color:"#ff8b32",passive:"광역 평타로 열기를 얻고 스킬 사용 시 열기를 소모해 위력을 높입니다.",skills:[["Q 일륜","원형 화염장을 펼쳐 적을 중앙으로 끌어당깁니다."],["E 홍염 파동","전방 넓은 범위를 강한 화염으로 휩씁니다."],["X 태양 낙하","지정 위치에 태양을 떨어뜨려 폭발시킵니다."],["R 초신성","10레벨부터 저장된 화염과 열기를 폭발시킵니다."]]},
+  terra:{name:"테라",color:"#c5d965",passive:"평타로 진동을 모으며 진동 100에서만 스킬이 강화됩니다.",skills:[["Q 단층 붕괴","지면 균열로 적을 중앙에 모은 뒤 폭발시킵니다."],["E 암벽 융기","부서질 때까지 유지되는 실제 암석을 생성합니다."],["X 지각 압축","바위를 사방으로 파쇄해 넓은 범위를 공격합니다."],["R 대륙 분쇄","직사각형 지각을 붕괴시키고 추가 바위를 생성합니다."]]},
+  void:{name:"보이드",color:"#b665ff",passive:"지면과 적을 포식해 질량을 모으고 스킬 크기와 위력을 높입니다.",skills:[["Q 심층 포식","전방을 포식하고 적을 중심으로 끌어당깁니다."],["E 대지 방출","모든 질량을 소모해 직사각형 공허 지대를 만듭니다."],["X 지반 붕괴","설치된 지대를 폭파시켜 큰 피해를 줍니다."],["R 제어 불능","적을 공격 불가 상태로 빨아들이는 거대한 특이점을 만듭니다."]]},
+  carmilla:{name:"카르밀라",color:"#ff315d",passive:"공격한 자리에 핏방울을 남기고 회수해 회복과 혈월을 개방합니다.",skills:[["기본 공격","전방을 세 갈래 혈조로 베어 핏방울을 남깁니다."],["Q 피의 회수","바닥의 모든 핏방울을 되돌려 경로의 적을 공격하고 회복합니다."]]},
+};
+
+function getCharacterPreviewSprite(id){return id==="default"?playerSprite:id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:carmillaSprite;}
+
+function drawCharacterGameplayPreview(id,x,y,w,h,color){
+  const t=(performance.now()-characterDetailOpenedAt)*.001;
+  ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,18);ctx.clip();
+  const bg=ctx.createLinearGradient(x,y,x+w,y+h);bg.addColorStop(0,"#111827");bg.addColorStop(1,"#070911");ctx.fillStyle=bg;ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle="rgba(255,255,255,.055)";ctx.lineWidth=1;for(let gx=x-(t*18)%38;gx<x+w;gx+=38){ctx.beginPath();ctx.moveTo(gx,y);ctx.lineTo(gx,y+h);ctx.stroke();}for(let gy=y;gy<y+h;gy+=38){ctx.beginPath();ctx.moveTo(x,gy);ctx.lineTo(x+w,gy);ctx.stroke();}
+  const cx=x+w*.38,cy=y+h*.58,aim=t*.55-.35;const targetX=x+w*.75,targetY=y+h*.43+Math.sin(t*2)*18;
+  ctx.save();ctx.translate(cx,cy);if(Math.cos(aim)>0)ctx.scale(-1,1);const sprite=getCharacterPreviewSprite(id);if(sprite&&sprite.complete&&sprite.naturalWidth)ctx.drawImage(sprite,-54,-72,108,108);ctx.restore();
+  ctx.save();ctx.translate(targetX,targetY);ctx.fillStyle="#27352e";ctx.strokeStyle="#79e276";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,25,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle="#ff5165";ctx.fillRect(-25,-38,50,5);ctx.restore();
+  const phase=(t%1.35)/1.35;ctx.save();ctx.globalCompositeOperation="lighter";ctx.strokeStyle=color;ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=20;
+  if(["default","suncall","luminous","arc"].includes(id)){const px=cx+(targetX-cx)*phase,py=cy-18+(targetY-cy+18)*phase;ctx.beginPath();ctx.arc(px,py,id==="luminous"?10:6,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.35;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx,cy-18);ctx.lineTo(px,py);ctx.stroke();}
+  else if(["terra","void"].includes(id)){const r=28+phase*95;ctx.globalAlpha=1-phase;ctx.lineWidth=10-phase*6;ctx.beginPath();ctx.arc(targetX,targetY,r,0,Math.PI*2);ctx.stroke();for(let k=0;k<6;k++){const a=k*Math.PI/3+t;ctx.beginPath();ctx.moveTo(targetX+Math.cos(a)*25,targetY+Math.sin(a)*25);ctx.lineTo(targetX+Math.cos(a)*r,targetY+Math.sin(a)*r);ctx.stroke();}}
+  else{ctx.translate(cx,cy);ctx.rotate(aim);ctx.globalAlpha=1-phase*.65;ctx.lineWidth=16-phase*9;ctx.beginPath();ctx.arc(0,0,58+phase*34,-1.1,-1.1+2.15*Math.min(1,phase*2));ctx.stroke();}
+  ctx.restore();ctx.fillStyle="rgba(4,7,14,.82)";ctx.fillRect(x,y+h-30,w,30);ctx.fillStyle="#d9e5fa";ctx.font="bold 11px Arial";ctx.textAlign="left";ctx.fillText("LIVE  ·  실제 전투 연출 미리보기",x+13,y+h-11);ctx.restore();
+  drawRoundedRect(x,y,w,h,18,"rgba(0,0,0,0)",`${color}aa`,2);
+}
+
+function drawCharacterDetailOverlay(){
+  if(!characterDetailId)return;const info=characterSkillGuide[characterDetailId]||characterSkillGuide.default;
+  ctx.save();ctx.fillStyle="rgba(2,4,10,.88)";ctx.fillRect(0,0,canvas.width,canvas.height);
+  const w=Math.min(1040,canvas.width-36),h=Math.min(650,canvas.height-40),x=(canvas.width-w)/2,y=(canvas.height-h)/2;const panel=ctx.createLinearGradient(x,y,x+w,y+h);panel.addColorStop(0,"rgba(15,21,36,.99)");panel.addColorStop(1,"rgba(7,9,18,.99)");drawRoundedRect(x,y,w,h,24,panel,info.color,2);
+  characterDetailCloseRect={x:x+w-58,y:y+14,w:42,h:42};drawRoundedRect(characterDetailCloseRect.x,characterDetailCloseRect.y,42,42,12,"rgba(255,255,255,.06)","rgba(255,255,255,.18)",1);ctx.fillStyle="#fff";ctx.font="bold 24px Arial";ctx.textAlign="center";ctx.fillText("×",characterDetailCloseRect.x+21,characterDetailCloseRect.y+29);
+  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 32px Arial";ctx.fillText(info.name,x+30,y+47);ctx.fillStyle=info.color;ctx.font="bold 13px Arial";ctx.fillText("우클릭 상세 정보  ·  ESC 또는 × 닫기",x+30,y+70);
+  const previewW=Math.min(540,w*.54),previewH=Math.min(440,h-120);drawCharacterGameplayPreview(characterDetailId,x+26,y+92,previewW,previewH,info.color);
+  const tx=x+previewW+52,tw=w-previewW-80;ctx.fillStyle="#f3f6ff";ctx.font="bold 18px Arial";ctx.fillText("패시브",tx,y+108);ctx.fillStyle="#b9c5d8";ctx.font="14px Arial";wrapTextLeft(info.passive,tx,y+136,tw,22);
+  let sy=y+202;for(const skill of info.skills){drawRoundedRect(tx,sy,tw,72,12,"rgba(255,255,255,.035)",`${info.color}55`,1);ctx.fillStyle=info.color;ctx.font="bold 15px Arial";ctx.fillText(skill[0],tx+14,sy+23);ctx.fillStyle="#c9d2e2";ctx.font="13px Arial";wrapTextLeft(skill[1],tx+14,sy+46,tw-28,18);sy+=82;}
+  ctx.restore();
+}
+
 function drawCharacterSelectScreen() {
   drawMenuBackdrop(0.2);
   const centerX = canvas.width / 2;
@@ -975,6 +1020,7 @@ function drawCharacterSelectScreen() {
     wrapText(passive, card.x + card.w / 2, displayY + 291 * cardScale, card.w - 26, Math.max(10, 18 * cardScale));
 
     if (unlocked) {
+      ctx.fillStyle="rgba(218,226,242,.52)";ctx.font="bold 10px Arial";ctx.fillText("우클릭: 스킬 보기",card.x+card.w/2,displayY+326*cardScale);
       drawRoundedRect(card.x + 22, displayY + 339 * cardScale, card.w - 44, Math.max(20, 31 * cardScale), 15, isSelected ? `${theme.color}28` : "rgba(255,255,255,0.035)", isSelected ? theme.color : "rgba(255,255,255,0.12)", 1);
       ctx.fillStyle = isSelected ? theme.color : "rgba(224,231,244,0.62)";
       ctx.font = `bold ${card.w < 145 ? 10 : 13}px Arial`;
@@ -1014,6 +1060,7 @@ function drawCharacterSelectScreen() {
   ctx.font = `bold ${compactSelect ? 13 : 16}px Arial`;
   ctx.fillText("←  홈으로", characterBackRect.x + characterBackRect.w / 2, characterBackRect.y + (compactSelect ? 27 : 34));
   ctx.textAlign = "left";
+  drawCharacterDetailOverlay();
 }
 
 function drawPauseButton() {

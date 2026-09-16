@@ -1,7 +1,7 @@
 // 캔버스, 이미지, 전역 상태, 공통 계산
 
 const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
 
 const playerSprite = new Image();
 playerSprite.src = "player.png";
@@ -506,6 +506,15 @@ try {
 let characterCards = [];
 let characterScrollY = 0;
 let characterScrollMax = 0;
+let characterDetailId = null;
+let characterDetailOpenedAt = 0;
+let characterDetailCloseRect = { x: 0, y: 0, w: 46, h: 46 };
+
+// 화면 밖 오브젝트는 그리지 않되 게임 로직과 이펙트 자체는 그대로 유지한다.
+function isInCameraView(x, y, padding = 80) {
+  return x >= camera.x - padding && x <= camera.x + canvas.width + padding &&
+    y >= camera.y - padding && y <= camera.y + canvas.height + padding;
+}
 
 let paused = false;
 let selectedAugments = [];

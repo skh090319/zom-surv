@@ -13,47 +13,44 @@ function drawBackground() {
   ctx.fillStyle = "#101010";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  worldStart();
-
   if (backgroundLoaded) {
-    ctx.drawImage(backgroundImage, 0, 0, WORLD.width, WORLD.height);
+    const sx = camera.x / WORLD.width * backgroundImage.naturalWidth;
+    const sy = camera.y / WORLD.height * backgroundImage.naturalHeight;
+    const sw = canvas.width / WORLD.width * backgroundImage.naturalWidth;
+    const sh = canvas.height / WORLD.height * backgroundImage.naturalHeight;
+    ctx.drawImage(backgroundImage, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   } else {
     ctx.fillStyle = "#101010";
-    ctx.fillRect(0, 0, WORLD.width, WORLD.height);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.strokeStyle = "#1d1d1d";
     ctx.lineWidth = 1;
 
-    for (let x = 0; x < WORLD.width; x += 50) {
+    for (let x = -(camera.x % 50); x < canvas.width; x += 50) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, WORLD.height);
+      ctx.lineTo(x, canvas.height);
       ctx.stroke();
     }
 
-    for (let y = 0; y < WORLD.height; y += 50) {
+    for (let y = -(camera.y % 50); y < canvas.height; y += 50) {
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(WORLD.width, y);
+      ctx.lineTo(canvas.width, y);
       ctx.stroke();
     }
   }
 
   // 배경 밝기 보정
   ctx.fillStyle = "rgba(255, 255, 255, 0.10)";
-  ctx.fillRect(0, 0, WORLD.width, WORLD.height);
-
-  ctx.strokeStyle = "rgba(255,255,255,0.25)";
-  ctx.lineWidth = 5;
-  ctx.strokeRect(0, 0, WORLD.width, WORLD.height);
-
-  worldEnd();
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function drawFireTrails() {
   worldStart();
 
   for (const fire of fireTrails) {
+    if (!isInCameraView(fire.x, fire.y, fire.r + 30)) continue;
     const alpha = Math.max(0, fire.life / fire.maxLife);
 
     ctx.globalAlpha = 0.25 * alpha + 0.1;
@@ -78,6 +75,7 @@ function drawStickyZones() {
   worldStart();
 
   for (const zone of stickyZones) {
+    if (!isInCameraView(zone.x, zone.y, zone.r + 30)) continue;
     const isIce = zone.type === "ice";
     ctx.globalAlpha = isIce ? 0.34 : 0.35;
     ctx.fillStyle = isIce ? "#a8eaff" : "#7bed9f";
@@ -566,6 +564,7 @@ function drawBullets() {
   ctx.fillStyle = "#ffe066";
 
   for (const b of bullets) {
+    if (!isInCameraView(b.x, b.y, 40)) continue;
     if (b.homing && (luminousBulletSpriteLoaded || (luminousBulletSprite.complete && luminousBulletSprite.naturalWidth > 0))) {
       const size = Math.max(22, b.r * 5);
       ctx.save();
@@ -588,6 +587,7 @@ function drawCrescentBlades() {
   worldStart();
 
   for (const blade of crescentBlades) {
+    if (!isInCameraView(blade.x, blade.y, 80)) continue;
     ctx.save();
     ctx.translate(blade.x, blade.y);
     ctx.rotate(blade.angle);

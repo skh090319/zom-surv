@@ -86,9 +86,10 @@ function updateBullets() {
 
       if (b.hitIds.includes(z.id)) continue;
 
-      const dist = Math.hypot(b.x - z.x, b.y - z.y);
-
-      if (dist < b.r + z.r) {
+      const hitRadius = b.r + z.r;
+      const hitDx = b.x - z.x;
+      const hitDy = b.y - z.y;
+      if (hitDx * hitDx + hitDy * hitDy < hitRadius * hitRadius) {
         z.hp -= b.damage;
         b.hitIds.push(z.id);
 
@@ -332,13 +333,15 @@ function updateZombies() {
     }
 
     for (const zone of stickyZones) {
-      if (Math.hypot(z.x - zone.x, z.y - zone.y) < zone.r) {
+      const dx=z.x-zone.x,dy=z.y-zone.y;
+      if (dx*dx+dy*dy < zone.r*zone.r) {
         slow = Math.min(slow, zone.slow);
       }
     }
 
     for (const fire of fireTrails) {
-      if (Math.hypot(z.x - fire.x, z.y - fire.y) < fire.r) {
+      const dx=z.x-fire.x,dy=z.y-fire.y;
+      if (dx*dx+dy*dy < fire.r*fire.r) {
         slow = Math.min(slow, fire.slow);
       }
     }
@@ -481,6 +484,10 @@ function updateZones() {
 }
 
 function updateParticles() {
+  // 폭발이 연속되는 후반에도 최신 입자를 충분히 남겨 모양은 유지하고,
+  // 이미 겹쳐 보이지 않는 오래된 입자만 정리한다.
+  const particleBudget = 1100;
+  if (particles.length > particleBudget) particles.splice(0, particles.length - particleBudget);
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
 

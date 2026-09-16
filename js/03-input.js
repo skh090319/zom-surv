@@ -4,6 +4,11 @@ addEventListener("keydown", e => {
   const key = e.key.toLowerCase();
   keys[key] = true;
 
+  if (screenMode === "character" && characterDetailId && key === "escape") {
+    characterDetailId = null;
+    return;
+  }
+
   if (choosingUpgrade) {
     if (upgradeAnimTime < 18 || upgradeSelectionEffect) return;
     if (key === "1") chooseUpgrade(0);
@@ -65,7 +70,19 @@ canvas.addEventListener("mousemove", e => {
 
 
 
-canvas.addEventListener("mousedown", () => {
+canvas.addEventListener("mousedown", event => {
+  if (event.button === 2 && screenMode === "character") {
+    event.preventDefault();
+    for (const card of characterCards) {
+      if (!pointInRect(event.clientX, event.clientY, card)) continue;
+      characterDetailId = card.id;
+      characterDetailOpenedAt = performance.now();
+      mouse.down = false;
+      return;
+    }
+    return;
+  }
+  if (event.button !== 0) return;
   if (screenMode === "home") {
     if (pointInRect(mouse.x, mouse.y, homeStartRect)) {
       restart();
@@ -84,6 +101,12 @@ canvas.addEventListener("mousedown", () => {
   }
 
   if (screenMode === "character") {
+    if (characterDetailId) {
+      if (pointInRect(mouse.x, mouse.y, characterDetailCloseRect) || event.button === 2) {
+        characterDetailId = null;
+      }
+      return;
+    }
     if (pointInRect(mouse.x, mouse.y, characterBackRect)) {
       screenMode = "home";
       return;
@@ -183,8 +206,22 @@ canvas.addEventListener("mousedown", () => {
   }
 });
 
+canvas.addEventListener("contextmenu", event => {
+  if (screenMode !== "character") return;
+  event.preventDefault();
+  const point = { x: event.clientX, y: event.clientY };
+  for (const card of characterCards) {
+    if (!pointInRect(point.x, point.y, card)) continue;
+    characterDetailId = card.id;
+    characterDetailOpenedAt = performance.now();
+    mouse.down = false;
+    return;
+  }
+});
+
 canvas.addEventListener("wheel", e => {
   if (screenMode !== "character") return;
+  if (characterDetailId) return;
   e.preventDefault();
   characterScrollY = Math.max(0, Math.min(characterScrollMax, characterScrollY + e.deltaY * 0.82));
 }, { passive: false });
