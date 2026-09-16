@@ -846,7 +846,7 @@ function drawHomeScreen() {
 const characterSkillGuide = {
   default:{name:"기본 캐릭터",color:"#b05cff",passive:"안정적인 능력치로 총기와 공용 증강을 자유롭게 조합합니다.",skills:[["기본 공격","마우스 방향으로 총알을 발사합니다."],["R 재장전","탄창을 다시 채웁니다."]]},
   suncall:{name:"썬콜",color:"#48d8ff",passive:"이동속도가 15% 증가하며 공격 시 10% 확률로 둔화 얼음 지대를 만듭니다.",skills:[["기본 공격","빠른 총격으로 적을 공격하고 얼음 지대를 생성합니다."],["R 재장전","탄창을 다시 채웁니다."]]},
-  luminous:{name:"루미너스",color:"#59e9ff",passive:"8개의 마력탄이 발사 순간 지정한 적을 자동 추적합니다.",skills:[["마력탄","총을 들지 않고 손끝에서 유도 마력탄을 발사합니다."],["게틀링건","연사 속도가 다소 감소하지만 유도 능력을 유지합니다."]]},
+  luminous:{name:"루미너스",color:"#59e9ff",passive:"8개의 마력탄이 발사 순간 지정한 적을 자동 추적합니다.",skills:[["유도 마력탄","손끝에서 발사한 마력탄이 궤도를 휘어 적을 끝까지 추적합니다."]]},
   yupiter:{name:"유피테르",color:"#64ef91",passive:"Q로 반월검·절단검·화염포를 전환하며 각 무기마다 E와 R이 달라집니다.",skills:[["Q 무기 전환","세 무기를 순서대로 교체합니다."],["E 무기 기술","현재 무기의 강화 기술을 사용합니다."],["R 무기 궁극기","현재 무기에 맞는 강력한 궁극기를 사용합니다."]]},
   ren:{name:"렌",color:"#ff496f",passive:"그림자 조각을 흡수해 공격력을 높이고 분신을 강화합니다.",skills:[["Q 분신 배치","분신을 커서 방향의 제한 거리까지 내보냅니다."],["X 그림자 이동","가장 최근 분신 위치로 순간이동합니다."],["E 분신 습격","분신이 적을 찾아 강하게 습격합니다."],["R 그림자 지대","거대한 마법진을 펼쳐 적을 둔화하고 지속 피해를 줍니다."]]},
   nightLord:{name:"나이트 로드",color:"#a855f7",passive:"잃은 체력에 비례해 공격력이 증가하며 처형과 흡혈로 역전합니다.",skills:[["Q 그림자 추격","적에게 파고들어 베고 잠시 공격속도가 증가합니다."],["E 광란","현재 체력을 대가로 연속 참격을 사용합니다."],["X 처형","기준 이하 체력의 적을 마무리합니다."],["R 불사의 밤","체력이 1 아래로 내려가지 않는 강화 상태가 됩니다."]]},
@@ -861,7 +861,7 @@ const characterSkillGuide = {
 function getCharacterPreviewSprite(id){return id==="default"?playerSprite:id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:carmillaSprite;}
 
 const characterSkillVideoKeys = {
-  default:["attack","reload"], suncall:["attack","reload"], luminous:["attack","gatling"],
+  default:["attack","reload"], suncall:["attack","reload"], luminous:["attack"],
   yupiter:["q","e","r"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
   zero:["q","e","x","r"], paladin:["q","e","x","r"], arc:["q","e","x","r"],
   terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"]
@@ -889,7 +889,8 @@ function drawCharacterGameplayPreview(id,skillIndex,skillName,x,y,w,h,color){
   if(video){
     if(video.dataset.openedAt!==String(characterDetailOpenedAt)){video.dataset.openedAt=String(characterDetailOpenedAt);video.currentTime=0;video.play().catch(()=>{});}
     if(video.readyState>=2){
-      const scale=Math.max(w/video.videoWidth,h/video.videoHeight),dw=video.videoWidth*scale,dh=video.videoHeight*scale;
+      // 스킬 전체 범위가 잘리지 않도록 확대 크롭 대신 레터박스 방식으로 맞춘다.
+      const scale=Math.min(w/video.videoWidth,h/video.videoHeight),dw=video.videoWidth*scale,dh=video.videoHeight*scale;
       ctx.drawImage(video,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
     } else {ctx.fillStyle="#aab8d0";ctx.font="bold 15px Arial";ctx.textAlign="center";ctx.fillText("실제 플레이 영상 불러오는 중…",x+w/2,y+h/2);}
   }
