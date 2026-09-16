@@ -369,6 +369,10 @@ function updateZombies() {
             player.hp = Math.max(1, player.hp);
           }
 
+          if (selectedCharacter === "carmilla" && player.carmillaBloodMoonTime > 0 && transcended.carmillaFeast) {
+            player.hp = Math.max(1, player.hp);
+          }
+
           if (selectedCharacter === "paladin" && player.paladinUltimateTime <= 0 && !transcended.paladinCombo) {
             player.paladinCombo = Math.max(0, player.paladinCombo - 12);
           }
