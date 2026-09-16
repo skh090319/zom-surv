@@ -1,7 +1,9 @@
 // 캔버스, 이미지, 전역 상태, 공통 계산
 
 const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
+// 불투명 캔버스는 유지하되 desynchronized 모드는 일부 GPU에서
+// 화면 깜빡임/티어링을 만들 수 있어 사용하지 않는다.
+const ctx = canvas.getContext("2d", { alpha: false });
 
 const playerSprite = new Image();
 playerSprite.src = "player.png";
