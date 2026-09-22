@@ -213,7 +213,7 @@ function restart() {
   player.carmillaQCooldown=0;player.carmillaBloodMoonTime=0;player.carmillaFeastLevel=0;player.carmillaPreserveLevel=0;player.carmillaResonanceLevel=0;
   player.vargasGainedHp=0;player.vargasShield=0;player.vargasArmorTime=0;player.vargasUltimateTime=0;player.vargasQCooldown=0;player.vargasECooldown=0;player.vargasXCooldown=0;player.vargasRCooldown=0;player.vargasSecondHeartCooldown=0;player.vargasPredatorLevel=0;player.vargasSkeletonLevel=0;player.vargasPulseLevel=0;vargasEffects=[];
   player.echoReplayCooldown=0;player.echoPhaseCooldown=0;player.echoCollapseCooldown=0;player.echoSwingSide=-1;player.echoAfterimageLevel=0;player.echoPitchLevel=0;player.echoArchiveLevel=0;echoRifts=[];echoKnots=[];echoEffects=[];
-  player.ariaQCooldown=0;player.ariaECooldown=0;player.ariaXCooldown=0;player.ariaRCooldown=0;player.ariaUltimateTime=0;player.ariaSoilLevel=0;player.ariaThornLevel=0;player.ariaNightLevel=0;ariaSoils=[];ariaEffects=[];
+  player.ariaQCooldown=0;player.ariaECooldown=0;player.ariaXCooldown=0;player.ariaRCooldown=0;player.ariaUltimateTime=0;player.ariaSoilLevel=0;player.ariaThornLevel=0;player.ariaNightLevel=0;player.ariaNightTick=0;ariaSoils=[];ariaEffects=[];
 
   player.dodgeLevel = 0;
   player.crownLevel = 0;
