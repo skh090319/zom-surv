@@ -54,7 +54,8 @@ addEventListener("keydown", e => {
     if(key==="e"&&selectedCharacter==="vargas")activateVargasE();
     if(key==="x"&&selectedCharacter==="vargas")activateVargasX();
     if(key==="r"&&selectedCharacter==="vargas")activateVargasR();
-    if(selectedCharacter==="echo"&&key===" "){e.preventDefault();activateEchoPhase();}
+    if(selectedCharacter==="echo"&&key==="q")replayEchoMemory();
+    if(selectedCharacter==="echo"&&key==="e")activateEchoPhase();
     if(selectedCharacter==="echo"&&key==="r")activateEchoCollapse();
     if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo") reload();
   }
@@ -220,10 +221,6 @@ canvas.addEventListener("mousedown", event => {
 
     mouse.down = true;
   }
-});
-
-canvas.addEventListener("contextmenu",event=>{
-  if(screenMode==="game"&&selectedCharacter==="echo"&&!paused&&!choosingUpgrade){event.preventDefault();replayEchoMemory();}
 });
 
 canvas.addEventListener("contextmenu", event => {
