@@ -28,7 +28,7 @@ function draw() {
   drawCarmillaEffects();
   drawCarmillaPolish();
   drawVargasEffectsV2();
-  drawEchoEffectsV2();
+  drawEchoEffectsV3();
   drawItems();
   drawExpOrbs();
   drawBullets();
