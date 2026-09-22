@@ -1,11 +1,12 @@
 // 아리아 가독성 보강: 연결 화원과 평타 개화를 밝고 선명하게 표시한다.
+let ariaGardenLinkKey="",ariaGardenLinks=[];
+function getAriaGardenLinks(){const range=190+(player.ariaSoilLevel||0)*18,key=`${range}|${ariaSoils.map(s=>`${s.x|0},${s.y|0}`).join(";")}`;if(key===ariaGardenLinkKey)return ariaGardenLinks;ariaGardenLinkKey=key;ariaGardenLinks=[];const r2=range*range;for(let i=0;i<ariaSoils.length;i++)for(let j=i+1;j<ariaSoils.length;j++){const a=ariaSoils[i],b=ariaSoils[j],dx=a.x-b.x,dy=a.y-b.y;if(dx*dx+dy*dy<=r2)ariaGardenLinks.push([a,b])}return ariaGardenLinks}
 function drawAriaEffectsV2(){
   drawAriaEffects();
-  if(selectedCharacter!=="aria")return;worldStart();ctx.save();const now=performance.now(),linkRange=190+(player.ariaSoilLevel||0)*18;
+  if(selectedCharacter!=="aria")return;worldStart();ctx.save();const now=performance.now();
   ctx.globalCompositeOperation="source-over";
-  for(let i=0;i<ariaSoils.length;i++)for(let j=i+1;j<ariaSoils.length;j++){
-    const a=ariaSoils[i],b=ariaSoils[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d>linkRange)continue;
-    const grad=ctx.createLinearGradient(a.x,a.y,b.x,b.y);grad.addColorStop(0,"rgba(255,111,184,.16)");grad.addColorStop(.5,"rgba(170,135,205,.11)");grad.addColorStop(1,"rgba(73,225,210,.16)");ctx.strokeStyle=grad;ctx.lineWidth=30;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+  for(const [a,b] of getAriaGardenLinks()){
+    ctx.strokeStyle="rgba(171,111,194,.14)";ctx.lineWidth=30;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
     ctx.globalCompositeOperation="lighter";ctx.strokeStyle="rgba(173,244,235,.46)";ctx.lineWidth=2.5;ctx.setLineDash([12,9]);ctx.lineDashOffset=-now*.018;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);ctx.globalCompositeOperation="source-over";
   }
   ctx.globalCompositeOperation="lighter";
