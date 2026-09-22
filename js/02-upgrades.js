@@ -44,6 +44,7 @@ const upgradeCount = {
   ,vargasPredator:0,vargasSkeleton:0,vargasPulse:0
   ,echoAfterimage:0,echoPitch:0,echoArchive:0
   ,ariaSoil:0,ariaThorn:0,ariaNight:0
+  ,moiraThread:0,moiraNeedle:0,moiraDoll:0
 
 
 };
@@ -92,6 +93,7 @@ const transcended = {
   ,vargasPredator:false,vargasSkeleton:false,vargasPulse:false
   ,echoAfterimage:false,echoPitch:false,echoArchive:false
   ,ariaSoil:false,ariaThorn:false,ariaNight:false
+  ,moiraThread:false,moiraNeedle:false,moiraDoll:false
 
 
 };
@@ -199,6 +201,9 @@ const upgrades = [
   {id:"ariaSoil",category:"support",name:"비옥한 토양",desc:"토양 유지시간·연결 거리·만개 범위가 증가합니다",transcendName:"초월: 에덴",transcendDesc:"영원한 봄 동안 꽃 공격이 더 많은 토양에서 동시에 피어납니다",requires(){return selectedCharacter==="aria";},apply(){upgradeCount.ariaSoil++;if(upgradeCount.ariaSoil<4)player.ariaSoilLevel++;else transcended.ariaSoil=true;}},
   {id:"ariaThorn",category:"support",name:"가시 장미",desc:"모든 꽃과 가시 피해가 단계마다 13% 증가합니다",transcendName:"초월: 선혈 가시관",transcendDesc:"가시 성장이 적 최대 체력 비례 추가 피해를 줍니다",requires(){return selectedCharacter==="aria";},apply(){upgradeCount.ariaThorn++;if(upgradeCount.ariaThorn<4)player.ariaThornLevel++;else transcended.ariaThorn=true;}},
   {id:"ariaNight",category:"support",name:"밤의 꽃",desc:"화원 공격의 둔화 지속시간과 위력이 증가합니다",transcendName:"초월: 영원한 밤의 정원",transcendDesc:"토양 안의 적이 지속적으로 둔화되고 약화됩니다",requires(){return selectedCharacter==="aria";},apply(){upgradeCount.ariaNight++;if(upgradeCount.ariaNight<4)player.ariaNightLevel++;else transcended.ariaNight=true;}},
+  {id:"moiraThread",category:"support",name:"질긴 실",desc:"연결 가능한 적과 실의 사거리가 증가합니다",transcendName:"초월: 운명의 붉은 실",transcendDesc:"실이 거리로 끊어지지 않고 연결 수가 크게 증가합니다",requires(){return selectedCharacter==="moira";},apply(){upgradeCount.moiraThread++;if(upgradeCount.moiraThread<4)player.moiraThreadLevel++;else transcended.moiraThread=true;}},
+  {id:"moiraNeedle",category:"support",name:"녹슨 바늘",desc:"바늘땀과 고통 공유의 피해가 증가합니다",transcendName:"초월: 천 개의 바늘",transcendDesc:"고통 전이가 적 최대 체력의 10%를 추가로 입힙니다",requires(){return selectedCharacter==="moira";},apply(){upgradeCount.moiraNeedle++;if(upgradeCount.moiraNeedle<4)player.moiraNeedleLevel++;else transcended.moiraNeedle=true;}},
+  {id:"moiraDoll",category:"support",name:"대리 고통",desc:"대리 인형이 저장하는 피해량이 증가합니다",transcendName:"초월: 마지막 공연",transcendDesc:"꼭두각시 극장이 끝날 때 연결된 적들이 폭발합니다",requires(){return selectedCharacter==="moira";},apply(){upgradeCount.moiraDoll++;if(upgradeCount.moiraDoll<4)player.moiraDollLevel++;else transcended.moiraDoll=true;}},
   { id: "greed", category: "support", name: "탐욕", desc: "다음 선택 시 경험치 획득량 +10%", transcendName: "초월: 흡혈 군주", transcendDesc: "적 처치 시 최대 체력의 1% 회복",
     getDesc() {
       const next = Math.min(3, (upgradeCount.greed || 0) + 1);
@@ -298,7 +303,7 @@ function openUpgradeMenu() {
       if (selectedCharacter === "zero" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "paladin" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "arc" && (u.id === "ammo" || u.id === "fireRate")) return false;
-      if ((selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "carmilla" || selectedCharacter === "vargas" || selectedCharacter === "echo" || selectedCharacter === "aria") && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if ((selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "carmilla" || selectedCharacter === "vargas" || selectedCharacter === "echo" || selectedCharacter === "aria" || selectedCharacter === "moira") && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (typeof u.requires === "function" && !u.requires()) return false;
       if (transcended[u.id]) return false;
       return true;

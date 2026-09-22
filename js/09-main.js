@@ -30,6 +30,7 @@ function draw() {
   drawVargasEffectsV2();
   drawEchoEffectsV3();
   drawAriaEffectsV3();
+  drawMoiraEffects();
   drawItems();
   drawExpOrbs();
   drawBullets();
@@ -56,6 +57,7 @@ function draw() {
   drawVargasInterface();
   drawEchoInterface();
   drawAriaInterface();
+  drawMoiraInterface();
   drawReloadingOverlay();
   drawExpBar();
   drawMiniMap();
@@ -214,6 +216,7 @@ function restart() {
   player.vargasGainedHp=0;player.vargasShield=0;player.vargasArmorTime=0;player.vargasUltimateTime=0;player.vargasQCooldown=0;player.vargasECooldown=0;player.vargasXCooldown=0;player.vargasRCooldown=0;player.vargasSecondHeartCooldown=0;player.vargasPredatorLevel=0;player.vargasSkeletonLevel=0;player.vargasPulseLevel=0;vargasEffects=[];
   player.echoReplayCooldown=0;player.echoPhaseCooldown=0;player.echoCollapseCooldown=0;player.echoSwingSide=-1;player.echoAfterimageLevel=0;player.echoPitchLevel=0;player.echoArchiveLevel=0;echoRifts=[];echoKnots=[];echoEffects=[];
   player.ariaQCooldown=0;player.ariaECooldown=0;player.ariaXCooldown=0;player.ariaRCooldown=0;player.ariaUltimateTime=0;player.ariaSoilLevel=0;player.ariaThornLevel=0;player.ariaNightLevel=0;player.ariaNightTick=0;ariaSoils=[];ariaEffects=[];
+  player.moiraQCooldown=0;player.moiraECooldown=0;player.moiraXCooldown=0;player.moiraRCooldown=0;player.moiraUltimateTime=0;player.moiraStoredPain=0;player.moiraThreadLevel=0;player.moiraNeedleLevel=0;player.moiraDollLevel=0;moiraLinks=[];moiraEffects=[];moiraDoll=null;
 
   player.dodgeLevel = 0;
   player.crownLevel = 0;

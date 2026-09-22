@@ -61,7 +61,11 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="aria"&&key==="e")activateAriaE();
     if(selectedCharacter==="aria"&&key==="x")activateAriaX();
     if(selectedCharacter==="aria"&&key==="r")activateAriaR();
-    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria") reload();
+    if(selectedCharacter==="moira"&&key==="q")activateMoiraQ();
+    if(selectedCharacter==="moira"&&key==="e")activateMoiraE();
+    if(selectedCharacter==="moira"&&key==="x")activateMoiraX();
+    if(selectedCharacter==="moira"&&key==="r")activateMoiraR();
+    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira") reload();
   }
   if (gameOver && key === "enter") {
     restart();
@@ -178,6 +182,7 @@ canvas.addEventListener("mousedown", event => {
       if(card.id==="vargas")selectedCharacter="vargas";
       if(card.id==="echo")selectedCharacter="echo";
       if(card.id==="aria")selectedCharacter="aria";
+      if(card.id==="moira")selectedCharacter="moira";
 
       return;
     }

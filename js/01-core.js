@@ -203,6 +203,9 @@ const echoAugmentIconAtlas=new Image();echoAugmentIconAtlas.src="assets/echo-aug
 const ariaSprite=new Image();ariaSprite.src="assets/aria.png";let ariaSpriteLoaded=false;ariaSprite.onload=()=>ariaSpriteLoaded=true;
 const ariaSkillIconAtlas=new Image();ariaSkillIconAtlas.src="assets/aria-skill-icons.png";
 const ariaAugmentIconAtlas=new Image();ariaAugmentIconAtlas.src="assets/aria-augment-icons.png";
+const moiraSprite=new Image();moiraSprite.src="assets/moira.png";let moiraSpriteLoaded=false;moiraSprite.onload=()=>moiraSpriteLoaded=true;
+const moiraSkillIconAtlas=new Image();moiraSkillIconAtlas.src="assets/moira-skill-icons.png";
+const moiraAugmentIconAtlas=new Image();moiraAugmentIconAtlas.src="assets/moira-augment-icons.png";
 
 const renHudPortrait = new Image();
 renHudPortrait.src = "assets/ren-hud-portrait.png";
@@ -459,6 +462,7 @@ const player = {
   vargasGainedHp:0,vargasShield:0,vargasArmorTime:0,vargasUltimateTime:0,vargasQCooldown:0,vargasECooldown:0,vargasXCooldown:0,vargasRCooldown:0,vargasSecondHeartCooldown:0,vargasPredatorLevel:0,vargasSkeletonLevel:0,vargasPulseLevel:0,
   echoReplayCooldown:0,echoPhaseCooldown:0,echoCollapseCooldown:0,echoSwingSide:-1,echoAfterimageLevel:0,echoPitchLevel:0,echoArchiveLevel:0,
   ariaQCooldown:0,ariaECooldown:0,ariaXCooldown:0,ariaRCooldown:0,ariaUltimateTime:0,ariaSoilLevel:0,ariaThornLevel:0,ariaNightLevel:0,ariaNightTick:0,
+  moiraQCooldown:0,moiraECooldown:0,moiraXCooldown:0,moiraRCooldown:0,moiraUltimateTime:0,moiraStoredPain:0,moiraThreadLevel:0,moiraNeedleLevel:0,moiraDollLevel:0,
   immortalLevel: 0,
   immortalUsed: false,
   dodgeLevel: 0,
