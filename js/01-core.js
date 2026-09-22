@@ -194,6 +194,9 @@ const voidAugmentIconAtlas = new Image(); voidAugmentIconAtlas.src = "assets/voi
 const carmillaSprite=new Image();carmillaSprite.src="assets/carmilla.png";let carmillaSpriteLoaded=false;carmillaSprite.onload=()=>carmillaSpriteLoaded=true;
 const carmillaSkillIconAtlas=new Image();carmillaSkillIconAtlas.src="assets/carmilla-skill-icons.png";
 const carmillaAugmentIconAtlas=new Image();carmillaAugmentIconAtlas.src="assets/carmilla-augment-icons.png";
+const vargasSprite=new Image();vargasSprite.src="assets/vargas.png";let vargasSpriteLoaded=false;vargasSprite.onload=()=>vargasSpriteLoaded=true;
+const vargasSkillIconAtlas=new Image();vargasSkillIconAtlas.src="assets/vargas-skill-icons.png";
+const vargasAugmentIconAtlas=new Image();vargasAugmentIconAtlas.src="assets/vargas-augment-icons.png";
 
 const renHudPortrait = new Image();
 renHudPortrait.src = "assets/ren-hud-portrait.png";
@@ -447,6 +450,7 @@ const player = {
   voidMass: 0, voidQCooldown: 0, voidECooldown: 0, voidXCooldown: 0, voidRCooldown: 0,
   voidUltimateTime: 0, voidUltimateTick: 0, voidCapacityLevel: 0, voidTerrainLevel: 0, voidChainLevel: 0,
   carmillaQCooldown:0,carmillaBloodMoonTime:0,carmillaFeastLevel:0,carmillaPreserveLevel:0,carmillaResonanceLevel:0,
+  vargasGainedHp:0,vargasShield:0,vargasArmorTime:0,vargasUltimateTime:0,vargasQCooldown:0,vargasECooldown:0,vargasXCooldown:0,vargasRCooldown:0,vargasSecondHeartCooldown:0,vargasPredatorLevel:0,vargasSkeletonLevel:0,vargasPulseLevel:0,
   immortalLevel: 0,
   immortalUsed: false,
   dodgeLevel: 0,

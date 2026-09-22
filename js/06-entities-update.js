@@ -364,12 +364,16 @@ function updateZombies() {
         if (!dodged) {
           const incomingDamage = player.crownLevel > 0 ? 20 : 10;
           const carmillaFatalGuard = selectedCharacter === "carmilla" && player.carmillaBloodMoonTime > 0 && transcended.carmillaFeast;
-          player.hp -= carmillaFatalGuard ? Math.min(incomingDamage, Math.max(0, player.hp - 1)) : incomingDamage;
+          let remainingDamage=incomingDamage;
+          if(selectedCharacter==="vargas"&&player.vargasShield>0){const absorbed=Math.min(player.vargasShield,remainingDamage);player.vargasShield-=absorbed;remainingDamage-=absorbed;}
+          player.hp -= carmillaFatalGuard ? Math.min(remainingDamage, Math.max(0, player.hp - 1)) : remainingDamage;
           player.invincibleTime = 12;
 
           if (selectedCharacter === "nightLord" && player.nightLordUltimateTime > 0) {
             player.hp = Math.max(1, player.hp);
           }
+
+          if(selectedCharacter==="vargas"&&player.hp<=0&&transcended.vargasPulse&&player.vargasSecondHeartCooldown<=0){player.hp=player.maxHp*.3;player.vargasSecondHeartCooldown=1800;vargasEffects.push({type:"devour",x:player.x,y:player.y,r:220,life:55,maxLife:55});}
 
           if (selectedCharacter === "paladin" && player.paladinUltimateTime <= 0 && !transcended.paladinCombo) {
             player.paladinCombo = Math.max(0, player.paladinCombo - 12);
@@ -535,6 +539,7 @@ function update() {
   updateTerra();
   updateVoid();
   updateCarmilla();
+  updateVargas();
   updateZombies();
   updateDaggers();
   updateItems();

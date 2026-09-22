@@ -41,6 +41,7 @@ const upgradeCount = {
   ,voidTerrain: 0
   ,voidChain: 0
   ,carmillaPreserve:0,carmillaResonance:0,carmillaFeast:0
+  ,vargasPredator:0,vargasSkeleton:0,vargasPulse:0
 
 
 };
@@ -86,6 +87,7 @@ const transcended = {
   ,voidTerrain: false
   ,voidChain: false
   ,carmillaPreserve:false,carmillaResonance:false,carmillaFeast:false
+  ,vargasPredator:false,vargasSkeleton:false,vargasPulse:false
 
 
 };
@@ -184,6 +186,9 @@ const upgrades = [
   {id:"carmillaPreserve",category:"support",name:"선혈 보존",desc:"피 방울 생성량과 회수 피해가 증가합니다",transcendName:"초월: 피의 바다",transcendDesc:"기본 공격 적중 시 피 방울을 추가 생성합니다",requires(){return selectedCharacter==="carmilla";},apply(){upgradeCount.carmillaPreserve++;if(upgradeCount.carmillaPreserve<4)player.carmillaPreserveLevel=(player.carmillaPreserveLevel||0)+1;else transcended.carmillaPreserve=true;}},
   {id:"carmillaResonance",category:"support",name:"혈액 공명",desc:"혈월 발동에 필요한 피 방울 수가 감소합니다",transcendName:"초월: 영원한 적월",transcendDesc:"혈월 지속시간이 크게 증가합니다",requires(){return selectedCharacter==="carmilla";},apply(){upgradeCount.carmillaResonance++;if(upgradeCount.carmillaResonance<4)player.carmillaResonanceLevel=(player.carmillaResonanceLevel||0)+1;else transcended.carmillaResonance=true;}},
   {id:"carmillaFeast",category:"support",name:"탐식",desc:"회수한 피 방울의 회복량이 증가합니다",transcendName:"초월: 진조",transcendDesc:"혈월 동안 체력이 1 아래로 내려가지 않습니다",requires(){return selectedCharacter==="carmilla";},apply(){upgradeCount.carmillaFeast++;if(upgradeCount.carmillaFeast<4)player.carmillaFeastLevel++;else transcended.carmillaFeast=true;}},
+  {id:"vargasPredator",category:"support",name:"포식 본능",desc:"처치로 얻는 최대 체력이 단계마다 25% 증가합니다",transcendName:"초월: 끝없는 식욕",transcendDesc:"성장량이 2배가 되고 큰 적 처치 시 현재 최대 체력의 1%를 추가 획득합니다",requires(){return selectedCharacter==="vargas";},apply(){upgradeCount.vargasPredator++;if(upgradeCount.vargasPredator<4)player.vargasPredatorLevel++;else transcended.vargasPredator=true;}},
+  {id:"vargasSkeleton",category:"support",name:"거신의 골격",desc:"스킬 피해와 범위가 단계마다 증가합니다",transcendName:"초월: 세계수의 몸",transcendDesc:"모든 공격과 스킬 범위가 25% 증가합니다",requires(){return selectedCharacter==="vargas";},apply(){upgradeCount.vargasSkeleton++;if(upgradeCount.vargasSkeleton<4)player.vargasSkeletonLevel++;else transcended.vargasSkeleton=true;}},
+  {id:"vargasPulse",category:"support",name:"불사의 맥박",desc:"최대 체력 증가 시 회복량과 혈육 갑주의 보호막이 증가합니다",transcendName:"초월: 두 번째 심장",transcendDesc:"30초마다 치명적인 피해를 막고 최대 체력의 30%를 회복합니다",requires(){return selectedCharacter==="vargas";},apply(){upgradeCount.vargasPulse++;if(upgradeCount.vargasPulse<4)player.vargasPulseLevel++;else transcended.vargasPulse=true;}},
   { id: "greed", category: "support", name: "탐욕", desc: "다음 선택 시 경험치 획득량 +10%", transcendName: "초월: 흡혈 군주", transcendDesc: "적 처치 시 최대 체력의 1% 회복",
     getDesc() {
       const next = Math.min(3, (upgradeCount.greed || 0) + 1);
@@ -283,7 +288,7 @@ function openUpgradeMenu() {
       if (selectedCharacter === "zero" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "paladin" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "arc" && (u.id === "ammo" || u.id === "fireRate")) return false;
-      if ((selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "carmilla") && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if ((selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "carmilla" || selectedCharacter === "vargas") && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (typeof u.requires === "function" && !u.requires()) return false;
       if (transcended[u.id]) return false;
       return true;

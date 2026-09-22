@@ -50,7 +50,11 @@ addEventListener("keydown", e => {
     if (key === "x" && selectedCharacter === "void") activateVoidX();
     if (key === "r" && selectedCharacter === "void") activateVoidR();
     if(key==="q"&&selectedCharacter==="carmilla")activateCarmillaQ();
-    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void") reload();
+    if(key==="q"&&selectedCharacter==="vargas")activateVargasQ();
+    if(key==="e"&&selectedCharacter==="vargas")activateVargasE();
+    if(key==="x"&&selectedCharacter==="vargas")activateVargasX();
+    if(key==="r"&&selectedCharacter==="vargas")activateVargasR();
+    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas") reload();
   }
   if (gameOver && key === "enter") {
     restart();
@@ -164,6 +168,7 @@ canvas.addEventListener("mousedown", event => {
       }
       if (card.id === "void") selectedCharacter = "void";
       if(card.id==="carmilla")selectedCharacter="carmilla";
+      if(card.id==="vargas")selectedCharacter="vargas";
 
       return;
     }

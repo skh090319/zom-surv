@@ -28,7 +28,7 @@ function drawHealthBar() {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(
-    `${Math.max(0, Math.floor(player.hp))} / ${player.maxHp}`,
+    `${Math.max(0, Math.floor(player.hp))} / ${Math.floor(player.maxHp)}`,
     canvas.width / 2,
     y + barH / 2
   );
@@ -40,7 +40,7 @@ function drawHUD() {
   ctx.save();
 
   ctx.fillStyle = "rgba(0,0,0,0.45)";
-  const hudW = selectedCharacter === "ren" ? 240 : (selectedCharacter === "yupiter" ? 350 : 190);
+  const hudW = (selectedCharacter === "ren" || selectedCharacter === "vargas") ? 240 : (selectedCharacter === "yupiter" ? 350 : 190);
   const hudH = 190;
   ctx.fillRect(12, 12, hudW, hudH);
 
@@ -56,9 +56,11 @@ function drawHUD() {
 
   const weaponText = selectedCharacter === "yupiter"
     ? `Weapon: ${YUPITER_WEAPON_NAMES[player.yupiterWeapon]}`
-    : (selectedCharacter === "ren"
+    : (selectedCharacter === "vargas"
+      ? "바르가스 · 심연의 거신"
+      : (selectedCharacter === "ren"
       ? "렌 · 그림자 암살자"
-      : (selectedCharacter === "nightLord" ? "나이트 로드 · 암흑 월도" : (selectedCharacter === "zero" ? "제로 · 성검" : (selectedCharacter === "paladin" ? "팔라딘 · 해방검" : (selectedCharacter === "arc" ? "아크 · 태양술사" : (selectedCharacter === "terra" ? "테라 · 대지 권사" : (selectedCharacter === "void" ? "보이드 · 공허 포식자" : (selectedCharacter === "carmilla" ? "카르밀라 · 혈조" : (player.gatlingLevel > 0 ? "Ammo: ∞" : `Ammo: ${player.ammo}/${player.maxAmmo}`)))))))));
+      : (selectedCharacter === "nightLord" ? "나이트 로드 · 암흑 월도" : (selectedCharacter === "zero" ? "제로 · 성검" : (selectedCharacter === "paladin" ? "팔라딘 · 해방검" : (selectedCharacter === "arc" ? "아크 · 태양술사" : (selectedCharacter === "terra" ? "테라 · 대지 권사" : (selectedCharacter === "void" ? "보이드 · 공허 포식자" : (selectedCharacter === "carmilla" ? "카르밀라 · 혈조" : (player.gatlingLevel > 0 ? "Ammo: ∞" : `Ammo: ${player.ammo}/${player.maxAmmo}`))))))))));
   ctx.fillText(weaponText, x, y);
   y += gap;
   if (selectedCharacter === "yupiter") {
@@ -71,7 +73,7 @@ function drawHUD() {
   }
   const displayedDamage = selectedCharacter === "ren"
     ? Math.floor(scaledDamage(player.damage * getRenAttackMultiplier()))
-    : (selectedCharacter === "nightLord" ? Math.floor(scaledDamage(player.damage * (1 + getNightLordRage() * 0.8))) : (selectedCharacter === "zero" ? Math.floor(scaledDamage(player.damage * getZeroDamageMultiplier())) : (selectedCharacter === "paladin" ? Math.floor(scaledDamage(player.damage * [1, 1.16, 1.36, 1.68][getPaladinTier()])) : player.damage)));
+    : (selectedCharacter === "vargas" ? Math.floor(vargasDamage(player.vargasUltimateTime>0?1.65:1.1,.025)) : (selectedCharacter === "nightLord" ? Math.floor(scaledDamage(player.damage * (1 + getNightLordRage() * 0.8))) : (selectedCharacter === "zero" ? Math.floor(scaledDamage(player.damage * getZeroDamageMultiplier())) : (selectedCharacter === "paladin" ? Math.floor(scaledDamage(player.damage * [1, 1.16, 1.36, 1.68][getPaladinTier()])) : player.damage))));
   ctx.fillText(`Damage: ${displayedDamage}`, x, y);
   y += gap;
   ctx.fillText(`Wave: ${wave}`, x, y);
@@ -427,6 +429,8 @@ function drawTerraInterface(){
 function drawVoidInterface(){if(selectedCharacter!=="void"||screenMode!=="game")return;const w=Math.min(690,canvas.width-32),h=120,x=(canvas.width-w)/2,y=canvas.height-178;ctx.save();const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,"rgba(7,5,15,.97)");g.addColorStop(.52,"rgba(35,10,58,.97)");g.addColorStop(1,"rgba(4,7,18,.97)");drawRoundedRect(x,y,w,h,24,g,"#a85cff",2);ctx.save();ctx.beginPath();ctx.arc(x+55,y+58,40,0,Math.PI*2);ctx.clip();ctx.fillStyle="#100718";ctx.fillRect(x+15,y+18,80,80);if(voidSpriteLoaded)ctx.drawImage(voidSprite,x+9,y+8,92,92);ctx.restore();ctx.strokeStyle="#bd73ff";ctx.shadowColor="#7f24ff";ctx.shadowBlur=18;ctx.beginPath();ctx.arc(x+55,y+58,40,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;const sx=x+108,max=100+player.voidCapacityLevel*20;ctx.textAlign="left";ctx.fillStyle="#f5eaff";ctx.font="bold 18px Arial";ctx.fillText("보이드",sx,y+28);ctx.fillStyle="#ca8cff";ctx.font="bold 13px Arial";ctx.fillText(`공허 질량 ${Math.floor(player.voidMass)} / ${max}`,sx,y+49);drawRoundedRect(sx,y+61,160,12,6,"rgba(255,255,255,.08)","rgba(188,100,255,.24)",1);if(player.voidMass>0){const bg=ctx.createLinearGradient(sx,0,sx+160,0);bg.addColorStop(0,"#43205c");bg.addColorStop(.7,"#a13be2");bg.addColorStop(1,"#eee3ff");drawRoundedRect(sx,y+61,160*Math.min(1,player.voidMass/max),12,6,bg);}ctx.fillStyle="#bfaaca";ctx.font="11px Arial";ctx.fillText(player.voidMass>=100?"특이점 준비 완료":"지면을 포식해 질량 획득",sx,y+95);const skills=[["Q","심층 포식",player.voidQCooldown,VOID_Q_COOLDOWN],["E","대지 방출",player.voidECooldown,VOID_E_COOLDOWN],["X","지반 붕괴",player.voidXCooldown,VOID_X_COOLDOWN],["R",player.level<10?"10레벨 해금":"제어 불능",player.voidRCooldown,VOID_R_COOLDOWN]];skills.forEach((s,i)=>{const ix=x+w-325+i*78,iy=y+49,r=27,locked=i===3&&(player.level<10||player.voidMass<100);ctx.save();ctx.translate(ix,iy);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=s[2]>0||locked?"#29252d":"#1b092b";ctx.fill();ctx.strokeStyle=s[2]>0||locked?"#645d69":"#be6cff";ctx.lineWidth=2;ctx.stroke();ctx.clip();if(voidSkillIconAtlas.complete&&voidSkillIconAtlas.naturalWidth){const sw=voidSkillIconAtlas.naturalWidth/2,sh=voidSkillIconAtlas.naturalHeight/2;ctx.globalAlpha=s[2]>0||locked?.3:1;ctx.drawImage(voidSkillIconAtlas,(i%2)*sw,Math.floor(i/2)*sh,sw,sh,-r,-r,r*2,r*2);}ctx.restore();if(s[2]>0)drawCooldownCover(ix,iy,r,s[2]/s[3],s[2]);drawSkillHudLabel(ix,y+96,s[1],s[0],"#e5ccf2");});ctx.restore();}
 
 function drawCarmillaInterface(){if(selectedCharacter!=="carmilla"||screenMode!=="game")return;const w=Math.min(560,canvas.width-32),h=112,x=(canvas.width-w)/2,y=canvas.height-170,count=getCarmillaBloodCount(),need=getCarmillaBloodMoonNeed(),moon=player.carmillaBloodMoonTime>0;ctx.save();const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,"rgba(15,5,10,.97)");g.addColorStop(.55,"rgba(76,7,25,.96)");g.addColorStop(1,"rgba(12,3,8,.97)");drawRoundedRect(x,y,w,h,23,g,"#ff315d",2);ctx.save();ctx.beginPath();ctx.arc(x+52,y+54,38,0,Math.PI*2);ctx.clip();if(carmillaSpriteLoaded)ctx.drawImage(carmillaSprite,x+10,y+8,84,84);ctx.restore();ctx.strokeStyle="#ff5373";ctx.beginPath();ctx.arc(x+52,y+54,38,0,Math.PI*2);ctx.stroke();const sx=x+102;ctx.textAlign="left";ctx.fillStyle="#fff0f3";ctx.font="bold 18px Arial";ctx.fillText("카르밀라",sx,y+27);ctx.fillStyle="#ff6d89";ctx.font="bold 13px Arial";ctx.fillText(moon?"혈월 활성 · 기본 공격 175%":`혈월 ${Math.min(Math.floor(count),need)} / ${need}`,sx,y+50);drawRoundedRect(sx,y+61,150,11,6,"rgba(255,255,255,.08)");drawRoundedRect(sx,y+61,150*(moon?1:Math.min(1,count/need)),11,6,"#d91643");ctx.fillStyle="#d7aebb";ctx.font="11px Arial";ctx.fillText(moon?`남은 시간 ${Math.ceil(player.carmillaBloodMoonTime/60)}초${transcended.carmillaFeast?" · 치명 피해 시 1에서 보호":""}`:`흡수 대기 ${Math.floor(count)}`,sx,y+92);const ix=x+w-74,iy=y+48,r=30;ctx.save();ctx.beginPath();ctx.arc(ix,iy,r,0,Math.PI*2);ctx.clip();if(carmillaSkillIconAtlas.complete){const sw=carmillaSkillIconAtlas.naturalWidth/2,sh=carmillaSkillIconAtlas.naturalHeight/2;ctx.drawImage(carmillaSkillIconAtlas,0,0,sw,sh,ix-r,iy-r,r*2,r*2);}ctx.restore();if(player.carmillaQCooldown>0)drawCooldownCover(ix,iy,r,player.carmillaQCooldown/CARMILLA_Q_COOLDOWN,player.carmillaQCooldown);drawSkillHudLabel(ix,y+91,"피의 회수","Q","#ffd3dc");ctx.restore();}
+
+function drawVargasInterface(){if(selectedCharacter!=="vargas"||screenMode!=="game")return;const w=Math.min(760,canvas.width-28),h=122,x=(canvas.width-w)/2,y=canvas.height-180;ctx.save();const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,"rgba(5,13,10,.97)");g.addColorStop(.5,"rgba(34,13,18,.97)");g.addColorStop(1,"rgba(5,9,8,.97)");drawRoundedRect(x,y,w,h,24,g,"#58f39a",2);ctx.save();ctx.beginPath();ctx.arc(x+56,y+59,42,0,Math.PI*2);ctx.clip();if(vargasSpriteLoaded)ctx.drawImage(vargasSprite,x+4,y+2,108,108);ctx.restore();ctx.strokeStyle="#77ffae";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x+56,y+59,42,0,Math.PI*2);ctx.stroke();const sx=x+112;ctx.textAlign="left";ctx.fillStyle="#effff5";ctx.font="bold 18px Arial";ctx.fillText("바르가스",sx,y+27);ctx.fillStyle="#72f3a8";ctx.font="bold 13px Arial";ctx.fillText(`최대 체력 ${Math.floor(player.maxHp)}  ·  누적 성장 +${player.vargasGainedHp.toFixed(1)}`,sx,y+50);ctx.fillStyle="#b8d8c4";ctx.font="11px Arial";ctx.fillText(player.vargasUltimateTime>0?`불멸의 형상 ${Math.ceil(player.vargasUltimateTime/60)}초 · 성장 2배`:`보호막 ${Math.ceil(player.vargasShield)} / ${Math.ceil(player.maxHp*.25)}`,sx,y+72);drawRoundedRect(sx,y+82,185,10,5,"rgba(255,255,255,.08)");if(player.vargasShield>0)drawRoundedRect(sx,y+82,185*Math.min(1,player.vargasShield/(player.maxHp*.25)),10,5,"#53e895");const skills=[["Q","생명 포식",player.vargasQCooldown,VARGAS_Q_COOLDOWN],["E","혈육 갑주",player.vargasECooldown,VARGAS_E_COOLDOWN],["X","거신 강타",player.vargasXCooldown,VARGAS_X_COOLDOWN],["R",player.level<10?"10레벨 해금":"불멸의 형상",player.vargasRCooldown,VARGAS_R_COOLDOWN]];skills.forEach((s,i)=>{const ix=x+w-290+i*70,iy=y+48,r=26,locked=i===3&&player.level<10;ctx.save();ctx.beginPath();ctx.arc(ix,iy,r,0,Math.PI*2);ctx.clip();ctx.globalAlpha=s[2]>0||locked?.35:1;if(vargasSkillIconAtlas.complete&&vargasSkillIconAtlas.naturalWidth){const sw=vargasSkillIconAtlas.naturalWidth/2,sh=vargasSkillIconAtlas.naturalHeight/2;ctx.drawImage(vargasSkillIconAtlas,(i%2)*sw,Math.floor(i/2)*sh,sw,sh,ix-r,iy-r,r*2,r*2)}ctx.restore();if(s[2]>0)drawCooldownCover(ix,iy,r,s[2]/s[3],s[2]);drawSkillHudLabel(ix,y+98,s[1],s[0],"#caffdd")});ctx.restore()}
 
 function roundedRectPath(x, y, w, h, r) {
   const radius = Math.min(r, w / 2, h / 2);
@@ -856,15 +860,16 @@ const characterSkillGuide = {
   terra:{name:"테라",color:"#c5d965",passive:"평타로 진동을 모으며 진동 100에서만 스킬이 강화됩니다.",skills:[["Q 단층 붕괴","지면 균열로 적을 중앙에 모은 뒤 폭발시킵니다."],["E 암벽 융기","부서질 때까지 유지되는 실제 암석을 생성합니다."],["X 지각 압축","바위를 사방으로 파쇄해 넓은 범위를 공격합니다."],["R 대륙 분쇄","직사각형 지각을 붕괴시키고 추가 바위를 생성합니다."]]},
   void:{name:"보이드",color:"#b665ff",passive:"지면과 적을 포식해 질량을 모으고 스킬 크기와 위력을 높입니다.",skills:[["Q 심층 포식","전방을 포식하고 적을 중심으로 끌어당깁니다."],["E 대지 방출","모든 질량을 소모해 직사각형 공허 지대를 만듭니다."],["X 지반 붕괴","설치된 지대를 폭파시켜 큰 피해를 줍니다."],["R 제어 불능","적을 공격 불가 상태로 빨아들이는 거대한 특이점을 만듭니다."]]},
   carmilla:{name:"카르밀라",color:"#ff315d",passive:"공격한 자리에 핏방울을 남기고 회수해 회복과 혈월을 개방합니다.",skills:[["기본 공격","전방을 세 갈래 혈조로 베어 핏방울을 남깁니다."],["Q 피의 회수","바닥의 모든 핏방울을 되돌려 경로의 적을 공격하고 회복합니다."]]},
+  vargas:{name:"바르가스",color:"#58f39a",passive:"적 처치 시 최대 체력이 영구적으로 증가하며 성장에는 상한이 없습니다.",skills:[["기본 공격","거대한 심연의 건틀릿으로 전방을 휩쓸며 최대 체력에 비례한 피해를 줍니다."],["Q 생명 포식","주변 적을 끌어당기고 넓은 범위에 최대 체력 비례 피해를 줍니다."],["E 혈육 갑주","현재 체력 일부를 사용해 최대 체력에 비례한 보호막을 얻습니다."],["X 거신 강타","커서 방향으로 거대한 충격파를 내려찍습니다."],["R 불멸의 형상","10레벨부터 거신화하여 8초간 재생·범위·공격·성장량을 강화합니다."]]},
 };
 
-function getCharacterPreviewSprite(id){return id==="default"?playerSprite:id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:carmillaSprite;}
+function getCharacterPreviewSprite(id){return id==="default"?playerSprite:id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:vargasSprite;}
 
 const characterSkillVideoKeys = {
   default:["attack","reload"], suncall:["attack","reload"], luminous:["attack"],
   yupiter:["q","e-crescent","e-severing","e-flame","r-crescent","r-severing","r-flame"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
   zero:["q","e","x","r"], paladin:["q","e","x","r"], arc:["q","e","x","r"],
-  terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"]
+  terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"],vargas:["attack","q","e","x","r"]
 };
 const characterSkillVideoCache = new Map();
 function getCharacterSkillVideo(id, skillIndex) {
@@ -937,7 +942,7 @@ function drawCharacterSelectScreen() {
 
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
   const maxCardsPerRow = 3;
-  const characterIds = ["default", "suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla"];
+  const characterIds = ["default", "suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas"];
   const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
@@ -969,7 +974,7 @@ function drawCharacterSelectScreen() {
     paladin: { color: "#ffe48b", color2: "#315a94", role: "COMBO KNIGHT", number: "08" },
     arc: { color: "#ff8b32", color2: "#7d1e12", role: "SOLAR MAGE", number: "09" },
     terra: { color: "#c5d965", color2: "#526b2d", role: "EARTH BREAKER", number: "10" },
-    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "11" },carmilla:{color:"#ff315d",color2:"#5c071d",role:"TRUE VAMPIRE",number:"12"}
+    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "11" },carmilla:{color:"#ff315d",color2:"#5c071d",role:"TRUE VAMPIRE",number:"12"},vargas:{color:"#58f39a",color2:"#4b1321",role:"ABYSSAL COLOSSUS",number:"13"}
   };
 
   ctx.save();
@@ -980,7 +985,7 @@ function drawCharacterSelectScreen() {
     const cardScale = 1;
     if (card.y + card.h < y - 8 || card.y > canvas.height) continue;
     const isSelected = selectedCharacter === card.id;
-    const unlocked = card.id === "default" || card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
+    const unlocked = card.id === "default" || card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
     const hover = pointInRect(mouse.x, mouse.y, card);
     const theme = themes[card.id];
     const displayY = card.y + (hover && unlocked ? -7 : 0);
@@ -1015,8 +1020,8 @@ function drawCharacterSelectScreen() {
     }
     ctx.textAlign = "center";
 
-    const sprite = card.id === "default" ? playerSprite : card.id === "suncall" ? suncallSprite : card.id === "luminous" ? luminousSprite : card.id === "yupiter" ? yupiterSprite : card.id === "ren" ? renSprite : card.id === "nightLord" ? nightLordSprite : card.id === "zero" ? zeroSprite : card.id === "paladin" ? paladinSprite : card.id === "arc" ? arcSprite : card.id === "terra" ? terraSprite :card.id==="void"?voidSprite:carmillaSprite;
-    const loaded = card.id === "default" ? playerSpriteLoaded : card.id === "suncall" ? suncallSpriteLoaded : card.id === "luminous" ? luminousSpriteLoaded : card.id === "yupiter" ? yupiterSpriteLoaded : card.id === "ren" ? renSpriteLoaded : card.id === "nightLord" ? nightLordSpriteLoaded : card.id === "zero" ? zeroSpriteLoaded : card.id === "paladin" ? paladinSpriteLoaded : card.id === "arc" ? arcSpriteLoaded : card.id === "terra" ? terraSpriteLoaded :card.id==="void"?voidSpriteLoaded:carmillaSpriteLoaded;
+    const sprite = getCharacterPreviewSprite(card.id);
+    const loaded = sprite&&sprite.complete&&sprite.naturalWidth>0;
     if (loaded) {
       ctx.save();
       if (!unlocked) ctx.globalAlpha = 0.24;
@@ -1031,8 +1036,8 @@ function drawCharacterSelectScreen() {
       ctx.restore();
     }
 
-    const name = card.id === "default" ? "기본 캐릭터" : card.id === "suncall" ? "썬콜" : card.id === "luminous" ? "루미너스" : card.id === "yupiter" ? "유피테르" : card.id === "ren" ? "렌" : card.id === "nightLord" ? "나이트 로드" : card.id === "zero" ? "제로" : card.id === "paladin" ? "팔라딘" : card.id === "arc" ? "아크" : card.id === "terra" ? "테라" :card.id==="void"?"보이드":"카르밀라";
-    const passive = card.id === "default" ? "기본 능력치" : card.id === "suncall" ? "패시브: 이동속도 +15% · 공격 시 10% 확률로 얼음 지대 생성" : card.id === "luminous" ? "패시브: 총알이 자동으로 적을 추적" : card.id === "yupiter" ? "패시브: 3가지 무기를 골라서 사용" : card.id === "ren" ? "패시브: 그림자를 수집해 분신 강화" : card.id === "nightLord" ? "패시브: 잃은 체력에 비례해 공격 강화" : card.id === "zero" ? "패시브: 레벨당 검술 피해 +4% · 평타 적중 시 스킬 쿨타임 감소" : card.id === "paladin" ? "패시브: 콤보에 따라 성검과 공격 방식이 해방" : card.id === "arc" ? "패시브: 다수 적중 시 열기를 모아 태양 기술 강화" : card.id === "terra" ? "패시브: 평타 다중 적중으로 진동을 모아 지형 스킬 강화" : card.id === "void" ? "패시브: 지면을 삼켜 공허 질량으로 변환" : "패시브: 피를 남기고 회수해 혈월을 개방";
+    const name = characterSkillGuide[card.id]?.name||"기본 캐릭터";
+    const passive = `패시브: ${characterSkillGuide[card.id]?.passive||"기본 능력치"}`;
     ctx.fillStyle = unlocked ? "#f4f7ff" : "#777d88";
     ctx.font = `bold ${Math.max(12, (card.w < 145 ? 16 : 23) * Math.min(1, cardScale + .12))}px Arial`;
     ctx.fillText(name, card.x + card.w / 2, displayY + 252 * cardScale);
@@ -1527,6 +1532,7 @@ const transcendIconCells = {
 };
 
 function drawAugmentIcon(id, x, y, size, transcendent = false) {
+  if(id==="vargasPredator"||id==="vargasSkeleton"||id==="vargasPulse"){if(vargasAugmentIconAtlas.complete&&vargasAugmentIconAtlas.naturalWidth){const col={vargasPredator:0,vargasSkeleton:1,vargasPulse:2}[id],row=transcendent?1:0,sw=vargasAugmentIconAtlas.naturalWidth/3,sh=vargasAugmentIconAtlas.naturalHeight/2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(vargasAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
   if(id==="carmillaPreserve"||id==="carmillaResonance"||id==="carmillaFeast"){if(carmillaAugmentIconAtlas.complete&&carmillaAugmentIconAtlas.naturalWidth){const base={carmillaPreserve:0,carmillaResonance:1,carmillaFeast:2}[id],cell=transcendent?3:base,sw=carmillaAugmentIconAtlas.naturalWidth/2,sh=carmillaAugmentIconAtlas.naturalHeight/2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(carmillaAugmentIconAtlas,(cell%2)*sw,Math.floor(cell/2)*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
   if(id==="voidCapacity"||id==="voidTerrain"||id==="voidChain"){if(voidAugmentIconAtlas.complete&&voidAugmentIconAtlas.naturalWidth){const cell={voidCapacity:0,voidTerrain:1,voidChain:2}[id]+(transcendent?1:0);const sw=voidAugmentIconAtlas.naturalWidth/2,sh=voidAugmentIconAtlas.naturalHeight/2,col=cell%2,row=Math.floor(cell/2)%2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(voidAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
   if (id === "terraResonance" || id === "terraFault" || id === "terraRampart") {

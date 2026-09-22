@@ -27,6 +27,7 @@ function draw() {
   drawVoidUltimateDetail();
   drawCarmillaEffects();
   drawCarmillaPolish();
+  drawVargasEffects();
   drawItems();
   drawExpOrbs();
   drawBullets();
@@ -50,6 +51,7 @@ function draw() {
   drawTerraInterface();
   drawVoidInterface();
   drawCarmillaInterface();
+  drawVargasInterface();
   drawReloadingOverlay();
   drawExpBar();
   drawMiniMap();
@@ -66,7 +68,7 @@ function restart() {
   player.y = WORLD.height / 2;
   player.speed = selectedCharacter === "suncall" ? 4.2 * 1.15 : 4.2;
 
-  player.maxHp = selectedCharacter === "ren" ? 50 : (selectedCharacter === "nightLord" ? 150 : (selectedCharacter === "paladin" ? 125 : 100));
+  player.maxHp = selectedCharacter === "ren" ? 50 : (selectedCharacter === "nightLord" ? 150 : (selectedCharacter === "paladin" ? 125 : (selectedCharacter === "vargas" ? 180 : 100)));
   player.hp = player.maxHp;
 
   player.maxAmmo = selectedCharacter === "luminous" ? 8 : 12;
@@ -205,6 +207,7 @@ function restart() {
   player.terraRampartLevel = 0;
   player.voidMass=0;player.voidQCooldown=0;player.voidECooldown=0;player.voidXCooldown=0;player.voidRCooldown=0;player.voidUltimateTime=0;player.voidUltimateTick=0;player.voidCapacityLevel=0;player.voidTerrainLevel=0;player.voidChainLevel=0;
   player.carmillaQCooldown=0;player.carmillaBloodMoonTime=0;player.carmillaFeastLevel=0;player.carmillaPreserveLevel=0;player.carmillaResonanceLevel=0;
+  player.vargasGainedHp=0;player.vargasShield=0;player.vargasArmorTime=0;player.vargasUltimateTime=0;player.vargasQCooldown=0;player.vargasECooldown=0;player.vargasXCooldown=0;player.vargasRCooldown=0;player.vargasSecondHeartCooldown=0;player.vargasPredatorLevel=0;player.vargasSkeletonLevel=0;player.vargasPulseLevel=0;vargasEffects=[];
 
   player.dodgeLevel = 0;
   player.crownLevel = 0;

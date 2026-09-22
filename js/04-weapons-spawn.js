@@ -39,6 +39,7 @@ function shoot() {
   }
   if (selectedCharacter === "void") { attackWithVoid(); return; }
   if(selectedCharacter==="carmilla"){attackWithCarmilla();return;}
+  if(selectedCharacter==="vargas"){attackWithVargas();return;}
 
   if (selectedCharacter === "yupiter") {
     attackWithYupiterWeapon();
@@ -294,6 +295,7 @@ function killZombie(index, zombie, allowExplosion = true) {
   }
 
   onRenZombieKilled(zombie);
+  onVargasZombieKilled(zombie);
 
   dropExp(zombie.x, zombie.y, zombie.boss ? 8 : 3);
 
