@@ -541,6 +541,7 @@ function update() {
   updateCarmilla();
   updateVargas();
   updateEcho();
+  updateAria();
   updateZombies();
   updateDaggers();
   updateItems();

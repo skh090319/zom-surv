@@ -57,7 +57,11 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="echo"&&key==="q")replayEchoMemory();
     if(selectedCharacter==="echo"&&key==="e")activateEchoPhase();
     if(selectedCharacter==="echo"&&key==="r")activateEchoCollapse();
-    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo") reload();
+    if(selectedCharacter==="aria"&&key==="q")activateAriaQ();
+    if(selectedCharacter==="aria"&&key==="e")activateAriaE();
+    if(selectedCharacter==="aria"&&key==="x")activateAriaX();
+    if(selectedCharacter==="aria"&&key==="r")activateAriaR();
+    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria") reload();
   }
   if (gameOver && key === "enter") {
     restart();
@@ -173,6 +177,7 @@ canvas.addEventListener("mousedown", event => {
       if(card.id==="carmilla")selectedCharacter="carmilla";
       if(card.id==="vargas")selectedCharacter="vargas";
       if(card.id==="echo")selectedCharacter="echo";
+      if(card.id==="aria")selectedCharacter="aria";
 
       return;
     }

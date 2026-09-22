@@ -134,7 +134,9 @@ function drawPlayer() {
     : null;
   const nightLordAttackHeld = selectedCharacter === "nightLord" && mouse.down && player.nightLordFrenzyTime <= 0;
   const nightLordIsAttacking = Boolean((nightLordSlash || nightLordAttackHeld) && nightLordAttackSpriteLoaded);
-  const activeSprite = selectedCharacter === "echo"
+  const activeSprite = selectedCharacter === "aria"
+    ? ariaSprite
+    : selectedCharacter === "echo"
     ? echoSprite
     : selectedCharacter === "vargas"
     ? vargasSprite
@@ -163,7 +165,9 @@ function drawPlayer() {
             ? yupiterSeveringSprite
             : (player.yupiterWeapon === 2 && yupiterFlameSpriteLoaded ? yupiterFlameSprite : yupiterSprite)))
         : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSprite : renSprite) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSprite : nightLordSprite) : playerSprite))));
-  const activeLoaded = selectedCharacter === "echo"
+  const activeLoaded = selectedCharacter === "aria"
+    ? ariaSpriteLoaded
+    : selectedCharacter === "echo"
     ? echoSpriteLoaded
     : selectedCharacter === "vargas"
     ? vargasSpriteLoaded
@@ -186,7 +190,7 @@ function drawPlayer() {
       : (selectedCharacter === "yupiter" ? yupiterSpriteLoaded : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSpriteLoaded : renSpriteLoaded) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSpriteLoaded : nightLordSpriteLoaded) : playerSpriteLoaded))));
 
   if (activeLoaded) {
-    const size = selectedCharacter === "vargas" ? (player.vargasUltimateTime>0?142:122) : ((selectedCharacter === "luminous" || selectedCharacter === "ren" || selectedCharacter === "nightLord" || selectedCharacter === "zero" || selectedCharacter === "paladin" || selectedCharacter === "arc" || selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "echo") ? 112 : ((selectedCharacter === "suncall" || selectedCharacter === "yupiter") ? 104 : 96));
+    const size = selectedCharacter === "vargas" ? (player.vargasUltimateTime>0?142:122) : ((selectedCharacter === "luminous" || selectedCharacter === "ren" || selectedCharacter === "nightLord" || selectedCharacter === "zero" || selectedCharacter === "paladin" || selectedCharacter === "arc" || selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "echo" || selectedCharacter === "aria") ? 112 : ((selectedCharacter === "suncall" || selectedCharacter === "yupiter") ? 104 : 96));
 
     ctx.save();
     const castLunge = luminousIsAttacking ? 4 * Math.min(1, player.luminousAttackTime / 4) : 0;
@@ -204,6 +208,7 @@ function drawPlayer() {
     if (selectedCharacter === "void" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "vargas" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "echo" && Math.cos(mouseAngle) < 0) ctx.scale(-1, 1);
+    if (selectedCharacter === "aria" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     ctx.drawImage(activeSprite, -size / 2, -size / 2 - 18, size, size);
     ctx.restore();
   } else {
@@ -213,7 +218,7 @@ function drawPlayer() {
     ctx.fill();
   }
 
-  if (gunSpriteLoaded && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo") {
+  if (gunSpriteLoaded && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria") {
     const gunW = 68;
     const gunH = 30;
 

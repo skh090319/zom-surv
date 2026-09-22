@@ -43,6 +43,7 @@ const upgradeCount = {
   ,carmillaPreserve:0,carmillaResonance:0,carmillaFeast:0
   ,vargasPredator:0,vargasSkeleton:0,vargasPulse:0
   ,echoAfterimage:0,echoPitch:0,echoArchive:0
+  ,ariaSoil:0,ariaThorn:0,ariaNight:0
 
 
 };
@@ -90,6 +91,7 @@ const transcended = {
   ,carmillaPreserve:false,carmillaResonance:false,carmillaFeast:false
   ,vargasPredator:false,vargasSkeleton:false,vargasPulse:false
   ,echoAfterimage:false,echoPitch:false,echoArchive:false
+  ,ariaSoil:false,ariaThorn:false,ariaNight:false
 
 
 };
@@ -194,6 +196,9 @@ const upgrades = [
   {id:"echoAfterimage",category:"support",name:"긴 솔기",desc:"균열의 길이와 최대 설치 수가 단계마다 증가합니다",transcendName:"초월: 지평선 절단",transcendDesc:"일괄 절단 피해와 균열 폭이 크게 증가합니다",requires(){return selectedCharacter==="echo";},apply(){upgradeCount.echoAfterimage++;if(upgradeCount.echoAfterimage<4)player.echoAfterimageLevel++;else transcended.echoAfterimage=true;}},
   {id:"echoPitch",category:"support",name:"조여진 매듭",desc:"균열과 매듭의 피해가 단계마다 14% 증가합니다",transcendName:"초월: 특이점 매듭",transcendDesc:"세계선 붕괴가 적 최대 체력의 15% 추가 피해를 줍니다",requires(){return selectedCharacter==="echo";},apply(){upgradeCount.echoPitch++;if(upgradeCount.echoPitch<4)player.echoPitchLevel++;else transcended.echoPitch=true;}},
   {id:"echoArchive",category:"support",name:"접힌 날",desc:"공간 매듭의 범위와 최대 개수가 증가합니다",transcendName:"초월: 세계 봉합",transcendDesc:"공간 매듭을 최대 3개 더 유지할 수 있습니다",requires(){return selectedCharacter==="echo";},apply(){upgradeCount.echoArchive++;if(upgradeCount.echoArchive<4)player.echoArchiveLevel++;else transcended.echoArchive=true;}},
+  {id:"ariaSoil",category:"support",name:"비옥한 토양",desc:"토양 유지시간·연결 거리·만개 범위가 증가합니다",transcendName:"초월: 에덴",transcendDesc:"영원한 봄 동안 꽃 공격이 더 많은 토양에서 동시에 피어납니다",requires(){return selectedCharacter==="aria";},apply(){upgradeCount.ariaSoil++;if(upgradeCount.ariaSoil<4)player.ariaSoilLevel++;else transcended.ariaSoil=true;}},
+  {id:"ariaThorn",category:"support",name:"가시 장미",desc:"모든 꽃과 가시 피해가 단계마다 13% 증가합니다",transcendName:"초월: 선혈 가시관",transcendDesc:"가시 성장이 적 최대 체력 비례 추가 피해를 줍니다",requires(){return selectedCharacter==="aria";},apply(){upgradeCount.ariaThorn++;if(upgradeCount.ariaThorn<4)player.ariaThornLevel++;else transcended.ariaThorn=true;}},
+  {id:"ariaNight",category:"support",name:"밤의 꽃",desc:"화원 공격의 둔화 지속시간과 위력이 증가합니다",transcendName:"초월: 영원한 밤의 정원",transcendDesc:"토양 안의 적이 지속적으로 둔화되고 약화됩니다",requires(){return selectedCharacter==="aria";},apply(){upgradeCount.ariaNight++;if(upgradeCount.ariaNight<4)player.ariaNightLevel++;else transcended.ariaNight=true;}},
   { id: "greed", category: "support", name: "탐욕", desc: "다음 선택 시 경험치 획득량 +10%", transcendName: "초월: 흡혈 군주", transcendDesc: "적 처치 시 최대 체력의 1% 회복",
     getDesc() {
       const next = Math.min(3, (upgradeCount.greed || 0) + 1);
@@ -293,7 +298,7 @@ function openUpgradeMenu() {
       if (selectedCharacter === "zero" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "paladin" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "arc" && (u.id === "ammo" || u.id === "fireRate")) return false;
-      if ((selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "carmilla" || selectedCharacter === "vargas" || selectedCharacter === "echo") && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if ((selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "carmilla" || selectedCharacter === "vargas" || selectedCharacter === "echo" || selectedCharacter === "aria") && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (typeof u.requires === "function" && !u.requires()) return false;
       if (transcended[u.id]) return false;
       return true;
