@@ -54,7 +54,8 @@ addEventListener("keydown", e => {
     if(key==="e"&&selectedCharacter==="vargas")activateVargasE();
     if(key==="x"&&selectedCharacter==="vargas")activateVargasX();
     if(key==="r"&&selectedCharacter==="vargas")activateVargasR();
-    if(selectedCharacter==="echo"&&(key==="1"||key==="2"||key==="3"))storeEchoMemory(Number(key)-1);
+    if(selectedCharacter==="echo"&&key===" "){e.preventDefault();activateEchoPhase();}
+    if(selectedCharacter==="echo"&&key==="r")activateEchoCollapse();
     if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo") reload();
   }
   if (gameOver && key === "enter") {

@@ -56,7 +56,7 @@ function drawHUD() {
   // HP는 화면 상단 체력바로 표시
 
   const weaponText = selectedCharacter === "echo"
-    ? "에코 · 기억의 지휘자"
+    ? "에코 · 차원 재단사"
     : selectedCharacter === "yupiter"
     ? `Weapon: ${YUPITER_WEAPON_NAMES[player.yupiterWeapon]}`
     : (selectedCharacter === "vargas"
@@ -864,7 +864,7 @@ const characterSkillGuide = {
   void:{name:"보이드",color:"#b665ff",passive:"지면과 적을 포식해 질량을 모으고 스킬 크기와 위력을 높입니다.",skills:[["Q 심층 포식","전방을 포식하고 적을 중심으로 끌어당깁니다."],["E 대지 방출","모든 질량을 소모해 직사각형 공허 지대를 만듭니다."],["X 지반 붕괴","설치된 지대를 폭파시켜 큰 피해를 줍니다."],["R 제어 불능","적을 공격 불가 상태로 빨아들이는 거대한 특이점을 만듭니다."]]},
   carmilla:{name:"카르밀라",color:"#ff315d",passive:"공격한 자리에 핏방울을 남기고 회수해 회복과 혈월을 개방합니다.",skills:[["기본 공격","전방을 세 갈래 혈조로 베어 핏방울을 남깁니다."],["Q 피의 회수","바닥의 모든 핏방울을 되돌려 경로의 적을 공격하고 회복합니다."]]},
   vargas:{name:"바르가스",color:"#58f39a",passive:"적 처치 시 최대 체력이 영구적으로 증가하며 성장에는 상한이 없습니다.",skills:[["기본 공격","거대한 심연의 건틀릿으로 전방을 휩쓸며 최대 체력에 비례한 피해를 줍니다."],["Q 생명 포식","주변 적을 끌어당기고 넓은 범위에 최대 체력 비례 피해를 줍니다."],["E 혈육 갑주","현재 체력 일부를 사용해 최대 체력에 비례한 보호막을 얻습니다."],["X 거신 강타","커서 방향으로 거대한 충격파를 내려찍습니다."],["R 불멸의 형상","10레벨부터 거신화하여 8초간 재생·범위·공격·성장량을 강화합니다."]]},
-  echo:{name:"에코",color:"#65e8ff",passive:"평타의 세 가지 음색을 기억합니다. 1·2·3으로 기억을 저장하고 우클릭으로 마지막 기억을 재현합니다.",skills:[["기본 공격","파동·균열·잔향을 차례로 지휘하며 서로 다른 범위와 피해로 공격합니다."],["1·2·3 기억 저장","방금 사용한 공격을 선택한 기억 슬롯에 저장합니다. 세 종류를 모으면 화음이 완성됩니다."],["우클릭 기억 재현","가장 최근 슬롯의 공격을 커서 방향으로 다시 연주합니다."],["기억의 교향곡","화음 세 개가 완성되면 자동 발동해 화면의 넓은 범위를 공명으로 휩씁니다."]]},
+  echo:{name:"에코",color:"#65e8ff",passive:"공간에 남긴 균열이 가까이 겹치면 공간 매듭이 생성됩니다. 매듭 주변의 적은 균열 피해를 더 받습니다.",skills:[["기본 공격 · 균열","커서 방향으로 공간을 베어 지속되는 균열을 그립니다."],["우클릭 · 절단","설치된 모든 균열을 동시에 닫아 경로의 적을 다시 공격합니다."],["SPACE · 위상 전환","커서와 가까운 공간 매듭으로 순간이동하고 잠시 무적이 됩니다."],["R · 세계선 붕괴","10레벨부터 매듭 3개 이상일 때 모든 매듭을 연결해 접힌 공간을 붕괴시킵니다."]]},
 };
 
 function getCharacterPreviewSprite(id){return id==="default"?playerSprite:id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:id==="echo"?echoSprite:vargasSprite;}
@@ -873,7 +873,7 @@ const characterSkillVideoKeys = {
   default:["attack","reload"], suncall:["attack","reload"], luminous:["attack"],
   yupiter:["q","e-crescent","e-severing","e-flame","r-crescent","r-severing","r-flame"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
   zero:["q","e","x","r"], paladin:["q","e","x","r"], arc:["q","e","x","r"],
-  terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"],vargas:["attack","q","e","x","r"],echo:["attack","store","replay","r"]
+  terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"],vargas:["attack","q","e","x","r"],echo:["attack","close","phase","r"]
 };
 const characterSkillVideoCache = new Map();
 function getCharacterSkillVideo(id, skillIndex) {
@@ -978,7 +978,7 @@ function drawCharacterSelectScreen() {
     paladin: { color: "#ffe48b", color2: "#315a94", role: "COMBO KNIGHT", number: "08" },
     arc: { color: "#ff8b32", color2: "#7d1e12", role: "SOLAR MAGE", number: "09" },
     terra: { color: "#c5d965", color2: "#526b2d", role: "EARTH BREAKER", number: "10" },
-    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "11" },carmilla:{color:"#ff315d",color2:"#5c071d",role:"TRUE VAMPIRE",number:"12"},vargas:{color:"#58f39a",color2:"#4b1321",role:"ABYSSAL COLOSSUS",number:"13"},echo:{color:"#65e8ff",color2:"#6044a8",role:"MEMORY CONDUCTOR",number:"14"}
+    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "11" },carmilla:{color:"#ff315d",color2:"#5c071d",role:"TRUE VAMPIRE",number:"12"},vargas:{color:"#58f39a",color2:"#4b1321",role:"ABYSSAL COLOSSUS",number:"13"},echo:{color:"#65e8ff",color2:"#6044a8",role:"DIMENSION TAILOR",number:"14"}
   };
 
   ctx.save();

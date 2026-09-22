@@ -203,7 +203,7 @@ function drawPlayer() {
     if (selectedCharacter === "terra" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "void" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "vargas" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
-    if (selectedCharacter === "echo" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
+    if (selectedCharacter === "echo" && Math.cos(mouseAngle) < 0) ctx.scale(-1, 1);
     ctx.drawImage(activeSprite, -size / 2, -size / 2 - 18, size, size);
     ctx.restore();
   } else {
