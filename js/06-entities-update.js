@@ -362,14 +362,12 @@ function updateZombies() {
         const dodged = tryDodgeAttack();
 
         if (!dodged) {
-          player.hp -= player.crownLevel > 0 ? 20 : 10;
+          const incomingDamage = player.crownLevel > 0 ? 20 : 10;
+          const carmillaFatalGuard = selectedCharacter === "carmilla" && player.carmillaBloodMoonTime > 0 && transcended.carmillaFeast;
+          player.hp -= carmillaFatalGuard ? Math.min(incomingDamage, Math.max(0, player.hp - 1)) : incomingDamage;
           player.invincibleTime = 12;
 
           if (selectedCharacter === "nightLord" && player.nightLordUltimateTime > 0) {
-            player.hp = Math.max(1, player.hp);
-          }
-
-          if (selectedCharacter === "carmilla" && player.carmillaBloodMoonTime > 0 && transcended.carmillaFeast) {
             player.hp = Math.max(1, player.hp);
           }
 
