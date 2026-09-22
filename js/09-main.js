@@ -29,7 +29,7 @@ function draw() {
   drawCarmillaPolish();
   drawVargasEffectsV2();
   drawEchoEffectsV3();
-  drawAriaEffectsV2();
+  drawAriaEffectsV3();
   drawItems();
   drawExpOrbs();
   drawBullets();
