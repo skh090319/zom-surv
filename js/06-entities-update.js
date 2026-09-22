@@ -540,6 +540,7 @@ function update() {
   updateVoid();
   updateCarmilla();
   updateVargas();
+  updateEcho();
   updateZombies();
   updateDaggers();
   updateItems();

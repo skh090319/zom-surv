@@ -28,6 +28,7 @@ function draw() {
   drawCarmillaEffects();
   drawCarmillaPolish();
   drawVargasEffectsV2();
+  drawEchoEffects();
   drawItems();
   drawExpOrbs();
   drawBullets();
@@ -52,6 +53,7 @@ function draw() {
   drawVoidInterface();
   drawCarmillaInterface();
   drawVargasInterface();
+  drawEchoInterface();
   drawReloadingOverlay();
   drawExpBar();
   drawMiniMap();
@@ -208,6 +210,7 @@ function restart() {
   player.voidMass=0;player.voidQCooldown=0;player.voidECooldown=0;player.voidXCooldown=0;player.voidRCooldown=0;player.voidUltimateTime=0;player.voidUltimateTick=0;player.voidCapacityLevel=0;player.voidTerrainLevel=0;player.voidChainLevel=0;
   player.carmillaQCooldown=0;player.carmillaBloodMoonTime=0;player.carmillaFeastLevel=0;player.carmillaPreserveLevel=0;player.carmillaResonanceLevel=0;
   player.vargasGainedHp=0;player.vargasShield=0;player.vargasArmorTime=0;player.vargasUltimateTime=0;player.vargasQCooldown=0;player.vargasECooldown=0;player.vargasXCooldown=0;player.vargasRCooldown=0;player.vargasSecondHeartCooldown=0;player.vargasPredatorLevel=0;player.vargasSkeletonLevel=0;player.vargasPulseLevel=0;vargasEffects=[];
+  player.echoMemoryType=0;player.echoSlots=[-1,-1,-1];player.echoHarmonies=0;player.echoReplayCooldown=0;player.echoAfterimageLevel=0;player.echoPitchLevel=0;player.echoArchiveLevel=0;echoEffects=[];
 
   player.dodgeLevel = 0;
   player.crownLevel = 0;

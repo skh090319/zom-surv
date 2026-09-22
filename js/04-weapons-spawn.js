@@ -40,6 +40,7 @@ function shoot() {
   if (selectedCharacter === "void") { attackWithVoid(); return; }
   if(selectedCharacter==="carmilla"){attackWithCarmilla();return;}
   if(selectedCharacter==="vargas"){attackWithVargas();return;}
+  if(selectedCharacter==="echo"){attackWithEcho();return;}
 
   if (selectedCharacter === "yupiter") {
     attackWithYupiterWeapon();

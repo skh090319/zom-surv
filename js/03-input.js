@@ -54,7 +54,8 @@ addEventListener("keydown", e => {
     if(key==="e"&&selectedCharacter==="vargas")activateVargasE();
     if(key==="x"&&selectedCharacter==="vargas")activateVargasX();
     if(key==="r"&&selectedCharacter==="vargas")activateVargasR();
-    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas") reload();
+    if(selectedCharacter==="echo"&&(key==="1"||key==="2"||key==="3"))storeEchoMemory(Number(key)-1);
+    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo") reload();
   }
   if (gameOver && key === "enter") {
     restart();
@@ -169,6 +170,7 @@ canvas.addEventListener("mousedown", event => {
       if (card.id === "void") selectedCharacter = "void";
       if(card.id==="carmilla")selectedCharacter="carmilla";
       if(card.id==="vargas")selectedCharacter="vargas";
+      if(card.id==="echo")selectedCharacter="echo";
 
       return;
     }
@@ -217,6 +219,10 @@ canvas.addEventListener("mousedown", event => {
 
     mouse.down = true;
   }
+});
+
+canvas.addEventListener("contextmenu",event=>{
+  if(screenMode==="game"&&selectedCharacter==="echo"&&!paused&&!choosingUpgrade){event.preventDefault();replayEchoMemory();}
 });
 
 canvas.addEventListener("contextmenu", event => {
