@@ -206,6 +206,9 @@ const ariaAugmentIconAtlas=new Image();ariaAugmentIconAtlas.src="assets/aria-aug
 const moiraSprite=new Image();moiraSprite.src="assets/moira.png";let moiraSpriteLoaded=false;moiraSprite.onload=()=>moiraSpriteLoaded=true;
 const moiraSkillIconAtlas=new Image();moiraSkillIconAtlas.src="assets/moira-skill-icons.png";
 const moiraAugmentIconAtlas=new Image();moiraAugmentIconAtlas.src="assets/moira-augment-icons.png";
+const mareSprite=new Image();mareSprite.src="assets/mare.png";let mareSpriteLoaded=false;mareSprite.onload=()=>mareSpriteLoaded=true;
+const mareSkillIconAtlas=new Image();mareSkillIconAtlas.src="assets/mare-skill-icons.png";
+const mareAugmentIconAtlas=new Image();mareAugmentIconAtlas.src="assets/mare-augment-icons.png";
 
 const renHudPortrait = new Image();
 renHudPortrait.src = "assets/ren-hud-portrait.png";
@@ -463,6 +466,7 @@ const player = {
   echoReplayCooldown:0,echoPhaseCooldown:0,echoCollapseCooldown:0,echoSwingSide:-1,echoAfterimageLevel:0,echoPitchLevel:0,echoArchiveLevel:0,
   ariaQCooldown:0,ariaECooldown:0,ariaXCooldown:0,ariaRCooldown:0,ariaUltimateTime:0,ariaSoilLevel:0,ariaThornLevel:0,ariaNightLevel:0,ariaNightTick:0,
   moiraQCooldown:0,moiraECooldown:0,moiraXCooldown:0,moiraRCooldown:0,moiraUltimateTime:0,moiraStoredPain:0,moiraThreadLevel:0,moiraNeedleLevel:0,moiraDollLevel:0,
+  mareQCooldown:0,mareECooldown:0,mareXCooldown:0,mareRCooldown:0,mareUltimateTime:0,mareUltimateTick:0,mareUltimateAngle:0,mareDepthLevel:0,mareCurrentLevel:0,mareFoamLevel:0,
   immortalLevel: 0,
   immortalUsed: false,
   dodgeLevel: 0,

@@ -45,6 +45,7 @@ const upgradeCount = {
   ,echoAfterimage:0,echoPitch:0,echoArchive:0
   ,ariaSoil:0,ariaThorn:0,ariaNight:0
   ,moiraThread:0,moiraNeedle:0,moiraDoll:0
+  ,mareDepth:0,mareCurrent:0,mareFoam:0
 
 
 };
@@ -94,6 +95,7 @@ const transcended = {
   ,echoAfterimage:false,echoPitch:false,echoArchive:false
   ,ariaSoil:false,ariaThorn:false,ariaNight:false
   ,moiraThread:false,moiraNeedle:false,moiraDoll:false
+  ,mareDepth:false,mareCurrent:false,mareFoam:false
 
 
 };
@@ -204,6 +206,9 @@ const upgrades = [
   {id:"moiraThread",category:"support",name:"질긴 실",desc:"연결 가능한 적과 실의 사거리가 증가합니다",transcendName:"초월: 운명의 붉은 실",transcendDesc:"실이 거리로 끊어지지 않고 연결 수가 크게 증가합니다",requires(){return selectedCharacter==="moira";},apply(){upgradeCount.moiraThread++;if(upgradeCount.moiraThread<4)player.moiraThreadLevel++;else transcended.moiraThread=true;}},
   {id:"moiraNeedle",category:"support",name:"녹슨 바늘",desc:"바늘땀과 고통 공유의 피해가 증가합니다",transcendName:"초월: 천 개의 바늘",transcendDesc:"고통 전이가 적 최대 체력의 10%를 추가로 입힙니다",requires(){return selectedCharacter==="moira";},apply(){upgradeCount.moiraNeedle++;if(upgradeCount.moiraNeedle<4)player.moiraNeedleLevel++;else transcended.moiraNeedle=true;}},
   {id:"moiraDoll",category:"support",name:"대리 고통",desc:"대리 인형이 저장하는 피해량이 증가합니다",transcendName:"초월: 마지막 공연",transcendDesc:"꼭두각시 극장이 끝날 때 연결된 적들이 폭발합니다",requires(){return selectedCharacter==="moira";},apply(){upgradeCount.moiraDoll++;if(upgradeCount.moiraDoll<4)player.moiraDollLevel++;else transcended.moiraDoll=true;}},
+  {id:"mareDepth",category:"support",name:"깊은 물",desc:"침수 최대 중첩과 밀물의 폭이 증가합니다",transcendName:"초월: 해일",transcendDesc:"밀물이 화면 전체를 뒤덮을 만큼 크게 확장됩니다",requires(){return selectedCharacter==="mare";},apply(){upgradeCount.mareDepth++;if(upgradeCount.mareDepth<4)player.mareDepthLevel++;else transcended.mareDepth=true;}},
+  {id:"mareCurrent",category:"support",name:"역류",desc:"소용돌이 핵의 흡인력과 붕괴 피해가 증가합니다",transcendName:"초월: 마리아나",transcendDesc:"수압이 침수된 적의 최대 체력 비례 피해를 추가합니다",requires(){return selectedCharacter==="mare";},apply(){upgradeCount.mareCurrent++;if(upgradeCount.mareCurrent<4)player.mareCurrentLevel++;else transcended.mareCurrent=true;}},
+  {id:"mareFoam",category:"support",name:"백색 거품",desc:"해류와 밀물 피해가 단계마다 증가합니다",transcendName:"초월: 레비아탄",transcendDesc:"심해 개방의 고래 해류가 더 강하게 반복 공격합니다",requires(){return selectedCharacter==="mare";},apply(){upgradeCount.mareFoam++;if(upgradeCount.mareFoam<4)player.mareFoamLevel++;else transcended.mareFoam=true;}},
   { id: "greed", category: "support", name: "탐욕", desc: "다음 선택 시 경험치 획득량 +10%", transcendName: "초월: 흡혈 군주", transcendDesc: "적 처치 시 최대 체력의 1% 회복",
     getDesc() {
       const next = Math.min(3, (upgradeCount.greed || 0) + 1);
@@ -303,7 +308,7 @@ function openUpgradeMenu() {
       if (selectedCharacter === "zero" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "paladin" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "arc" && (u.id === "ammo" || u.id === "fireRate")) return false;
-      if ((selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "carmilla" || selectedCharacter === "vargas" || selectedCharacter === "echo" || selectedCharacter === "aria" || selectedCharacter === "moira") && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if ((selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "carmilla" || selectedCharacter === "vargas" || selectedCharacter === "echo" || selectedCharacter === "aria" || selectedCharacter === "moira" || selectedCharacter === "mare") && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (typeof u.requires === "function" && !u.requires()) return false;
       if (transcended[u.id]) return false;
       return true;

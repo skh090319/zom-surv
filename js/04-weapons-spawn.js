@@ -43,6 +43,7 @@ function shoot() {
   if(selectedCharacter==="echo"){attackWithEcho();return;}
   if(selectedCharacter==="aria"){attackWithAria();return;}
   if(selectedCharacter==="moira"){attackWithMoira();return;}
+  if(selectedCharacter==="mare"){attackWithMare();return;}
 
   if (selectedCharacter === "yupiter") {
     attackWithYupiterWeapon();

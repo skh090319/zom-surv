@@ -543,6 +543,7 @@ function update() {
   updateEcho();
   updateAria();
   updateMoira();
+  updateMare();
   updateZombies();
   updateDaggers();
   updateItems();

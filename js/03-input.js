@@ -65,7 +65,11 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="moira"&&key==="e")activateMoiraE();
     if(selectedCharacter==="moira"&&key==="x")activateMoiraX();
     if(selectedCharacter==="moira"&&key==="r")activateMoiraR();
-    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira") reload();
+    if(selectedCharacter==="mare"&&key==="q")activateMareQ();
+    if(selectedCharacter==="mare"&&key==="e")activateMareE();
+    if(selectedCharacter==="mare"&&key==="x")activateMareX();
+    if(selectedCharacter==="mare"&&key==="r")activateMareR();
+    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare") reload();
   }
   if (gameOver && key === "enter") {
     restart();
@@ -183,6 +187,7 @@ canvas.addEventListener("mousedown", event => {
       if(card.id==="echo")selectedCharacter="echo";
       if(card.id==="aria")selectedCharacter="aria";
       if(card.id==="moira")selectedCharacter="moira";
+      if(card.id==="mare")selectedCharacter="mare";
 
       return;
     }
