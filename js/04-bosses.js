@@ -88,11 +88,20 @@ function startRaidBoss(index) {
 }
 
 function enforceImmobileRaidBoss() {
-  if (!activeRaidBoss || activeRaidBoss.raidIndex !== 0) return;
-  activeRaidBoss.x = activeRaidBoss.anchorX;
-  activeRaidBoss.y = activeRaidBoss.anchorY;
-  activeRaidBoss.dashVx = 0;
-  activeRaidBoss.dashVy = 0;
+  if (!activeRaidBoss) return;
+  if (activeRaidBoss.raidIndex === 0) {
+    activeRaidBoss.x = activeRaidBoss.anchorX;
+    activeRaidBoss.y = activeRaidBoss.anchorY;
+    activeRaidBoss.dashVx = 0;
+    activeRaidBoss.dashVy = 0;
+  } else if (Number.isFinite(activeRaidBoss.frameX) && Number.isFinite(activeRaidBoss.frameY)) {
+    // 보스 자신의 AI 이동 이후에 생긴 외부 넉백·흡입 변위만 되돌린다.
+    activeRaidBoss.x = activeRaidBoss.frameX;
+    activeRaidBoss.y = activeRaidBoss.frameY;
+  }
+  activeRaidBoss.slowTime = 0;
+  activeRaidBoss.stunTime = 0;
+  activeRaidBoss.stunFlash = 0;
 }
 
 function defeatRaidBoss(boss) {
@@ -368,6 +377,8 @@ function updateRaidBossSystem() {
   }
   updateRaidBossProjectiles();
   updateRaidBossZones();
+  boss.frameX = boss.x;
+  boss.frameY = boss.y;
   for (let i = raidBossEffects.length - 1; i >= 0; i--) if (--raidBossEffects[i].life <= 0) raidBossEffects.splice(i, 1);
 }
 

@@ -467,7 +467,7 @@ const player = {
   echoReplayCooldown:0,echoPhaseCooldown:0,echoCollapseCooldown:0,echoSwingSide:-1,echoAfterimageLevel:0,echoPitchLevel:0,echoArchiveLevel:0,
   ariaQCooldown:0,ariaECooldown:0,ariaXCooldown:0,ariaRCooldown:0,ariaUltimateTime:0,ariaSoilLevel:0,ariaThornLevel:0,ariaNightLevel:0,ariaNightTick:0,
   moiraQCooldown:0,moiraECooldown:0,moiraXCooldown:0,moiraRCooldown:0,moiraUltimateTime:0,moiraStoredPain:0,moiraThreadLevel:0,moiraNeedleLevel:0,moiraDollLevel:0,
-  mareQCooldown:0,mareECooldown:0,mareXCooldown:0,mareRCooldown:0,mareUltimateTime:0,mareUltimateTick:0,mareUltimateAngle:0,mareDepthLevel:0,mareCurrentLevel:0,mareFoamLevel:0,
+  mareQCooldown:0,mareECooldown:0,mareXCooldown:0,mareRCooldown:0,mareUltimateTime:0,mareUltimateTick:0,mareUltimateAngle:0,mareDepthLevel:0,mareCurrentLevel:0,mareFoamLevel:0,mareChargeTime:0,mareChargeAngle:0,mareChargeStartX:0,mareChargeStartY:0,mareChargeHitIds:new Set(),
   mareWhaleTrailTick:0,
   immortalLevel: 0,
   immortalUsed: false,

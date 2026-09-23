@@ -77,10 +77,20 @@ drawMareInterface=function(){
     ctx.fillStyle=glow;ctx.shadowColor=index===3?"#b65cff":"#4ae6ff";ctx.shadowBlur=16;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle="#d9fdff";ctx.lineWidth=2;ctx.stroke();ctx.shadowBlur=0;
     ctx.strokeStyle="#efffff";ctx.fillStyle="#efffff";ctx.lineCap="round";ctx.lineWidth=3;
-    if(index===0){ctx.beginPath();ctx.moveTo(-12,8);ctx.quadraticCurveTo(0,-13,14,-3);ctx.stroke();ctx.beginPath();ctx.moveTo(6,-11);ctx.lineTo(15,-3);ctx.lineTo(5,2);ctx.stroke();}
-    else if(index===1){for(let j=-1;j<=1;j++){ctx.beginPath();ctx.arc(-j*5,j*3,8+j*2,.15,Math.PI*1.55);ctx.stroke();}}
-    else if(index===2){ctx.beginPath();ctx.arc(0,0,14,.25,Math.PI*1.75);ctx.stroke();ctx.beginPath();ctx.moveTo(-4,-9);ctx.lineTo(8,0);ctx.lineTo(-4,9);ctx.stroke();}
-    else{ctx.font="900 20px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("R",0,1);}
+    if(index===0){
+      ctx.beginPath();ctx.moveTo(-13,2);ctx.bezierCurveTo(-8,-10,8,-11,15,-2);ctx.bezierCurveTo(7,7,-7,9,-13,2);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-12,1);ctx.lineTo(-21,-8);ctx.lineTo(-19,4);ctx.lineTo(-22,12);ctx.closePath();ctx.fill();
+      ctx.lineWidth=2;for(let j=0;j<3;j++){ctx.beginPath();ctx.moveTo(-23-j*4,-7+j*7);ctx.lineTo(-29-j*3,-7+j*7);ctx.stroke();}
+    } else if(index===1){
+      for(let j=0;j<3;j++){ctx.beginPath();ctx.arc(-2,1,7+j*5,-.3,Math.PI*1.48);ctx.stroke();}
+      ctx.fillStyle="#dfffff";for(const bubble of [[12,-13,3],[-14,12,2],[15,8,2]]){ctx.beginPath();ctx.arc(bubble[0],bubble[1],bubble[2],0,Math.PI*2);ctx.fill();}
+    } else if(index===2){
+      ctx.beginPath();ctx.arc(0,0,16,.15,Math.PI*1.85);ctx.stroke();ctx.beginPath();ctx.arc(0,0,9,Math.PI+.2,Math.PI*2-.2);ctx.stroke();
+      for(const side of [-1,1]){ctx.beginPath();ctx.moveTo(side*19,-5);ctx.lineTo(side*8,0);ctx.lineTo(side*18,6);ctx.stroke();}
+    } else {
+      ctx.beginPath();ctx.moveTo(-15,3);ctx.bezierCurveTo(-8,-12,10,-12,17,-2);ctx.bezierCurveTo(8,8,-8,10,-15,3);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,-17);ctx.lineTo(0,17);ctx.moveTo(-8,-10);ctx.lineTo(0,-17);ctx.lineTo(8,-10);ctx.stroke();
+    }
     ctx.restore();
     if(skill[2]>0)drawCooldownCover(cx,cy,r,skill[2]/skill[3],skill[2]);
     drawSkillHudLabel(cx,y+106,skill[1],skill[0],index===3?"#e7caff":"#d9fbff");
