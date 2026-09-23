@@ -54,7 +54,7 @@ function startRaidBoss(index) {
   purgeEnemiesForRaid();
   const centerX = Math.max(580, Math.min(WORLD.width - 580, player.x));
   const centerY = Math.max(580, Math.min(WORLD.height - 580, player.y));
-  raidArena = index === 0 ? { x: centerX, y: centerY, r: 500, pulse: 0 } : null;
+  raidArena = index === 0 ? { x: centerX, y: centerY, r: 1000, pulse: 0 } : null;
   if (index === 0) {
     player.x = centerX;
     player.y = centerY + 140;
