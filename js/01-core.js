@@ -467,6 +467,7 @@ const player = {
   ariaQCooldown:0,ariaECooldown:0,ariaXCooldown:0,ariaRCooldown:0,ariaUltimateTime:0,ariaSoilLevel:0,ariaThornLevel:0,ariaNightLevel:0,ariaNightTick:0,
   moiraQCooldown:0,moiraECooldown:0,moiraXCooldown:0,moiraRCooldown:0,moiraUltimateTime:0,moiraStoredPain:0,moiraThreadLevel:0,moiraNeedleLevel:0,moiraDollLevel:0,
   mareQCooldown:0,mareECooldown:0,mareXCooldown:0,mareRCooldown:0,mareUltimateTime:0,mareUltimateTick:0,mareUltimateAngle:0,mareDepthLevel:0,mareCurrentLevel:0,mareFoamLevel:0,
+  mareWhaleTrailTick:0,
   immortalLevel: 0,
   immortalUsed: false,
   dodgeLevel: 0,

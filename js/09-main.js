@@ -219,7 +219,7 @@ function restart() {
   player.echoReplayCooldown=0;player.echoPhaseCooldown=0;player.echoCollapseCooldown=0;player.echoSwingSide=-1;player.echoAfterimageLevel=0;player.echoPitchLevel=0;player.echoArchiveLevel=0;echoRifts=[];echoKnots=[];echoEffects=[];
   player.ariaQCooldown=0;player.ariaECooldown=0;player.ariaXCooldown=0;player.ariaRCooldown=0;player.ariaUltimateTime=0;player.ariaSoilLevel=0;player.ariaThornLevel=0;player.ariaNightLevel=0;player.ariaNightTick=0;ariaSoils=[];ariaEffects=[];
   player.moiraQCooldown=0;player.moiraECooldown=0;player.moiraXCooldown=0;player.moiraRCooldown=0;player.moiraUltimateTime=0;player.moiraStoredPain=0;player.moiraThreadLevel=0;player.moiraNeedleLevel=0;player.moiraDollLevel=0;moiraLinks=[];moiraLinkSet=new Set();moiraEffects=[];moiraDoll=null;
-  player.mareQCooldown=0;player.mareECooldown=0;player.mareXCooldown=0;player.mareRCooldown=0;player.mareUltimateTime=0;player.mareUltimateTick=0;player.mareUltimateAngle=0;player.mareDepthLevel=0;player.mareCurrentLevel=0;player.mareFoamLevel=0;mareEffects=[];mareCore=null;
+  player.mareQCooldown=0;player.mareECooldown=0;player.mareXCooldown=0;player.mareRCooldown=0;player.mareUltimateTime=0;player.mareUltimateTick=0;player.mareUltimateAngle=0;player.mareWhaleTrailTick=0;player.mareDepthLevel=0;player.mareCurrentLevel=0;player.mareFoamLevel=0;mareEffects=[];mareCore=null;mareCurrents=[];
 
   player.dodgeLevel = 0;
   player.crownLevel = 0;
