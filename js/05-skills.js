@@ -89,7 +89,7 @@ function updateLaserSlashes() {
       const dist = distancePointToSegment(z.x, z.y, x1, y1, x2, y2);
 
       if (dist < z.r + laser.width) {
-        z.hp -= z.maxHp * 0.2 * (player.crownLevel > 0 ? 2 : 1);
+        z.hp -= enemyMaxHpDamage(z, 0.2) * (player.crownLevel > 0 ? 2 : 1);
         laser.hitIds.push(z.id);
 
         for (let k = 0; k < 16; k++) {
@@ -224,7 +224,7 @@ function triggerWorldEnderExplosion(x, y) {
   for (let i = zombies.length - 1; i >= 0; i--) {
     const z = zombies[i];
     if (Math.hypot(z.x - x, z.y - y) > radius) continue;
-    z.hp -= z.maxHp * 0.1 * (player.crownLevel > 0 ? 2 : 1);
+    z.hp -= enemyMaxHpDamage(z, 0.1) * (player.crownLevel > 0 ? 2 : 1);
     if (z.hp <= 0) killZombie(i, z);
   }
 
@@ -277,7 +277,7 @@ function updateDroneBullets() {
       if (Math.hypot(b.x - z.x, b.y - z.y) < b.r + z.r) {
         const worldEnder = b.droneType === "W" && hasWorldEnder();
         const damageRatio = worldEnder ? 0.125 : b.damageRatio;
-        z.hp -= z.maxHp * damageRatio * (player.crownLevel > 0 ? 2 : 1);
+        z.hp -= enemyMaxHpDamage(z, damageRatio) * (player.crownLevel > 0 ? 2 : 1);
         hit = true;
 
         for (let k = 0; k < 8; k++) {
@@ -350,7 +350,7 @@ function updateGravityFields() {
         z.y = Math.max(z.r, Math.min(WORLD.height - z.r, z.y));
 
         if (!g.hitIds.includes(z.id)) {
-          z.hp -= z.maxHp * 0.3 * (player.crownLevel > 0 ? 2 : 1);
+          z.hp -= enemyMaxHpDamage(z, 0.3) * (player.crownLevel > 0 ? 2 : 1);
           g.hitIds.push(z.id);
 
           for (let k = 0; k < 18; k++) {

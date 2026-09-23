@@ -2,7 +2,8 @@
 
 const RAID_BOSS_TIMES = [120 * 60, 240 * 60, 360 * 60];
 const RAID_BOSS_NAMES = ["맹독의 꽃 아마란스", "날개 달린 사신 모르스", "심연의 집행자 녹스"];
-const RAID_BOSS_HP = [18000, 36000, 68000];
+const RAID_BOSS_HP = [120000, 260000, 500000];
+const RAID_BOSS_PERCENT_FLAT_PER_POINT = [140, 220, 320];
 const raidBossImages = ["venom-bloom", "winged-reaper", "abyss-knight"].map(name => {
   const image = new Image();
   image.src = `assets/bosses/${name}.png`;
@@ -42,15 +43,24 @@ function purgeEnemiesForRaid() {
   droneBullets.length = 0;
 }
 
+// 일반 적에게는 기존 최대 체력 비례 피해를 유지하고, 보스에게는
+// 비율 1%마다 정해진 고정 피해로 바꿔 체력 규모가 공략 시간을 무너뜨리지 않게 한다.
+function enemyMaxHpDamage(enemy, ratio) {
+  if (!enemy || !enemy.isRaidBoss) return (enemy?.maxHp || 0) * ratio;
+  return RAID_BOSS_PERCENT_FLAT_PER_POINT[enemy.raidIndex] * ratio * 100;
+}
+
 function startRaidBoss(index) {
   purgeEnemiesForRaid();
   const centerX = Math.max(580, Math.min(WORLD.width - 580, player.x));
   const centerY = Math.max(580, Math.min(WORLD.height - 580, player.y));
-  raidArena = { x: centerX, y: centerY, r: index === 0 ? 500 : 610, pulse: 0 };
-  player.x = centerX;
-  player.y = centerY + 140;
+  raidArena = index === 0 ? { x: centerX, y: centerY, r: 500, pulse: 0 } : null;
+  if (index === 0) {
+    player.x = centerX;
+    player.y = centerY + 140;
+  }
   const spawnX = centerX;
-  const spawnY = centerY + 20;
+  const spawnY = index === 0 ? centerY + 20 : Math.max(180, player.y - 340);
   activeRaidBoss = {
     id: `raid-${index}-${Date.now()}`,
     isRaidBoss: true,
@@ -325,7 +335,7 @@ function updateRaidBossSystem() {
   if (raidIntroTime > 0) raidIntroTime--;
   if (player.bossRootTime > 0) player.bossRootTime--;
   if (player.bossSlowTime > 0) player.bossSlowTime--;
-  raidArena.pulse += 0.025;
+  if (raidArena) raidArena.pulse += 0.025;
   clampPlayerToRaidArena();
   if (raidIntroTime <= 0) {
     if (boss.pattern === null) {
@@ -367,7 +377,6 @@ function drawRaidArena() {
 }
 
 function drawRaidBossZones() {
-  if (!raidArena) return;
   worldStart();
   for (const z of raidBossZones) {
     ctx.save();

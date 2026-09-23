@@ -59,8 +59,8 @@ function attackWithZero() {
     const widthAtDistance = baseHalfWidth * (1 - Math.max(0, Math.min(1, forward / range)));
     if (sideways > widthAtDistance + zombie.r + ZERO_ATTACK_HIT_PADDING) continue;
     hitEnemy = true;
-    zombie.hp -= damage + zombie.maxHp * 0.008;
-    if (transcended.zeroVital && player.zeroVitalTime > 0 && zombie.hp / zombie.maxHp <= 0.12) zombie.hp = 0;
+    zombie.hp -= damage + enemyMaxHpDamage(zombie, 0.008);
+    if (!zombie.isRaidBoss && transcended.zeroVital && player.zeroVitalTime > 0 && zombie.hp / zombie.maxHp <= 0.12) zombie.hp = 0;
     if (zombie.hp <= 0) killZombie(i, zombie);
   }
   if (hitEnemy) {
@@ -86,7 +86,7 @@ function activateZeroQ() {
   for (let i = zombies.length - 1; i >= 0; i--) {
     const zombie = zombies[i];
     if (distanceToNightLordSegment(zombie.x, zombie.y, startX, startY, player.x, player.y) > zombie.r + 28) continue;
-    zombie.hp -= damage + zombie.maxHp * 0.04;
+    zombie.hp -= damage + enemyMaxHpDamage(zombie, 0.04);
     if (zombie.hp <= 0) { killed = true; killZombie(i, zombie); }
   }
   player.invincibleTime = Math.max(player.invincibleTime, 10);
@@ -149,7 +149,7 @@ function updateZero() {
       for (const { zombie: target } of nearestTargets) {
         const index = zombies.indexOf(target);
         if (index < 0) continue;
-        target.hp -= scaledDamage(player.damage * 0.75 * getZeroLevelMultiplier()) + target.maxHp * 0.015;
+        target.hp -= scaledDamage(player.damage * 0.75 * getZeroLevelMultiplier()) + enemyMaxHpDamage(target, 0.015);
         zeroEffects.push({ type: "waltzStrike", x: target.x, y: target.y, angle: Math.random() * Math.PI * 2, life: 12, maxLife: 12 });
         if (target.hp <= 0 && index >= 0) killZombie(index, target);
       }
@@ -162,7 +162,7 @@ function updateZero() {
       for (let z = zombies.length - 1; z >= 0; z--) {
         const zombie = zombies[z];
         if (Math.hypot(zombie.x - effect.x, zombie.y - effect.y) > effect.radius + zombie.r) continue;
-        zombie.hp -= scaledDamage(player.damage * (0.55 + player.zeroJudgmentLevel * 0.08) * getZeroLevelMultiplier()) + zombie.maxHp * 0.008;
+        zombie.hp -= scaledDamage(player.damage * (0.55 + player.zeroJudgmentLevel * 0.08) * getZeroLevelMultiplier()) + enemyMaxHpDamage(zombie, 0.008);
         if (zombie.hp <= 0) killZombie(z, zombie);
       }
     }

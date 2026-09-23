@@ -241,7 +241,7 @@ function updateRen() {
         const dy = zombie.y - player.renUltimateY;
         if (dx * dx + dy * dy > (REN_ULTIMATE_RADIUS + zombie.r) ** 2) continue;
         zombie.slowTime = Math.max(zombie.slowTime || 0, 12);
-        zombie.hp -= zombie.maxHp * 0.1;
+        zombie.hp -= enemyMaxHpDamage(zombie, 0.1);
         if (zombie.hp <= 0) killZombie(i, zombie);
       }
     }

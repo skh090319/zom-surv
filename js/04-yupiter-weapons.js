@@ -171,7 +171,7 @@ function updateYupiterWeapons() {
       slash.hitIds.push(zombie.id);
       const shouldExecute = player.severingUltimateTime > 0 && zombie.hp / zombie.maxHp < 0.2;
       zombie.hp -= scaledDamage(Math.floor(player.damage * 1.15));
-      if (shouldExecute) zombie.hp = 0;
+      if (shouldExecute && !zombie.isRaidBoss) zombie.hp = 0;
       if (slash.fullCircle) { zombie.bleedTime = 240; zombie.bleedTick = 30; zombie.slowTime = 240; }
       if (zombie.hp <= 0) killZombie(j, zombie);
     }

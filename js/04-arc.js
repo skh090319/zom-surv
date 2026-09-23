@@ -23,7 +23,7 @@ function damageArcArea(x, y, radius, damage, mark = false, maxHpRatio = 0) {
   for (let i = zombies.length - 1; i >= 0; i--) {
     const z = zombies[i];
     if (Math.hypot(z.x - x, z.y - y) > radius + z.r) continue;
-    let dealt = damage + z.maxHp * maxHpRatio;
+    let dealt = damage + enemyMaxHpDamage(z, maxHpRatio);
     if (z.arcMark) dealt *= 1 + player.arcBrandLevel * 0.15;
     z.hp -= dealt;
     if (mark) z.arcMark = 300;

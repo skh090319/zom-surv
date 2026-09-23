@@ -240,12 +240,12 @@ function bombAllNearbyZombies() {
 
     if (Math.hypot(z.x - player.x, z.y - player.y) < radius) {
       if (z.isRaidBoss) {
-        z.hp -= z.maxHp * 0.05;
+        z.hp -= enemyMaxHpDamage(z, 0.05);
         continue;
       } else if (wave <= 10) {
         z.hp = 0;
       } else {
-        z.hp -= z.maxHp * 0.3 * (player.crownLevel > 0 ? 2 : 1);
+        z.hp -= enemyMaxHpDamage(z, 0.3) * (player.crownLevel > 0 ? 2 : 1);
       }
 
       const pushAngle = Math.atan2(z.y - player.y, z.x - player.x);

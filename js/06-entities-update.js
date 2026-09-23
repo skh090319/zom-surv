@@ -320,7 +320,7 @@ function updateZombies() {
       z.bleedTime--;
       z.bleedTick = (z.bleedTick || 1) - 1;
       if (z.bleedTick <= 0) {
-        z.hp -= Math.max(1, z.maxHp * 0.004);
+        z.hp -= Math.max(1, enemyMaxHpDamage(z, 0.004));
         z.bleedTick = 30;
         if (z.hp <= 0) { killZombie(i, z); continue; }
       }

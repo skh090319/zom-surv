@@ -29,8 +29,8 @@ function damagePaladinArc(x, y, angle, range, arc, damage, maxHpRatio = 0, grant
     const dx = zombie.x - x, dy = zombie.y - y;
     if (Math.hypot(dx, dy) > range + zombie.r) continue;
     if (arc < Math.PI * 2 && Math.abs(paladinAngleDifference(Math.atan2(dy, dx), angle)) > arc / 2) continue;
-    zombie.hp -= damage + zombie.maxHp * maxHpRatio;
-    if (executeRatio > 0 && zombie.hp > 0 && zombie.hp <= zombie.maxHp * executeRatio) zombie.hp = 0;
+    zombie.hp -= damage + enemyMaxHpDamage(zombie, maxHpRatio);
+    if (!zombie.isRaidBoss && executeRatio > 0 && zombie.hp > 0 && zombie.hp <= zombie.maxHp * executeRatio) zombie.hp = 0;
     hits++;
     if (zombie.hp <= 0) killZombie(i, zombie);
   }

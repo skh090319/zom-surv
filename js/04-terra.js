@@ -18,7 +18,7 @@ function terraDamageCircle(x, y, radius, damage, maxHpRatio = 0) {
   let hits = 0;
   for (let i = zombies.length - 1; i >= 0; i--) {
     const z = zombies[i]; if (Math.hypot(z.x - x, z.y - y) > radius + z.r) continue;
-    z.hp -= damage + z.maxHp * maxHpRatio; hits++;
+    z.hp -= damage + enemyMaxHpDamage(z, maxHpRatio); hits++;
     if (z.hp <= 0) killZombie(i, z);
   }
   return hits;
@@ -128,7 +128,7 @@ function activateTerraR(){
     borderRocks.push({x:fieldX+Math.cos(angle)*forward-Math.sin(angle)*offset,y:fieldY+Math.sin(angle)*forward+Math.cos(angle)*offset,size:18+(n%4)*4,angle:angle+n*.71+side,variant:(n+(side>0?1:3))%4,delay:Math.floor(n*1.25)});
   }
   const field={type:"collapseField",x:fieldX,y:fieldY,angle,length,width,life:420,tick:0,borderRocks};
-  for(let i=zombies.length-1;i>=0;i--){const z=zombies[i];if(!terraPointInField(z.x,z.y,field,z.r))continue;z.hp-=scaledDamage(player.damage*(state.double?7.5:5.5))+z.maxHp*(state.double?.12:.08);if(z.hp<=0)killZombie(i,z);}
+  for(let i=zombies.length-1;i>=0;i--){const z=zombies[i];if(!terraPointInField(z.x,z.y,field,z.r))continue;z.hp-=scaledDamage(player.damage*(state.double?7.5:5.5))+enemyMaxHpDamage(z,state.double?.12:.08);if(z.hp<=0)killZombie(i,z);}
   terraStructures.push(field);terraEffects.push({type:"continent",x:field.x,y:field.y,angle,length,width,borderRocks,life:96,maxLife:96});player.terraRCooldown=TERRA_R_COOLDOWN;
 }
 
@@ -136,7 +136,7 @@ function updateTerra(){
   if(selectedCharacter!=="terra")return;
   for(const key of ["terraQCooldown","terraECooldown","terraXCooldown","terraRCooldown"])if(player[key]>0)player[key]--;
   if(player.terraVibrationDelay>0)player.terraVibrationDelay--;else if(!transcended.terraResonance&&player.terraVibration>0)player.terraVibration=Math.max(0,player.terraVibration-0.035);
-  for(let i=terraStructures.length-1;i>=0;i--){const s=terraStructures[i];if(s.type==="collapseField"&&--s.tick<=0){s.tick=15;for(let j=zombies.length-1;j>=0;j--){const z=zombies[j];if(!terraPointInField(z.x,z.y,s,z.r))continue;z.hp-=scaledDamage(player.damage*.38)+z.maxHp*.006;if(z.hp<=0)killZombie(j,z);}}if(!s.persistent&&--s.life<=0)terraStructures.splice(i,1);}
+  for(let i=terraStructures.length-1;i>=0;i--){const s=terraStructures[i];if(s.type==="collapseField"&&--s.tick<=0){s.tick=15;for(let j=zombies.length-1;j>=0;j--){const z=zombies[j];if(!terraPointInField(z.x,z.y,s,z.r))continue;z.hp-=scaledDamage(player.damage*.38)+enemyMaxHpDamage(z,.006);if(z.hp<=0)killZombie(j,z);}}if(!s.persistent&&--s.life<=0)terraStructures.splice(i,1);}
   for(let i=terraRockProjectiles.length-1;i>=0;i--){const rock=terraRockProjectiles[i];if(rock.delay>0){rock.delay--;continue;}rock.x+=rock.vx;rock.y+=rock.vy;rock.angle+=rock.spin;rock.vx*=.992;rock.vy*=.992;rock.life--;let broken=rock.life<=0||rock.x<-80||rock.y<-80||rock.x>WORLD.width+80||rock.y>WORLD.height+80;for(let j=zombies.length-1;j>=0&&!broken;j--){const z=zombies[j];if(Math.hypot(z.x-rock.x,z.y-rock.y)>z.r+rock.r*.78)continue;z.hp-=rock.damage;terraDamageCircle(rock.x,rock.y,rock.r*2.3,scaledDamage(player.damage*.48));broken=true;if(z.hp<=0){const index=zombies.indexOf(z);if(index>=0)killZombie(index,z);}}if(broken){terraEffects.push({type:"rockBreak",x:rock.x,y:rock.y,r:rock.r,variant:rock.variant,angle:rock.angle,life:24,maxLife:24});terraRockProjectiles.splice(i,1);}}
   for(let i=terraEffects.length-1;i>=0;i--){const e=terraEffects[i];if(e.type==="fault"&&e.pulls){const progress=Math.min(1,(e.maxLife-e.life)/18),ease=1-Math.pow(1-progress,3);for(const pull of e.pulls){const z=zombies.find(v=>v.id===pull.id);if(z){z.x=pull.fromX+(pull.toX-pull.fromX)*ease;z.y=pull.fromY+(pull.toY-pull.fromY)*ease;}}}if(e.type==="aftershock"&&e.delay--===0)terraDamageCircle(e.x,e.y,e.r,e.damage);if(--e.life<=0)terraEffects.splice(i,1);}
 }
