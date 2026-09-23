@@ -3,7 +3,10 @@ const drawMareWhaleBase=drawMareEffects;
 drawMareEffects=function(){
   if(selectedCharacter!=="mare"){drawMareWhaleBase();return}
   const all=mareEffects,whales=[],rest=[];
-  for(const e of all)(e.type==="whaleMode"?whales:rest).push(e);
+  for(const e of all){
+    if(e.type==="whaleMode")whales.push(e);
+    else if(e.type!=="abyss")rest.push(e);
+  }
   mareEffects=rest;
   try{drawMareWhaleBase()}finally{mareEffects=all}
   if(!whales.length)return;
@@ -12,6 +15,7 @@ drawMareEffects=function(){
     e.x=player.x;e.y=player.y;e.a=player.mareUltimateAngle;
     const alpha=Math.min(.88,e.life/35),bob=Math.sin(time)*4;
     ctx.save();ctx.translate(e.x,e.y+18+bob);ctx.rotate(e.a);
+    if(Math.cos(e.a)<0)ctx.scale(1,-1);
     ctx.globalAlpha=alpha;ctx.globalCompositeOperation="lighter";
     ctx.shadowColor="#55e9ff";ctx.shadowBlur=18;
     if(mareLeviathanLoaded)ctx.drawImage(mareLeviathanSprite,-190,-95,380,190);
