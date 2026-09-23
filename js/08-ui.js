@@ -977,7 +977,7 @@ function drawCharacterSelectScreen() {
   const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
-  const cardH = 410;
+  const cardH = 490;
   const contentHeight = rowCount * cardH + (rowCount - 1) * gap;
   characterScrollMax = Math.max(0, contentHeight - (canvas.height - y - 18));
   characterScrollY = Math.max(0, Math.min(characterScrollMax, characterScrollY));
@@ -1077,25 +1077,25 @@ function drawCharacterSelectScreen() {
     ctx.font = `${Math.max(8, (card.w < 145 ? 11 : 14) * Math.min(1, cardScale + .18))}px Arial`;
     ctx.fillStyle = unlocked ? "#b7c7df" : "#747985";
     const passiveLineHeight = card.w < 145 ? 14 : 18;
-    wrapTextClamped(passive, card.x + card.w / 2, displayY + 287 * cardScale, card.w - 24, passiveLineHeight, 3);
+    wrapText(passive, card.x + card.w / 2, displayY + 287 * cardScale, card.w - 24, passiveLineHeight);
 
     if (unlocked) {
-      ctx.fillStyle="rgba(218,226,242,.52)";ctx.font=`bold ${card.w < 145 ? 9 : 10}px Arial`;ctx.fillText("우클릭: 스킬 보기",card.x+card.w/2,displayY+350*cardScale);
-      drawRoundedRect(card.x + 16, displayY + 365 * cardScale, card.w - 32, Math.max(20, 31 * cardScale), 15, isSelected ? `${theme.color}28` : "rgba(255,255,255,0.035)", isSelected ? theme.color : "rgba(255,255,255,0.12)", 1);
+      ctx.fillStyle="rgba(218,226,242,.52)";ctx.font=`bold ${card.w < 145 ? 9 : 10}px Arial`;ctx.fillText("우클릭: 스킬 보기",card.x+card.w/2,displayY+425*cardScale);
+      drawRoundedRect(card.x + 16, displayY + 440 * cardScale, card.w - 32, Math.max(20, 31 * cardScale), 15, isSelected ? `${theme.color}28` : "rgba(255,255,255,0.035)", isSelected ? theme.color : "rgba(255,255,255,0.12)", 1);
       ctx.fillStyle = isSelected ? theme.color : "rgba(224,231,244,0.62)";
       ctx.font = `bold ${card.w < 145 ? 10 : 13}px Arial`;
-      ctx.fillText(isSelected ? "✓ 현재 선택됨" : "선택하기", card.x + card.w / 2, displayY + 386 * cardScale);
+      ctx.fillText(isSelected ? "✓ 현재 선택됨" : "선택하기", card.x + card.w / 2, displayY + 461 * cardScale);
     } else {
       const unlockKills = card.id === "luminous" ? 1000 : 200;
       const remaining = Math.max(0, unlockKills - totalZombieKills);
       const progress = Math.min(1, totalZombieKills / unlockKills);
       ctx.fillStyle = "rgba(255,255,255,0.08)";
-      ctx.fillRect(card.x + 18, displayY + 365 * cardScale, card.w - 36, 4);
+      ctx.fillRect(card.x + 18, displayY + 440 * cardScale, card.w - 36, 4);
       ctx.fillStyle = "#ff657e";
-      ctx.fillRect(card.x + 18, displayY + 365 * cardScale, (card.w - 36) * progress, 4);
+      ctx.fillRect(card.x + 18, displayY + 440 * cardScale, (card.w - 36) * progress, 4);
       ctx.fillStyle = "#e0798b";
       ctx.font = `bold ${card.w < 145 ? 9 : (card.w < 210 ? 12 : 13)}px Arial`;
-      ctx.fillText(`🔒 ${remaining} 처치 남음`, card.x + card.w / 2, displayY + 389 * cardScale);
+      ctx.fillText(`🔒 ${remaining} 처치 남음`, card.x + card.w / 2, displayY + 464 * cardScale);
     }
   }
   ctx.restore();
