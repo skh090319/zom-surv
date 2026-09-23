@@ -66,6 +66,7 @@ function startRaidBoss(index) {
     isRaidBoss: true,
     raidIndex: index,
     x: spawnX, y: spawnY,
+    anchorX: spawnX, anchorY: spawnY,
     r: index === 0 ? 82 : 76,
     hp: RAID_BOSS_HP[index], maxHp: RAID_BOSS_HP[index],
     speed: index === 0 ? 0 : (index === 1 ? 2.3 : 1.3),
@@ -84,6 +85,14 @@ function startRaidBoss(index) {
     const a = Math.random() * Math.PI * 2;
     raidBossEffects.push({ type: "spawn", x: spawnX, y: spawnY, angle: a, r: 40 + Math.random() * 210, life: 55 + Math.random() * 35, maxLife: 90 });
   }
+}
+
+function enforceImmobileRaidBoss() {
+  if (!activeRaidBoss || activeRaidBoss.raidIndex !== 0) return;
+  activeRaidBoss.x = activeRaidBoss.anchorX;
+  activeRaidBoss.y = activeRaidBoss.anchorY;
+  activeRaidBoss.dashVx = 0;
+  activeRaidBoss.dashVy = 0;
 }
 
 function defeatRaidBoss(boss) {

@@ -569,4 +569,5 @@ function update() {
   updateGravityFields();
   updateDroneBullets();
   updateParticles();
+  enforceImmobileRaidBoss();
 }
