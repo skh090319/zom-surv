@@ -2,7 +2,7 @@ const VARGAS_Q_COOLDOWN=300,VARGAS_E_COOLDOWN=540,VARGAS_X_COOLDOWN=720,VARGAS_R
 let vargasEffects=[];
 function vargasGrowthMultiplier(){return 1+(player.vargasPredatorLevel||0)*.25+(transcended.vargasPredator?1:0)}
 function addVargasMaxHp(amount){if(selectedCharacter!=="vargas")return;let gain=amount*vargasGrowthMultiplier()*(player.vargasUltimateTime>0?2:1);if(transcended.vargasPredator&&amount>=3)gain+=player.maxHp*.01;player.maxHp+=gain;player.vargasGainedHp+=gain;const heal=gain*(1+(player.vargasPulseLevel||0)*.5);player.hp=Math.min(player.maxHp,player.hp+heal);vargasEffects.push({type:"growth",x:player.x,y:player.y-55,value:gain,life:50,maxLife:50})}
-function onVargasZombieKilled(z){if(selectedCharacter!=="vargas")return;addVargasMaxHp(z.boss?1.5:.3)}
+function onVargasZombieKilled(z){if(selectedCharacter!=="vargas"||Math.random()>=.2)return;addVargasMaxHp(z.boss?1.5:.3)}
 function getVargasAttackPower(){return player.damage+player.maxHp*.035}
 function vargasDamage(mult,hpScale){return scaledDamage((getVargasAttackPower()*mult+player.maxHp*hpScale)*(1+(player.vargasSkeletonLevel||0)*.15))}
 function vargasHitCircle(x,y,r,damage,pull=0){let hits=0;for(let i=zombies.length-1;i>=0;i--){const z=zombies[i],dx=x-z.x,dy=y-z.y,d=Math.hypot(dx,dy)||1;if(d>r+z.r)continue;if(pull){z.x+=dx/d*pull;z.y+=dy/d*pull}z.hp-=damage;hits++;if(z.hp<=0)killZombie(i,z)}return hits}
