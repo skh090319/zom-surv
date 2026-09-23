@@ -31,7 +31,7 @@ const exclusiveAugmentOwners = {
 const guideCharacterOrder = ["yupiter","ren","nightLord","zero","paladin","arc","terra","void","carmilla","vargas","echo","aria","moira","mare"];
 
 const basicGuideSections = [
-  { icon:"⌨", title:"조작법", color:"#62ddff", lines:["WASD · 캐릭터 이동","마우스 · 조준 / 좌클릭 · 기본 공격","Q · E · X · 캐릭터 스킬","R · 궁극기 또는 재장전","SPACE · 일시정지"] },
+  { icon:"⌨", title:"조작법", color:"#62ddff", lines:["WASD · 캐릭터 이동","마우스 · 조준 / 좌클릭 · 기본 공격","Q · E · X · 캐릭터 스킬","R · 궁극기 또는 재장전","우측 상단 Ⅱ 버튼 · 일시정지"] },
   { icon:"✦", title:"성장과 증강", color:"#ffd45e", lines:["경험치 구슬을 모으면 레벨이 오릅니다.","일반 레벨에는 보조 증강이 등장합니다.","5레벨마다 전투 증강을 하나 선택합니다.","같은 보조 증강을 4회 선택하면 초월합니다.","캐릭터 전용 증강은 해당 캐릭터에게만 등장합니다."] },
   { icon:"☣", title:"몬스터", color:"#ff6b83", lines:["일반 좀비는 플레이어를 추적해 접촉 피해를 줍니다.","큰 좀비는 더 높은 체력과 충돌 범위를 가집니다.","처치한 적은 경험치 또는 회복·자석 아이템을 남깁니다.","붉은 X 표식은 처형 가능한 적을 뜻합니다."] },
   { icon:"♛", title:"보스전", color:"#c27aff", lines:["2분·4분·6분에 보스가 등장합니다.","등장 5초 전 화면에 경고가 표시됩니다.","보스전 동안 생존 타이머와 잡몹 생성이 멈춥니다.","보스는 둔화·기절·속박·밀치기·끌어당기기에 면역입니다.","첫 보스만 제한 전투 영역을 생성합니다."] },

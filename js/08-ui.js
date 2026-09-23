@@ -868,7 +868,7 @@ function drawHomeScreen() {
   ctx.stroke();
   ctx.fillStyle = "rgba(218,225,240,0.5)";
   ctx.font = "12px Arial";
-  ctx.fillText("WASD 이동   ·   마우스 조준/공격   ·   SPACE 일시정지", centerX, canvas.height - 43);
+  ctx.fillText("WASD 이동   ·   마우스 조준/공격   ·   우측 상단 Ⅱ 일시정지", centerX, canvas.height - 43);
   ctx.restore();
 
   ctx.textAlign = "left";
