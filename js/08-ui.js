@@ -1564,6 +1564,10 @@ const transcendIconCells = {
 };
 
 function drawAugmentIcon(id, x, y, size, transcendent = false) {
+  if (id === "immortal" && immortalIconLoaded) {
+    ctx.drawImage(immortalIcon, x, y, size, size);
+    return;
+  }
   if(id==="mareDepth"||id==="mareCurrent"||id==="mareFoam"){if(mareAugmentIconAtlas.complete&&mareAugmentIconAtlas.naturalWidth){const col={mareDepth:0,mareCurrent:1,mareFoam:2}[id],row=transcendent?1:0,sw=mareAugmentIconAtlas.naturalWidth/3,sh=mareAugmentIconAtlas.naturalHeight/2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(mareAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
   if(id==="moiraThread"||id==="moiraNeedle"||id==="moiraDoll"){if(moiraAugmentIconAtlas.complete&&moiraAugmentIconAtlas.naturalWidth){const col={moiraThread:0,moiraNeedle:1,moiraDoll:2}[id],row=transcendent?1:0,sw=moiraAugmentIconAtlas.naturalWidth/3,sh=moiraAugmentIconAtlas.naturalHeight/2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(moiraAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
   if(id==="ariaSoil"||id==="ariaThorn"||id==="ariaNight"){if(ariaAugmentIconAtlas.complete&&ariaAugmentIconAtlas.naturalWidth){const col={ariaSoil:0,ariaThorn:1,ariaNight:2}[id],row=transcendent?1:0,sw=ariaAugmentIconAtlas.naturalWidth/3,sh=ariaAugmentIconAtlas.naturalHeight/2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(ariaAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
@@ -1759,10 +1763,6 @@ function drawAugmentIcon(id, x, y, size, transcendent = false) {
       size,
       size
     );
-    return;
-  }
-  if (id === "immortal" && immortalIconLoaded) {
-    ctx.drawImage(immortalIcon, x, y, size, size);
     return;
   }
   if (!augmentIconAtlasLoaded) {
