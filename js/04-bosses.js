@@ -18,6 +18,7 @@ let raidBossEffects = [];
 let raidArena = null;
 let raidIntroTime = 0;
 let raidVictory = false;
+let raidWarningPulse = 0;
 
 function resetRaidBossSystem() {
   survivalFrames = 0;
@@ -29,6 +30,7 @@ function resetRaidBossSystem() {
   raidArena = null;
   raidIntroTime = 0;
   raidVictory = false;
+  raidWarningPulse = 0;
   player.bossRootTime = 0;
   player.bossSlowTime = 0;
 }
@@ -312,6 +314,7 @@ function updateRaidBossSystem() {
   if (raidVictory) return;
   if (!activeRaidBoss) {
     survivalFrames++;
+    raidWarningPulse += 0.12;
     if (nextRaidBossIndex < RAID_BOSS_TIMES.length && survivalFrames >= RAID_BOSS_TIMES[nextRaidBossIndex]) startRaidBoss(nextRaidBossIndex);
     return;
   }
@@ -337,6 +340,13 @@ function updateRaidBossSystem() {
     else updateAbyssBoss(boss);
   }
   boss.facing = player.x < boss.x ? -1 : 1;
+  const contactDistance = boss.r + player.r + (boss.raidIndex === 0 ? 8 : 14);
+  if (Math.hypot(player.x - boss.x, player.y - boss.y) < contactDistance) {
+    raidPlayerDamage([0.12, 0.18, 0.25][boss.raidIndex]);
+    const pushAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
+    player.x += Math.cos(pushAngle) * 18;
+    player.y += Math.sin(pushAngle) * 18;
+  }
   updateRaidBossProjectiles();
   updateRaidBossZones();
   for (let i = raidBossEffects.length - 1; i >= 0; i--) if (--raidBossEffects[i].life <= 0) raidBossEffects.splice(i, 1);
@@ -450,6 +460,18 @@ function drawRaidBossUI() {
     ctx.fillStyle="#ffdf73";ctx.font="bold 14px Arial";ctx.fillText("보스전 · 시간 정지",canvas.width/2,y+49);
   } else if(!raidVictory){
     ctx.fillStyle="rgba(4,6,12,.72)";ctx.fillRect(canvas.width/2-58,52,116,30);ctx.fillStyle="#fff";ctx.font="bold 18px monospace";ctx.fillText(formatRaidTime(survivalFrames),canvas.width/2,73);
+    if(nextRaidBossIndex<RAID_BOSS_TIMES.length){
+      const remaining=RAID_BOSS_TIMES[nextRaidBossIndex]-survivalFrames;
+      if(remaining>0&&remaining<=300){
+        const seconds=Math.ceil(remaining/60),pulse=1+Math.sin(raidWarningPulse)*.045;
+        ctx.save();ctx.translate(canvas.width/2,canvas.height*.25);ctx.scale(pulse,pulse);
+        ctx.fillStyle="rgba(15,2,9,.82)";ctx.strokeStyle="#ff355d";ctx.shadowColor="#ff244f";ctx.shadowBlur=24;ctx.lineWidth=3;
+        roundedRectPath(-245,-53,490,106,18);ctx.fill();ctx.stroke();
+        ctx.fillStyle="#ff4e70";ctx.font="900 27px Arial";ctx.fillText("⚠ 보스 접근 감지",0,-13);
+        ctx.fillStyle="#fff";ctx.font="bold 22px Arial";ctx.fillText(`${RAID_BOSS_NAMES[nextRaidBossIndex]} · ${seconds}초`,0,25);
+        ctx.restore();
+      }
+    }
   }
   if(raidIntroTime>0&&activeRaidBoss){const a=Math.min(1,(150-raidIntroTime)/22,raidIntroTime/30);ctx.globalAlpha=a;ctx.fillStyle="rgba(0,0,0,.48)";ctx.fillRect(0,canvas.height*.33,canvas.width,150);ctx.fillStyle="#ff416c";ctx.shadowColor="#a52cff";ctx.shadowBlur=22;ctx.font="900 46px Arial";ctx.fillText("BOSS ENCOUNTER",canvas.width/2,canvas.height*.33+58);ctx.fillStyle="#fff";ctx.font="bold 25px Arial";ctx.fillText(RAID_BOSS_NAMES[activeRaidBoss.raidIndex],canvas.width/2,canvas.height*.33+105);}
   if(raidVictory){ctx.fillStyle="rgba(3,3,10,.82)";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#ffd867";ctx.shadowColor="#c55cff";ctx.shadowBlur=28;ctx.font="900 60px Arial";ctx.fillText("SURVIVAL COMPLETE",canvas.width/2,canvas.height/2-34);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font="24px Arial";ctx.fillText("세 명의 보스를 모두 처치했습니다",canvas.width/2,canvas.height/2+18);ctx.font="18px Arial";ctx.fillText("ENTER 키로 다시 시작",canvas.width/2,canvas.height/2+62);}
