@@ -3,7 +3,7 @@
 const RAID_BOSS_TIMES = [120 * 60, 240 * 60, 360 * 60];
 const RAID_BOSS_NAMES = ["맹독의 꽃 아마란스", "날개 달린 사신 모르스", "심연의 집행자 녹스"];
 const RAID_BOSS_HP = [25000, 100000, 300000];
-const RAID_BOSS_PERCENT_FLAT_PER_POINT = [140, 220, 320];
+const RAID_BOSS_PERCENT_FLAT_PER_POINT = [25, 50, 90];
 const raidBossImages = ["venom-bloom", "winged-reaper", "abyss-knight"].map(name => {
   const image = new Image();
   image.src = `assets/bosses/${name}.png`;
@@ -68,7 +68,7 @@ function startRaidBoss(index) {
     x: spawnX, y: spawnY,
     r: index === 0 ? 82 : 76,
     hp: RAID_BOSS_HP[index], maxHp: RAID_BOSS_HP[index],
-    speed: index === 0 ? 0 : (index === 1 ? 1.15 : 1.3),
+    speed: index === 0 ? 0 : (index === 1 ? 2.3 : 1.3),
     boss: true,
     pattern: null, patternTime: 0, patternStep: 0,
     cooldown: 115, lastPattern: -1, facing: 1,
@@ -217,7 +217,7 @@ function updateReaperBoss(boss) {
   } else if (boss.pattern === 1) {
     if (boss.patternTime === 22) {
       const a = Math.atan2(player.y - boss.y, player.x - boss.x);
-      addRaidProjectile({ type: "scythe", x: boss.x, y: boss.y, vx: Math.cos(a) * 10, vy: Math.sin(a) * 10, r: 28, damage: 0.2, life: 170, owner: boss, returning: false, travel: 0 });
+      addRaidProjectile({ type: "scythe", x: boss.x, y: boss.y, vx: Math.cos(a) * 10, vy: Math.sin(a) * 10, r: 62, damage: 0.2, life: 170, owner: boss, returning: false, travel: 0 });
     }
     if (boss.patternTime > 150) finishRaidPattern(boss, 100);
   } else if (boss.pattern === 2) {
@@ -412,8 +412,10 @@ function drawRaidBossProjectiles() {
       ctx.beginPath();ctx.moveTo(-28,0);ctx.quadraticCurveTo(-4,-16,22,0);ctx.stroke();
       for(let j=-1;j<=1;j+=2){ctx.beginPath();ctx.moveTo(j*5,0);ctx.lineTo(j*12,-13);ctx.stroke();}
     } else if (p.type === "scythe") {
-      ctx.strokeStyle="#f1ecff";ctx.shadowColor="#a342ff";ctx.shadowBlur=18;ctx.lineWidth=7;
-      ctx.beginPath();ctx.arc(0,0,25,-1.2,1.4);ctx.stroke();ctx.strokeStyle="#6d2b95";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-18,-18);ctx.lineTo(21,20);ctx.stroke();
+      ctx.strokeStyle="#f1ecff";ctx.shadowColor="#a342ff";ctx.shadowBlur=28;ctx.lineWidth=13;
+      ctx.beginPath();ctx.arc(0,0,58,-1.28,1.48);ctx.stroke();
+      ctx.strokeStyle="#9d58cf";ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-43,-43);ctx.lineTo(48,48);ctx.stroke();
+      ctx.strokeStyle="rgba(255,255,255,.72)";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,51,-1.22,1.41);ctx.stroke();
     } else {
       const abyss=p.type==="abyssOrb";
       ctx.fillStyle=abyss?"#14051f":(p.type==="venomSmall"?"#baff35":"#61cf20");ctx.strokeStyle=abyss?"#d05cff":"#eaff75";
