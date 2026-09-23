@@ -830,16 +830,16 @@ function drawHomeScreen() {
 
   homeAugmentGuideRect = {
     x: homeStartRect.x,
-    y: homeCharacterRect.y + 78,
+    y: homeCharacterRect.y + 86,
     w: homeStartRect.w,
-    h: 62
+    h: 70
   };
 
   homeGameGuideRect = {
     x: homeStartRect.x,
-    y: homeAugmentGuideRect.y + 70,
+    y: homeAugmentGuideRect.y + 86,
     w: homeStartRect.w,
-    h: 62
+    h: 70
   };
 
   const startHover = pointInRect(mouse.x, mouse.y, homeStartRect);

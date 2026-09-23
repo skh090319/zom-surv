@@ -5,7 +5,7 @@ let guideAugmentTab = "support";
 let guideExclusiveCharacter = "yupiter";
 let guideScrollY = 0;
 let guideScrollMax = 0;
-let guideContentTop = 214;
+let guideContentTop = 162;
 let guideBackRect = { x: 0, y: 0, w: 150, h: 48 };
 let guideTopModeRects = [];
 let guideTabRects = [];
@@ -70,18 +70,18 @@ function drawGuideAugmentCard(u,x,y,w,h) {
 }
 
 function drawGuideHeader(title, subtitle) {
-  drawMenuBackdrop(.3);ctx.save();const g=ctx.createLinearGradient(0,0,canvas.width,0);g.addColorStop(0,"rgba(6,9,18,.98)");g.addColorStop(.5,"rgba(20,18,38,.96)");g.addColorStop(1,"rgba(6,9,18,.98)");ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,142);ctx.textAlign="center";ctx.fillStyle="#f4f7ff";ctx.shadowColor="#8d6cff";ctx.shadowBlur=18;ctx.font=`900 ${Math.min(38,canvas.width*.048)}px Arial`;ctx.fillText(title,canvas.width/2,48);ctx.shadowBlur=0;ctx.fillStyle="#9eabc2";ctx.font="12px Arial";ctx.fillText(subtitle,canvas.width/2,72);
+  drawMenuBackdrop(.3);ctx.save();const g=ctx.createLinearGradient(0,0,canvas.width,0);g.addColorStop(0,"rgba(6,9,18,.98)");g.addColorStop(.5,"rgba(20,18,38,.96)");g.addColorStop(1,"rgba(6,9,18,.98)");ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,94);ctx.textAlign="center";ctx.fillStyle="#f4f7ff";ctx.shadowColor="#8d6cff";ctx.shadowBlur=18;ctx.font=`900 ${Math.min(38,canvas.width*.048)}px Arial`;ctx.fillText(title,canvas.width/2,42);ctx.shadowBlur=0;ctx.fillStyle="#9eabc2";ctx.font="12px Arial";ctx.fillText(subtitle,canvas.width/2,66);
   guideBackRect={x:22,y:22,w:132,h:44};drawGuidePill(guideBackRect,"← 홈으로",false,"#8d7cff");
-  const mw=150,gap=10,start=canvas.width/2-mw-5;guideTopModeRects=[{x:start,y:91,w:mw,h:38,page:"augment"},{x:start+mw+gap,y:91,w:mw,h:38,page:"basic"}];drawGuidePill(guideTopModeRects[0],"증강 설명",guidePage==="augment","#ffd45e");drawGuidePill(guideTopModeRects[1],"기본 게임 가이드",guidePage==="basic","#61e5ac");ctx.restore();
+  guideTopModeRects=[];ctx.restore();
 }
 
 function drawAugmentGuide() {
-  const navY=156,navW=Math.min(150,(canvas.width-64)/3),navGap=10,startX=canvas.width/2-(navW*3+navGap*2)/2;guideTabRects=[{x:startX,y:navY,w:navW,h:42,tab:"support"},{x:startX+navW+navGap,y:navY,w:navW,h:42,tab:"combat"},{x:startX+(navW+navGap)*2,y:navY,w:navW,h:42,tab:"exclusive"}];
+  const navY=105,navW=Math.min(150,(canvas.width-64)/3),navGap=10,startX=canvas.width/2-(navW*3+navGap*2)/2;guideTabRects=[{x:startX,y:navY,w:navW,h:42,tab:"support"},{x:startX+navW+navGap,y:navY,w:navW,h:42,tab:"combat"},{x:startX+(navW+navGap)*2,y:navY,w:navW,h:42,tab:"exclusive"}];
   drawGuidePill(guideTabRects[0],"보조",guideAugmentTab==="support","#ffd45e");drawGuidePill(guideTabRects[1],"전투",guideAugmentTab==="combat","#47dcec");drawGuidePill(guideTabRects[2],"전용",guideAugmentTab==="exclusive","#c27aff");
-  let contentTop=214;guideCharacterRects=[];
+  let contentTop=162;guideCharacterRects=[];
   if(guideAugmentTab==="exclusive"){
     const size=54,gap=9,cols=Math.max(4,Math.floor((canvas.width-40)/(size+gap))),rows=Math.ceil(guideCharacterOrder.length/cols);
-    guideCharacterOrder.forEach((id,i)=>{const row=Math.floor(i/cols),count=Math.min(cols,guideCharacterOrder.length-row*cols),sx=canvas.width/2-(count*size+(count-1)*gap)/2,col=i%cols;const rect={x:sx+col*(size+gap),y:211+row*72,w:size,h:64,id};guideCharacterRects.push(rect);const active=id===guideExclusiveCharacter,color=characterSkillGuide[id].color;drawRoundedRect(rect.x,rect.y,size,size,12,active?`${color}30`:"rgba(255,255,255,.035)",active?color:"rgba(255,255,255,.16)",active?2:1);const img=getCharacterPreviewSprite(id);if(img?.complete&&img.naturalWidth){const sc=Math.min((size-8)/img.naturalWidth,(size-8)/img.naturalHeight);ctx.drawImage(img,rect.x+(size-img.naturalWidth*sc)/2,rect.y+(size-img.naturalHeight*sc)/2,img.naturalWidth*sc,img.naturalHeight*sc);}ctx.fillStyle=active?color:"#aab5c7";ctx.font="bold 9px Arial";ctx.textAlign="center";ctx.fillText(characterSkillGuide[id].name,rect.x+size/2,rect.y+63);});contentTop=218+rows*72;
+    guideCharacterOrder.forEach((id,i)=>{const row=Math.floor(i/cols),count=Math.min(cols,guideCharacterOrder.length-row*cols),sx=canvas.width/2-(count*size+(count-1)*gap)/2,col=i%cols;const rect={x:sx+col*(size+gap),y:160+row*72,w:size,h:64,id};guideCharacterRects.push(rect);const active=id===guideExclusiveCharacter,color=characterSkillGuide[id].color;drawRoundedRect(rect.x,rect.y,size,size,12,active?`${color}30`:"rgba(255,255,255,.035)",active?color:"rgba(255,255,255,.16)",active?2:1);const img=getCharacterPreviewSprite(id);if(img?.complete&&img.naturalWidth){const sc=Math.min((size-8)/img.naturalWidth,(size-8)/img.naturalHeight);ctx.drawImage(img,rect.x+(size-img.naturalWidth*sc)/2,rect.y+(size-img.naturalHeight*sc)/2,img.naturalWidth*sc,img.naturalHeight*sc);}ctx.fillStyle=active?color:"#aab5c7";ctx.font="bold 9px Arial";ctx.textAlign="center";ctx.fillText(characterSkillGuide[id].name,rect.x+size/2,rect.y+63);});contentTop=167+rows*72;
   }
   guideContentTop=contentTop;
   const items=getGuideAugments(),gap=16,cols=Math.max(2,Math.min(4,Math.floor((canvas.width-52)/220))),cardW=Math.min(230,(canvas.width-44-gap*(cols-1))/cols),cardH=302,totalRows=Math.ceil(items.length/cols),contentH=totalRows*(cardH+gap)-gap;guideScrollMax=Math.max(0,contentH-(canvas.height-contentTop-20));guideScrollY=Math.min(guideScrollY,guideScrollMax);const rowW=cols*cardW+(cols-1)*gap,sx=canvas.width/2-rowW/2;
@@ -89,7 +89,7 @@ function drawAugmentGuide() {
 }
 
 function drawBasicGuide() {
-  const top=160,gap=18,cols=canvas.width<760?1:2,cardW=Math.min(500,(canvas.width-54-gap*(cols-1))/cols),cardH=214,totalRows=Math.ceil(basicGuideSections.length/cols),contentH=totalRows*(cardH+gap)-gap;guideScrollMax=Math.max(0,contentH-(canvas.height-top-20));guideScrollY=Math.min(guideScrollY,guideScrollMax);const sx=canvas.width/2-(cols*cardW+(cols-1)*gap)/2;
+  const top=108,gap=18,cols=canvas.width<760?1:2,cardW=Math.min(500,(canvas.width-54-gap*(cols-1))/cols),cardH=214,totalRows=Math.ceil(basicGuideSections.length/cols),contentH=totalRows*(cardH+gap)-gap;guideScrollMax=Math.max(0,contentH-(canvas.height-top-20));guideScrollY=Math.min(guideScrollY,guideScrollMax);const sx=canvas.width/2-(cols*cardW+(cols-1)*gap)/2;
   guideContentTop=top;
   ctx.save();ctx.beginPath();ctx.rect(0,top-5,canvas.width,canvas.height-top+5);ctx.clip();basicGuideSections.forEach((section,i)=>{const x=sx+(i%cols)*(cardW+gap),y=top+Math.floor(i/cols)*(cardH+gap)-guideScrollY;const grad=ctx.createLinearGradient(x,y,x+cardW,y+cardH);grad.addColorStop(0,`${section.color}16`);grad.addColorStop(1,"rgba(7,9,17,.97)");drawRoundedRect(x,y,cardW,cardH,18,grad,`${section.color}88`,1.5);ctx.fillStyle=section.color;ctx.font="bold 26px Arial";ctx.textAlign="center";ctx.fillText(section.icon,x+35,y+42);ctx.textAlign="left";ctx.fillStyle="#f2f5fc";ctx.font="bold 20px Arial";ctx.fillText(section.title,x+65,y+39);ctx.strokeStyle=`${section.color}55`;ctx.beginPath();ctx.moveTo(x+18,y+57);ctx.lineTo(x+cardW-18,y+57);ctx.stroke();ctx.font="13px Arial";section.lines.forEach((line,j)=>{ctx.fillStyle=section.color;ctx.fillText("•",x+22,y+84+j*24);ctx.fillStyle="#c6d0df";ctx.fillText(line,x+38,y+84+j*24);});});ctx.restore();
 }
