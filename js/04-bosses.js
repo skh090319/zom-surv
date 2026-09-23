@@ -69,7 +69,7 @@ function startRaidBoss(index) {
     anchorX: spawnX, anchorY: spawnY,
     r: index === 0 ? 82 : 76,
     hp: RAID_BOSS_HP[index], maxHp: RAID_BOSS_HP[index],
-    speed: index === 0 ? 0 : (index === 1 ? 2.3 : 1.3),
+    speed: index === 0 ? 0 : (index === 1 ? 2.3 : 3.9),
     boss: true,
     pattern: null, patternTime: 0, patternStep: 0,
     cooldown: 115, lastPattern: -1, facing: 1,
@@ -251,7 +251,8 @@ function fireAbyssOrb(boss) {
 
 function setupAbyssDash(boss) {
   const a = Math.atan2(player.y - boss.y, player.x - boss.x);
-  boss.dashVx = Math.cos(a) * 24; boss.dashVy = Math.sin(a) * 24;
+  // 13프레임 동안 예고 직사각형의 650px 끝까지 정확히 완주한다.
+  boss.dashVx = Math.cos(a) * 50; boss.dashVy = Math.sin(a) * 50;
   boss.dashHit = false;
   raidBossZones.push({ type: "deathDash", boss, angle: a, x: boss.x, y: boss.y, length: 650, width: 108, delay: 38, life: 55 });
 }
@@ -266,7 +267,8 @@ function updateAbyssBoss(boss) {
     if (boss.patternTime > 70) finishRaidPattern(boss, 92);
   } else if (boss.pattern === 2) {
     const cycle = boss.patternTime % 62;
-    if (boss.patternTime === 1 || cycle === 1) setupAbyssDash(boss);
+    // 총 세 번만 예고하고 세 번 모두 실제 대시로 이어지게 한다.
+    if (boss.patternTime === 1 || boss.patternTime === 63 || boss.patternTime === 125) setupAbyssDash(boss);
     if (cycle >= 39 && cycle <= 51) {
       boss.x += boss.dashVx; boss.y += boss.dashVy;
       if (!boss.dashHit && Math.hypot(player.x - boss.x, player.y - boss.y) < boss.r + player.r + 22) {
@@ -325,7 +327,7 @@ function updateRaidBossZones() {
     if (z.type === "lightning" && z.delay <= 0 && !z.struck) {
       z.struck = true;
       if (Math.hypot(player.x - z.x, player.y - z.y) < z.r + player.r) raidPlayerDamage(0.8);
-      raidBossEffects.push({ type: "lightning", x: z.x, y: z.y, life: 28, maxLife: 28 });
+      raidBossEffects.push({ type: "lightning", x: z.x, y: z.y, r: z.r, seed: Math.random() * 1000, life: 36, maxLife: 36 });
     }
     if (z.life <= 0) raidBossZones.splice(i, 1);
   }
@@ -408,10 +410,18 @@ function drawRaidBossZones() {
       ctx.fillStyle=g; ctx.beginPath(); ctx.arc(z.x,z.y,z.r,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle="#b8ff58";ctx.lineWidth=2;ctx.setLineDash([8,7]);ctx.stroke();
     } else if (z.type === "lightning") {
-      ctx.fillStyle = z.delay > 0 ? "rgba(117,53,189,.18)" : "rgba(232,221,255,.55)";
-      ctx.strokeStyle = z.delay > 0 ? "#df4cff" : "#ffffff";ctx.lineWidth=4;ctx.shadowColor="#bc4cff";ctx.shadowBlur=18;
-      ctx.beginPath();ctx.arc(z.x,z.y,z.r,0,Math.PI*2);ctx.fill();ctx.stroke();
-      for(let k=0;k<8;k++){const a=k*Math.PI/4;ctx.beginPath();ctx.moveTo(z.x+Math.cos(a)*20,z.y+Math.sin(a)*20);ctx.lineTo(z.x+Math.cos(a)*z.r,z.y+Math.sin(a)*z.r);ctx.stroke();}
+      const warning = Math.max(0, z.delay / 42), pulse = 1 + Math.sin(z.life * .55) * .045;
+      const lg = ctx.createRadialGradient(z.x,z.y,4,z.x,z.y,z.r);
+      lg.addColorStop(0, z.delay > 0 ? "rgba(241,218,255,.28)" : "rgba(255,255,255,.82)");
+      lg.addColorStop(.48, z.delay > 0 ? "rgba(146,55,218,.18)" : "rgba(177,76,255,.48)");
+      lg.addColorStop(1,"rgba(45,5,78,0)");
+      ctx.fillStyle=lg;ctx.beginPath();ctx.arc(z.x,z.y,z.r*pulse,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=z.delay>0?`rgba(226,116,255,${.5+(1-warning)*.4})`:"#ffffff";
+      ctx.lineWidth=z.delay>0?3:6;ctx.shadowColor="#c557ff";ctx.shadowBlur=z.delay>0?20:32;
+      ctx.beginPath();ctx.arc(z.x,z.y,z.r*pulse,0,Math.PI*2);ctx.stroke();
+      ctx.save();ctx.translate(z.x,z.y);ctx.rotate(z.life*.025);
+      for(let k=0;k<10;k++){const a=k*Math.PI/5;ctx.beginPath();ctx.moveTo(Math.cos(a)*18,Math.sin(a)*18);ctx.quadraticCurveTo(Math.cos(a+.22)*z.r*.56,Math.sin(a+.22)*z.r*.56,Math.cos(a)*z.r*.92,Math.sin(a)*z.r*.92);ctx.stroke();}
+      ctx.restore();
     } else if (z.type === "chargeTelegraph" || z.type === "deathDash") {
       ctx.translate(z.x,z.y);ctx.rotate(z.angle);
       ctx.fillStyle=z.type === "deathDash"?"rgba(255,22,40,.24)":"rgba(181,41,255,.18)";
@@ -469,7 +479,16 @@ function drawRaidBossEffects() {
     if(e.type==="spawn"){ctx.rotate(e.angle);ctx.strokeStyle="#b74cff";ctx.shadowColor="#8b2cff";ctx.shadowBlur=12;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(e.r*(1-p),0);ctx.lineTo(e.r,0);ctx.stroke();}
     else if(e.type==="death"){ctx.rotate(e.angle);ctx.fillStyle="#d78bff";ctx.shadowColor="#8d2cff";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(e.speed*p*8,0,5*(1-p)+1,0,Math.PI*2);ctx.fill();}
     else if(e.type==="poisonBurst"){ctx.strokeStyle="#aaff3f";ctx.lineWidth=9*(1-p)+2;ctx.beginPath();ctx.arc(0,0,70*p,0,Math.PI*2);ctx.stroke();}
-    else if(e.type==="lightning"){ctx.strokeStyle="#fff";ctx.shadowColor="#c557ff";ctx.shadowBlur=25;ctx.lineWidth=10*(1-p)+2;ctx.beginPath();ctx.moveTo(-18,-500);for(let y=-450;y<0;y+=55)ctx.lineTo((Math.random()-.5)*38,y);ctx.lineTo(0,0);ctx.stroke();}
+    else if(e.type==="lightning"){
+      const fade=1-p, seed=e.seed||0;
+      ctx.globalAlpha=Math.min(1,fade*1.8);ctx.lineJoin="round";ctx.lineCap="round";
+      const boltPath=()=>{ctx.beginPath();ctx.moveTo(Math.sin(seed)*24,-540);for(let y=-480,i=0;y<0;y+=48,i++)ctx.lineTo(Math.sin(seed+i*7.31)*34*(1-y/-560),y);ctx.lineTo(0,0);};
+      ctx.strokeStyle="rgba(137,38,255,.7)";ctx.shadowColor="#9b38ff";ctx.shadowBlur=42;ctx.lineWidth=22*fade+8;boltPath();ctx.stroke();
+      ctx.strokeStyle="#ffffff";ctx.shadowColor="#e1a4ff";ctx.shadowBlur=24;ctx.lineWidth=7*fade+2;boltPath();ctx.stroke();
+      ctx.strokeStyle="#dba5ff";ctx.lineWidth=3;for(let b=0;b<5;b++){const a=b*Math.PI*2/5+seed;ctx.beginPath();ctx.moveTo(0,-120-b*55);ctx.lineTo(Math.cos(a)*(34+b*12),-92-b*55);ctx.lineTo(Math.cos(a)*(58+b*16),-76-b*55);ctx.stroke();}
+      const rg=ctx.createRadialGradient(0,0,4,0,0,(e.r||92)*(1.35+p*.45));rg.addColorStop(0,`rgba(255,255,255,${.8*fade})`);rg.addColorStop(.3,`rgba(188,87,255,${.58*fade})`);rg.addColorStop(1,"rgba(73,8,119,0)");ctx.fillStyle=rg;ctx.beginPath();ctx.arc(0,0,(e.r||92)*(1.35+p*.45),0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=`rgba(232,188,255,${fade})`;ctx.lineWidth=5*fade+1;for(let ring=0;ring<3;ring++){ctx.beginPath();ctx.arc(0,0,(e.r||92)*(p*.9+ring*.22),0,Math.PI*2);ctx.stroke();}
+    }
     else{ctx.strokeStyle="#ff385d";ctx.lineWidth=6;ctx.beginPath();ctx.arc(0,0,45*p,0,Math.PI*2);ctx.stroke();}
     ctx.restore();}
   worldEnd();
