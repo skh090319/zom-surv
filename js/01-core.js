@@ -209,6 +209,7 @@ const moiraAugmentIconAtlas=new Image();moiraAugmentIconAtlas.src="assets/moira-
 const mareSprite=new Image();mareSprite.src="assets/mare.png";let mareSpriteLoaded=false;mareSprite.onload=()=>mareSpriteLoaded=true;
 const mareSkillIconAtlas=new Image();mareSkillIconAtlas.src="assets/mare-skill-icons.png";
 const mareAugmentIconAtlas=new Image();mareAugmentIconAtlas.src="assets/mare-augment-icons.png";
+const mareLeviathanSprite=new Image();mareLeviathanSprite.src="assets/mare-leviathan.png";let mareLeviathanLoaded=false;mareLeviathanSprite.onload=()=>mareLeviathanLoaded=true;
 
 const renHudPortrait = new Image();
 renHudPortrait.src = "assets/ren-hud-portrait.png";
