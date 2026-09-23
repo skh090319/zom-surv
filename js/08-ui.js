@@ -954,12 +954,12 @@ function drawCharacterSelectScreen() {
   ctx.fillText(`☠  누적 처치  ${totalZombieKills.toLocaleString()}`, centerX, 118);
 
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
-  const maxCardsPerRow = 3;
+  const maxCardsPerRow = 4;
   const characterIds = ["default", "suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare"];
   const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
-  const cardH = 390;
+  const cardH = 410;
   const contentHeight = rowCount * cardH + (rowCount - 1) * gap;
   characterScrollMax = Math.max(0, contentHeight - (canvas.height - y - 18));
   characterScrollY = Math.max(0, Math.min(characterScrollMax, characterScrollY));
@@ -1058,25 +1058,26 @@ function drawCharacterSelectScreen() {
     ctx.fillRect(card.x + card.w / 2 - 18, displayY + 266 * cardScale, 36, 2);
     ctx.font = `${Math.max(8, (card.w < 145 ? 11 : 14) * Math.min(1, cardScale + .18))}px Arial`;
     ctx.fillStyle = unlocked ? "#b7c7df" : "#747985";
-    wrapText(passive, card.x + card.w / 2, displayY + 291 * cardScale, card.w - 26, Math.max(10, 18 * cardScale));
+    const passiveLineHeight = card.w < 145 ? 14 : 18;
+    wrapTextClamped(passive, card.x + card.w / 2, displayY + 287 * cardScale, card.w - 24, passiveLineHeight, 3);
 
     if (unlocked) {
-      ctx.fillStyle="rgba(218,226,242,.52)";ctx.font="bold 10px Arial";ctx.fillText("우클릭: 스킬 보기",card.x+card.w/2,displayY+326*cardScale);
-      drawRoundedRect(card.x + 22, displayY + 339 * cardScale, card.w - 44, Math.max(20, 31 * cardScale), 15, isSelected ? `${theme.color}28` : "rgba(255,255,255,0.035)", isSelected ? theme.color : "rgba(255,255,255,0.12)", 1);
+      ctx.fillStyle="rgba(218,226,242,.52)";ctx.font=`bold ${card.w < 145 ? 9 : 10}px Arial`;ctx.fillText("우클릭: 스킬 보기",card.x+card.w/2,displayY+350*cardScale);
+      drawRoundedRect(card.x + 16, displayY + 365 * cardScale, card.w - 32, Math.max(20, 31 * cardScale), 15, isSelected ? `${theme.color}28` : "rgba(255,255,255,0.035)", isSelected ? theme.color : "rgba(255,255,255,0.12)", 1);
       ctx.fillStyle = isSelected ? theme.color : "rgba(224,231,244,0.62)";
       ctx.font = `bold ${card.w < 145 ? 10 : 13}px Arial`;
-      ctx.fillText(isSelected ? "✓  현재 선택됨" : "선택하기", card.x + card.w / 2, displayY + 360 * cardScale);
+      ctx.fillText(isSelected ? "✓ 현재 선택됨" : "선택하기", card.x + card.w / 2, displayY + 386 * cardScale);
     } else {
       const unlockKills = card.id === "luminous" ? 1000 : 200;
       const remaining = Math.max(0, unlockKills - totalZombieKills);
       const progress = Math.min(1, totalZombieKills / unlockKills);
       ctx.fillStyle = "rgba(255,255,255,0.08)";
-      ctx.fillRect(card.x + 21, displayY + 336 * cardScale, card.w - 42, 4);
+      ctx.fillRect(card.x + 18, displayY + 365 * cardScale, card.w - 36, 4);
       ctx.fillStyle = "#ff657e";
-      ctx.fillRect(card.x + 21, displayY + 336 * cardScale, (card.w - 42) * progress, 4);
+      ctx.fillRect(card.x + 18, displayY + 365 * cardScale, (card.w - 36) * progress, 4);
       ctx.fillStyle = "#e0798b";
       ctx.font = `bold ${card.w < 145 ? 9 : (card.w < 210 ? 12 : 13)}px Arial`;
-      ctx.fillText(`🔒 ${remaining} 처치 남음`, card.x + card.w / 2, displayY + 360 * cardScale);
+      ctx.fillText(`🔒 ${remaining} 처치 남음`, card.x + card.w / 2, displayY + 389 * cardScale);
     }
   }
   ctx.restore();
@@ -1836,6 +1837,30 @@ function wrapText(text, x, y, maxWidth, lineHeight) {
     } else line = testLine;
   }
   ctx.fillText(line, x, y);
+}
+
+function wrapTextClamped(text, x, y, maxWidth, lineHeight, maxLines) {
+  const words = text.split(" ");
+  const lines = [];
+  let line = "";
+  for (const word of words) {
+    const testLine = line ? `${line} ${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) lines.push(line);
+  if (lines.length > maxLines) {
+    lines.length = maxLines;
+    let last = lines[maxLines - 1];
+    while (last.length > 1 && ctx.measureText(`${last}…`).width > maxWidth) last = last.slice(0, -1);
+    lines[maxLines - 1] = `${last.trim()}…`;
+  }
+  ctx.textAlign = "center";
+  lines.forEach((value, index) => ctx.fillText(value, x, y + index * lineHeight));
 }
 
 function wrapTextLeft(text, x, y, maxWidth, lineHeight) {
