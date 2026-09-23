@@ -239,7 +239,10 @@ function bombAllNearbyZombies() {
     const z = zombies[i];
 
     if (Math.hypot(z.x - player.x, z.y - player.y) < radius) {
-      if (wave <= 10) {
+      if (z.isRaidBoss) {
+        z.hp -= z.maxHp * 0.05;
+        continue;
+      } else if (wave <= 10) {
         z.hp = 0;
       } else {
         z.hp -= z.maxHp * 0.3 * (player.crownLevel > 0 ? 2 : 1);
@@ -289,6 +292,17 @@ function bombAllNearbyZombies() {
 }
 
 function killZombie(index, zombie, allowExplosion = true) {
+  if (zombie.isRaidBoss) {
+    zombies.splice(index, 1);
+    defeatRaidBoss(zombie);
+    return;
+  }
+
+  if (zombie.isBossMinion) {
+    zombies.splice(index, 1);
+    return;
+  }
+
   player.score += zombie.boss ? 100 : 20;
   player.kills++;
   totalZombieKills++;

@@ -12,6 +12,7 @@ function draw() {
   }
 
   drawBackground();
+  drawRaidArena();
   drawStickyZones();
   drawFireTrails();
   drawParticles();
@@ -39,9 +40,13 @@ function draw() {
   drawLaserSlashes();
   drawGravityFields();
   drawDroneBullets();
+  drawRaidBossZones();
+  drawRaidBossProjectiles();
   drawZombies();
+  drawRaidBoss();
   drawDaggers();
   drawPlayer();
+  drawRaidBossEffects();
   drawRenAttackOverlay();
   drawYupiterWeapons();
   drawHealthBar();
@@ -63,6 +68,7 @@ function draw() {
   drawReloadingOverlay();
   drawExpBar();
   drawMiniMap();
+  drawRaidBossUI();
   drawVisionEffect();
   drawUpgradeMenu();
   drawGameOver();
@@ -281,6 +287,7 @@ function restart() {
   laserSlashes = [];
   gravityFields = [];
   droneBullets = [];
+  resetRaidBossSystem();
 
   // 전역 상태 초기화
   wave = 1;

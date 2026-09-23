@@ -786,11 +786,19 @@ function drawYupiterWeapons() {
 function drawZombies() {
   worldStart();
   for (const z of zombies) {
+    if (z.isRaidBoss) continue;
     if (z.x < camera.x - 90 || z.x > camera.x + canvas.width + 90 || z.y < camera.y - 90 || z.y > camera.y + canvas.height + 90) continue;
-    const spriteSize = z.r * (z.boss ? 2.75 : 3.05);
+    const spriteSize = z.r * (z.isBossMinion ? 4.3 : (z.boss ? 2.75 : 3.05));
     const spriteTop = z.y - spriteSize * 0.57;
 
-    if (zombieSpriteAtlasLoaded || (zombieSpriteAtlas.complete && zombieSpriteAtlas.naturalWidth > 0)) {
+    if (z.isBossMinion && raidBossImages[1].complete && raidBossImages[1].naturalWidth > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.86;
+      ctx.shadowColor = "#7130aa";
+      ctx.shadowBlur = 15;
+      ctx.drawImage(raidBossImages[1], z.x - spriteSize / 2, spriteTop, spriteSize, spriteSize);
+      ctx.restore();
+    } else if (zombieSpriteAtlasLoaded || (zombieSpriteAtlas.complete && zombieSpriteAtlas.naturalWidth > 0)) {
       const sourceW = zombieSpriteAtlas.naturalWidth / 2;
       const sourceH = zombieSpriteAtlas.naturalHeight;
       const sourceX = z.boss ? sourceW : 0;

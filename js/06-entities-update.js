@@ -11,6 +11,11 @@ function updatePlayer() {
 
   const len = Math.hypot(dx, dy);
 
+  if (player.bossRootTime > 0) {
+    dx = 0;
+    dy = 0;
+  }
+
   if (len > 0) {
     dx /= len;
     dy /= len;
@@ -19,8 +24,9 @@ function updatePlayer() {
   const yupiterUltimateSpeed = selectedCharacter === "yupiter" && player.severingUltimateTime > 0 ? 2 : 1;
   const nightLordRageSpeed = selectedCharacter === "nightLord" ? 1 + getNightLordRage() * 0.3 : 1;
   const zeroUltimateSpeed = selectedCharacter === "zero" && player.zeroUltimateTime > 0 ? 1.35 : 1;
-  player.x += dx * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed;
-  player.y += dy * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed;
+  const bossSlowMultiplier = player.bossSlowTime > 0 ? 0.55 : 1;
+  player.x += dx * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier;
+  player.y += dy * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier;
 
   player.x = Math.max(player.r, Math.min(WORLD.width - player.r, player.x));
   player.y = Math.max(player.r, Math.min(WORLD.height - player.r, player.y));
@@ -320,6 +326,8 @@ function updateZombies() {
       }
     }
 
+    if (z.isRaidBoss) continue;
+
     if (z.stunTime > 0) {
       z.stunTime--;
       if (z.stunFlash > 0) z.stunFlash--;
@@ -362,7 +370,7 @@ function updateZombies() {
         const dodged = tryDodgeAttack();
 
         if (!dodged) {
-          const incomingDamage = player.crownLevel > 0 ? 20 : 10;
+          const incomingDamage = z.isBossMinion ? Math.max(4, player.maxHp * 0.05) : (player.crownLevel > 0 ? 20 : 10);
           const carmillaFatalGuard = selectedCharacter === "carmilla" && player.carmillaBloodMoonTime > 0 && transcended.carmillaFeast;
           let remainingDamage=incomingDamage;
           if(selectedCharacter==="vargas"&&player.vargasShield>0){const absorbed=Math.min(player.vargasShield,remainingDamage);player.vargasShield-=absorbed;remainingDamage-=absorbed;}
@@ -510,6 +518,7 @@ function updateParticles() {
 }
 
 function updateSpawn() {
+  if (activeRaidBoss || raidVictory) return;
   spawnTimer--;
 
   if (spawnTimer <= 0) {
@@ -520,13 +529,14 @@ function updateSpawn() {
 
 function update() {
   if (screenMode !== "game") return;
-  if (paused || gameOver || choosingUpgrade) return;
+  if (paused || gameOver || raidVictory || choosingUpgrade) return;
 
   screenToWorld();
   updatePlayer();
   updateCamera();
   screenToWorld();
 
+  updateRaidBossSystem();
   updateSpawn();
   updateBullets();
   updateCrescentBlades();

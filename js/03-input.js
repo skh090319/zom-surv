@@ -71,7 +71,7 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="mare"&&key==="r")activateMareR();
     if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare") reload();
   }
-  if (gameOver && key === "enter") {
+  if ((gameOver || raidVictory) && key === "enter") {
     restart();
     screenMode = "game";
     paused = false;
