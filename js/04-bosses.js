@@ -2,7 +2,7 @@
 
 const RAID_BOSS_TIMES = [120 * 60, 240 * 60, 360 * 60];
 const RAID_BOSS_NAMES = ["맹독의 꽃 아마란스", "날개 달린 사신 모르스", "심연의 집행자 녹스"];
-const RAID_BOSS_HP = [120000, 260000, 500000];
+const RAID_BOSS_HP = [25000, 100000, 300000];
 const RAID_BOSS_PERCENT_FLAT_PER_POINT = [140, 220, 320];
 const raidBossImages = ["venom-bloom", "winged-reaper", "abyss-knight"].map(name => {
   const image = new Image();
