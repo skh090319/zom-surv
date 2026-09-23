@@ -777,7 +777,7 @@ function drawHomeScreen() {
 
   ctx.save();
   const contentW = Math.min(620, canvas.width - 48);
-  const titleY = Math.max(150, canvas.height * 0.24);
+  const titleY = Math.max(105, canvas.height * 0.17);
   const centerShade = ctx.createLinearGradient(centerX - contentW, 0, centerX + contentW, 0);
   centerShade.addColorStop(0, "rgba(3,5,12,0)");
   centerShade.addColorStop(0.25, "rgba(3,5,12,0.3)");
@@ -828,20 +828,38 @@ function drawHomeScreen() {
     h: 70
   };
 
+  homeAugmentGuideRect = {
+    x: homeStartRect.x,
+    y: homeCharacterRect.y + 78,
+    w: homeStartRect.w,
+    h: 62
+  };
+
+  homeGameGuideRect = {
+    x: homeStartRect.x,
+    y: homeAugmentGuideRect.y + 70,
+    w: homeStartRect.w,
+    h: 62
+  };
+
   const startHover = pointInRect(mouse.x, mouse.y, homeStartRect);
   const charHover = pointInRect(mouse.x, mouse.y, homeCharacterRect);
+  const augmentHover = pointInRect(mouse.x, mouse.y, homeAugmentGuideRect);
+  const guideHover = pointInRect(mouse.x, mouse.y, homeGameGuideRect);
 
   drawMenuButton(homeStartRect, startHover, "#22d9ff", "게임 시작", "선택한 캐릭터로 생존 시작", "▶");
   drawMenuButton(homeCharacterRect, charHover, "#b46cff", "캐릭터 선택", "생존자와 전투 방식을 변경", "◆");
+  drawMenuButton(homeAugmentGuideRect, augmentHover, "#ffd45e", "증강 설명", "모든 증강과 초월 효과 확인", "✦");
+  drawMenuButton(homeGameGuideRect, guideHover, "#61e5ac", "기본 게임 가이드", "조작법·몬스터·보스전 안내", "?");
 
   const selectedName = selectedCharacter === "default" ? "기본 캐릭터" : selectedCharacter === "suncall" ? "썬콜" : selectedCharacter === "luminous" ? "루미너스" : selectedCharacter === "yupiter" ? "유피테르" : selectedCharacter === "ren" ? "렌" : selectedCharacter === "nightLord" ? "나이트 로드" : selectedCharacter === "zero" ? "제로" : selectedCharacter === "paladin" ? "팔라딘" : selectedCharacter === "arc" ? "아크" : selectedCharacter === "terra" ? "테라" : "보이드";
   ctx.textAlign = "center";
   ctx.fillStyle = "rgba(255,255,255,0.36)";
   ctx.font = "12px Arial";
-  ctx.fillText("현재 생존자", centerX, titleY + 334);
+  ctx.fillText("현재 생존자", centerX, homeGameGuideRect.y + 91);
   ctx.fillStyle = "#dce9ff";
   ctx.font = "bold 16px Arial";
-  ctx.fillText(selectedName, centerX, titleY + 358);
+  ctx.fillText(selectedName, centerX, homeGameGuideRect.y + 115);
 
   ctx.strokeStyle = "rgba(255,255,255,0.1)";
   ctx.beginPath();

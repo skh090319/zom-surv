@@ -9,6 +9,12 @@ addEventListener("keydown", e => {
     return;
   }
 
+  if (screenMode === "guide" && key === "escape") {
+    screenMode = "home";
+    guideScrollY = 0;
+    return;
+  }
+
   if (choosingUpgrade) {
     if (upgradeAnimTime < 18 || upgradeSelectionEffect) return;
     if (key === "1") chooseUpgrade(0);
@@ -117,6 +123,21 @@ canvas.addEventListener("mousedown", event => {
       return;
     }
 
+    if (pointInRect(mouse.x, mouse.y, homeAugmentGuideRect)) {
+      openGuideScreen("augment");
+      return;
+    }
+
+    if (pointInRect(mouse.x, mouse.y, homeGameGuideRect)) {
+      openGuideScreen("basic");
+      return;
+    }
+
+    return;
+  }
+
+  if (screenMode === "guide") {
+    handleGuideClick(event.clientX, event.clientY);
     return;
   }
 
@@ -253,6 +274,11 @@ canvas.addEventListener("contextmenu", event => {
 });
 
 canvas.addEventListener("wheel", e => {
+  if (screenMode === "guide") {
+    e.preventDefault();
+    guideScrollY = Math.max(0, Math.min(guideScrollMax, guideScrollY + e.deltaY * 0.82));
+    return;
+  }
   if (screenMode !== "character") return;
   if (characterDetailId) return;
   e.preventDefault();

@@ -11,6 +11,11 @@ function draw() {
     return;
   }
 
+  if (screenMode === "guide") {
+    drawGuideScreen();
+    return;
+  }
+
   drawBackground();
   drawRaidArena();
   drawStickyZones();
