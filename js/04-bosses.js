@@ -531,6 +531,21 @@ function drawRaidBossUI() {
     }
   }
   if(raidIntroTime>0&&activeRaidBoss){const a=Math.min(1,(150-raidIntroTime)/22,raidIntroTime/30);ctx.globalAlpha=a;ctx.fillStyle="rgba(0,0,0,.48)";ctx.fillRect(0,canvas.height*.33,canvas.width,150);ctx.fillStyle="#ff416c";ctx.shadowColor="#a52cff";ctx.shadowBlur=22;ctx.font="900 46px Arial";ctx.fillText("BOSS ENCOUNTER",canvas.width/2,canvas.height*.33+58);ctx.fillStyle="#fff";ctx.font="bold 25px Arial";ctx.fillText(RAID_BOSS_NAMES[activeRaidBoss.raidIndex],canvas.width/2,canvas.height*.33+105);}
-  if(raidVictory){ctx.fillStyle="rgba(3,3,10,.82)";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#ffd867";ctx.shadowColor="#c55cff";ctx.shadowBlur=28;ctx.font="900 60px Arial";ctx.fillText("SURVIVAL COMPLETE",canvas.width/2,canvas.height/2-34);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font="24px Arial";ctx.fillText("세 명의 보스를 모두 처치했습니다",canvas.width/2,canvas.height/2+18);ctx.font="18px Arial";ctx.fillText("ENTER 키로 다시 시작",canvas.width/2,canvas.height/2+62);}
+  if(raidVictory){
+    const centerX=canvas.width/2,centerY=canvas.height/2;
+    const panelW=Math.min(620,canvas.width-40),panelH=360,panelX=centerX-panelW/2,panelY=centerY-panelH/2;
+    ctx.fillStyle="rgba(3,3,10,.88)";ctx.fillRect(0,0,canvas.width,canvas.height);
+    const panelGradient=ctx.createLinearGradient(panelX,panelY,panelX,panelY+panelH);
+    panelGradient.addColorStop(0,"rgba(31,20,54,.97)");panelGradient.addColorStop(1,"rgba(8,9,18,.97)");
+    roundedRectPath(panelX,panelY,panelW,panelH,28);ctx.fillStyle=panelGradient;ctx.fill();ctx.strokeStyle="#d99aff";ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle="#ffd867";ctx.shadowColor="#c55cff";ctx.shadowBlur=28;ctx.font=`900 ${Math.min(58,canvas.width*.075)}px Arial`;ctx.fillText("GAME CLEAR",centerX,panelY+82);
+    ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font="bold 22px Arial";ctx.fillText("세 명의 보스를 모두 처치했습니다",centerX,panelY+126);
+    const statY=panelY+176,statGap=Math.min(250,panelW*.42);
+    ctx.fillStyle="rgba(255,255,255,.06)";roundedRectPath(centerX-statGap-6,statY-24,statGap*2+12,88,18);ctx.fill();
+    ctx.fillStyle="#cbb8dc";ctx.font="bold 14px Arial";ctx.fillText("처치한 좀비",centerX-statGap/2,statY);ctx.fillText("최종 점수",centerX+statGap/2,statY);
+    ctx.fillStyle="#fff";ctx.font="900 31px Arial";ctx.fillText(player.kills.toLocaleString(),centerX-statGap/2,statY+42);ctx.fillStyle="#ffd867";ctx.fillText(player.score.toLocaleString(),centerX+statGap/2,statY+42);
+    ctx.strokeStyle="rgba(217,154,255,.28)";ctx.beginPath();ctx.moveTo(centerX,statY-12);ctx.lineTo(centerX,statY+52);ctx.stroke();
+    ctx.fillStyle="#bdb7c8";ctx.font="18px Arial";ctx.fillText("ENTER 키로 다시 시작",centerX,panelY+318);
+  }
   ctx.restore();
 }
