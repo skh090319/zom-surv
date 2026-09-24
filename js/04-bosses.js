@@ -71,7 +71,7 @@ function startRaidBoss(index) {
     anchorX: spawnX, anchorY: spawnY,
     r: index === 0 ? 82 : 76,
     hp: RAID_BOSS_HP[index], maxHp: RAID_BOSS_HP[index],
-    speed: index === 0 ? 0 : (index === 1 ? 2.3 : 3.9),
+    speed: index === 0 ? 0 : (index === 1 ? 2.3 : 5.07),
     boss: true,
     pattern: null, patternTime: 0, patternStep: 0,
     cooldown: 115, lastPattern: -1, facing: 1,
@@ -196,10 +196,12 @@ function updateBloomBoss(boss) {
   boss.patternTime++;
   if (boss.pattern === 0) {
     if (boss.patternTime === 1) {
+      const poisonCenterX = player.x;
+      const poisonCenterY = player.y;
       for (let i = 0; i < 8; i++) {
         const a = i * Math.PI / 4 + 0.18;
-        const d = 175 + (i % 2) * 120;
-        raidBossZones.push({ type: "poison", x: boss.x + Math.cos(a) * d, y: boss.y + Math.sin(a) * d, r: 72, delay: 48 + i * 3, life: 260, tick: 0 });
+        const d = 105 + (i % 2) * 115;
+        raidBossZones.push({ type: "poison", x: poisonCenterX + Math.cos(a) * d, y: poisonCenterY + Math.sin(a) * d, r: 72, delay: 48 + i * 3, life: 260, tick: 0 });
       }
     }
     if (boss.patternTime > 72) finishRaidPattern(boss, 95);
@@ -270,8 +272,10 @@ function updateAbyssBoss(boss) {
     if ([18, 34, 50, 66].includes(boss.patternTime)) fireAbyssOrb(boss);
     if (boss.patternTime > 92) finishRaidPattern(boss, 90);
   } else if (boss.pattern === 1) {
-    if (boss.patternTime === 1) raidBossZones.push({ type: "lightning", x: player.x, y: player.y, r: 92, delay: 42, life: 62, struck: false });
-    if (boss.patternTime > 70) finishRaidPattern(boss, 92);
+    if ([1, 38, 75, 112].includes(boss.patternTime)) {
+      raidBossZones.push({ type: "lightning", x: player.x, y: player.y, r: 92, delay: 42, life: 62, struck: false });
+    }
+    if (boss.patternTime > 176) finishRaidPattern(boss, 105);
   } else if (boss.pattern === 2) {
     const cycle = boss.patternTime % 62;
     // 총 세 번만 예고하고 세 번 모두 실제 대시로 이어지게 한다.
@@ -455,9 +459,21 @@ function drawRaidBossProjectiles() {
       ctx.strokeStyle="rgba(255,255,255,.72)";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,51,-1.22,1.41);ctx.stroke();
     } else {
       const abyss=p.type==="abyssOrb";
-      ctx.fillStyle=abyss?"#14051f":(p.type==="venomSmall"?"#baff35":"#61cf20");ctx.strokeStyle=abyss?"#d05cff":"#eaff75";
-      ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=20;ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,p.r,0,Math.PI*2);ctx.fill();ctx.stroke();
-      if(abyss){ctx.rotate(-p.spin*2);for(let k=0;k<4;k++){ctx.rotate(Math.PI/2);ctx.beginPath();ctx.moveTo(p.r+2,0);ctx.lineTo(p.r+13,0);ctx.stroke();}}
+      if(abyss){
+        ctx.save();ctx.rotate(-p.spin);
+        const travelAngle=Math.atan2(p.vy,p.vx);
+        ctx.rotate(-p.spin);ctx.globalCompositeOperation="lighter";
+        for(let trail=1;trail<=4;trail++){const tx=-Math.cos(travelAngle)*trail*10,ty=-Math.sin(travelAngle)*trail*10;ctx.fillStyle=`rgba(112,31,190,${.17-trail*.025})`;ctx.beginPath();ctx.arc(tx,ty,p.r*(1-trail*.1),0,Math.PI*2);ctx.fill();}
+        ctx.restore();
+        const orb=ctx.createRadialGradient(-5,-6,2,0,0,p.r*1.25);orb.addColorStop(0,"#ffffff");orb.addColorStop(.14,"#d9a1ff");orb.addColorStop(.42,"#6e1aa6");orb.addColorStop(.72,"#190423");orb.addColorStop(1,"rgba(3,0,9,0)");
+        ctx.fillStyle=orb;ctx.shadowColor="#b83dff";ctx.shadowBlur=30;ctx.beginPath();ctx.arc(0,0,p.r*1.3,0,Math.PI*2);ctx.fill();
+        ctx.globalCompositeOperation="lighter";ctx.rotate(-p.spin*1.8);
+        for(let ring=0;ring<2;ring++){ctx.strokeStyle=ring?"rgba(238,185,255,.72)":"rgba(128,34,221,.88)";ctx.lineWidth=ring?2:4;ctx.setLineDash(ring?[4,7]:[10,5]);ctx.beginPath();ctx.ellipse(0,0,p.r*(1.15+ring*.35),p.r*(.62+ring*.17),ring*.9,0,Math.PI*2);ctx.stroke();}
+        ctx.setLineDash([]);for(let k=0;k<6;k++){const a=k*Math.PI/3+p.spin*.7,rr=p.r*(1.45+(k%2)*.25);ctx.fillStyle=k%2?"#f0c8ff":"#9d42e8";ctx.beginPath();ctx.arc(Math.cos(a)*rr,Math.sin(a)*rr,2.4,0,Math.PI*2);ctx.fill();}
+      }else{
+        ctx.fillStyle=p.type==="venomSmall"?"#baff35":"#61cf20";ctx.strokeStyle="#eaff75";
+        ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=20;ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,p.r,0,Math.PI*2);ctx.fill();ctx.stroke();
+      }
     }
     ctx.restore();
   }
