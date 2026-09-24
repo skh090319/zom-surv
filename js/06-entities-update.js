@@ -315,6 +315,16 @@ function updateZombies() {
 
   for (let i = zombies.length - 1; i >= 0; i--) {
     const z = zombies[i];
+    const movementImmune = z.isBossMinion === true;
+    if (movementImmune) {
+      if (Number.isFinite(z.controlImmuneX) && Number.isFinite(z.controlImmuneY)) {
+        z.x = z.controlImmuneX;
+        z.y = z.controlImmuneY;
+      }
+      z.slowTime = 0;
+      z.stunTime = 0;
+      z.stunFlash = 0;
+    }
 
     if (z.bleedTime > 0) {
       z.bleedTime--;
@@ -328,33 +338,33 @@ function updateZombies() {
 
     if (z.isRaidBoss) continue;
 
-    if (z.stunTime > 0) {
+    if (!movementImmune && z.stunTime > 0) {
       z.stunTime--;
       if (z.stunFlash > 0) z.stunFlash--;
       continue;
     }
 
-    let slow = zombieSlowTimer > 0 ? 0.45 : 1;
-    if (z.slowTime > 0) {
+    let slow = !movementImmune && zombieSlowTimer > 0 ? 0.45 : 1;
+    if (!movementImmune && z.slowTime > 0) {
       z.slowTime--;
       slow = Math.min(slow, 0.55);
     }
 
-    for (const zone of stickyZones) {
+    for (const zone of movementImmune ? [] : stickyZones) {
       const dx=z.x-zone.x,dy=z.y-zone.y;
       if (dx*dx+dy*dy < zone.r*zone.r) {
         slow = Math.min(slow, zone.slow);
       }
     }
 
-    for (const fire of fireTrails) {
+    for (const fire of movementImmune ? [] : fireTrails) {
       const dx=z.x-fire.x,dy=z.y-fire.y;
       if (dx*dx+dy*dy < fire.r*fire.r) {
         slow = Math.min(slow, fire.slow);
       }
     }
 
-    for (const field of terraStructures) {
+    for (const field of movementImmune ? [] : terraStructures) {
       if (field.type === "collapseField" && terraPointInField(z.x, z.y, field, z.r)) {
         slow = Math.min(slow, 0.45);
       }
@@ -395,9 +405,15 @@ function updateZombies() {
         }
       }
 
-      const pushAngle = Math.atan2(z.y - player.y, z.x - player.x);
-      z.x += Math.cos(pushAngle) * 3;
-      z.y += Math.sin(pushAngle) * 3;
+      if (!movementImmune) {
+        const pushAngle = Math.atan2(z.y - player.y, z.x - player.x);
+        z.x += Math.cos(pushAngle) * 3;
+        z.y += Math.sin(pushAngle) * 3;
+      }
+    }
+    if (movementImmune) {
+      z.controlImmuneX = z.x;
+      z.controlImmuneY = z.y;
     }
   }
 }

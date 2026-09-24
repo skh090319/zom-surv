@@ -223,6 +223,7 @@ function summonReaperMinions(boss) {
     zombies.push({
       id: `reaper-minion-${Date.now()}-${i}`, isBossMinion: true, raidSprite: 1,
       x: boss.x + Math.cos(a) * 120, y: boss.y + Math.sin(a) * 120,
+      controlImmuneX: boss.x + Math.cos(a) * 120, controlImmuneY: boss.y + Math.sin(a) * 120,
       r: 26, hp: 420, maxHp: 420, speed: 1.45, boss: false, damage: 5
     });
   }
