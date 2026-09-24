@@ -59,10 +59,15 @@ function startRaidBoss(index) {
   raidArena = index === 0 ? { x: centerX, y: centerY, r: 1000, pulse: 0 } : null;
   if (index === 0) {
     player.x = centerX;
-    player.y = centerY + 140;
+    player.y = centerY + 360;
   }
   const spawnX = centerX;
-  const spawnY = index === 0 ? centerY + 20 : Math.max(180, player.y - 340);
+  const bossSpawnGap = 520;
+  const spawnY = index === 0
+    ? centerY - 120
+    : (player.y - bossSpawnGap >= 180
+      ? player.y - bossSpawnGap
+      : Math.min(WORLD.height - 180, player.y + bossSpawnGap));
   activeRaidBoss = {
     id: `raid-${index}-${Date.now()}`,
     isRaidBoss: true,
