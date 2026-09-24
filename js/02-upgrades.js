@@ -391,6 +391,14 @@ function finalizeUpgradeChoice(index) {
   upgradeChoices = [];
   upgradeSelectionEffect = null;
 
+  if (typeof raidRewardChoicesPending !== "undefined" && raidRewardChoicesPending > 0) {
+    raidRewardChoicesPending--;
+    if (raidRewardChoicesPending > 0) {
+      openUpgradeMenu();
+      return;
+    }
+  }
+
   if (player.exp >= player.expNeed) {
     gainExp(0);
   }

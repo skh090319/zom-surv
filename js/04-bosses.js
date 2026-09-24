@@ -20,6 +20,7 @@ let raidArena = null;
 let raidIntroTime = 0;
 let raidVictory = false;
 let raidWarningPulse = 0;
+let raidRewardChoicesPending = 0;
 
 function resetRaidBossSystem() {
   survivalFrames = 0;
@@ -32,6 +33,7 @@ function resetRaidBossSystem() {
   raidIntroTime = 0;
   raidVictory = false;
   raidWarningPulse = 0;
+  raidRewardChoicesPending = 0;
   player.bossRootTime = 0;
   player.bossSlowTime = 0;
 }
@@ -119,7 +121,12 @@ function defeatRaidBoss(boss) {
   activeRaidBoss = null;
   raidArena = null;
   nextRaidBossIndex = index + 1;
-  if (index === 2) raidVictory = true;
+  if (index < 2) {
+    raidRewardChoicesPending = 2;
+    openUpgradeMenu();
+  } else {
+    raidVictory = true;
+  }
 }
 
 function pickRaidPattern(boss) {
