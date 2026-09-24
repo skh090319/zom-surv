@@ -821,9 +821,10 @@ function drawHomeScreen() {
   ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 23px Arial";ctx.fillText("작전 시작",leftX+78,startY+32+lift);ctx.fillStyle="rgba(235,250,255,.68)";ctx.font="12px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+78,startY+54+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
 
   // 보조 메뉴 3개
-  const gap=10,cardW=(menuW-gap*2)/3,cardY=startY+86,cardH=98;
-  homeCharacterRect={x:leftX,y:cardY,w:cardW,h:cardH};homeAugmentGuideRect={x:leftX+cardW+gap,y:cardY,w:cardW,h:cardH};homeGameGuideRect={x:leftX+(cardW+gap)*2,y:cardY,w:cardW,h:cardH};
-  const cards=[[homeCharacterRect,"#b875ff","◆","캐릭터","생존자 선택","01"],[homeAugmentGuideRect,"#ffd15b","✦","증강 도감","빌드 설계","02"],[homeGameGuideRect,"#5fe3ad","?","게임 가이드","조작·보스","03"]];
+  const gap=10,cardY=startY+86,cardH=98,cardCols=menuW<470?2:4,cardW=(menuW-gap*(cardCols-1))/cardCols;
+  const cardRect=i=>({x:leftX+(i%cardCols)*(cardW+gap),y:cardY+Math.floor(i/cardCols)*(cardH+gap),w:cardW,h:cardH});
+  homeCharacterRect=cardRect(0);homeAugmentGuideRect=cardRect(1);homeGameGuideRect=cardRect(2);homeMonsterGuideRect=cardRect(3);
+  const cards=[[homeCharacterRect,"#b875ff","◆","캐릭터","생존자 선택","01"],[homeAugmentGuideRect,"#ffd15b","✦","증강 도감","빌드 설계","02"],[homeGameGuideRect,"#5fe3ad","?","게임 가이드","조작·보스","03"],[homeMonsterGuideRect,"#ff6b83","☣","몬스터 도감","적·보스 정보","04"]];
   for(const [rect,color,glyph,label,sub,no] of cards){
     const hover=pointInRect(mouse.x,mouse.y,rect),cy=rect.y+(hover?-4:0),g=ctx.createLinearGradient(rect.x,cy,rect.x+rect.w,cy+rect.h);
     g.addColorStop(0,hover?`${color}24`:`${color}10`);g.addColorStop(.58,"rgba(14,18,31,.94)");g.addColorStop(1,"rgba(6,9,17,.97)");
@@ -835,7 +836,7 @@ function drawHomeScreen() {
     ctx.fillStyle=hover?color:"rgba(255,255,255,.35)";ctx.font="bold 17px Arial";ctx.fillText("›",rect.x+rect.w-22,cy+72);
     ctx.textAlign="right";ctx.fillStyle="rgba(255,255,255,.16)";ctx.font="bold 10px monospace";ctx.fillText(no,rect.x+rect.w-11,cy+18);
   }
-  const briefingY=cardY+cardH+12;
+  const briefingY=cardY+Math.ceil(cards.length/cardCols)*(cardH+gap)-gap+12;
   ctx.fillStyle="rgba(7,10,18,.74)";drawRoundedRect(leftX,briefingY,menuW,34,8,"rgba(7,10,18,.74)","rgba(255,255,255,.1)",1);
   ctx.textAlign="left";ctx.fillStyle="rgba(196,209,231,.58)";ctx.font="bold 10px Arial";ctx.fillText("OPERATION",leftX+13,briefingY+21);ctx.fillStyle="#ff637a";ctx.fillText("BOSS  02:00 · 04:00 · 06:00",leftX+92,briefingY+21);
 

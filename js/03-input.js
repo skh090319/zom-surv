@@ -133,6 +133,11 @@ canvas.addEventListener("mousedown", event => {
       return;
     }
 
+    if (pointInRect(mouse.x, mouse.y, homeMonsterGuideRect)) {
+      openGuideScreen("monsters");
+      return;
+    }
+
     return;
   }
 

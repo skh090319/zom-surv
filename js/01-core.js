@@ -552,6 +552,7 @@ let homeStartRect = { x: 0, y: 0, w: 260, h: 64 };
 let homeCharacterRect = { x: 0, y: 0, w: 260, h: 64 };
 let homeAugmentGuideRect = { x: 0, y: 0, w: 260, h: 64 };
 let homeGameGuideRect = { x: 0, y: 0, w: 260, h: 64 };
+let homeMonsterGuideRect = { x: 0, y: 0, w: 260, h: 64 };
 let characterBackRect = { x: 0, y: 0, w: 180, h: 54 };
 let characterSelectRect = { x: 0, y: 0, w: 240, h: 300 };
 

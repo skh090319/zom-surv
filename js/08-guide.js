@@ -38,6 +38,15 @@ const basicGuideSections = [
   { icon:"◆", title:"아이템과 생존", color:"#61e5ac", lines:["회복 아이템은 잃은 체력을 회복합니다.","자석은 맵에 남은 경험치 구슬을 끌어옵니다.","체력이 0이 되면 게임이 종료됩니다.","불사 증강을 보유하면 한 번 부활할 수 있습니다.","캐릭터별 자원과 스킬 상태는 하단 전용 UI에서 확인합니다."] }
 ];
 
+const monsterGuideEntries = [
+  { name:"일반 좀비", tag:"COMMON INFECTED", color:"#73e36f", sprite:"zombie", spriteIndex:0, desc:"가장 흔한 감염체. 플레이어를 끈질기게 추적해 접촉 피해를 줍니다.", tips:["빠른 처치로 포위를 방지", "경험치 구슬을 남김"] },
+  { name:"대형 좀비", tag:"HEAVY INFECTED", color:"#ff665f", sprite:"zombie", spriteIndex:1, desc:"높은 체력과 큰 충돌 범위를 지닌 강화 감염체입니다.", tips:["처형 표식을 적극 활용", "일반 좀비보다 높은 보상"] },
+  { name:"아마란스", tag:"BOSS 01 · VENOM BLOOM", color:"#9cff4e", sprite:"boss", spriteIndex:0, desc:"움직이지 않는 맹독 식물. 캐릭터 주변에 독 지대를 만들고 분열 독탄과 속박 덩굴을 발사합니다.", tips:["덩굴 적중 시 독탄 연계", "전용 제한 영역 생성"] },
+  { name:"모르스", tag:"BOSS 02 · WINGED REAPER", color:"#b96cff", sprite:"boss", spriteIndex:1, desc:"고속으로 추격하는 사신. 돌진과 왕복 대낫을 사용하고 작은 분신 다섯을 소환합니다.", tips:["돌아오는 낫은 더 위험", "분신도 이동 방해 면역"] },
+  { name:"사신의 분신", tag:"BOSS MINION", color:"#d8a2ff", sprite:"boss", spriteIndex:1, desc:"모르스와 같은 모습을 한 소형 소환체. 체력과 피해는 낮지만 무리를 지어 추격합니다.", tips:["모든 이동 방해 효과 면역", "광역 공격으로 빠르게 정리"] },
+  { name:"녹스", tag:"BOSS 03 · ABYSS EXECUTOR", color:"#795cff", sprite:"boss", spriteIndex:2, desc:"어둠 구체와 연속 낙뢰를 사용하며, 붉은 예고 영역 끝까지 세 차례 즉사 돌진합니다.", tips:["낙뢰 원에서 즉시 이탈", "붉은 대시 영역은 즉사"] }
+];
+
 function openGuideScreen(page) {
   guidePage = page;
   guideScrollY = 0;
@@ -94,9 +103,23 @@ function drawBasicGuide() {
   ctx.save();ctx.beginPath();ctx.rect(0,top-5,canvas.width,canvas.height-top+5);ctx.clip();basicGuideSections.forEach((section,i)=>{const x=sx+(i%cols)*(cardW+gap),y=top+Math.floor(i/cols)*(cardH+gap)-guideScrollY;const grad=ctx.createLinearGradient(x,y,x+cardW,y+cardH);grad.addColorStop(0,`${section.color}16`);grad.addColorStop(1,"rgba(7,9,17,.97)");drawRoundedRect(x,y,cardW,cardH,18,grad,`${section.color}88`,1.5);ctx.fillStyle=section.color;ctx.font="bold 26px Arial";ctx.textAlign="center";ctx.fillText(section.icon,x+35,y+42);ctx.textAlign="left";ctx.fillStyle="#f2f5fc";ctx.font="bold 20px Arial";ctx.fillText(section.title,x+65,y+39);ctx.strokeStyle=`${section.color}55`;ctx.beginPath();ctx.moveTo(x+18,y+57);ctx.lineTo(x+cardW-18,y+57);ctx.stroke();ctx.font="13px Arial";section.lines.forEach((line,j)=>{ctx.fillStyle=section.color;ctx.fillText("•",x+22,y+84+j*24);ctx.fillStyle="#c6d0df";ctx.fillText(line,x+38,y+84+j*24);});});ctx.restore();
 }
 
+function drawMonsterGuide() {
+  const top=108,gap=16,cols=canvas.width<720?1:(canvas.width<1080?2:3),cardW=Math.min(350,(canvas.width-48-gap*(cols-1))/cols),cardH=286,rows=Math.ceil(monsterGuideEntries.length/cols),contentH=rows*(cardH+gap)-gap;
+  guideContentTop=top;guideScrollMax=Math.max(0,contentH-(canvas.height-top-20));guideScrollY=Math.min(guideScrollY,guideScrollMax);const sx=canvas.width/2-(cols*cardW+(cols-1)*gap)/2;
+  ctx.save();ctx.beginPath();ctx.rect(0,top-5,canvas.width,canvas.height-top+5);ctx.clip();
+  monsterGuideEntries.forEach((entry,i)=>{const x=sx+(i%cols)*(cardW+gap),y=top+Math.floor(i/cols)*(cardH+gap)-guideScrollY;if(y+cardH<top||y>canvas.height)return;const g=ctx.createLinearGradient(x,y,x+cardW,y+cardH);g.addColorStop(0,`${entry.color}18`);g.addColorStop(.5,"rgba(15,19,31,.97)");g.addColorStop(1,"rgba(6,8,15,.99)");drawRoundedRect(x,y,cardW,cardH,18,g,`${entry.color}82`,1.5);
+    ctx.fillStyle=entry.color;ctx.font="bold 10px Arial";ctx.textAlign="left";ctx.fillText(entry.tag,x+17,y+23);ctx.fillStyle="#f5f7ff";ctx.font="900 22px Arial";ctx.fillText(entry.name,x+17,y+50);
+    const imageX=x+cardW-126,imageY=y+18,imageW=108,imageH=108;ctx.save();ctx.beginPath();ctx.arc(imageX+54,imageY+54,51,0,Math.PI*2);ctx.clip();ctx.fillStyle="rgba(2,5,11,.88)";ctx.fillRect(imageX,imageY,imageW,imageH);
+    if(entry.sprite==="zombie"&&zombieSpriteAtlas.complete&&zombieSpriteAtlas.naturalWidth){const sw=zombieSpriteAtlas.naturalWidth/2,sh=zombieSpriteAtlas.naturalHeight;ctx.drawImage(zombieSpriteAtlas,entry.spriteIndex*sw,0,sw,sh,imageX+9,imageY+8,90,90);}else if(entry.sprite==="boss"){const img=raidBossImages[entry.spriteIndex];if(img?.complete&&img.naturalWidth){const sc=Math.min(96/img.naturalWidth,96/img.naturalHeight);ctx.drawImage(img,imageX+54-img.naturalWidth*sc/2,imageY+54-img.naturalHeight*sc/2,img.naturalWidth*sc,img.naturalHeight*sc);}}ctx.restore();ctx.strokeStyle=entry.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(imageX+54,imageY+54,51,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle="#b9c5d7";ctx.font="13px Arial";ctx.textAlign="left";wrapTextLeft(entry.desc,x+17,y+88,cardW-155,20);ctx.strokeStyle=`${entry.color}40`;ctx.beginPath();ctx.moveTo(x+17,y+154);ctx.lineTo(x+cardW-17,y+154);ctx.stroke();ctx.fillStyle=entry.color;ctx.font="bold 12px Arial";ctx.fillText("생존 요령",x+17,y+179);entry.tips.forEach((tip,n)=>{ctx.fillStyle=entry.color;ctx.fillText("◆",x+19,y+207+n*27);ctx.fillStyle="#ced6e4";ctx.font="12px Arial";ctx.fillText(tip,x+39,y+207+n*27);});
+  });ctx.restore();
+}
+
 function drawGuideScreen() {
-  drawGuideHeader(guidePage==="augment"?"증강 도감":"기본 게임 가이드",guidePage==="augment"?"AUGMENT ARCHIVE · 실제 게임의 모든 증강 효과":"SURVIVOR HANDBOOK · 생존에 필요한 핵심 정보");
-  if(guidePage==="augment")drawAugmentGuide();else drawBasicGuide();
+  const title=guidePage==="augment"?"증강 도감":guidePage==="monsters"?"몬스터 도감":"기본 게임 가이드";
+  const subtitle=guidePage==="augment"?"AUGMENT ARCHIVE · 실제 게임의 모든 증강 효과":guidePage==="monsters"?"THREAT ARCHIVE · 감염체와 보스 대응 정보":"SURVIVOR HANDBOOK · 생존에 필요한 핵심 정보";
+  drawGuideHeader(title,subtitle);
+  if(guidePage==="augment")drawAugmentGuide();else if(guidePage==="monsters")drawMonsterGuide();else drawBasicGuide();
   if(guideScrollMax>0){const top=guideContentTop,trackH=canvas.height-top-18,thumbH=Math.max(45,trackH*trackH/(trackH+guideScrollMax)),thumbY=top+(trackH-thumbH)*guideScrollY/guideScrollMax;drawRoundedRect(canvas.width-12,top,5,trackH,3,"rgba(255,255,255,.08)");drawRoundedRect(canvas.width-12,thumbY,5,thumbH,3,"rgba(190,145,255,.7)");}
 }
 
