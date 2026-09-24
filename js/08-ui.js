@@ -828,9 +828,9 @@ function drawHomeScreen() {
   for(const [rect,color,glyph,label,sub,no] of cards){
     const hover=pointInRect(mouse.x,mouse.y,rect),cy=rect.y+(hover?-4:0),g=ctx.createLinearGradient(rect.x,cy,rect.x+rect.w,cy+rect.h);
     g.addColorStop(0,hover?`${color}70`:`${color}52`);g.addColorStop(.55,hover?`${color}48`:`${color}34`);g.addColorStop(1,hover?`${color}28`:`${color}1c`);
-    ctx.save();ctx.shadowColor=color;ctx.shadowBlur=hover?18:6;drawRoundedRect(rect.x,cy,rect.w,rect.h,12,g,hover?`${color}cc`:`${color}68`,hover?1.8:1.2);ctx.restore();
-    ctx.fillStyle=color;ctx.fillRect(rect.x+1,cy+1,rect.w-2,3);ctx.fillStyle=`${color}22`;ctx.beginPath();ctx.arc(rect.x+27,cy+31,17,0,Math.PI*2);ctx.fill();ctx.strokeStyle=`${color}aa`;ctx.stroke();
-    ctx.textAlign="center";ctx.fillStyle=color;ctx.font="bold 17px Arial";ctx.fillText(glyph,rect.x+27,cy+37);
+    ctx.save();ctx.shadowColor=color;ctx.shadowBlur=hover?34:20;drawRoundedRect(rect.x,cy,rect.w,rect.h,12,g,hover?`${color}ee`:`${color}9c`,hover?2:1.5);ctx.restore();
+    ctx.save();ctx.shadowColor=color;ctx.shadowBlur=hover?20:12;ctx.fillStyle=color;ctx.fillRect(rect.x+1,cy+1,rect.w-2,3);ctx.restore();ctx.fillStyle=`${color}2e`;ctx.beginPath();ctx.arc(rect.x+27,cy+31,17,0,Math.PI*2);ctx.fill();ctx.strokeStyle=`${color}cc`;ctx.stroke();
+    ctx.save();ctx.shadowColor=color;ctx.shadowBlur=hover?16:9;ctx.textAlign="center";ctx.fillStyle=color;ctx.font="bold 17px Arial";ctx.fillText(glyph,rect.x+27,cy+37);ctx.restore();
     ctx.textAlign="left";ctx.fillStyle="#f7f8ff";ctx.font=`900 ${cardW<130?13:15}px Arial`;ctx.fillText(label,rect.x+51,cy+34);
     ctx.fillStyle="rgba(211,220,237,.62)";ctx.font=`${cardW<130?10:11}px Arial`;ctx.fillText(sub,rect.x+15,cy+68);
     ctx.fillStyle=hover?color:"rgba(255,255,255,.35)";ctx.font="bold 17px Arial";ctx.fillText("›",rect.x+rect.w-22,cy+72);
