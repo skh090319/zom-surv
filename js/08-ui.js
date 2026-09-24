@@ -820,14 +820,14 @@ function drawHomeScreen() {
   ctx.fillStyle="rgba(0,0,0,.2)";ctx.beginPath();ctx.arc(leftX+39,startY+38+lift,24,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(255,255,255,.48)";ctx.stroke();ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.textAlign="center";ctx.fillText("▶",leftX+41,startY+45+lift);
   ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 23px Arial";ctx.fillText("작전 시작",leftX+78,startY+32+lift);ctx.fillStyle="rgba(235,250,255,.68)";ctx.font="12px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+78,startY+54+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
 
-  // 보조 메뉴 3개
-  const gap=10,cardY=startY+86,cardH=98,cardCols=menuW<470?2:4,cardW=(menuW-gap*(cardCols-1))/cardCols;
+  // 보조 메뉴: 언제나 두 칸씩 배치
+  const gap=10,cardY=startY+86,cardH=98,cardCols=2,cardW=(menuW-gap)/2;
   const cardRect=i=>({x:leftX+(i%cardCols)*(cardW+gap),y:cardY+Math.floor(i/cardCols)*(cardH+gap),w:cardW,h:cardH});
   homeCharacterRect=cardRect(0);homeAugmentGuideRect=cardRect(1);homeGameGuideRect=cardRect(2);homeMonsterGuideRect=cardRect(3);
   const cards=[[homeCharacterRect,"#b875ff","◆","캐릭터","생존자 선택","01"],[homeAugmentGuideRect,"#ffd15b","✦","증강 도감","빌드 설계","02"],[homeGameGuideRect,"#5fe3ad","?","게임 가이드","조작·보스","03"],[homeMonsterGuideRect,"#ff6b83","☣","몬스터 도감","적·보스 정보","04"]];
   for(const [rect,color,glyph,label,sub,no] of cards){
     const hover=pointInRect(mouse.x,mouse.y,rect),cy=rect.y+(hover?-4:0),g=ctx.createLinearGradient(rect.x,cy,rect.x+rect.w,cy+rect.h);
-    g.addColorStop(0,hover?`${color}24`:`${color}10`);g.addColorStop(.58,"rgba(14,18,31,.94)");g.addColorStop(1,"rgba(6,9,17,.97)");
+    g.addColorStop(0,hover?`${color}70`:`${color}52`);g.addColorStop(.55,hover?`${color}48`:`${color}34`);g.addColorStop(1,hover?`${color}28`:`${color}1c`);
     ctx.save();ctx.shadowColor=color;ctx.shadowBlur=hover?18:6;drawRoundedRect(rect.x,cy,rect.w,rect.h,12,g,hover?`${color}cc`:`${color}68`,hover?1.8:1.2);ctx.restore();
     ctx.fillStyle=color;ctx.fillRect(rect.x+1,cy+1,rect.w-2,3);ctx.fillStyle=`${color}22`;ctx.beginPath();ctx.arc(rect.x+27,cy+31,17,0,Math.PI*2);ctx.fill();ctx.strokeStyle=`${color}aa`;ctx.stroke();
     ctx.textAlign="center";ctx.fillStyle=color;ctx.font="bold 17px Arial";ctx.fillText(glyph,rect.x+27,cy+37);
