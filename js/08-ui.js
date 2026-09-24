@@ -862,7 +862,7 @@ const characterSkillVideoCache = new Map();
 function getCharacterSkillVideo(id, skillIndex) {
   const key = characterSkillVideoKeys[id]?.[skillIndex];
   if (!key) return null;
-  const path = `assets/skill-videos/${id}-${key}.webm?v=20260925-1`;
+  const path = `assets/skill-videos/${id}-${key}.webm?v=20260925-2`;
   if (!characterSkillVideoCache.has(path)) {
     const video = document.createElement("video");
     video.src = path;
