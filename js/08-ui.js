@@ -771,107 +771,63 @@ function drawMenuButton(rect, hover, color, label, sublabel, glyph) {
 }
 
 function drawHomeScreen() {
-  drawMenuBackdrop(0.48);
-
-  const centerX = canvas.width / 2;
-
+  drawMenuBackdrop(0.62);
+  const t=performance.now()*.001,wide=canvas.width>=900,margin=Math.max(28,canvas.width*.045);
+  const info=characterSkillGuide[selectedCharacter]||characterSkillGuide.default;
+  const accent=info.color||"#57ddff",sprite=getCharacterPreviewSprite(selectedCharacter);
   ctx.save();
-  const contentW = Math.min(620, canvas.width - 48);
-  const titleY = Math.max(105, canvas.height * 0.17);
-  const centerShade = ctx.createLinearGradient(centerX - contentW, 0, centerX + contentW, 0);
-  centerShade.addColorStop(0, "rgba(3,5,12,0)");
-  centerShade.addColorStop(0.25, "rgba(3,5,12,0.3)");
-  centerShade.addColorStop(0.5, "rgba(3,5,12,0.56)");
-  centerShade.addColorStop(0.75, "rgba(3,5,12,0.3)");
-  centerShade.addColorStop(1, "rgba(3,5,12,0)");
-  ctx.fillStyle = centerShade;
-  ctx.fillRect(centerX - contentW, titleY - 115, contentW * 2, 510);
 
-  ctx.fillStyle = "#ff4d67";
-  ctx.fillRect(centerX - 38, titleY - 73, 76, 3);
-  ctx.fillStyle = "rgba(255,77,103,0.2)";
-  ctx.fillRect(centerX - 78, titleY - 72, 156, 1);
+  // 시네마틱 로비 조명과 상하 레터박스
+  const sideShade=ctx.createLinearGradient(0,0,canvas.width,0);
+  sideShade.addColorStop(0,"rgba(2,4,11,.96)");sideShade.addColorStop(.42,"rgba(3,5,13,.58)");sideShade.addColorStop(.72,"rgba(6,8,17,.18)");sideShade.addColorStop(1,"rgba(2,3,9,.82)");
+  ctx.fillStyle=sideShade;ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="rgba(1,2,7,.8)";ctx.fillRect(0,0,canvas.width,54);ctx.fillRect(0,canvas.height-54,canvas.width,54);
+  ctx.strokeStyle="rgba(255,255,255,.08)";ctx.beginPath();ctx.moveTo(0,54);ctx.lineTo(canvas.width,54);ctx.moveTo(0,canvas.height-54);ctx.lineTo(canvas.width,canvas.height-54);ctx.stroke();
 
-  ctx.textAlign = "center";
-  const titleGradient = ctx.createLinearGradient(centerX - 260, 0, centerX + 260, 0);
-  titleGradient.addColorStop(0, "#dce8ff");
-  titleGradient.addColorStop(0.5, "#ffffff");
-  titleGradient.addColorStop(1, "#bea9e8");
-  ctx.fillStyle = titleGradient;
-  ctx.shadowColor = "rgba(145,180,255,0.28)";
-  ctx.shadowBlur = 22;
-  ctx.font = `900 ${Math.min(64, canvas.width * 0.052)}px Arial`;
-  ctx.fillText("ZOMBIE SURVIVAL", centerX, titleY);
-  ctx.shadowBlur = 0;
+  // 선택 캐릭터 키 비주얼
+  const heroX=wide?canvas.width*.73:canvas.width*.76,heroY=canvas.height*.48;
+  const heroGlow=ctx.createRadialGradient(heroX,heroY,10,heroX,heroY,Math.min(canvas.width,canvas.height)*.42);
+  heroGlow.addColorStop(0,`${accent}42`);heroGlow.addColorStop(.42,`${accent}15`);heroGlow.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=heroGlow;ctx.fillRect(0,54,canvas.width,canvas.height-108);
+  ctx.save();ctx.translate(heroX,canvas.height*.77);ctx.scale(1,.28);ctx.strokeStyle=`${accent}92`;ctx.shadowColor=accent;ctx.shadowBlur=24;ctx.lineWidth=3;
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(0,0,92+i*34+Math.sin(t*2+i)*5,0,Math.PI*2);ctx.stroke();}ctx.restore();
+  for(let i=0;i<16;i++){const a=i*2.399+t*(i%2?.14:-.1),r=105+(i%5)*38,x=heroX+Math.cos(a)*r,y=heroY+Math.sin(a)*r*.65;ctx.fillStyle=i%3===0?accent:"rgba(205,225,255,.42)";ctx.fillRect(x,y,2+(i%2),2+(i%2));}
+  if(sprite&&sprite.complete&&sprite.naturalWidth){
+    const maxW=wide?Math.min(460,canvas.width*.34):Math.min(260,canvas.width*.38),maxH=canvas.height*.61;
+    const scale=Math.min(maxW/sprite.naturalWidth,maxH/sprite.naturalHeight),dw=sprite.naturalWidth*scale,dh=sprite.naturalHeight*scale;
+    ctx.save();ctx.globalAlpha=.25;ctx.filter="blur(18px)";ctx.drawImage(sprite,heroX-dw*.53,heroY-dh*.48+10,dw*1.06,dh*1.06);ctx.restore();
+    ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=30;ctx.drawImage(sprite,heroX-dw/2,heroY-dh/2,dw,dh);ctx.restore();
+  }
+  ctx.textAlign="center";ctx.fillStyle="rgba(215,226,245,.52)";ctx.font="bold 11px Arial";ctx.fillText("SELECTED SURVIVOR",heroX,canvas.height*.82);
+  ctx.fillStyle="#fff";ctx.font=`900 ${wide?30:22}px Arial`;ctx.fillText(info.name,heroX,canvas.height*.82+31);
+  ctx.fillStyle=accent;ctx.fillRect(heroX-38,canvas.height*.82+43,76,2);
 
-  ctx.fillStyle = "rgba(255,255,255,0.35)";
-  ctx.font = "bold 12px Arial";
-  ctx.letterSpacing = "4px";
-  ctx.fillText("LAST NIGHT PROTOCOL", centerX, titleY + 32);
-  ctx.letterSpacing = "0px";
+  // 왼쪽 타이틀 및 시즌 정보
+  const leftX=margin,titleY=Math.max(130,canvas.height*.2),titleSize=Math.min(76,canvas.width*(wide?.056:.075));
+  ctx.textAlign="left";ctx.fillStyle="#ff4765";ctx.font="900 12px Arial";ctx.fillText("NIGHT PROTOCOL  /  03",leftX,titleY-58);
+  ctx.fillStyle="rgba(255,255,255,.25)";ctx.fillRect(leftX,titleY-42,wide?470:canvas.width*.48,1);ctx.fillStyle="#ff4765";ctx.fillRect(leftX,titleY-43,72,3);
+  const titleGradient=ctx.createLinearGradient(leftX,0,leftX+540,0);titleGradient.addColorStop(0,"#ffffff");titleGradient.addColorStop(.58,"#e8ecff");titleGradient.addColorStop(1,"#9f8ed1");
+  ctx.fillStyle=titleGradient;ctx.shadowColor="rgba(144,175,255,.28)";ctx.shadowBlur=26;ctx.font=`900 ${titleSize}px Arial`;ctx.fillText("ZOMBIE",leftX,titleY+20);ctx.fillText("SURVIVAL",leftX,titleY+20+titleSize*.9);ctx.shadowBlur=0;
+  ctx.fillStyle="#aeb8cb";ctx.font=`${wide?16:13}px Arial`;ctx.fillText("밤이 끝나기 전에 살아남아라.",leftX,titleY+54+titleSize*.9);
 
-  ctx.fillStyle = "#bcaee8";
-  ctx.font = "17px Arial";
-  ctx.fillText("몰려오는 밤을 버티고, 증강으로 한계를 넘어라.", centerX, titleY + 67);
+  // 메인 플레이 버튼
+  const menuW=wide?Math.min(470,canvas.width*.39):Math.min(390,canvas.width*.52),startY=Math.min(canvas.height-270,titleY+118+titleSize*.9);
+  homeStartRect={x:leftX,y:startY,w:menuW,h:76};
+  const startHover=pointInRect(mouse.x,mouse.y,homeStartRect),lift=startHover?-4:0;
+  const playGradient=ctx.createLinearGradient(leftX,startY,leftX+menuW,startY);playGradient.addColorStop(0,startHover?"#18c9eb":"#1094b0");playGradient.addColorStop(1,startHover?"#3b5fe9":"#243b96");
+  ctx.save();ctx.shadowColor="#21d8ff";ctx.shadowBlur=startHover?34:17;drawRoundedRect(leftX,startY+lift,menuW,76,10,playGradient,"#73edff",2);ctx.restore();
+  ctx.fillStyle="rgba(0,0,0,.2)";ctx.beginPath();ctx.arc(leftX+39,startY+38+lift,24,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(255,255,255,.48)";ctx.stroke();ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.textAlign="center";ctx.fillText("▶",leftX+41,startY+45+lift);
+  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 23px Arial";ctx.fillText("작전 시작",leftX+78,startY+32+lift);ctx.fillStyle="rgba(235,250,255,.68)";ctx.font="12px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+78,startY+54+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
 
-  homeStartRect = {
-    x: centerX - Math.min(190, contentW / 2 - 42),
-    y: titleY + 127,
-    w: Math.min(380, contentW - 84),
-    h: 70
-  };
+  // 보조 메뉴 3개
+  const gap=10,cardW=(menuW-gap*2)/3,cardY=startY+91,cardH=82;
+  homeCharacterRect={x:leftX,y:cardY,w:cardW,h:cardH};homeAugmentGuideRect={x:leftX+cardW+gap,y:cardY,w:cardW,h:cardH};homeGameGuideRect={x:leftX+(cardW+gap)*2,y:cardY,w:cardW,h:cardH};
+  const cards=[[homeCharacterRect,"#b875ff","◆","캐릭터","생존자 선택"],[homeAugmentGuideRect,"#ffd15b","✦","증강 도감","빌드 확인"],[homeGameGuideRect,"#5fe3ad","?","게임 가이드","조작·보스"]];
+  for(const [rect,color,glyph,label,sub] of cards){const hover=pointInRect(mouse.x,mouse.y,rect),cy=rect.y+(hover?-3:0),g=ctx.createLinearGradient(rect.x,cy,rect.x,cy+rect.h);g.addColorStop(0,hover?`${color}32`:"rgba(18,23,37,.94)");g.addColorStop(1,"rgba(7,10,19,.96)");ctx.save();ctx.shadowColor=color;ctx.shadowBlur=hover?20:5;drawRoundedRect(rect.x,cy,rect.w,rect.h,10,g,hover?color:"rgba(160,176,205,.28)",hover?2:1);ctx.restore();ctx.textAlign="left";ctx.fillStyle=color;ctx.font="bold 17px Arial";ctx.fillText(glyph,rect.x+14,cy+28);ctx.fillStyle="#f4f6ff";ctx.font=`bold ${cardW<125?13:15}px Arial`;ctx.fillText(label,rect.x+40,cy+29);ctx.fillStyle="rgba(205,214,232,.52)";ctx.font=`${cardW<125?10:11}px Arial`;ctx.fillText(sub,rect.x+14,cy+57);ctx.fillStyle=hover?color:"rgba(255,255,255,.3)";ctx.textAlign="right";ctx.font="bold 16px Arial";ctx.fillText("›",rect.x+rect.w-13,cy+60);}
 
-  homeCharacterRect = {
-    x: homeStartRect.x,
-    y: homeStartRect.y + 86,
-    w: homeStartRect.w,
-    h: 70
-  };
-
-  homeAugmentGuideRect = {
-    x: homeStartRect.x,
-    y: homeCharacterRect.y + 86,
-    w: homeStartRect.w,
-    h: 70
-  };
-
-  homeGameGuideRect = {
-    x: homeStartRect.x,
-    y: homeAugmentGuideRect.y + 86,
-    w: homeStartRect.w,
-    h: 70
-  };
-
-  const startHover = pointInRect(mouse.x, mouse.y, homeStartRect);
-  const charHover = pointInRect(mouse.x, mouse.y, homeCharacterRect);
-  const augmentHover = pointInRect(mouse.x, mouse.y, homeAugmentGuideRect);
-  const guideHover = pointInRect(mouse.x, mouse.y, homeGameGuideRect);
-
-  drawMenuButton(homeStartRect, startHover, "#22d9ff", "게임 시작", "선택한 캐릭터로 생존 시작", "▶");
-  drawMenuButton(homeCharacterRect, charHover, "#b46cff", "캐릭터 선택", "생존자와 전투 방식을 변경", "◆");
-  drawMenuButton(homeAugmentGuideRect, augmentHover, "#ffd45e", "증강 설명", "모든 증강과 초월 효과 확인", "✦");
-  drawMenuButton(homeGameGuideRect, guideHover, "#61e5ac", "기본 게임 가이드", "조작법·몬스터·보스전 안내", "?");
-
-  const selectedName = characterSkillGuide[selectedCharacter]?.name || "기본 캐릭터";
-  ctx.textAlign = "center";
-  ctx.fillStyle = "rgba(255,255,255,0.36)";
-  ctx.font = "12px Arial";
-  ctx.fillText("현재 생존자", centerX, homeGameGuideRect.y + 91);
-  ctx.fillStyle = "#dce9ff";
-  ctx.font = "bold 16px Arial";
-  ctx.fillText(selectedName, centerX, homeGameGuideRect.y + 115);
-
-  ctx.strokeStyle = "rgba(255,255,255,0.1)";
-  ctx.beginPath();
-  ctx.moveTo(centerX - 245, canvas.height - 72);
-  ctx.lineTo(centerX + 245, canvas.height - 72);
-  ctx.stroke();
-  ctx.fillStyle = "rgba(218,225,240,0.5)";
-  ctx.font = "12px Arial";
-  ctx.fillText("WASD 이동   ·   마우스 조준/공격   ·   우측 상단 Ⅱ 일시정지", centerX, canvas.height - 43);
-  ctx.restore();
-
-  ctx.textAlign = "left";
+  // 상단 상태바 / 하단 조작 정보
+  ctx.textAlign="left";ctx.fillStyle="#d9e2f4";ctx.font="bold 12px Arial";ctx.fillText("Z/S  //  OPERATIONS",margin,34);ctx.fillStyle="rgba(220,230,248,.46)";ctx.font="11px Arial";ctx.textAlign="right";ctx.fillText(`누적 처치 ${totalZombieKills.toLocaleString()}  ·  생존자 ${info.name}`,canvas.width-margin,34);
+  ctx.textAlign="left";ctx.fillStyle="rgba(218,225,240,.5)";ctx.font="11px Arial";ctx.fillText("WASD  이동     MOUSE  조준·공격     Q E X R  스킬",margin,canvas.height-24);ctx.textAlign="right";ctx.fillText("BUILD 2026.09  ·  ONLINE",canvas.width-margin,canvas.height-24);
+  ctx.restore();ctx.textAlign="left";
 }
 
 const characterSkillGuide = {
