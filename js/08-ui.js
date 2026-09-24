@@ -852,7 +852,7 @@ function drawHomeScreen() {
   drawMenuButton(homeAugmentGuideRect, augmentHover, "#ffd45e", "증강 설명", "모든 증강과 초월 효과 확인", "✦");
   drawMenuButton(homeGameGuideRect, guideHover, "#61e5ac", "기본 게임 가이드", "조작법·몬스터·보스전 안내", "?");
 
-  const selectedName = selectedCharacter === "default" ? "기본 캐릭터" : selectedCharacter === "suncall" ? "썬콜" : selectedCharacter === "luminous" ? "루미너스" : selectedCharacter === "yupiter" ? "유피테르" : selectedCharacter === "ren" ? "렌" : selectedCharacter === "nightLord" ? "나이트 로드" : selectedCharacter === "zero" ? "제로" : selectedCharacter === "paladin" ? "팔라딘" : selectedCharacter === "arc" ? "아크" : selectedCharacter === "terra" ? "테라" : "보이드";
+  const selectedName = characterSkillGuide[selectedCharacter]?.name || "기본 캐릭터";
   ctx.textAlign = "center";
   ctx.fillStyle = "rgba(255,255,255,0.36)";
   ctx.font = "12px Arial";
@@ -906,7 +906,7 @@ const characterSkillVideoCache = new Map();
 function getCharacterSkillVideo(id, skillIndex) {
   const key = characterSkillVideoKeys[id]?.[skillIndex];
   if (!key) return null;
-  const path = `assets/skill-videos/${id}-${key}.webm`;
+  const path = `assets/skill-videos/${id}-${key}.webm?v=20260925-1`;
   if (!characterSkillVideoCache.has(path)) {
     const video = document.createElement("video");
     video.src = path;
