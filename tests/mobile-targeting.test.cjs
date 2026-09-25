@@ -130,3 +130,11 @@ test('control edits save and restore, and size controls actually change radii',(
   assert.equal(g.run('mobileControlSettings.attackX'),.8);
   assert.ok(g.storage.has('zombieSurvivalMobileControls'));
 });
+
+test('control size has no upper limit',()=>{
+  const g=game();
+  assert.equal(g.run('clampMobileControlScale(1.38)'),1.38);
+  assert.equal(g.run('clampMobileControlScale(2.5)'),2.5);
+  assert.equal(g.run('clampMobileControlScale(8)'),8);
+  assert.equal(g.run('clampMobileControlScale(.1)'),.72);
+});

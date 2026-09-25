@@ -27,7 +27,7 @@ function loadMobileControlSettings(){
   try{const saved=JSON.parse(localStorage.getItem("zombieSurvivalMobileControls")||"null");return saved?{...MOBILE_CONTROL_DEFAULTS,...saved}:{...MOBILE_CONTROL_DEFAULTS};}catch(error){return{...MOBILE_CONTROL_DEFAULTS};}
 }
 function saveMobileControlSettings(){try{localStorage.setItem("zombieSurvivalMobileControls",JSON.stringify(mobileControlSettings));}catch(error){}}
-function clampMobileControlScale(value){return Math.max(.72,Math.min(1.38,value));}
+function clampMobileControlScale(value){return Math.max(.72,Number.isFinite(value)?value:1);}
 
 const MOBILE_SKILL_KEYS = {
   default:["r"],suncall:["r"],luminous:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
