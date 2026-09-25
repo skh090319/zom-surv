@@ -771,6 +771,13 @@ function drawMenuButton(rect, hover, color, label, sublabel, glyph) {
   ctx.restore();
 }
 
+function drawBloodiedLobbyTitle(text,x,y,size,baseFill){
+  ctx.save();ctx.textAlign="left";ctx.font=`900 ${size}px Arial`;ctx.fillStyle=baseFill;ctx.shadowColor="rgba(144,175,255,.28)";ctx.shadowBlur=Math.max(8,size*.34);ctx.fillText(text,x,y);ctx.shadowBlur=0;
+  const width=ctx.measureText(text).width,blood=ctx.createLinearGradient(0,y-size*.42,0,y+3);blood.addColorStop(0,"rgba(116,8,24,0)");blood.addColorStop(.45,"rgba(154,10,31,.42)");blood.addColorStop(1,"rgba(87,3,18,.94)");ctx.beginPath();ctx.rect(x-2,y-size*.48,width+4,size*.54);ctx.clip();ctx.fillStyle=blood;ctx.fillText(text,x,y);ctx.restore();
+  ctx.save();ctx.lineCap="round";const marks=[.085,.245,.43,.615,.79,.925];for(let i=0;i<marks.length;i++){const mx=x+width*marks[i],top=y-(i%3===0?3:1),length=size*(.07+(i%3)*.045);ctx.strokeStyle=i%2?"rgba(111,5,22,.9)":"rgba(181,15,39,.82)";ctx.lineWidth=Math.max(1.5,size*(i%3===1?.035:.024));ctx.beginPath();ctx.moveTo(mx,top-size*.05);ctx.quadraticCurveTo(mx+size*.018,top+length*.45,mx-size*.006,top+length);ctx.stroke();ctx.fillStyle="rgba(126,6,25,.9)";ctx.beginPath();ctx.arc(mx-size*.006,top+length+size*.018,Math.max(1.4,size*.025),0,Math.PI*2);ctx.fill();}
+  const splashes=[[.14,-.64,.018],[.36,-.31,.026],[.57,-.56,.015],[.73,-.25,.022],[.88,-.48,.018]];for(const [rx,ry,rr] of splashes){ctx.fillStyle="rgba(177,14,39,.72)";ctx.beginPath();ctx.arc(x+width*rx,y+size*ry,Math.max(1,size*rr),0,Math.PI*2);ctx.fill();}ctx.restore();
+}
+
 function drawHomeScreen() {
   if(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&canvas.height<520){drawMobileHomeScreen();return;}
   drawMenuBackdrop(0.62);
@@ -810,7 +817,7 @@ function drawHomeScreen() {
   ctx.textAlign="left";ctx.fillStyle="#ff4765";ctx.font="900 12px Arial";ctx.fillText("NIGHT PROTOCOL  /  03",leftX,titleY-58);
   ctx.fillStyle="rgba(255,255,255,.25)";ctx.fillRect(leftX,titleY-42,wide?470:canvas.width*.48,1);ctx.fillStyle="#ff4765";ctx.fillRect(leftX,titleY-43,72,3);
   const titleGradient=ctx.createLinearGradient(leftX,0,leftX+540,0);titleGradient.addColorStop(0,"#ffffff");titleGradient.addColorStop(.58,"#e8ecff");titleGradient.addColorStop(1,"#9f8ed1");
-  ctx.fillStyle=titleGradient;ctx.shadowColor="rgba(144,175,255,.28)";ctx.shadowBlur=26;ctx.font=`900 ${titleSize}px Arial`;ctx.fillText("ZOMBIE",leftX,titleY+20);ctx.fillText("SURVIVAL",leftX,titleY+20+titleSize*.9);ctx.shadowBlur=0;
+  drawBloodiedLobbyTitle("ZOMBIE",leftX,titleY+20,titleSize,titleGradient);drawBloodiedLobbyTitle("SURVIVAL",leftX,titleY+20+titleSize*.9,titleSize,titleGradient);
   ctx.fillStyle="#aeb8cb";ctx.font=`${wide?16:13}px Arial`;ctx.fillText("밤이 끝나기 전에 살아남아라.",leftX,titleY+54+titleSize*.9);
 
   // 메인 플레이 버튼
