@@ -59,7 +59,7 @@ function draw() {
   drawRenAttackOverlay();
   drawYupiterWeapons();
   drawHealthBar();
-  drawHUD();
+  if (typeof isMobileTouchDevice !== "function" || !isMobileTouchDevice()) drawHUD();
   if (typeof isMobileTouchDevice !== "function" || !isMobileTouchDevice()) {
     drawYupiterInterface();
     drawRenInterface();
@@ -333,8 +333,22 @@ function restart() {
   screenToWorld();
 }
 
-function loop() {
-  update();
+let lastLoopTime = performance.now();
+let mobileUpdateAccumulator = 0;
+const MOBILE_FIXED_STEP = 1000 / 60;
+
+function loop(now = performance.now()) {
+  const elapsed = Math.min(50, Math.max(0, now - lastLoopTime));
+  lastLoopTime = now;
+  if (typeof isMobileTouchDevice === "function" && isMobileTouchDevice()) {
+    mobileUpdateAccumulator += elapsed;
+    while (mobileUpdateAccumulator >= MOBILE_FIXED_STEP) {
+      update();
+      mobileUpdateAccumulator -= MOBILE_FIXED_STEP;
+    }
+  } else {
+    update();
+  }
   draw();
   requestAnimationFrame(loop);
 }
