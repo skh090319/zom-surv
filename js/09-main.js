@@ -20,6 +20,11 @@ function draw() {
     return;
   }
 
+  if (screenMode === "mobileSettings") {
+    drawMobileControlSettings();
+    return;
+  }
+
   drawBackground();
   drawRaidArena();
   drawStickyZones();
