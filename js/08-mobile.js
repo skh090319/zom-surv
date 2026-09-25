@@ -8,6 +8,8 @@ let mobileStickX = 0;
 let mobileStickY = 0;
 let mobileJoystickOrigin = null;
 let mobileUiGesture = null;
+let mobileScrollVelocity = 0;
+let mobileScrollFrame = 0;
 
 const MOBILE_SKILL_KEYS = {
   default:["r"],suncall:["r"],luminous:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
@@ -66,6 +68,35 @@ function openMobileCharacterDetail(p){
   characterDetailId=card.id;characterDetailOpenedAt=performance.now();characterDetailSkillIndex=0;mouse.down=false;return true;
 }
 
+function stopMobileScrollInertia(){
+  if(mobileScrollFrame)cancelAnimationFrame(mobileScrollFrame);
+  mobileScrollFrame=0;mobileScrollVelocity=0;
+}
+
+function setMobileScroll(value){
+  if(screenMode==="character"&&!characterDetailId)characterScrollY=Math.max(0,Math.min(characterScrollMax,value));
+  else if(screenMode==="guide")guideScrollY=Math.max(0,Math.min(guideScrollMax,value));
+}
+
+function getMobileScroll(){
+  if(screenMode==="character"&&!characterDetailId)return characterScrollY;
+  if(screenMode==="guide")return guideScrollY;
+  return 0;
+}
+
+function startMobileScrollInertia(){
+  if(Math.abs(mobileScrollVelocity)<.45)return;
+  const mode=screenMode;
+  const glide=()=>{
+    if(screenMode!==mode||Math.abs(mobileScrollVelocity)<.18){stopMobileScrollInertia();return;}
+    const before=getMobileScroll();setMobileScroll(before+mobileScrollVelocity);
+    if(getMobileScroll()===before)mobileScrollVelocity*=.45;
+    else mobileScrollVelocity*=.92;
+    mobileScrollFrame=requestAnimationFrame(glide);
+  };
+  mobileScrollFrame=requestAnimationFrame(glide);
+}
+
 function canvasTouchPoint(touch){const rect=canvas.getBoundingClientRect();return{x:(touch.clientX-rect.left)*canvas.width/rect.width,y:(touch.clientY-rect.top)*canvas.height/rect.height};}
 function pointInCircle(p,c){return Math.hypot(p.x-c.x,p.y-c.y)<=c.r;}
 
@@ -74,7 +105,8 @@ canvas.addEventListener("touchstart",event=>{
   if(isMobilePortraitMode())return;
   if(screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory){
     const t=event.changedTouches[0],p=canvasTouchPoint(t);
-    mobileUiGesture={id:t.identifier,startX:p.x,startY:p.y,lastY:p.y,moved:false,longPressed:false};
+    stopMobileScrollInertia();
+    mobileUiGesture={id:t.identifier,startX:p.x,startY:p.y,lastY:p.y,lastTime:performance.now(),moved:false,longPressed:false};
     if(screenMode==="character"&&!characterDetailId){mobileUiGesture.longTimer=setTimeout(()=>{if(mobileUiGesture&&!mobileUiGesture.moved){mobileUiGesture.longPressed=openMobileCharacterDetail(p);}},520);}
     return;
   }
@@ -88,9 +120,9 @@ canvas.addEventListener("touchstart",event=>{
   }
 },{passive:false});
 
-canvas.addEventListener("touchmove",event=>{event.preventDefault();for(const touch of event.changedTouches){const p=canvasTouchPoint(touch);if(touch.identifier===mobileJoystickTouchId){updateMobileJoystick(p.x,p.y);continue;}if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){const total=Math.hypot(p.x-mobileUiGesture.startX,p.y-mobileUiGesture.startY);if(total>9){mobileUiGesture.moved=true;clearTimeout(mobileUiGesture.longTimer);}const dy=p.y-mobileUiGesture.lastY;mobileUiGesture.lastY=p.y;if(screenMode==="character"&&!characterDetailId)characterScrollY=Math.max(0,Math.min(characterScrollMax,characterScrollY-dy));if(screenMode==="guide")guideScrollY=Math.max(0,Math.min(guideScrollMax,guideScrollY-dy));}}},{passive:false});
+canvas.addEventListener("touchmove",event=>{event.preventDefault();for(const touch of event.changedTouches){const p=canvasTouchPoint(touch);if(touch.identifier===mobileJoystickTouchId){updateMobileJoystick(p.x,p.y);continue;}if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){const now=performance.now(),total=Math.hypot(p.x-mobileUiGesture.startX,p.y-mobileUiGesture.startY);if(total>7){mobileUiGesture.moved=true;clearTimeout(mobileUiGesture.longTimer);}const dy=p.y-mobileUiGesture.lastY,dt=Math.max(8,now-mobileUiGesture.lastTime),delta=-dy;mobileUiGesture.lastY=p.y;mobileUiGesture.lastTime=now;mobileScrollVelocity=mobileScrollVelocity*.55+(delta*(16.67/dt))*.45;setMobileScroll(getMobileScroll()+delta);}}},{passive:false});
 
-function endMobileTouches(event){event.preventDefault();for(const touch of event.changedTouches){if(touch.identifier===mobileJoystickTouchId)releaseMobileJoystick();if(touch.identifier===mobileAttackTouchId){mobileAttackTouchId=null;mouse.down=false;}if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){clearTimeout(mobileUiGesture.longTimer);const p=canvasTouchPoint(touch);if(!mobileUiGesture.moved&&!mobileUiGesture.longPressed)dispatchMobileCanvasClick(p);mobileUiGesture=null;}}}
+function endMobileTouches(event){event.preventDefault();for(const touch of event.changedTouches){if(touch.identifier===mobileJoystickTouchId)releaseMobileJoystick();if(touch.identifier===mobileAttackTouchId){mobileAttackTouchId=null;mouse.down=false;}if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){clearTimeout(mobileUiGesture.longTimer);const p=canvasTouchPoint(touch),shouldGlide=mobileUiGesture.moved;if(!mobileUiGesture.moved&&!mobileUiGesture.longPressed)dispatchMobileCanvasClick(p);mobileUiGesture=null;if(shouldGlide)startMobileScrollInertia();}}}
 canvas.addEventListener("touchend",endMobileTouches,{passive:false});canvas.addEventListener("touchcancel",endMobileTouches,{passive:false});
 addEventListener("orientationchange",()=>{releaseMobileJoystick();mobileAttackTouchId=null;mouse.down=false;});
 
