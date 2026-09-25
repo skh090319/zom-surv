@@ -2,6 +2,8 @@
 
 function worldStart() {
   ctx.save();
+  const viewScale = getWorldViewScale();
+  ctx.scale(viewScale, viewScale);
   ctx.translate(-camera.x, -camera.y);
 }
 
@@ -16,8 +18,8 @@ function drawBackground() {
   if (backgroundLoaded) {
     const sx = camera.x / WORLD.width * backgroundImage.naturalWidth;
     const sy = camera.y / WORLD.height * backgroundImage.naturalHeight;
-    const sw = canvas.width / WORLD.width * backgroundImage.naturalWidth;
-    const sh = canvas.height / WORLD.height * backgroundImage.naturalHeight;
+    const sw = getCameraViewWidth() / WORLD.width * backgroundImage.naturalWidth;
+    const sh = getCameraViewHeight() / WORLD.height * backgroundImage.naturalHeight;
     ctx.drawImage(backgroundImage, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   } else {
     ctx.fillStyle = "#101010";
@@ -26,14 +28,15 @@ function drawBackground() {
     ctx.strokeStyle = "#1d1d1d";
     ctx.lineWidth = 1;
 
-    for (let x = -(camera.x % 50); x < canvas.width; x += 50) {
+    const viewScale = getWorldViewScale();
+    for (let x = -((camera.x * viewScale) % (50 * viewScale)); x < canvas.width; x += 50 * viewScale) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, canvas.height);
       ctx.stroke();
     }
 
-    for (let y = -(camera.y % 50); y < canvas.height; y += 50) {
+    for (let y = -((camera.y * viewScale) % (50 * viewScale)); y < canvas.height; y += 50 * viewScale) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(canvas.width, y);
@@ -255,8 +258,8 @@ function drawRenEffects() {
 
   for (const shard of renShadowShards) {
     if (
-      shard.x < camera.x - 70 || shard.x > camera.x + canvas.width + 70 ||
-      shard.y < camera.y - 70 || shard.y > camera.y + canvas.height + 70
+      shard.x < camera.x - 70 || shard.x > camera.x + getCameraViewWidth() + 70 ||
+      shard.y < camera.y - 70 || shard.y > camera.y + getCameraViewHeight() + 70
     ) continue;
     const pulse = 1 + Math.sin(time * 5 + shard.phase) * 0.18;
     const stackAmount = shard.amount || 1;
@@ -787,7 +790,7 @@ function drawZombies() {
   worldStart();
   for (const z of zombies) {
     if (z.isRaidBoss) continue;
-    if (z.x < camera.x - 90 || z.x > camera.x + canvas.width + 90 || z.y < camera.y - 90 || z.y > camera.y + canvas.height + 90) continue;
+    if (z.x < camera.x - 90 || z.x > camera.x + getCameraViewWidth() + 90 || z.y < camera.y - 90 || z.y > camera.y + getCameraViewHeight() + 90) continue;
     const spriteSize = z.r * (z.isBossMinion ? 4.3 : (z.boss ? 2.75 : 3.05));
     const spriteTop = z.y - spriteSize * 0.57;
 
@@ -890,7 +893,7 @@ function drawZombies() {
 function drawItems() {
   worldStart();
   for (const item of items) {
-    if (item.x < camera.x - 40 || item.x > camera.x + canvas.width + 40 || item.y < camera.y - 40 || item.y > camera.y + canvas.height + 40) continue;
+    if (item.x < camera.x - 40 || item.x > camera.x + getCameraViewWidth() + 40 || item.y < camera.y - 40 || item.y > camera.y + getCameraViewHeight() + 40) continue;
     if (item.type === "magnet" && magnetItemSpriteLoaded) {
       const pulse = 1 + Math.sin(performance.now() * 0.006 + item.x * 0.01) * 0.06;
       const size = 48 * pulse;
@@ -924,7 +927,7 @@ function drawExpOrbs() {
   ctx.fillStyle = "#b84dff";
 
   for (const orb of expOrbs) {
-    if (orb.x < camera.x - 30 || orb.x > camera.x + canvas.width + 30 || orb.y < camera.y - 30 || orb.y > camera.y + canvas.height + 30) continue;
+    if (orb.x < camera.x - 30 || orb.x > camera.x + getCameraViewWidth() + 30 || orb.y < camera.y - 30 || orb.y > camera.y + getCameraViewHeight() + 30) continue;
     ctx.beginPath();
     ctx.arc(orb.x, orb.y, orb.r, 0, Math.PI * 2);
     ctx.fill();
@@ -1073,7 +1076,7 @@ function drawParticles() {
   worldStart();
 
   for (const p of particles) {
-    if (p.x < camera.x - 20 || p.x > camera.x + canvas.width + 20 || p.y < camera.y - 20 || p.y > camera.y + canvas.height + 20) continue;
+    if (p.x < camera.x - 20 || p.x > camera.x + getCameraViewWidth() + 20 || p.y < camera.y - 20 || p.y > camera.y + getCameraViewHeight() + 20) continue;
     ctx.globalAlpha = p.life / 35;
     ctx.fillStyle = p.color || "#ff5555";
 

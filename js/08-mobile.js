@@ -6,6 +6,8 @@ let mobileMoveX = 0;
 let mobileMoveY = 0;
 let mobileStickX = 0;
 let mobileStickY = 0;
+let mobileJoystickOrigin = null;
+let mobileUiGesture = null;
 
 const MOBILE_SKILL_KEYS = {
   default:["r"],suncall:["r"],luminous:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
@@ -19,7 +21,8 @@ function isMobilePortraitMode(){return isMobileTouchDevice()&&canvas.height>canv
 
 function getMobileControlLayout(){
   const minSide=Math.min(canvas.width,canvas.height),joyR=Math.max(48,Math.min(68,minSide*.115)),attackR=Math.max(39,Math.min(52,minSide*.088)),safe=Math.max(18,minSide*.035);
-  const joystick={x:safe+joyR,y:canvas.height-safe-joyR,r:joyR};
+  const defaultJoystick={x:safe+joyR,y:canvas.height-safe-joyR};
+  const joystick={x:mobileJoystickOrigin?.x??defaultJoystick.x,y:mobileJoystickOrigin?.y??defaultJoystick.y,r:joyR};
   const attack={x:canvas.width-safe-attackR,y:canvas.height-safe-attackR,r:attackR};
   const keys=MOBILE_SKILL_KEYS[selectedCharacter]||[];
   const angles=keys.length===1?[-2.15]:keys.length===2?[-2.65,-1.7]:keys.length===3?[-2.85,-2.15,-1.45]:[-3.02,-2.52,-2.02,-1.52];
@@ -35,13 +38,13 @@ function updateMobileJoystick(x,y){
   mobileStickX=nx*clamped;mobileStickY=ny*clamped;mobileMoveX=nx*Math.min(1,d/limit);mobileMoveY=ny*Math.min(1,d/limit);
 }
 
-function releaseMobileJoystick(){mobileJoystickTouchId=null;mobileMoveX=0;mobileMoveY=0;mobileStickX=0;mobileStickY=0;}
+function releaseMobileJoystick(){mobileJoystickTouchId=null;mobileMoveX=0;mobileMoveY=0;mobileStickX=0;mobileStickY=0;mobileJoystickOrigin=null;}
 
 function updateMobileAttackAim(force=false){
   if(mobileAttackTouchId===null&&!force)return;
   let target=null,best=Infinity;
   for(const enemy of zombies){if(!enemy||enemy.hp<=0)continue;const d=(enemy.x-player.x)**2+(enemy.y-player.y)**2;if(d<best){best=d;target=enemy;}}
-  mouse.x=target?target.x-camera.x:player.x-camera.x+180;mouse.y=target?target.y-camera.y:player.y-camera.y;screenToWorld();
+  const viewScale=getWorldViewScale();mouse.x=target?(target.x-camera.x)*viewScale:(player.x-camera.x)*viewScale+180;mouse.y=target?(target.y-camera.y)*viewScale:(player.y-camera.y)*viewScale;screenToWorld();
 }
 
 function triggerMobileSkill(key){
@@ -50,24 +53,44 @@ function triggerMobileSkill(key){
   dispatchEvent(new KeyboardEvent("keyup",{key,bubbles:true}));
 }
 
+function dispatchMobileCanvasClick(p){
+  const rect=canvas.getBoundingClientRect();
+  mouse.x=p.x;mouse.y=p.y;
+  canvas.dispatchEvent(new MouseEvent("mousedown",{clientX:rect.left+p.x*rect.width/canvas.width,clientY:rect.top+p.y*rect.height/canvas.height,button:0,bubbles:true}));
+  canvas.dispatchEvent(new MouseEvent("mouseup",{clientX:rect.left+p.x*rect.width/canvas.width,clientY:rect.top+p.y*rect.height/canvas.height,button:0,bubbles:true}));
+}
+
+function openMobileCharacterDetail(p){
+  if(screenMode!=="character"||characterDetailId)return false;
+  const card=characterCards.find(item=>pointInRect(p.x,p.y,item));if(!card)return false;
+  characterDetailId=card.id;characterDetailOpenedAt=performance.now();characterDetailSkillIndex=0;mouse.down=false;return true;
+}
+
 function canvasTouchPoint(touch){const rect=canvas.getBoundingClientRect();return{x:(touch.clientX-rect.left)*canvas.width/rect.width,y:(touch.clientY-rect.top)*canvas.height/rect.height};}
 function pointInCircle(p,c){return Math.hypot(p.x-c.x,p.y-c.y)<=c.r;}
 
 canvas.addEventListener("touchstart",event=>{
   event.preventDefault();
   if(isMobilePortraitMode())return;
-  if(screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory){const t=event.changedTouches[0],p=canvasTouchPoint(t);mouse.x=p.x;mouse.y=p.y;canvas.dispatchEvent(new MouseEvent("mousedown",{clientX:p.x,clientY:p.y,button:0,bubbles:true}));return;}
+  if(screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory){
+    const t=event.changedTouches[0],p=canvasTouchPoint(t);
+    mobileUiGesture={id:t.identifier,startX:p.x,startY:p.y,lastY:p.y,moved:false,longPressed:false};
+    if(screenMode==="character"&&!characterDetailId){mobileUiGesture.longTimer=setTimeout(()=>{if(mobileUiGesture&&!mobileUiGesture.moved){mobileUiGesture.longPressed=openMobileCharacterDetail(p);}},520);}
+    return;
+  }
   const layout=getMobileControlLayout();
   for(const touch of event.changedTouches){const p=canvasTouchPoint(touch);
-    if(mobileJoystickTouchId===null&&pointInCircle(p,{...layout.joystick,r:layout.joystick.r*1.35})){mobileJoystickTouchId=touch.identifier;updateMobileJoystick(p.x,p.y);continue;}
-    if(mobileAttackTouchId===null&&pointInCircle(p,{...layout.attack,r:layout.attack.r*1.28})){mobileAttackTouchId=touch.identifier;mouse.down=true;updateMobileAttackAim();continue;}
-    const skill=layout.skills.find(button=>pointInCircle(p,{...button,r:button.r*1.25}));if(skill)triggerMobileSkill(skill.key);
+    const skill=layout.skills.find(button=>pointInCircle(p,{...button,r:button.r*1.48}));if(skill){triggerMobileSkill(skill.key);continue;}
+    if(mobileAttackTouchId===null&&pointInCircle(p,{...layout.attack,r:layout.attack.r*1.42})){mobileAttackTouchId=touch.identifier;mouse.down=true;updateMobileAttackAim();continue;}
+    const nearJoystick=pointInCircle(p,{...layout.joystick,r:layout.joystick.r*2.25})||(p.x<canvas.width*.38&&p.y>canvas.height*.42);
+    if(mobileJoystickTouchId===null&&nearJoystick){const r=layout.joystick.r,safe=14;mobileJoystickOrigin={x:Math.max(safe+r,Math.min(canvas.width*.42-r,p.x)),y:Math.max(canvas.height*.42+r,Math.min(canvas.height-safe-r,p.y))};mobileJoystickTouchId=touch.identifier;updateMobileJoystick(p.x,p.y);continue;}
+    if(pointInRect(p.x,p.y,pauseButtonRect))dispatchMobileCanvasClick(p);
   }
 },{passive:false});
 
-canvas.addEventListener("touchmove",event=>{event.preventDefault();for(const touch of event.changedTouches){if(touch.identifier===mobileJoystickTouchId){const p=canvasTouchPoint(touch);updateMobileJoystick(p.x,p.y);}}},{passive:false});
+canvas.addEventListener("touchmove",event=>{event.preventDefault();for(const touch of event.changedTouches){const p=canvasTouchPoint(touch);if(touch.identifier===mobileJoystickTouchId){updateMobileJoystick(p.x,p.y);continue;}if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){const total=Math.hypot(p.x-mobileUiGesture.startX,p.y-mobileUiGesture.startY);if(total>9){mobileUiGesture.moved=true;clearTimeout(mobileUiGesture.longTimer);}const dy=p.y-mobileUiGesture.lastY;mobileUiGesture.lastY=p.y;if(screenMode==="character"&&!characterDetailId)characterScrollY=Math.max(0,Math.min(characterScrollMax,characterScrollY-dy));if(screenMode==="guide")guideScrollY=Math.max(0,Math.min(guideScrollMax,guideScrollY-dy));}}},{passive:false});
 
-function endMobileTouches(event){event.preventDefault();for(const touch of event.changedTouches){if(touch.identifier===mobileJoystickTouchId)releaseMobileJoystick();if(touch.identifier===mobileAttackTouchId){mobileAttackTouchId=null;mouse.down=false;}}if(screenMode!=="game")canvas.dispatchEvent(new MouseEvent("mouseup",{button:0,bubbles:true}));}
+function endMobileTouches(event){event.preventDefault();for(const touch of event.changedTouches){if(touch.identifier===mobileJoystickTouchId)releaseMobileJoystick();if(touch.identifier===mobileAttackTouchId){mobileAttackTouchId=null;mouse.down=false;}if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){clearTimeout(mobileUiGesture.longTimer);const p=canvasTouchPoint(touch);if(!mobileUiGesture.moved&&!mobileUiGesture.longPressed)dispatchMobileCanvasClick(p);mobileUiGesture=null;}}}
 canvas.addEventListener("touchend",endMobileTouches,{passive:false});canvas.addEventListener("touchcancel",endMobileTouches,{passive:false});
 addEventListener("orientationchange",()=>{releaseMobileJoystick();mobileAttackTouchId=null;mouse.down=false;});
 
@@ -78,6 +101,28 @@ function getMobileSkillIcon(key){
   if(selectedCharacter==="nightLord")return{image:nightLordSkillIcons[index]};if(selectedCharacter==="zero")return{image:zeroSkillIcons[index]};if(selectedCharacter==="paladin")return{image:paladinSkillIcons[index]};
   const atlases={arc:arcSkillIconAtlas,terra:terraSkillIconAtlas,void:voidSkillIconAtlas,carmilla:carmillaSkillIconAtlas,vargas:vargasSkillIconAtlas,echo:echoSkillIconAtlas,aria:ariaSkillIconAtlas,moira:moiraSkillIconAtlas,mare:mareSkillIconAtlas};
   return atlases[selectedCharacter]?{atlas:atlases[selectedCharacter],index}:null;
+}
+
+function getMobileSkillCooldown(key){
+  const reloadInfo=()=>({value:player.reloadTime||0,max:90,label:"재장전"});
+  if(["default","suncall","luminous"].includes(selectedCharacter))return key==="r"?reloadInfo():null;
+  const table={
+    yupiter:{q:[0,1],e:[player.yupiterSkillCooldowns[player.yupiterWeapon],YUPITER_SKILL_COOLDOWNS[player.yupiterWeapon]],r:[player.yupiterUltimateCooldown,YUPITER_ULTIMATE_COOLDOWN]},
+    ren:{q:[player.renDeployCooldown,REN_DEPLOY_COOLDOWN],x:[player.renSwapCooldown,REN_SWAP_COOLDOWN],e:[player.renSkillCooldown,REN_SKILL_COOLDOWN],r:[player.renUltimateCooldown,REN_ULTIMATE_COOLDOWN]},
+    nightLord:{q:[player.nightLordQCooldown,NIGHT_LORD_Q_COOLDOWN],e:[player.nightLordECooldown,NIGHT_LORD_E_COOLDOWN],x:[player.nightLordXCooldown,NIGHT_LORD_X_COOLDOWN],r:[player.nightLordRCooldown,NIGHT_LORD_R_COOLDOWN]},
+    zero:{q:[player.zeroQCooldown,ZERO_Q_COOLDOWN],e:[player.zeroECooldown,ZERO_E_COOLDOWN],x:[player.zeroXCooldown,ZERO_X_COOLDOWN],r:[player.zeroRCooldown,ZERO_R_COOLDOWN]},
+    paladin:{q:[player.paladinQCooldown,PALADIN_Q_COOLDOWN],e:[player.paladinECooldown,PALADIN_E_COOLDOWN],x:[player.paladinXCooldown,PALADIN_X_COOLDOWN],r:[player.paladinRCooldown,PALADIN_R_COOLDOWN]},
+    arc:{q:[player.arcQCooldown,ARC_Q_COOLDOWN],e:[player.arcECooldown,ARC_E_COOLDOWN],x:[player.arcXCooldown,ARC_X_COOLDOWN],r:[player.arcRCooldown,ARC_R_COOLDOWN]},
+    terra:{q:[player.terraQCooldown,TERRA_Q_COOLDOWN],e:[player.terraECooldown,TERRA_E_COOLDOWN],x:[player.terraXCooldown,TERRA_X_COOLDOWN],r:[player.terraRCooldown,TERRA_R_COOLDOWN]},
+    void:{q:[player.voidQCooldown,VOID_Q_COOLDOWN],e:[player.voidECooldown,VOID_E_COOLDOWN],x:[player.voidXCooldown,VOID_X_COOLDOWN],r:[player.voidRCooldown,VOID_R_COOLDOWN]},
+    carmilla:{q:[player.carmillaQCooldown,CARMILLA_Q_COOLDOWN]},
+    vargas:{q:[player.vargasQCooldown,VARGAS_Q_COOLDOWN],e:[player.vargasECooldown,VARGAS_E_COOLDOWN],x:[player.vargasXCooldown,VARGAS_X_COOLDOWN],r:[player.vargasRCooldown,VARGAS_R_COOLDOWN]},
+    echo:{q:[player.echoReplayCooldown,55],e:[player.echoPhaseCooldown,ECHO_PHASE_COOLDOWN],r:[player.echoCollapseCooldown,ECHO_COLLAPSE_COOLDOWN]},
+    aria:{q:[player.ariaQCooldown,ARIA_Q_CD],e:[player.ariaECooldown,ARIA_E_CD],x:[player.ariaXCooldown,ARIA_X_CD],r:[player.ariaRCooldown,ARIA_R_CD]},
+    moira:{q:[player.moiraQCooldown,MOIRA_Q_CD],e:[player.moiraECooldown,MOIRA_E_CD],x:[player.moiraXCooldown,MOIRA_X_CD],r:[player.moiraRCooldown,MOIRA_R_CD]},
+    mare:{q:[player.mareQCooldown,MARE_Q_CD],e:[player.mareECooldown,MARE_E_CD],x:[player.mareXCooldown,MARE_X_CD],r:[player.mareRCooldown,MARE_R_CD]}
+  };
+  const data=table[selectedCharacter]?.[key];return data?{value:data[0]||0,max:data[1]||1}:null;
 }
 
 function drawMobileIcon(icon,cx,cy,r){
@@ -103,7 +148,7 @@ function drawMobileControls(){
   ctx.globalAlpha=.86;ctx.fillStyle="rgba(8,16,29,.68)";ctx.strokeStyle="rgba(123,220,255,.58)";ctx.lineWidth=2;ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle="rgba(123,220,255,.16)";ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r*.68,0,Math.PI*2);ctx.stroke();
   const knobR=joystick.r*.37,kx=joystick.x+mobileStickX,ky=joystick.y+mobileStickY;ctx.fillStyle="rgba(103,218,255,.45)";ctx.shadowColor="#53d9ff";ctx.shadowBlur=mobileJoystickTouchId===null?8:18;ctx.beginPath();ctx.arc(kx,ky,knobR,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#b6f2ff";ctx.stroke();ctx.shadowBlur=0;
   const attackGlow=mobileAttackTouchId!==null;const ag=ctx.createRadialGradient(attack.x-10,attack.y-12,4,attack.x,attack.y,attack.r);ag.addColorStop(0,attackGlow?"#247ba2":"#183d56");ag.addColorStop(1,"#07131f");ctx.fillStyle=ag;ctx.strokeStyle=attackGlow?"#8cf3ff":"#46cce9";ctx.lineWidth=3;ctx.shadowColor="#33dfff";ctx.shadowBlur=attackGlow?24:12;ctx.beginPath();ctx.arc(attack.x,attack.y,attack.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;drawCommonAttackIcon(attack.x,attack.y,attack.r*.72);
-  for(const skill of skills){ctx.fillStyle="rgba(9,12,24,.88)";ctx.strokeStyle="#c8d5ed";ctx.lineWidth=2;ctx.shadowColor="#7b8fff";ctx.shadowBlur=10;ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;if(!drawMobileIcon(getMobileSkillIcon(skill.key),skill.x,skill.y,skill.r)){ctx.fillStyle="#fff";ctx.font=`900 ${skill.r*.7}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(skill.key.toUpperCase(),skill.x,skill.y+1);}ctx.fillStyle="#fff";ctx.font="900 10px Arial";ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillText(skill.key.toUpperCase(),skill.x,skill.y+skill.r+12);}
+  for(const skill of skills){ctx.fillStyle="rgba(9,12,24,.88)";ctx.strokeStyle="#c8d5ed";ctx.lineWidth=2;ctx.shadowColor="#7b8fff";ctx.shadowBlur=10;ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;if(!drawMobileIcon(getMobileSkillIcon(skill.key),skill.x,skill.y,skill.r)){ctx.fillStyle="#fff";ctx.font=`900 ${skill.r*.7}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(skill.key.toUpperCase(),skill.x,skill.y+1);}const cooldown=getMobileSkillCooldown(skill.key);if(cooldown?.value>0)drawCooldownCover(skill.x,skill.y,skill.r,cooldown.value/cooldown.max,cooldown.value);ctx.fillStyle="#fff";ctx.font="900 10px Arial";ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillText(cooldown?.label||skill.key.toUpperCase(),skill.x,skill.y+skill.r+12);}
   ctx.restore();
 }
 

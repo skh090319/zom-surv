@@ -538,8 +538,8 @@ let characterDetailCloseRect = { x: 0, y: 0, w: 46, h: 46 };
 
 // 화면 밖 오브젝트는 그리지 않되 게임 로직과 이펙트 자체는 그대로 유지한다.
 function isInCameraView(x, y, padding = 80) {
-  return x >= camera.x - padding && x <= camera.x + canvas.width + padding &&
-    y >= camera.y - padding && y <= camera.y + canvas.height + padding;
+  return x >= camera.x - padding && x <= camera.x + getCameraViewWidth() + padding &&
+    y >= camera.y - padding && y <= camera.y + getCameraViewHeight() + padding;
 }
 
 let paused = false;
@@ -576,14 +576,24 @@ function scaledDamage(baseDamage) {
 }
 
 function screenToWorld() {
-  mouse.worldX = mouse.x + camera.x;
-  mouse.worldY = mouse.y + camera.y;
+  const viewScale = getWorldViewScale();
+  mouse.worldX = mouse.x / viewScale + camera.x;
+  mouse.worldY = mouse.y / viewScale + camera.y;
 }
 
-function updateCamera() {
-  camera.x = player.x - canvas.width / 2;
-  camera.y = player.y - canvas.height / 2;
+function getWorldViewScale() {
+  return typeof isMobileTouchDevice === "function" && isMobileTouchDevice() && canvas.height < canvas.width ? 0.78 : 1;
+}
 
-  camera.x = Math.max(0, Math.min(WORLD.width - canvas.width, camera.x));
-  camera.y = Math.max(0, Math.min(WORLD.height - canvas.height, camera.y));
+function getCameraViewWidth() { return canvas.width / getWorldViewScale(); }
+function getCameraViewHeight() { return canvas.height / getWorldViewScale(); }
+
+function updateCamera() {
+  const viewW = getCameraViewWidth();
+  const viewH = getCameraViewHeight();
+  camera.x = player.x - viewW / 2;
+  camera.y = player.y - viewH / 2;
+
+  camera.x = Math.max(0, Math.min(WORLD.width - viewW, camera.x));
+  camera.y = Math.max(0, Math.min(WORLD.height - viewH, camera.y));
 }

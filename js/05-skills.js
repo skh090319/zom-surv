@@ -382,9 +382,9 @@ function findBestGravityPoint() {
 
   const visibleZombies = zombies.filter(z =>
     z.x >= camera.x - margin &&
-    z.x <= camera.x + canvas.width + margin &&
+    z.x <= camera.x + getCameraViewWidth() + margin &&
     z.y >= camera.y - margin &&
-    z.y <= camera.y + canvas.height + margin
+    z.y <= camera.y + getCameraViewHeight() + margin
   );
 
   const candidates = visibleZombies.length > 0 ? visibleZombies : zombies;
