@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v10";
+const CACHE_VERSION = "zombie-survival-v11";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -7,10 +7,10 @@ const CORE_ASSETS = [
   "./index.html",
   "./style.css",
   "./manifest.webmanifest",
-  "./background.png",
-  "./player.png",
-  "./gun.png",
-  "./assets/zombie-characters.png",
+  "./background.webp",
+  "./player.webp",
+  "./gun.webp",
+  "./assets/zombie-characters.webp",
   "./assets/pwa/icon-192.png",
   "./assets/pwa/icon-512.png",
   "./assets/pwa/icon-maskable-512.png",

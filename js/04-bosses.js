@@ -6,7 +6,7 @@ const RAID_BOSS_HP = [37500, 150000, 600000];
 const RAID_BOSS_PERCENT_FLAT_PER_POINT = [25, 50, 90];
 const raidBossImages = ["venom-bloom", "winged-reaper", "abyss-knight"].map(name => {
   const image = new Image();
-  image.src = `assets/bosses/${name}.png`;
+  image.src = `assets/bosses/${name}.webp`;
   return image;
 });
 
