@@ -15,6 +15,8 @@ addEventListener("keydown", e => {
     return;
   }
 
+  if(screenMode==="mobileSettings"&&key==="escape"){saveMobileControlSettings();screenMode="home";return;}
+
   if (choosingUpgrade) {
     if (upgradeAnimTime < 18 || upgradeSelectionEffect) return;
     if (key === "1") chooseUpgrade(0);
@@ -110,6 +112,9 @@ canvas.addEventListener("mousedown", event => {
   }
   if (event.button !== 0) return;
   if (screenMode === "home") {
+    if(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&pointInRect(event.clientX,event.clientY,mobileSettingsHomeRect)){
+      openMobileSettings();return;
+    }
     if (pointInRect(mouse.x, mouse.y, homeStartRect)) {
       restart();
       screenMode = "game";

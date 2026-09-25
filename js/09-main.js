@@ -56,6 +56,7 @@ function draw() {
   drawDroneBullets();
   drawRaidBossZones();
   drawRaidBossProjectiles();
+  if(typeof drawMobileTargetingIndicator==="function")drawMobileTargetingIndicator();
   drawZombies();
   drawRaidBoss();
   drawDaggers();

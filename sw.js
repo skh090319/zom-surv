@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v18";
+const CACHE_VERSION = "zombie-survival-v19";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -48,6 +48,7 @@ const CORE_ASSETS = [
   "./js/08-ui.js",
   "./js/08-guide.js",
   "./js/08-mobile.js",
+  "./js/08-mobile-targeting.js",
   "./js/09-main.js",
   "./js/pwa.js"
 ];
