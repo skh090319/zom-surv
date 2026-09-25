@@ -58,9 +58,10 @@ function draw() {
   drawRaidBossEffects();
   drawRenAttackOverlay();
   drawYupiterWeapons();
-  drawHealthBar();
-  if (typeof isMobileTouchDevice !== "function" || !isMobileTouchDevice()) drawHUD();
-  if (typeof isMobileTouchDevice !== "function" || !isMobileTouchDevice()) {
+  const mobileTouch = typeof isMobileTouchDevice === "function" && isMobileTouchDevice();
+  if (!mobileTouch) {
+    drawHealthBar();
+    drawHUD();
     drawYupiterInterface();
     drawRenInterface();
     drawNightLordInterface();
@@ -75,11 +76,11 @@ function draw() {
     drawAriaInterface();
     drawMoiraInterface();
     drawMareInterface();
+    drawReloadingOverlay();
+    drawExpBar();
+    drawMiniMap();
+    drawRaidBossUI();
   }
-  drawReloadingOverlay();
-  drawExpBar();
-  if (typeof isMobileTouchDevice !== "function" || !isMobileTouchDevice()) drawMiniMap();
-  drawRaidBossUI();
   drawVisionEffect();
   drawUpgradeMenu();
   drawGameOver();
