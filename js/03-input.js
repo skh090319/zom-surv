@@ -75,7 +75,7 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="mare"&&key==="e")activateMareE();
     if(selectedCharacter==="mare"&&key==="x")activateMareX();
     if(selectedCharacter==="mare"&&key==="r")activateMareR();
-    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare") reload();
+    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare") reload();
   }
   if ((gameOver || raidVictory) && key === "enter") {
     restart();

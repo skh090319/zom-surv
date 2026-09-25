@@ -10,7 +10,7 @@ let mobileStickY = 0;
 const MOBILE_SKILL_KEYS = {
   default:["r"],suncall:["r"],luminous:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
   nightLord:["q","e","x","r"],zero:["q","e","x","r"],paladin:["q","e","x","r"],arc:["q","e","x","r"],
-  terra:["q","e","x","r"],void:["q","e","x","r"],carmilla:["q","r"],vargas:["q","e","x","r"],
+  terra:["q","e","x","r"],void:["q","e","x","r"],carmilla:["q"],vargas:["q","e","x","r"],
   echo:["q","e","r"],aria:["q","e","x","r"],moira:["q","e","x","r"],mare:["q","e","x","r"]
 };
 
