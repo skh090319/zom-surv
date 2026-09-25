@@ -1387,6 +1387,7 @@ function drawUpgradeMenu() {
   if (!choosingUpgrade) return;
   upgradeAnimTime++;
   upgradeCardRects = [];
+  const mobileUpgrade = typeof isMobileTouchDevice === "function" && isMobileTouchDevice() && canvas.height < 520;
 
   ctx.fillStyle = "rgba(2,5,13,0.91)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1400,25 +1401,25 @@ function drawUpgradeMenu() {
   ctx.fillStyle = "#f7e8b2";
   ctx.shadowColor = "rgba(255,211,105,0.6)";
   ctx.shadowBlur = 18;
-  ctx.font = "bold 36px Arial";
-  ctx.fillText("증강 선택", canvas.width / 2, 72);
+  ctx.font = `bold ${mobileUpgrade ? 24 : 36}px Arial`;
+  ctx.fillText("증강 선택", canvas.width / 2, mobileUpgrade ? 34 : 72);
   ctx.shadowBlur = 0;
   ctx.fillStyle = "rgba(225,235,255,0.76)";
-  ctx.font = "15px Arial";
+  ctx.font = `${mobileUpgrade ? 11 : 15}px Arial`;
   ctx.fillText(
     player.level >= 5 && player.level % 5 === 0
       ? "전투 증강 · 하나를 선택해 즉시 활성화하세요"
       : "보조 증강 · 하나를 선택해 생존 능력을 강화하세요",
     canvas.width / 2,
-    103
+    mobileUpgrade ? 55 : 103
   );
 
-  const gap = Math.max(14, Math.min(30, canvas.width * 0.02));
-  const cardW = Math.min(300, (canvas.width - 56 - gap * 2) / 3);
-  const cardH = Math.min(410, canvas.height - 170);
+  const gap = mobileUpgrade ? Math.max(8, Math.min(14, canvas.width * 0.014)) : Math.max(14, Math.min(30, canvas.width * 0.02));
+  const cardW = Math.min(mobileUpgrade ? 280 : 300, (canvas.width - (mobileUpgrade ? 30 : 56) - gap * 2) / 3);
+  const cardH = mobileUpgrade ? Math.min(306, canvas.height - 82) : Math.min(410, canvas.height - 170);
   const totalW = cardW * upgradeChoices.length + gap * Math.max(0, upgradeChoices.length - 1);
   const startX = canvas.width / 2 - totalW / 2;
-  const baseY = 126 + Math.max(0, (canvas.height - 126 - cardH) / 2 - 12);
+  const baseY = mobileUpgrade ? 68 + Math.max(0, (canvas.height - 74 - cardH) / 2) : 126 + Math.max(0, (canvas.height - 126 - cardH) / 2 - 12);
 
   for (let i = 0; i < upgradeChoices.length; i++) {
     const u = upgradeChoices[i], count = upgradeCount[u.id] || 0;
@@ -1477,15 +1478,16 @@ function drawUpgradeMenu() {
       ctx.restore();
     }
 
-    const badgeW = Math.min(118, cardW - 44);
-    drawRoundedRect(x + cardW / 2 - badgeW / 2, y + 18, badgeW, 26, 13, "rgba(0,0,0,0.42)", stroke, 1);
+    const badgeW = Math.min(mobileUpgrade ? 104 : 118, cardW - (mobileUpgrade ? 28 : 44));
+    const badgeY = y + (mobileUpgrade ? 10 : 18), badgeH = mobileUpgrade ? 22 : 26;
+    drawRoundedRect(x + cardW / 2 - badgeW / 2, badgeY, badgeW, badgeH, badgeH / 2, "rgba(0,0,0,0.42)", stroke, 1);
     ctx.fillStyle = accent;
-    ctx.font = "bold 12px Arial";
-    ctx.fillText(u.category === "emerald" ? "에메랄드" : (u.category === "combat" ? "전투 증강" : (isTranscendReady ? "초월 증강" : "보조 증강")), x + cardW / 2, y + 36);
+    ctx.font = `bold ${mobileUpgrade ? 10 : 12}px Arial`;
+    ctx.fillText(u.category === "emerald" ? "에메랄드" : (u.category === "combat" ? "전투 증강" : (isTranscendReady ? "초월 증강" : "보조 증강")), x + cardW / 2, badgeY + (mobileUpgrade ? 15 : 18));
 
-    const iconSize = Math.min(124, cardW * 0.46, cardH * 0.32);
+    const iconSize = Math.min(mobileUpgrade ? 84 : 124, cardW * (mobileUpgrade ? 0.38 : 0.46), cardH * (mobileUpgrade ? 0.29 : 0.32));
     const iconX = x + cardW / 2 - iconSize / 2;
-    const iconY = y + 57;
+    const iconY = y + (mobileUpgrade ? 40 : 57);
     ctx.save();
     ctx.shadowColor = stroke;
     ctx.shadowBlur = hovered ? 24 : 14;
@@ -1499,24 +1501,26 @@ function drawUpgradeMenu() {
     ctx.restore();
     drawAugmentIcon(u.id, iconX + 6, iconY + 6, iconSize - 12, isTranscendReady && !isSkillUpgrade);
 
-    const titleY = iconY + iconSize + 30;
+    const titleY = iconY + iconSize + (mobileUpgrade ? 23 : 30);
     ctx.fillStyle = "#fff8e8";
-    ctx.font = `bold ${Math.max(16, Math.min(21, cardW * 0.072))}px Arial`;
+    ctx.font = `bold ${mobileUpgrade ? Math.max(14, Math.min(18, cardW * 0.068)) : Math.max(16, Math.min(21, cardW * 0.072))}px Arial`;
     ctx.fillText(title, x + cardW / 2, titleY);
     ctx.fillStyle = "rgba(235,239,250,0.82)";
-    ctx.font = `${Math.max(12, Math.min(15, cardW * 0.052))}px Arial`;
-    wrapText(desc, x + cardW / 2, titleY + 34, cardW - 34, 20);
+    ctx.font = `${mobileUpgrade ? Math.max(10, Math.min(12, cardW * 0.048)) : Math.max(12, Math.min(15, cardW * 0.052))}px Arial`;
+    wrapText(desc, x + cardW / 2, titleY + (mobileUpgrade ? 25 : 34), cardW - (mobileUpgrade ? 24 : 34), mobileUpgrade ? 16 : 20);
 
     ctx.fillStyle = isTranscendReady ? accent : "rgba(205,211,226,0.66)";
-    ctx.font = "13px Arial";
+    ctx.font = `${mobileUpgrade ? 10 : 13}px Arial`;
     let statusText = `선택 횟수: ${count}/4`;
     if (isSkillUpgrade) statusText = "1회 선택 · 즉시 활성화";
     else if (isTranscendReady) statusText = "이번 선택 시 초월 발동";
-    ctx.fillText(statusText, x + cardW / 2, y + cardH - 27);
+    ctx.fillText(statusText, x + cardW / 2, y + cardH - (mobileUpgrade ? 13 : 27));
 
-    ctx.fillStyle = accent;
-    ctx.font = "bold 13px Arial";
-    ctx.fillText(`[ ${i + 1} ]`, x + cardW / 2, y + cardH - 8);
+    if (!mobileUpgrade) {
+      ctx.fillStyle = accent;
+      ctx.font = "bold 13px Arial";
+      ctx.fillText(`[ ${i + 1} ]`, x + cardW / 2, y + cardH - 8);
+    }
     ctx.restore();
   }
 
