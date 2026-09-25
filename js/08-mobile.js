@@ -7,6 +7,8 @@ let mobileMoveY = 0;
 let mobileStickX = 0;
 let mobileStickY = 0;
 let mobileJoystickOrigin = null;
+let mobileAttackAim = null;
+let mobileSkillAim = null;
 let mobileUiGesture = null;
 let mobileScrollVelocity = 0;
 let mobileScrollFrame = 0;
@@ -60,13 +62,36 @@ function releaseMobileJoystick(){mobileJoystickTouchId=null;mobileMoveX=0;mobile
 
 function updateMobileAttackAim(force=false){
   if(mobileAttackTouchId===null&&!force)return;
+  if(mobileAttackAim?.dragged&&!force)return;
   let target=null,best=Infinity;
   for(const enemy of zombies){if(!enemy||enemy.hp<=0)continue;const d=(enemy.x-player.x)**2+(enemy.y-player.y)**2;if(d<best){best=d;target=enemy;}}
   const viewScale=getWorldViewScale();mouse.x=target?(target.x-camera.x)*viewScale:(player.x-camera.x)*viewScale+180;mouse.y=target?(target.y-camera.y)*viewScale:(player.y-camera.y)*viewScale;screenToWorld();
 }
 
-function triggerMobileSkill(key){
-  updateMobileAttackAim(true);
+function getMobileAttackRange(){
+  return({default:420,suncall:420,luminous:560,yupiter:520,ren:360,nightLord:250,zero:330,paladin:230,arc:410,terra:300,void:360,carmilla:155,vargas:205,echo:235,aria:310,moira:350,mare:340}[selectedCharacter]||360);
+}
+
+function getMobileSkillTargetSpec(key){
+  const specs={
+    yupiter:{q:["self",90],e:["line",520,100],r:["cone",560,1.05]},ren:{q:["line",430,72],x:["target",520,58],e:["self",330],r:["self",470]},
+    nightLord:{q:["target",300,62],e:["self",270],x:["target",380,110],r:["self",430]},zero:{q:["line",520,92],e:["self",250],x:["target",430,110],r:["self",440]},
+    paladin:{q:["cone",240,1.4],e:["line",430,92],x:["line",360,115],r:["self",400]},arc:{q:["line",560,80],e:["self",310],x:["target",460,115],r:["line",680,170]},
+    terra:{q:["cone",460,1.25],e:["target",520,125],x:["self",460],r:["rect",720,250]},void:{q:["target",540,185],e:["rect",520,150],x:["self",440],r:["self",430]},
+    carmilla:{q:["self",420]},vargas:{q:["line",430,112],e:["self",105],x:["target",380,190],r:["self",300]},echo:{q:["self",430],e:["target",520,70],r:["self",460]},
+    aria:{q:["self",420],e:["target",520,150],x:["target",520,70],r:["self",480]},moira:{q:["target",360,105],e:["target",330,76],x:["self",430],r:["self",500]},
+    mare:{q:["line",460,150],e:["target",360,210],x:["self",460],r:["cone",520,1.3]}
+  };
+  const raw=specs[selectedCharacter]?.[key]||["self",220];return{type:raw[0],range:raw[1],size:raw[2]||0};
+}
+
+function updateMobileDragAim(state,p,range){
+  const dx=p.x-state.startX,dy=p.y-state.startY,d=Math.hypot(dx,dy);state.currentX=p.x;state.currentY=p.y;if(d<10)return;
+  state.dragged=true;const scale=getWorldViewScale(),px=(player.x-camera.x)*scale,py=(player.y-camera.y)*scale;mouse.x=px+dx/d*range*scale;mouse.y=py+dy/d*range*scale;screenToWorld();
+}
+
+function triggerMobileSkill(key,keepAim=false){
+  if(!keepAim)updateMobileAttackAim(true);
   dispatchEvent(new KeyboardEvent("keydown",{key,bubbles:true}));
   dispatchEvent(new KeyboardEvent("keyup",{key,bubbles:true}));
 }
@@ -148,19 +173,19 @@ canvas.addEventListener("touchstart",event=>{
   }
   const layout=getMobileControlLayout();
   for(const touch of event.changedTouches){const p=canvasTouchPoint(touch);
-    const skill=layout.skills.find(button=>pointInCircle(p,{...button,r:button.r*1.48}));if(skill){triggerMobileSkill(skill.key);continue;}
-    if(mobileAttackTouchId===null&&pointInCircle(p,{...layout.attack,r:layout.attack.r*1.42})){mobileAttackTouchId=touch.identifier;mouse.down=true;updateMobileAttackAim();continue;}
+    const skill=layout.skills.find(button=>pointInCircle(p,{...button,r:button.r*1.48}));if(skill&&mobileSkillAim===null){mobileSkillAim={touchId:touch.identifier,key:skill.key,startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};updateMobileAttackAim(true);continue;}
+    if(mobileAttackTouchId===null&&pointInCircle(p,{...layout.attack,r:layout.attack.r*1.42})){mobileAttackTouchId=touch.identifier;mobileAttackAim={startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};mouse.down=true;updateMobileAttackAim();continue;}
     const nearJoystick=pointInCircle(p,{...layout.joystick,r:layout.joystick.r*2.25})||(p.x<canvas.width*.38&&p.y>canvas.height*.42);
     if(mobileJoystickTouchId===null&&nearJoystick){const r=layout.joystick.r,safe=14;mobileJoystickOrigin={x:Math.max(safe+r,Math.min(canvas.width*.42-r,p.x)),y:Math.max(canvas.height*.42+r,Math.min(canvas.height-safe-r,p.y))};mobileJoystickTouchId=touch.identifier;updateMobileJoystick(p.x,p.y);continue;}
     if(pointInRect(p.x,p.y,pauseButtonRect))dispatchMobileCanvasClick(p);
   }
 },{passive:false});
 
-canvas.addEventListener("touchmove",event=>{event.preventDefault();for(const touch of event.changedTouches){const p=canvasTouchPoint(touch);if(touch.identifier===mobileJoystickTouchId){updateMobileJoystick(p.x,p.y);continue;}if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){const now=performance.now(),total=Math.hypot(p.x-mobileUiGesture.startX,p.y-mobileUiGesture.startY);if(total>7){mobileUiGesture.moved=true;clearTimeout(mobileUiGesture.longTimer);}if(screenMode==="mobileSettings"&&mobileUiGesture.controlTarget){const pos=clampMobileControlPosition(mobileUiGesture.controlTarget,p);if(mobileUiGesture.controlTarget==="joystick"){mobileControlSettings.joystickX=pos.x/canvas.width;mobileControlSettings.joystickY=pos.y/canvas.height;}else{mobileControlSettings.attackX=pos.x/canvas.width;mobileControlSettings.attackY=pos.y/canvas.height;}mobileUiGesture.lastY=p.y;mobileUiGesture.lastTime=now;continue;}const dy=p.y-mobileUiGesture.lastY,dt=Math.max(8,now-mobileUiGesture.lastTime),delta=-dy;mobileUiGesture.lastY=p.y;mobileUiGesture.lastTime=now;mobileScrollVelocity=mobileScrollVelocity*.55+(delta*(16.67/dt))*.45;setMobileScroll(getMobileScroll()+delta);}}},{passive:false});
+canvas.addEventListener("touchmove",event=>{event.preventDefault();for(const touch of event.changedTouches){const p=canvasTouchPoint(touch);if(touch.identifier===mobileJoystickTouchId){updateMobileJoystick(p.x,p.y);continue;}if(touch.identifier===mobileAttackTouchId&&mobileAttackAim){updateMobileDragAim(mobileAttackAim,p,getMobileAttackRange());continue;}if(mobileSkillAim&&touch.identifier===mobileSkillAim.touchId){updateMobileDragAim(mobileSkillAim,p,getMobileSkillTargetSpec(mobileSkillAim.key).range);continue;}if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){const now=performance.now(),total=Math.hypot(p.x-mobileUiGesture.startX,p.y-mobileUiGesture.startY);if(total>7){mobileUiGesture.moved=true;clearTimeout(mobileUiGesture.longTimer);}if(screenMode==="mobileSettings"&&mobileUiGesture.controlTarget){const pos=clampMobileControlPosition(mobileUiGesture.controlTarget,p);if(mobileUiGesture.controlTarget==="joystick"){mobileControlSettings.joystickX=pos.x/canvas.width;mobileControlSettings.joystickY=pos.y/canvas.height;}else{mobileControlSettings.attackX=pos.x/canvas.width;mobileControlSettings.attackY=pos.y/canvas.height;}mobileUiGesture.lastY=p.y;mobileUiGesture.lastTime=now;continue;}const dy=p.y-mobileUiGesture.lastY,dt=Math.max(8,now-mobileUiGesture.lastTime),delta=-dy;mobileUiGesture.lastY=p.y;mobileUiGesture.lastTime=now;mobileScrollVelocity=mobileScrollVelocity*.55+(delta*(16.67/dt))*.45;setMobileScroll(getMobileScroll()+delta);}}},{passive:false});
 
-function endMobileTouches(event){event.preventDefault();for(const touch of event.changedTouches){if(touch.identifier===mobileJoystickTouchId)releaseMobileJoystick();if(touch.identifier===mobileAttackTouchId){mobileAttackTouchId=null;mouse.down=false;}if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){clearTimeout(mobileUiGesture.longTimer);const p=canvasTouchPoint(touch),shouldGlide=mobileUiGesture.moved&&!mobileUiGesture.controlTarget;if(screenMode==="mobileSettings"){if(mobileUiGesture.controlTarget)saveMobileControlSettings();else if(!mobileUiGesture.moved)handleMobileSettingsTap(p);}else if(screenMode==="home"&&!mobileUiGesture.moved&&pointInRect(p.x,p.y,mobileSettingsHomeRect))screenMode="mobileSettings";else if(!mobileUiGesture.moved&&!mobileUiGesture.longPressed)dispatchMobileCanvasClick(p);mobileUiGesture=null;if(shouldGlide)startMobileScrollInertia();}}}
+function endMobileTouches(event){event.preventDefault();for(const touch of event.changedTouches){if(touch.identifier===mobileJoystickTouchId)releaseMobileJoystick();if(touch.identifier===mobileAttackTouchId){mobileAttackTouchId=null;mobileAttackAim=null;mouse.down=false;}if(mobileSkillAim&&touch.identifier===mobileSkillAim.touchId){if(!mobileSkillAim.dragged)updateMobileAttackAim(true);triggerMobileSkill(mobileSkillAim.key,true);mobileSkillAim=null;}if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){clearTimeout(mobileUiGesture.longTimer);const p=canvasTouchPoint(touch),shouldGlide=mobileUiGesture.moved&&!mobileUiGesture.controlTarget;if(screenMode==="mobileSettings"){if(mobileUiGesture.controlTarget)saveMobileControlSettings();else if(!mobileUiGesture.moved)handleMobileSettingsTap(p);}else if(screenMode==="home"&&!mobileUiGesture.moved&&pointInRect(p.x,p.y,mobileSettingsHomeRect))screenMode="mobileSettings";else if(!mobileUiGesture.moved&&!mobileUiGesture.longPressed)dispatchMobileCanvasClick(p);mobileUiGesture=null;if(shouldGlide)startMobileScrollInertia();}}}
 canvas.addEventListener("touchend",endMobileTouches,{passive:false});canvas.addEventListener("touchcancel",endMobileTouches,{passive:false});
-addEventListener("orientationchange",()=>{releaseMobileJoystick();mobileAttackTouchId=null;mouse.down=false;});
+addEventListener("orientationchange",()=>{releaseMobileJoystick();mobileAttackTouchId=null;mobileAttackAim=null;mobileSkillAim=null;mouse.down=false;});
 
 function getMobileSkillIcon(key){
   const index={q:0,e:1,x:2,r:3}[key]??0;
@@ -224,8 +249,27 @@ function drawMobileControlSettings(){
   const ag=ctx.createRadialGradient(attack.x-8,attack.y-9,3,attack.x,attack.y,attack.r);ag.addColorStop(0,"#214f6d");ag.addColorStop(1,"#07131f");ctx.fillStyle=ag;ctx.strokeStyle="#55ddf5";ctx.lineWidth=3;ctx.shadowColor="#38dcff";ctx.shadowBlur=15;ctx.beginPath();ctx.arc(attack.x,attack.y,attack.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;drawCommonAttackIcon(attack.x,attack.y,attack.r*.7);const angles=[-3.02,-2.52,-2.02,-1.52],orbit=attack.r+Math.max(42,Math.min(canvas.width,canvas.height)*.09*mobileControlSettings.actionScale),skillR=Math.max(20,Math.min(39,Math.min(canvas.width,canvas.height)*.052*mobileControlSettings.actionScale));for(let i=0;i<4;i++){const x=attack.x+Math.cos(angles[i])*orbit,y=attack.y+Math.sin(angles[i])*orbit;ctx.fillStyle="rgba(18,15,36,.94)";ctx.strokeStyle="#b99cff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,skillR,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle="#fff";ctx.font=`900 ${skillR*.68}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(["Q","E","X","R"][i],x,y+1);}ctx.textBaseline="alphabetic";ctx.fillStyle="rgba(204,223,238,.72)";ctx.font="11px Arial";ctx.fillText("이동 영역",canvas.width*.225,132);ctx.fillText("전투 버튼 영역",canvas.width*.775,132);ctx.restore();
 }
 
+function drawMobileTargetingIndicator(){
+  if(!mobileAttackAim&&!mobileSkillAim)return;
+  const scale=getWorldViewScale(),px=(player.x-camera.x)*scale,py=(player.y-camera.y)*scale;
+  const spec=mobileSkillAim?getMobileSkillTargetSpec(mobileSkillAim.key):{type:"line",range:getMobileAttackRange(),size:54};
+  const dx=mouse.worldX-player.x,dy=mouse.worldY-player.y,d=Math.hypot(dx,dy)||1,a=Math.atan2(dy,dx),range=spec.range*scale,size=(spec.size||70)*scale;
+  const targetDistance=Math.min(spec.range,d)*scale,tx=px+Math.cos(a)*targetDistance,ty=py+Math.sin(a)*targetDistance;
+  ctx.save();ctx.translate(px,py);ctx.rotate(a);ctx.lineWidth=2;ctx.strokeStyle="rgba(104,245,255,.96)";ctx.fillStyle="rgba(50,218,239,.16)";ctx.shadowColor="#38e8ff";ctx.shadowBlur=9;
+  if(spec.type==="self"){
+    ctx.rotate(-a);ctx.beginPath();ctx.arc(0,0,range,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.setLineDash([7,7]);ctx.beginPath();ctx.arc(0,0,range*.72,0,Math.PI*2);ctx.stroke();
+  }else if(spec.type==="cone"){
+    const spread=spec.size||1.2;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,range,-spread/2,spread/2);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(0,0,range*.72,-spread/2,spread/2);ctx.stroke();
+  }else if(spec.type==="target"){
+    ctx.rotate(-a);ctx.setLineDash([8,7]);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(tx-px,ty-py);ctx.stroke();ctx.setLineDash([]);ctx.translate(tx-px,ty-py);ctx.beginPath();ctx.arc(0,0,size,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(0,0,size*.7,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(-size*.32,0);ctx.lineTo(size*.32,0);ctx.moveTo(0,-size*.32);ctx.lineTo(0,size*.32);ctx.stroke();
+  }else{
+    const half=size/2,tip=Math.min(34*scale,range*.12);ctx.beginPath();ctx.moveTo(0,-half);ctx.lineTo(range-tip,-half);ctx.lineTo(range-tip,-half*1.45);ctx.lineTo(range,0);ctx.lineTo(range-tip,half*1.45);ctx.lineTo(range-tip,half);ctx.lineTo(0,half);ctx.closePath();ctx.fill();ctx.stroke();ctx.setLineDash([9,8]);ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(range-tip,0);ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawMobileControls(){
-  if(!isMobileTouchDevice()||isMobilePortraitMode()||screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory)return;const {joystick,attack,skills}=getMobileControlLayout();ctx.save();
+  if(!isMobileTouchDevice()||isMobilePortraitMode()||screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory)return;const {joystick,attack,skills}=getMobileControlLayout();drawMobileTargetingIndicator();ctx.save();
   ctx.globalAlpha=.86;ctx.fillStyle="rgba(8,16,29,.68)";ctx.strokeStyle="rgba(123,220,255,.58)";ctx.lineWidth=2;ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle="rgba(123,220,255,.16)";ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r*.68,0,Math.PI*2);ctx.stroke();
   const knobR=joystick.r*.37,kx=joystick.x+mobileStickX,ky=joystick.y+mobileStickY;ctx.fillStyle="rgba(103,218,255,.45)";ctx.shadowColor="#53d9ff";ctx.shadowBlur=mobileJoystickTouchId===null?8:18;ctx.beginPath();ctx.arc(kx,ky,knobR,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#b6f2ff";ctx.stroke();ctx.shadowBlur=0;
   const attackGlow=mobileAttackTouchId!==null;const ag=ctx.createRadialGradient(attack.x-10,attack.y-12,4,attack.x,attack.y,attack.r);ag.addColorStop(0,attackGlow?"#247ba2":"#183d56");ag.addColorStop(1,"#07131f");ctx.fillStyle=ag;ctx.strokeStyle=attackGlow?"#8cf3ff":"#46cce9";ctx.lineWidth=3;ctx.shadowColor="#33dfff";ctx.shadowBlur=attackGlow?24:12;ctx.beginPath();ctx.arc(attack.x,attack.y,attack.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;drawCommonAttackIcon(attack.x,attack.y,attack.r*.72);
