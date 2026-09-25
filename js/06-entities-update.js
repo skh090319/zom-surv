@@ -9,11 +9,18 @@ function updatePlayer() {
   if (keys["a"]) dx--;
   if (keys["d"]) dx++;
 
-  const len = Math.hypot(dx, dy);
+  if (typeof getMobileMoveVector === "function") {
+    const mobileMove = getMobileMoveVector();
+    if (mobileMove.active) { dx = mobileMove.x; dy = mobileMove.y; }
+  }
+
+  let len = Math.hypot(dx, dy);
+  const moveStrength = Math.min(1, len);
 
   if (player.bossRootTime > 0) {
     dx = 0;
     dy = 0;
+    len = 0;
   }
 
   if (len > 0) {
@@ -25,8 +32,8 @@ function updatePlayer() {
   const nightLordRageSpeed = selectedCharacter === "nightLord" ? 1 + getNightLordRage() * 0.3 : 1;
   const zeroUltimateSpeed = selectedCharacter === "zero" && player.zeroUltimateTime > 0 ? 1.35 : 1;
   const bossSlowMultiplier = player.bossSlowTime > 0 ? 0.55 : 1;
-  player.x += dx * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier;
-  player.y += dy * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier;
+  player.x += dx * moveStrength * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier;
+  player.y += dy * moveStrength * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier;
 
   player.x = Math.max(player.r, Math.min(WORLD.width - player.r, player.x));
   player.y = Math.max(player.r, Math.min(WORLD.height - player.r, player.y));
@@ -52,6 +59,7 @@ function updatePlayer() {
     }
   }
 
+  if (typeof updateMobileAttackAim === "function") updateMobileAttackAim();
   if (mouse.down) shoot();
 }
 
@@ -545,6 +553,7 @@ function updateSpawn() {
 
 function update() {
   if (screenMode !== "game") return;
+  if (typeof isMobilePortraitMode === "function" && isMobilePortraitMode()) return;
   if (paused || gameOver || raidVictory || choosingUpgrade) return;
 
   screenToWorld();

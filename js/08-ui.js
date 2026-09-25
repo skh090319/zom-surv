@@ -771,6 +771,7 @@ function drawMenuButton(rect, hover, color, label, sublabel, glyph) {
 }
 
 function drawHomeScreen() {
+  if(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&canvas.height<520){drawMobileHomeScreen();return;}
   drawMenuBackdrop(0.62);
   const t=performance.now()*.001,wide=canvas.width>=900,margin=Math.max(28,canvas.width*.045);
   const info=characterSkillGuide[selectedCharacter]||characterSkillGuide.default;

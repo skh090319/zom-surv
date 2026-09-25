@@ -1,6 +1,10 @@
 // 게임 초기화와 메인 루프
 
 function draw() {
+  if (typeof isMobilePortraitMode === "function" && isMobilePortraitMode()) {
+    drawMobilePortraitLock();
+    return;
+  }
   if (screenMode === "home") {
     drawHomeScreen();
     return;
@@ -56,29 +60,32 @@ function draw() {
   drawYupiterWeapons();
   drawHealthBar();
   drawHUD();
-  drawYupiterInterface();
-  drawRenInterface();
-  drawNightLordInterface();
-  drawZeroInterface();
-  drawPaladinInterface();
-  drawArcInterface();
-  drawTerraInterface();
-  drawVoidInterface();
-  drawCarmillaInterface();
-  drawVargasInterface();
-  drawEchoInterface();
-  drawAriaInterface();
-  drawMoiraInterface();
-  drawMareInterface();
+  if (typeof isMobileTouchDevice !== "function" || !isMobileTouchDevice()) {
+    drawYupiterInterface();
+    drawRenInterface();
+    drawNightLordInterface();
+    drawZeroInterface();
+    drawPaladinInterface();
+    drawArcInterface();
+    drawTerraInterface();
+    drawVoidInterface();
+    drawCarmillaInterface();
+    drawVargasInterface();
+    drawEchoInterface();
+    drawAriaInterface();
+    drawMoiraInterface();
+    drawMareInterface();
+  }
   drawReloadingOverlay();
   drawExpBar();
-  drawMiniMap();
+  if (typeof isMobileTouchDevice !== "function" || !isMobileTouchDevice()) drawMiniMap();
   drawRaidBossUI();
   drawVisionEffect();
   drawUpgradeMenu();
   drawGameOver();
   drawPauseOverlay();
   drawPauseButton();
+  if (typeof drawMobileControls === "function") drawMobileControls();
 }
 
 function restart() {
