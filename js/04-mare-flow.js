@@ -22,7 +22,17 @@ updateMare=function(){
     }
     for(let i=mareCurrents.length-1;i>=0;i--){const c=mareCurrents[i];c.phase+=.025;if(--c.life<=0){mareCurrents.splice(i,1);continue}if(c.life%4===0)for(const z of zombies)if(marePointInCurrent(z,c)){const speed=c.strong?3.1:1.8;z.x+=Math.cos(c.a)*speed;z.y+=Math.sin(c.a)*speed;z.slowTime=Math.max(z.slowTime||0,5);if(!z.mareFlowTick||z.mareFlowTick<=0){mareDamage(z,scaledDamage(player.damage*(c.strong?.16:.1)));z.mareFlowTick=24}}}
     for(const z of zombies)if(z.mareFlowTick>0)z.mareFlowTick--;
-    if(player.mareUltimateTime>0&&player.mareChargeTime<=0){const a=Math.atan2(mouse.worldY-player.y,mouse.worldX-player.x);player.mareUltimateAngle=a;const d=Math.hypot(mouse.worldX-player.x,mouse.worldY-player.y);if(d>45){player.x+=Math.cos(a)*2.8;player.y+=Math.sin(a)*2.8}if(++player.mareWhaleTrailTick>=18){player.mareWhaleTrailTick=0;addMareCurrent(player.x-Math.cos(a)*45,player.y-Math.sin(a)*45,a,true)}}
+    if(player.mareUltimateTime>0&&player.mareChargeTime<=0){
+      const mobileWhale=typeof isMobileTouchDevice==="function"&&isMobileTouchDevice(),move=mobileWhale&&typeof getMobileMoveVector==="function"?getMobileMoveVector():null;
+      let a=player.mareUltimateAngle||Math.atan2(mouse.worldY-player.y,mouse.worldX-player.x),advance=false;
+      if(mobileWhale){
+        const length=move?.active?Math.hypot(move.x,move.y):0;
+        if(length>.08){a=Math.atan2(move.y,move.x);advance=true;mouse.worldX=player.x+Math.cos(a)*600;mouse.worldY=player.y+Math.sin(a)*600;}
+      }else{a=Math.atan2(mouse.worldY-player.y,mouse.worldX-player.x);advance=Math.hypot(mouse.worldX-player.x,mouse.worldY-player.y)>45;}
+      player.mareUltimateAngle=a;
+      if(advance){player.x=Math.max(player.r,Math.min(WORLD.width-player.r,player.x+Math.cos(a)*2.8));player.y=Math.max(player.r,Math.min(WORLD.height-player.r,player.y+Math.sin(a)*2.8));}
+      if(++player.mareWhaleTrailTick>=18){player.mareWhaleTrailTick=0;addMareCurrent(player.x-Math.cos(a)*45,player.y-Math.sin(a)*45,a,true)}
+    }
     if(player.mareUltimateTime===1&&mareCurrents.length){const cx=mareCurrents.reduce((v,c)=>v+c.x+Math.cos(c.a)*c.len*.5,0)/mareCurrents.length,cy=mareCurrents.reduce((v,c)=>v+c.y+Math.sin(c.a)*c.len*.5,0)/mareCurrents.length;for(const z of [...zombies])if(Math.hypot(z.x-cx,z.y-cy)<300+z.r)mareDamage(z,scaledDamage(player.damage*3.2));mareEffects.push({type:"oceanCollapse",x:cx,y:cy,life:78,maxLife:78});mareCurrents=[]}
   }
   updateMareFlowBase();
