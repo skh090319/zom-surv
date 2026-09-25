@@ -113,7 +113,7 @@ function activateNightLordX() {
 }
 
 function activateNightLordR() {
-  if (player.nightLordRCooldown > 0) return;
+  if (player.level < 10 || player.nightLordRCooldown > 0) return;
   player.nightLordUltimateTime = NIGHT_LORD_ULTIMATE_DURATION;
   player.nightLordRCooldown = NIGHT_LORD_R_COOLDOWN;
   nightLordEffects.push({ type: "ultimate", x: player.x, y: player.y, life: 45, maxLife: 45 });

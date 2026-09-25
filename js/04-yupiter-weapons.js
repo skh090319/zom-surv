@@ -34,7 +34,7 @@ function activateYupiterSkill() {
 }
 
 function activateYupiterUltimate() {
-  if (player.yupiterUltimateCooldown > 0) return;
+  if (player.level < 10 || player.yupiterUltimateCooldown > 0) return;
 
   const weapon = player.yupiterWeapon;
   if (weapon === 0) {

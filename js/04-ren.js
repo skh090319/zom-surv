@@ -178,7 +178,7 @@ function findRenNearestUnclaimed(excludedIds, range = Infinity, originX = player
 }
 
 function activateRenUltimate() {
-  if (player.renUltimateCooldown > 0) return;
+  if (player.level < 10 || player.renUltimateCooldown > 0) return;
   player.renUltimateTime = REN_ULTIMATE_DURATION;
   player.renUltimateStrikeTimer = 0;
   player.renUltimateX = player.x;

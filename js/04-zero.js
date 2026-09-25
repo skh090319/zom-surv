@@ -119,7 +119,7 @@ function activateZeroX() {
 }
 
 function activateZeroR() {
-  if (player.zeroRCooldown > 0) return;
+  if (player.level < 10 || player.zeroRCooldown > 0) return;
   player.zeroUltimateTime = ZERO_ULTIMATE_DURATION;
   player.zeroUltimateStrikeTimer = 0;
   player.zeroRCooldown = ZERO_R_COOLDOWN;
