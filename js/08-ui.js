@@ -779,7 +779,7 @@ function drawBloodiedLobbyTitle(text,x,y,size,baseFill){
 }
 
 function drawHomeScreen() {
-  if(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()){drawMobileHomeScreen();return;}
+  if(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&canvas.height<520){drawMobileHomeScreen();return;}
   drawMenuBackdrop(0.62);
   const t=performance.now()*.001,wide=canvas.width>=900,margin=Math.max(28,canvas.width*.045);
   const info=characterSkillGuide[selectedCharacter]||characterSkillGuide.default;
@@ -846,8 +846,19 @@ function drawHomeScreen() {
     ctx.textAlign="right";ctx.fillStyle="rgba(255,255,255,.16)";ctx.font="bold 10px monospace";ctx.fillText(no,rect.x+rect.w-11,cy+18);
   }
   const briefingY=cardY+Math.ceil(cards.length/cardCols)*(cardH+gap)-gap+12;
-  ctx.fillStyle="rgba(7,10,18,.74)";drawRoundedRect(leftX,briefingY,menuW,34,8,"rgba(7,10,18,.74)","rgba(255,255,255,.1)",1);
-  ctx.textAlign="left";ctx.fillStyle="rgba(196,209,231,.58)";ctx.font="bold 10px Arial";ctx.fillText("OPERATION",leftX+13,briefingY+21);ctx.fillStyle="#ff637a";ctx.fillText("BOSS  02:00 · 04:00 · 06:00",leftX+92,briefingY+21);
+  const mobileTablet=typeof isMobileTouchDevice==="function"&&isMobileTouchDevice();
+  if(mobileTablet){
+    mobileSettingsHomeRect={x:leftX,y:briefingY,w:menuW,h:34};
+    const settingsGradient=ctx.createLinearGradient(leftX,briefingY,leftX+menuW,briefingY);
+    settingsGradient.addColorStop(0,"rgba(48,183,218,.3)");settingsGradient.addColorStop(1,"rgba(68,118,188,.15)");
+    ctx.save();ctx.shadowColor="#54d8ff";ctx.shadowBlur=10;drawRoundedRect(leftX,briefingY,menuW,34,8,settingsGradient,"rgba(105,226,255,.55)",1.2);ctx.restore();
+    ctx.textAlign="left";ctx.fillStyle="#79e7ff";ctx.font="bold 14px Arial";ctx.fillText("⚙",leftX+14,briefingY+22);
+    ctx.fillStyle="#edfaff";ctx.font="900 11px Arial";ctx.fillText("조작 설정",leftX+37,briefingY+21);
+    ctx.textAlign="right";ctx.fillStyle="rgba(205,232,244,.58)";ctx.font="10px Arial";ctx.fillText("버튼 위치·크기 변경  ›",leftX+menuW-13,briefingY+21);
+  }else{
+    ctx.fillStyle="rgba(7,10,18,.74)";drawRoundedRect(leftX,briefingY,menuW,34,8,"rgba(7,10,18,.74)","rgba(255,255,255,.1)",1);
+    ctx.textAlign="left";ctx.fillStyle="rgba(196,209,231,.58)";ctx.font="bold 10px Arial";ctx.fillText("OPERATION",leftX+13,briefingY+21);ctx.fillStyle="#ff637a";ctx.fillText("BOSS  02:00 · 04:00 · 06:00",leftX+92,briefingY+21);
+  }
 
   // 상단 상태바 / 하단 조작 정보
   ctx.textAlign="left";ctx.fillStyle="#d9e2f4";ctx.font="bold 12px Arial";ctx.fillText("Z/S  //  OPERATIONS",margin,34);ctx.fillStyle="rgba(220,230,248,.46)";ctx.font="11px Arial";ctx.textAlign="right";ctx.fillText(`누적 처치 ${totalZombieKills.toLocaleString()}  ·  생존자 ${info.name}`,canvas.width-margin,34);
