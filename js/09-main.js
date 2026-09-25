@@ -80,6 +80,12 @@ function draw() {
     drawExpBar();
     drawMiniMap();
     drawRaidBossUI();
+  } else {
+    // 모바일에서는 복잡한 캐릭터 HUD는 숨기되 전투에 꼭 필요한
+    // 생존/진행 정보는 항상 표시한다.
+    drawHealthBar();
+    drawExpBar();
+    drawRaidBossUI();
   }
   drawVisionEffect();
   drawUpgradeMenu();

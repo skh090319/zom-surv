@@ -564,11 +564,12 @@ function drawReloadingOverlay() {
 }
 
 function drawExpBar() {
-  const margin = 260;
+  const mobileTouch = typeof isMobileTouchDevice === "function" && isMobileTouchDevice();
+  const margin = mobileTouch ? Math.max(120, canvas.width * 0.29) : 260;
   const barX = margin;
   const barY = canvas.height - 32;
-  const barW = Math.max(200, canvas.width - margin * 2);
-  const barH = 18;
+  const barW = mobileTouch ? Math.max(150, canvas.width - margin * 2) : Math.max(200, canvas.width - margin * 2);
+  const barH = mobileTouch ? 14 : 18;
   const ratio = player.exp / player.expNeed;
 
   ctx.fillStyle = "#222";
@@ -582,7 +583,7 @@ function drawExpBar() {
   ctx.strokeRect(barX, barY, barW, barH);
 
   ctx.fillStyle = "white";
-  ctx.font = "16px Arial";
+  ctx.font = mobileTouch ? "bold 12px Arial" : "16px Arial";
   ctx.textAlign = "center";
   ctx.fillText(`LV.${player.level}  EXP ${player.exp}/${player.expNeed}`, canvas.width / 2, barY - 8);
 
