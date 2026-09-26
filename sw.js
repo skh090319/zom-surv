@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v25";
+const CACHE_VERSION = "zombie-survival-v26";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -10,6 +10,8 @@ const CORE_ASSETS = [
   "./background.webp",
   "./assets/lobby-background-v1.webp",
   "./assets/lobby-button-panel-v1.webp",
+  "./assets/fonts/BlackHanSans-Regular.ttf",
+  "./assets/fonts/BlackHanSans-OFL.txt",
   "./player.webp",
   "./gun.webp",
   "./assets/zombie-characters.webp",

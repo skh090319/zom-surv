@@ -761,20 +761,22 @@ function drawLobbyPanel(rect,color,{hover=false,primary=false}={}){
 
 function difficultyLabel(value=selectedDifficulty){return value==="easy"?"EASY":value==="hard"?"HARD":"MEDIUM";}
 
+const LOBBY_DISPLAY_FONT='"Black Han Sans", "Arial Black", "Malgun Gothic", sans-serif';
+
 function drawHomeDifficultyPicker(){
   if(!homeDifficultyOpen){homeDifficultyChoiceRects=[];return;}
   ctx.save();ctx.fillStyle="rgba(0,2,6,.78)";ctx.fillRect(0,0,canvas.width,canvas.height);
   const w=Math.min(520,canvas.width*.78),h=Math.min(280,canvas.height*.76),x=(canvas.width-w)/2,y=(canvas.height-h)/2;
   const shell=ctx.createLinearGradient(x,y,x,y+h);shell.addColorStop(0,"rgba(31,38,45,.99)");shell.addColorStop(1,"rgba(5,9,13,.99)");
   drawRoundedRect(x,y,w,h,9,shell,"rgba(173,188,198,.7)",1.5);ctx.fillStyle="#d94a50";ctx.fillRect(x+1,y+1,w-2,4);
-  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 20px Arial";ctx.fillText("위협 단계 설정",x+24,y+38);
+  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font=`20px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("위협 단계 설정",x+24,y+38);
   ctx.fillStyle="rgba(205,215,222,.62)";ctx.font="11px Arial";ctx.fillText("현재는 모든 단계의 게임 수치가 동일합니다",x+24,y+59);
   const gap=10,pad=24,choiceY=y+82,choiceH=h-106,choiceW=(w-pad*2-gap*2)/3;
   homeDifficultyChoiceRects=["easy","medium","hard"].map((value,index)=>({value,x:x+pad+index*(choiceW+gap),y:choiceY,w:choiceW,h:choiceH}));
   const details={easy:["EASY","생존 준비","#69d8a5"],medium:["MEDIUM","표준 위협","#e0b04f"],hard:["HARD","극한 경계","#e45b62"]};
   for(const rect of homeDifficultyChoiceRects){
     const [label,sub,color]=details[rect.value],selected=rect.value===selectedDifficulty;
-    drawLobbyPanel(rect,color,{hover:selected});ctx.textAlign="center";ctx.fillStyle=color;ctx.font=`900 ${choiceW<120?14:17}px Arial`;ctx.fillText(label,rect.x+rect.w/2,rect.y+rect.h*.43);
+    drawLobbyPanel(rect,color,{hover:selected});ctx.textAlign="center";ctx.fillStyle=color;ctx.font=`${choiceW<120?14:17}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,rect.y+rect.h*.43);
     ctx.fillStyle="rgba(226,233,238,.68)";ctx.font="10px Arial";ctx.fillText(sub,rect.x+rect.w/2,rect.y+rect.h*.65);
     if(selected){ctx.fillStyle=color;ctx.font="900 10px Arial";ctx.fillText("SELECTED",rect.x+rect.w/2,rect.y+rect.h-13);}
   }
@@ -860,7 +862,7 @@ function drawHomeScreen() {
   const heroLabelY=canvas.height*.82;
   drawRoundedRect(heroX-92,heroLabelY-17,184,25,13,"rgba(3,6,14,.82)",`${accent}55`,1);
   ctx.textAlign="center";ctx.fillStyle="#cbd7ea";ctx.font="bold 11px Arial";ctx.fillText("SELECTED SURVIVOR",heroX,heroLabelY);
-  ctx.fillStyle="#fff";ctx.shadowColor=accent;ctx.shadowBlur=12;ctx.font=`900 ${wide?30:22}px Arial`;ctx.fillText(info.name,heroX,heroLabelY+35);ctx.shadowBlur=0;
+  ctx.fillStyle="#fff";ctx.shadowColor=accent;ctx.shadowBlur=12;ctx.font=`${wide?30:22}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(info.name,heroX,heroLabelY+35);ctx.shadowBlur=0;
   ctx.fillStyle=accent;ctx.fillRect(heroX-38,heroLabelY+48,76,2);
 
   // 왼쪽 타이틀 및 시즌 정보
@@ -877,7 +879,7 @@ function drawHomeScreen() {
   const startHover=pointInRect(mouse.x,mouse.y,homeStartRect),lift=startHover?-4:0;
   drawLobbyPanel(homeStartRect,"#d94a50",{hover:startHover,primary:true});
   ctx.fillStyle="rgba(0,0,0,.2)";ctx.beginPath();ctx.arc(leftX+39,startY+38+lift,24,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(255,255,255,.48)";ctx.stroke();ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.textAlign="center";ctx.fillText("▶",leftX+41,startY+45+lift);
-  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 23px Arial";ctx.fillText("작전 시작",leftX+78,startY+32+lift);ctx.fillStyle="rgba(235,250,255,.68)";ctx.font="12px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+78,startY+54+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
+  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font=`23px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("작전 시작",leftX+78,startY+32+lift);ctx.fillStyle="rgba(235,250,255,.68)";ctx.font="12px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+78,startY+54+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
 
   // 보조 메뉴: 언제나 두 칸씩 배치
   const gap=10,cardY=startY+86,cardH=98,cardCols=2,cardW=(menuW-gap)/2;
@@ -888,7 +890,7 @@ function drawHomeScreen() {
     const hover=pointInRect(mouse.x,mouse.y,rect),cy=drawLobbyPanel(rect,color,{hover});
     ctx.fillStyle=`${color}32`;ctx.beginPath();ctx.arc(rect.x+27,cy+31,17,0,Math.PI*2);ctx.fill();ctx.strokeStyle=`${color}c8`;ctx.stroke();
     ctx.textAlign="center";ctx.fillStyle=color;ctx.font="bold 17px Arial";ctx.fillText(glyph,rect.x+27,cy+37);
-    ctx.textAlign="left";ctx.fillStyle="#f7f8ff";ctx.font=`900 ${cardW<130?13:15}px Arial`;ctx.fillText(label,rect.x+51,cy+34);
+    ctx.textAlign="left";ctx.fillStyle="#f7f8ff";ctx.font=`${cardW<130?13:15}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+51,cy+34);
     ctx.fillStyle="rgba(211,220,237,.62)";ctx.font=`${cardW<130?10:11}px Arial`;ctx.fillText(sub,rect.x+15,cy+68);
     ctx.fillStyle=hover?color:"rgba(255,255,255,.35)";ctx.font="bold 17px Arial";ctx.fillText("›",rect.x+rect.w-22,cy+72);
     ctx.textAlign="right";ctx.fillStyle="rgba(255,255,255,.16)";ctx.font="bold 10px monospace";ctx.fillText(no,rect.x+rect.w-11,cy+18);
