@@ -15,19 +15,32 @@ let mobileScrollFrame = 0;
 let mobileSettingsHomeRect = {x:0,y:0,w:0,h:0};
 let mobileSettingsBackRect = {x:0,y:0,w:0,h:0};
 let mobileSettingsResetRect = {x:0,y:0,w:0,h:0};
-let mobileJoystickMinusRect = {x:0,y:0,w:0,h:0};
-let mobileJoystickPlusRect = {x:0,y:0,w:0,h:0};
-let mobileActionMinusRect = {x:0,y:0,w:0,h:0};
-let mobileActionPlusRect = {x:0,y:0,w:0,h:0};
-
-const MOBILE_CONTROL_DEFAULTS={joystickX:null,joystickY:null,attackX:null,attackY:null,joystickScale:1,actionScale:1};
+const MOBILE_CONTROL_DEFAULTS={joystickX:null,joystickY:null,attackX:null,attackY:null,joystickScale:1,actionScale:1,viewZoom:1,skillAnchorX:null,skillAnchorY:null,skillAnchorScale:1};
 let mobileControlSettings=loadMobileControlSettings();
 
 function loadMobileControlSettings(){
-  try{const saved=JSON.parse(localStorage.getItem("zombieSurvivalMobileControls")||"null");return saved?{...MOBILE_CONTROL_DEFAULTS,...saved}:{...MOBILE_CONTROL_DEFAULTS};}catch(error){return{...MOBILE_CONTROL_DEFAULTS};}
+  let saved={};
+  try{saved=JSON.parse(localStorage.getItem("zombieSurvivalMobileControls")||"null")||{};}catch(error){}
+  const settings={...MOBILE_CONTROL_DEFAULTS,skills:{},version:2};
+  const position=value=>Number.isFinite(value)?Math.max(0,Math.min(1,value)):null;
+  for(const key of ["joystickX","joystickY","attackX","attackY"])settings[key]=position(saved[key]);
+  for(const key of ["joystickScale","actionScale"])settings[key]=clampMobileControlScale(saved[key]);
+  settings.viewZoom=clampMobileViewZoom(saved.viewZoom);
+  // Keep the old skill formation, then decouple it from basic-attack edits.
+  settings.skillAnchorX=position(saved.version===2?saved.skillAnchorX:saved.attackX);
+  settings.skillAnchorY=position(saved.version===2?saved.skillAnchorY:saved.attackY);
+  settings.skillAnchorScale=clampMobileControlScale(saved.version===2?saved.skillAnchorScale:saved.actionScale);
+  for(const key of ["q","e","x","r"]){
+    const skill=saved.skills?.[key]||{};
+    settings.skills[key]={x:position(skill.x),y:position(skill.y),scale:clampMobileControlScale(skill.scale??settings.skillAnchorScale)};
+  }
+  return settings;
 }
 function saveMobileControlSettings(){try{localStorage.setItem("zombieSurvivalMobileControls",JSON.stringify(mobileControlSettings));}catch(error){}}
 function clampMobileControlScale(value){return Math.max(.72,Number.isFinite(value)?value:1);}
+function clampMobileViewZoom(value){return Math.max(.5,Math.min(2,Number.isFinite(value)?value:1));}
+function getMobileViewZoom(){return clampMobileViewZoom(mobileControlSettings.viewZoom);}
+function fitMobileControlCenter(value,r,min,max){const inset=Math.min(r,Math.max(0,(max-min)/2));return Math.max(min+inset,Math.min(max-inset,value));}
 
 const MOBILE_SKILL_KEYS = {
   default:["r"],suncall:["r"],luminous:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
@@ -46,13 +59,19 @@ function getMobileControlLayout(){
   const attack={x:mobileControlSettings.attackX===null?canvas.width-safe-attackR:canvas.width*mobileControlSettings.attackX,y:mobileControlSettings.attackY===null?canvas.height-safe-attackR:canvas.height*mobileControlSettings.attackY,r:attackR};
   const keys=MOBILE_SKILL_KEYS[selectedCharacter]||[];
   const angles=keys.length===1?[-2.15]:keys.length===2?[-2.65,-1.7]:keys.length===3?[-2.85,-2.15,-1.45]:[-3.02,-2.52,-2.02,-1.52];
-  const orbit=attackR+Math.max(42,Math.min(58,minSide*.09))*mobileControlSettings.actionScale,skillR=Math.max(20,Math.min(28,minSide*.052))*mobileControlSettings.actionScale;
-  joystick.x=Math.max(safe+joyR,Math.min(canvas.width*.45-joyR,joystick.x));
-  joystick.y=Math.max(118+joyR,Math.min(canvas.height-safe-joyR,joystick.y));
-  const maxAttackY=canvas.height-safe-attackR;
-  attack.x=Math.max(canvas.width*.5+orbit+skillR,Math.min(canvas.width-safe-attackR,attack.x));
-  attack.y=Math.max(Math.min(maxAttackY,118+orbit+skillR),Math.min(maxAttackY,attack.y));
-  const skills=keys.map((key,index)=>({key,x:attack.x+Math.cos(angles[index])*orbit,y:attack.y+Math.sin(angles[index])*orbit,r:skillR}));
+  const anchorScale=mobileControlSettings.skillAnchorScale,anchorR=Math.max(34,Math.min(48,minSide*.088))*anchorScale;
+  const orbit=anchorR+Math.max(42,Math.min(58,minSide*.09))*anchorScale,baseSkillR=Math.max(20,Math.min(28,minSide*.052));
+  const anchorX=Math.max(canvas.width*.5+orbit+baseSkillR*anchorScale,Math.min(canvas.width-safe-anchorR,mobileControlSettings.skillAnchorX===null?canvas.width-safe-anchorR:canvas.width*mobileControlSettings.skillAnchorX));
+  const maxAnchorY=canvas.height-safe-anchorR;
+  const anchorY=Math.max(Math.min(maxAnchorY,118+orbit+baseSkillR*anchorScale),Math.min(maxAnchorY,mobileControlSettings.skillAnchorY===null?maxAnchorY:canvas.height*mobileControlSettings.skillAnchorY));
+  joystick.x=fitMobileControlCenter(joystick.x,joyR,safe,canvas.width*.45);
+  joystick.y=fitMobileControlCenter(joystick.y,joyR,118,canvas.height-safe);
+  attack.x=fitMobileControlCenter(attack.x,attackR,canvas.width*.5,canvas.width-safe);
+  attack.y=fitMobileControlCenter(attack.y,attackR,118,canvas.height-safe);
+  const skills=keys.map((key,index)=>{
+    const saved=mobileControlSettings.skills[key],r=baseSkillR*saved.scale;
+    return{key,r,x:fitMobileControlCenter(saved.x===null?anchorX+Math.cos(angles[index])*orbit:canvas.width*saved.x,r,safe,canvas.width-safe),y:fitMobileControlCenter(saved.y===null?anchorY+Math.sin(angles[index])*orbit:canvas.height*saved.y,r,116,canvas.height-safe)};
+  });
   return {joystick,attack,skills};
 }
 
@@ -139,43 +158,10 @@ function startMobileScrollInertia(){
 
 function canvasTouchPoint(touch){const rect=canvas.getBoundingClientRect();return{x:(touch.clientX-rect.left)*canvas.width/rect.width,y:(touch.clientY-rect.top)*canvas.height/rect.height};}
 function pointInCircle(p,c){return Math.hypot(p.x-c.x,p.y-c.y)<=c.r;}
-function clampMobileControlPosition(kind,p){
-  const layout=getMobileControlLayout(),r=kind==="joystick"?layout.joystick.r:layout.attack.r,safe=12;
-  const minX=kind==="joystick"?safe+r:canvas.width*.55+r,maxX=kind==="joystick"?canvas.width*.45-r:canvas.width-safe-r;
-  return{x:Math.max(minX,Math.min(maxX,p.x)),y:Math.max(118+r,Math.min(canvas.height-safe-r,p.y))};
-}
-function beginMobileSettingDrag(p){
-  if(p.y<116)return null;
-  const layout=getMobileControlLayout();
-  const kind=pointInCircle(p,{...layout.joystick,r:layout.joystick.r*1.25})?"joystick":
-    (pointInCircle(p,{...layout.attack,r:layout.attack.r*1.3})||layout.skills.some(s=>pointInCircle(p,{...s,r:s.r*1.2})))?"action":null;
-  if(!kind)return null;
-  const center=kind==="joystick"?layout.joystick:layout.attack;
-  return {controlTarget:kind,offsetX:p.x-center.x,offsetY:p.y-center.y};
-}
-function moveMobileSettingControl(gesture,p){
-  const pos=clampMobileControlPosition(gesture.controlTarget,{x:p.x-gesture.offsetX,y:p.y-gesture.offsetY});
-  const prefix=gesture.controlTarget==="joystick"?"joystick":"attack";
-  mobileControlSettings[prefix+"X"]=pos.x/canvas.width;mobileControlSettings[prefix+"Y"]=pos.y/canvas.height;
-}
-function openMobileSettings(){
-  stopMobileScrollInertia();releaseMobileJoystick();mobileAttackTouchId=null;mobileAttackAim=null;mobileSkillAim=null;mouse.down=false;
-  screenMode="mobileSettings";
-}
-function handleMobileSettingsTap(p){
-  if(pointInRect(p.x,p.y,mobileSettingsBackRect)){saveMobileControlSettings();screenMode="home";return true;}
-  if(pointInRect(p.x,p.y,mobileSettingsResetRect)){mobileControlSettings={...MOBILE_CONTROL_DEFAULTS};saveMobileControlSettings();return true;}
-  const adjust=(key,delta)=>{mobileControlSettings[key]=clampMobileControlScale(mobileControlSettings[key]+delta);saveMobileControlSettings();};
-  if(pointInRect(p.x,p.y,mobileJoystickMinusRect)){adjust("joystickScale",-.1);return true;}
-  if(pointInRect(p.x,p.y,mobileJoystickPlusRect)){adjust("joystickScale",.1);return true;}
-  if(pointInRect(p.x,p.y,mobileActionMinusRect)){adjust("actionScale",-.1);return true;}
-  if(pointInRect(p.x,p.y,mobileActionPlusRect)){adjust("actionScale",.1);return true;}
-  return false;
-}
-
 canvas.addEventListener("touchstart",event=>{
   event.preventDefault();
   if(isMobilePortraitMode())return;
+  if(screenMode==="mobileSettings"&&mobileSettingsPage==="view"&&handleMobileViewTouches(event))return;
   if(screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory){
     const t=event.changedTouches[0],p=canvasTouchPoint(t);
     stopMobileScrollInertia();
@@ -198,6 +184,7 @@ canvas.addEventListener("touchstart",event=>{
 
 canvas.addEventListener("touchmove",event=>{
   event.preventDefault();
+  if(screenMode==="mobileSettings"&&mobileSettingsPage==="view"&&handleMobileViewTouches(event))return;
   for(const touch of event.changedTouches){
     const p=canvasTouchPoint(touch);
     if(touch.identifier===mobileJoystickTouchId){updateMobileJoystick(p.x,p.y);continue;}
@@ -218,6 +205,7 @@ canvas.addEventListener("touchmove",event=>{
 
 function endMobileTouches(event){
   event.preventDefault();
+  if(screenMode==="mobileSettings"&&mobileSettingsPage==="view"&&handleMobileViewTouches(event))return;
   const cancelled=event.type==="touchcancel";
   for(const touch of event.changedTouches){
     if(touch.identifier===mobileJoystickTouchId)releaseMobileJoystick();
@@ -243,7 +231,7 @@ function endMobileTouches(event){
   }
 }
 canvas.addEventListener("touchend",endMobileTouches,{passive:false});canvas.addEventListener("touchcancel",endMobileTouches,{passive:false});
-addEventListener("orientationchange",()=>{releaseMobileJoystick();mobileAttackTouchId=null;mobileAttackAim=null;mobileSkillAim=null;mouse.down=false;});
+addEventListener("orientationchange",()=>{releaseMobileJoystick();mobileAttackTouchId=null;mobileAttackAim=null;mobileSkillAim=null;mobileUiGesture=null;resetMobileSettingsGestures();mouse.down=false;});
 
 // Settings work with touch, a stylus or a mouse attached to a tablet.
 let mobileSettingsMouseDrag=null;
@@ -320,6 +308,7 @@ function drawCommonAttackIcon(cx,cy,r){
 }
 
 const MOBILE_LOBBY_DISPLAY_FONT='"Black Han Sans", "Arial Black", "Malgun Gothic", sans-serif';
+const MOBILE_LOBBY_BUTTON_FONT='"Do Hyeon", "Malgun Gothic", sans-serif';
 
 function drawMobileLobbyEmblem(cx,cy,r,color,glyph){
   ctx.save();ctx.translate(cx,cy);ctx.shadowColor=color;ctx.shadowBlur=7;ctx.fillStyle="rgba(3,7,11,.72)";ctx.strokeStyle=`${color}e8`;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.strokeStyle=`${color}70`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r*.68,0,Math.PI*2);ctx.stroke();
@@ -356,7 +345,7 @@ function drawMobileHomeScreen(){
   homeStartRect={x:outerX,y:top,w:menuW,h:startH};
   drawLobbyPanel(homeStartRect,"#d94a50",{primary:true});
   drawMobileLobbyEmblem(outerX+(short?22:27),top+startH/2,short?14:18,"#d94a50","▶");
-  ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.2)";ctx.shadowBlur=4;ctx.font=`${short?18:23}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("작전 시작",outerX+menuW/2,top+startH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
+  ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.2)";ctx.shadowBlur=4;ctx.font=`${short?18:23}px ${MOBILE_LOBBY_BUTTON_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("작전 시작",outerX+menuW/2,top+startH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
   const cards=[["#9874c4","◆","캐릭터"],["#b99a55","✦","증강 도감"],["#5d9b84","?","기본 조작법"],["#a64e59","☣","몬스터 도감"]];
   const rects=[];
   for(let i=0;i<cards.length;i++){
@@ -364,7 +353,7 @@ function drawMobileHomeScreen(){
     rects.push(rect);
     const [color,icon,label]=cards[i];drawLobbyPanel(rect,color);
     drawMobileLobbyEmblem(rect.x+(short?19:24),rect.y+cardH/2,short?12:15,color,icon);
-    ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=3;ctx.font=`${short?13:17}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
+    ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=3;ctx.font=`${short?13:17}px ${MOBILE_LOBBY_BUTTON_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
   }
   [homeCharacterRect,homeAugmentGuideRect,homeGameGuideRect,homeMonsterGuideRect]=rects;
   homeSettingsRect=mobileSettingsHomeRect={x:outerX,y:cardY+2*(cardH+gap),w:cardW,h:cardH};
@@ -372,26 +361,11 @@ function drawMobileHomeScreen(){
   const bottomCards=[[homeSettingsRect,"#568da1","⚙","조작 설정"],[homeDifficultyRect,"#b86a51","▲","난이도"]];
   for(const [rect,color,icon,label] of bottomCards){
     drawLobbyPanel(rect,color);drawMobileLobbyEmblem(rect.x+(short?19:24),rect.y+cardH/2,short?12:15,color,icon);
-    ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#fff";ctx.font=`${short?13:17}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH/2+1);ctx.textBaseline="alphabetic";
+    ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#fff";ctx.font=`${short?13:17}px ${MOBILE_LOBBY_BUTTON_FONT}`;ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH/2+1);ctx.textBaseline="alphabetic";
   }
   ctx.restore();drawHomeDifficultyPicker();
 }
 
-function drawMobileControlSettings(){
-  drawMenuBackdrop(.76);ctx.save();ctx.fillStyle="rgba(2,6,14,.86)";ctx.fillRect(0,0,canvas.width,canvas.height);const pad=Math.max(18,canvas.width*.025),top=16;ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 23px Arial";ctx.fillText("모바일 조작 설정",pad,top+24);ctx.fillStyle="#8ea8bd";ctx.font="12px Arial";ctx.fillText("버튼을 직접 끌어 위치를 변경하세요 · 변경사항은 자동 저장됩니다",pad,top+44);
-  mobileSettingsBackRect={x:canvas.width-92,y:14,w:76,h:34};mobileSettingsResetRect={x:canvas.width-178,y:14,w:76,h:34};drawRoundedRect(mobileSettingsResetRect.x,mobileSettingsResetRect.y,mobileSettingsResetRect.w,mobileSettingsResetRect.h,8,"rgba(255,255,255,.07)","rgba(180,198,218,.38)",1);drawRoundedRect(mobileSettingsBackRect.x,mobileSettingsBackRect.y,mobileSettingsBackRect.w,mobileSettingsBackRect.h,8,"rgba(61,205,238,.18)","#55dfff",1.4);ctx.textAlign="center";ctx.fillStyle="#c7d3df";ctx.font="bold 12px Arial";ctx.fillText("초기화",mobileSettingsResetRect.x+38,mobileSettingsResetRect.y+22);ctx.fillStyle="#eafcff";ctx.fillText("완료",mobileSettingsBackRect.x+38,mobileSettingsBackRect.y+22);
-  const drawSizer=(cx,label,value,isAction)=>{const y=64,w=230,h=44;drawRoundedRect(cx-w/2,y,w,h,10,"rgba(11,23,38,.82)",isAction?"rgba(167,126,255,.55)":"rgba(84,216,255,.55)",1.2);ctx.fillStyle="#eaf4ff";ctx.font="bold 12px Arial";ctx.textAlign="center";ctx.fillText(label,cx,y+17);ctx.fillStyle="#8fa5b8";ctx.font="10px Arial";ctx.fillText(`${Math.round(value*100)}%`,cx,y+34);const minus={x:cx-w/2+9,y:y+7,w:34,h:30},plus={x:cx+w/2-43,y:y+7,w:34,h:30};drawRoundedRect(minus.x,minus.y,minus.w,minus.h,7,"rgba(255,255,255,.08)","rgba(255,255,255,.2)",1);drawRoundedRect(plus.x,plus.y,plus.w,plus.h,7,"rgba(255,255,255,.08)","rgba(255,255,255,.2)",1);ctx.fillStyle="#fff";ctx.font="900 19px Arial";ctx.fillText("−",minus.x+17,minus.y+21);ctx.fillText("+",plus.x+17,plus.y+21);return{minus,plus};};const js=drawSizer(canvas.width*.27,"이동 버튼 크기",mobileControlSettings.joystickScale,false),as=drawSizer(canvas.width*.72,"공격·스킬 크기",mobileControlSettings.actionScale,true);mobileJoystickMinusRect=js.minus;mobileJoystickPlusRect=js.plus;mobileActionMinusRect=as.minus;mobileActionPlusRect=as.plus;
-  ctx.setLineDash([7,7]);ctx.strokeStyle="rgba(104,206,240,.18)";ctx.lineWidth=1;ctx.strokeRect(10,116,canvas.width*.45-20,canvas.height-128);ctx.strokeStyle="rgba(170,125,255,.18)";ctx.strokeRect(canvas.width*.55+10,116,canvas.width*.45-20,canvas.height-128);ctx.setLineDash([]);const {joystick,attack}=getMobileControlLayout();ctx.fillStyle="rgba(8,16,29,.76)";ctx.strokeStyle="#58dfff";ctx.lineWidth=2;ctx.shadowColor="#32d9ff";ctx.shadowBlur=14;ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle="rgba(93,215,255,.4)";ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r*.36,0,Math.PI*2);ctx.fill();
-  const ag=ctx.createRadialGradient(attack.x-8,attack.y-9,3,attack.x,attack.y,attack.r);ag.addColorStop(0,"#214f6d");ag.addColorStop(1,"#07131f");
-  ctx.fillStyle=ag;ctx.strokeStyle="#55ddf5";ctx.lineWidth=3;ctx.beginPath();ctx.arc(attack.x,attack.y,attack.r,0,Math.PI*2);ctx.fill();ctx.stroke();drawCommonAttackIcon(attack.x,attack.y,attack.r*.7);
-  for(const skill of getMobileControlLayout().skills){
-    const name=getMobileSkillName(skill.key),{x,y,r}=skill;ctx.fillStyle="rgba(18,15,36,.94)";ctx.strokeStyle="#b99cff";ctx.lineWidth=2;
-    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
-    if(!drawMobileIcon(getMobileSkillIcon(skill.key),x,y,r)){ctx.fillStyle="#fff";ctx.font="900 9px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(name,x,y+1,r*1.8);}
-    ctx.fillStyle="#eaf6ff";ctx.font="900 9px Arial";ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillText(name,x,y+r+11);
-  }
-  ctx.fillStyle="rgba(204,223,238,.72)";ctx.font="11px Arial";ctx.textAlign="center";ctx.fillText("이동 영역",canvas.width*.225,132);ctx.fillText("전투 버튼 영역",canvas.width*.775,132);ctx.restore();
-}
 
 function drawMobileControls(){
   if(!isMobileTouchDevice()||isMobilePortraitMode()||screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory)return;const {joystick,attack,skills}=getMobileControlLayout();ctx.save();

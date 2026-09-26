@@ -2,11 +2,42 @@
 
 const RAID_BOSS_TIMES = [120 * 60, 240 * 60, 360 * 60];
 const RAID_BOSS_NAMES = ["맹독의 꽃 아마란스", "날개 달린 사신 모르스", "심연의 집행자 녹스"];
-const RAID_BOSS_HP = [37500, 150000, 600000];
+// 워드 수치표 기준의 최종 수치다. 피해량에 난이도 배율을 다시 곱하지 않는다.
+const RAID_BOSS_BALANCE = {
+  easy: {
+    hp: [37500, 150000, 600000],
+    damage: { contact: [0.12, 0.18, 0.25], poison: 0.06, venom: 0.14, venomSmall: 0.07, vine: 0.08, charge: 0.28, scythe: 0.15, scytheReturn: 0.30, minion: 0.05, abyssOrb: 0.60, lightning: 0.80 },
+    minionMinimum: 4
+  },
+  medium: {
+    hp: [67500, 270000, 1080000],
+    damage: { contact: [0.156, 0.234, 0.30], poison: 0.078, venom: 0.182, venomSmall: 0.091, vine: 0.104, charge: 0.364, scythe: 0.26, scytheReturn: 0.45, minion: 0.065, abyssOrb: 0.70, lightning: 0.85 },
+    minionMinimum: 5.2
+  },
+  hard: {
+    hp: [97500, 400000, 1300000],
+    damage: { contact: [0.20, 0.30, 0.35], poison: 0.12, venom: 0.30, venomSmall: 0.15, vine: 0.24, charge: 0.40, scythe: 0.50, scytheReturn: 0.80, minion: 0.15, abyssOrb: 0.80, lightning: 0.90 },
+    minionMinimum: 12
+  }
+};
+
+function getRaidBossBalance() {
+  return RAID_BOSS_BALANCE[selectedDifficulty] || RAID_BOSS_BALANCE.easy;
+}
+
+function getRaidBossDamageRatio(attack, bossIndex = activeRaidBoss?.raidIndex ?? 0) {
+  const ratio = getRaidBossBalance().damage[attack];
+  return Array.isArray(ratio) ? ratio[bossIndex] : ratio;
+}
+
+function getRaidBossMinionDamage() {
+  return Math.max(getRaidBossBalance().minionMinimum, player.maxHp * getRaidBossDamageRatio("minion"));
+}
 const RAID_BOSS_PERCENT_FLAT_PER_POINT = [25, 50, 90];
 const raidBossImages = ["venom-bloom", "winged-reaper", "abyss-knight"].map(name => {
   const image = new Image();
-  image.src = `assets/bosses/${name}.webp`;
+  if (typeof setGameImageSource === "function") setGameImageSource(image, `assets/bosses/${name}.webp`);
+  else image.src = `assets/bosses/${name}.webp`;
   return image;
 });
 
@@ -68,9 +99,8 @@ function startRaidBoss(index) {
     : (player.y - bossSpawnGap >= 180
       ? player.y - bossSpawnGap
       : Math.min(WORLD.height - 180, player.y + bossSpawnGap));
-  const difficultyHp = getRaidBossDifficultyHpMultiplier();
   const difficultySpeed = getRaidBossDifficultySpeedMultiplier();
-  const bossHp = RAID_BOSS_HP[index] * difficultyHp * (selectedDifficulty === "hard" ? 0.7 : 1);
+  const bossHp = getRaidBossBalance().hp[index];
   activeRaidBoss = {
     id: `raid-${index}-${Date.now()}`,
     isRaidBoss: true,
@@ -166,11 +196,7 @@ function raidPlayerDamage(ratio, lethal = false) {
     return;
   }
   if (player.invincibleTime > 0 || tryDodgeAttack()) return;
-  const bossIndex = activeRaidBoss?.raidIndex ?? -1;
-  const difficultyDamage = selectedDifficulty === "medium"
-    ? 1.3
-    : (selectedDifficulty === "hard" && bossIndex >= 0 && bossIndex < 2 ? 3 : 1);
-  let damage = player.maxHp * ratio * difficultyDamage;
+  let damage = player.maxHp * ratio;
   if (selectedCharacter === "vargas" && player.vargasShield > 0) {
     const absorbed = Math.min(player.vargasShield, damage);
     player.vargasShield -= absorbed;
@@ -193,14 +219,14 @@ function firePoisonVolley(boss) {
   const count = selectedDifficulty === "hard" ? 5 : 3;
   for (let i = 0; i < count; i++) {
     const a = base + (i - (count - 1) / 2) * 0.18;
-    addRaidProjectile({ type: "venom", x: boss.x, y: boss.y, vx: Math.cos(a) * 7.2, vy: Math.sin(a) * 7.2, r: 15, damage: 0.14 });
+    addRaidProjectile({ type: "venom", x: boss.x, y: boss.y, vx: Math.cos(a) * 7.2, vy: Math.sin(a) * 7.2, r: 15, damage: getRaidBossDamageRatio("venom") });
   }
 }
 
 function splitVenomProjectile(p) {
   for (let i = 0; i < 5; i++) {
     const a = Math.atan2(player.y - p.y, player.x - p.x) + (i - 2) * 0.34;
-    addRaidProjectile({ type: "venomSmall", x: p.x, y: p.y, vx: Math.cos(a) * 6.3, vy: Math.sin(a) * 6.3, r: 7, damage: 0.07, life: 150 });
+    addRaidProjectile({ type: "venomSmall", x: p.x, y: p.y, vx: Math.cos(a) * 6.3, vy: Math.sin(a) * 6.3, r: 7, damage: getRaidBossDamageRatio("venomSmall"), life: 150 });
   }
   raidBossEffects.push({ type: "poisonBurst", x: p.x, y: p.y, life: 30, maxLife: 30 });
 }
@@ -227,7 +253,7 @@ function updateBloomBoss(boss) {
       const count = selectedDifficulty === "hard" ? 2 : 1;
       for (let i = 0; i < count; i++) {
         const shotAngle = a + (i - (count - 1) / 2) * 0.2;
-        addRaidProjectile({ type: "vine", x: boss.x, y: boss.y, vx: Math.cos(shotAngle) * 10, vy: Math.sin(shotAngle) * 10, r: 13, damage: 0.08, life: 95 });
+        addRaidProjectile({ type: "vine", x: boss.x, y: boss.y, vx: Math.cos(shotAngle) * 10, vy: Math.sin(shotAngle) * 10, r: 13, damage: getRaidBossDamageRatio("vine"), life: 95 });
       }
     }
     if (boss.patternTime > 58) finishRaidPattern(boss, 75);
@@ -258,14 +284,14 @@ function updateReaperBoss(boss) {
     }
     if (boss.patternTime >= 36 && boss.patternTime <= 58) {
       boss.x += boss.dashVx; boss.y += boss.dashVy;
-      if (Math.hypot(player.x - boss.x, player.y - boss.y) < boss.r + player.r + 15) raidPlayerDamage(0.28);
+      if (Math.hypot(player.x - boss.x, player.y - boss.y) < boss.r + player.r + 15) raidPlayerDamage(getRaidBossDamageRatio("charge"));
     }
     if (boss.patternTime > 65) finishRaidPattern(boss, 90);
   } else if (boss.pattern === 1) {
     const scytheTimes = selectedDifficulty === "hard" ? [22, 74] : [22];
     if (scytheTimes.includes(boss.patternTime)) {
       const a = Math.atan2(player.y - boss.y, player.x - boss.x);
-      addRaidProjectile({ type: "scythe", x: boss.x, y: boss.y, vx: Math.cos(a) * 10, vy: Math.sin(a) * 10, r: 62, damage: 0.2, life: 170, owner: boss, returning: false, travel: 0 });
+      addRaidProjectile({ type: "scythe", x: boss.x, y: boss.y, vx: Math.cos(a) * 10, vy: Math.sin(a) * 10, r: 62, damage: getRaidBossDamageRatio("scythe"), life: 170, owner: boss, returning: false, travel: 0 });
     }
     if (boss.patternTime > 150) finishRaidPattern(boss, 100);
   } else if (boss.pattern === 2) {
@@ -276,14 +302,14 @@ function updateReaperBoss(boss) {
 
 function fireAbyssOrb(boss) {
   const a = Math.atan2(player.y - boss.y, player.x - boss.x);
-  addRaidProjectile({ type: "abyssOrb", x: boss.x, y: boss.y, vx: Math.cos(a) * 8.2, vy: Math.sin(a) * 8.2, r: 16, damage: 0.6, life: 180 });
+  addRaidProjectile({ type: "abyssOrb", x: boss.x, y: boss.y, vx: Math.cos(a) * 8.2, vy: Math.sin(a) * 8.2, r: 16, damage: getRaidBossDamageRatio("abyssOrb"), life: 180 });
 }
 
 function fireAbyssOrbRing(boss) {
   const count = 12;
   for (let i = 0; i < count; i++) {
     const a = i * Math.PI * 2 / count;
-    addRaidProjectile({ type: "abyssOrb", x: boss.x, y: boss.y, vx: Math.cos(a) * 8.2, vy: Math.sin(a) * 8.2, r: 16, damage: 0.6, life: 180 });
+    addRaidProjectile({ type: "abyssOrb", x: boss.x, y: boss.y, vx: Math.cos(a) * 8.2, vy: Math.sin(a) * 8.2, r: 16, damage: getRaidBossDamageRatio("abyssOrb"), life: 180 });
   }
 }
 
@@ -332,7 +358,7 @@ function updateRaidBossProjectiles() {
       if (!p.returning && p.travel > 52) { p.returning = true; p.hit = false; }
       if (p.returning) {
         const a = Math.atan2(p.owner.y - p.y, p.owner.x - p.x);
-        p.vx = Math.cos(a) * 12; p.vy = Math.sin(a) * 12; p.damage = 0.5;
+        p.vx = Math.cos(a) * 12; p.vy = Math.sin(a) * 12; p.damage = getRaidBossDamageRatio("scytheReturn");
         if (Math.hypot(p.owner.x - p.x, p.owner.y - p.y) < p.owner.r) { raidBossProjectiles.splice(i, 1); continue; }
       }
     }
@@ -365,11 +391,11 @@ function updateRaidBossZones() {
     z.life--; if (z.delay > 0) z.delay--;
     if (z.type === "poison" && z.delay <= 0) {
       z.tick = (z.tick || 0) - 1;
-      if (z.tick <= 0 && Math.hypot(player.x - z.x, player.y - z.y) < z.r + player.r) { raidPlayerDamage(0.06); z.tick = 28; }
+      if (z.tick <= 0 && Math.hypot(player.x - z.x, player.y - z.y) < z.r + player.r) { raidPlayerDamage(getRaidBossDamageRatio("poison")); z.tick = 28; }
     }
     if (z.type === "lightning" && z.delay <= 0 && !z.struck) {
       z.struck = true;
-      if (Math.hypot(player.x - z.x, player.y - z.y) < z.r + player.r) raidPlayerDamage(0.8);
+      if (Math.hypot(player.x - z.x, player.y - z.y) < z.r + player.r) raidPlayerDamage(getRaidBossDamageRatio("lightning"));
       raidBossEffects.push({ type: "lightning", x: z.x, y: z.y, r: z.r, seed: Math.random() * 1000, life: 36, maxLife: 36 });
     }
     if (z.life <= 0) raidBossZones.splice(i, 1);
@@ -415,7 +441,7 @@ function updateRaidBossSystem() {
   boss.facing = player.x < boss.x ? -1 : 1;
   const contactDistance = boss.r + player.r + (boss.raidIndex === 0 ? 8 : 14);
   if (Math.hypot(player.x - boss.x, player.y - boss.y) < contactDistance) {
-    raidPlayerDamage([0.12, 0.18, 0.25][boss.raidIndex]);
+    raidPlayerDamage(getRaidBossDamageRatio("contact", boss.raidIndex));
     const pushAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
     player.x += Math.cos(pushAngle) * 18;
     player.y += Math.sin(pushAngle) * 18;
@@ -568,8 +594,10 @@ function formatRaidTime(frames) {
 }
 
 function drawMobileRaidBossUI(){
-  // Keep notifications in the top HUD; do not cover the player or touch controls.
+  // 주의/등장 연출은 유지하되 체력바 아래의 작은 상단 패널에만 그린다.
+  // 화면 전체 암전이나 중앙 배너, 확대 펄스는 사용하지 않는다.
   const w=Math.min(400,canvas.width*.62),x=(canvas.width-w)/2,y=52;
+  const noticeFont=canvas.height<430?13:14;
   ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";ctx.shadowBlur=0;
   if(activeRaidBoss){
     const ratio=Math.max(0,Math.min(1,activeRaidBoss.hp/activeRaidBoss.maxHp));
@@ -577,23 +605,29 @@ function drawMobileRaidBossUI(){
     const g=ctx.createLinearGradient(x,0,x+w,0);g.addColorStop(0,"#9f2d79");g.addColorStop(1,"#df536c");
     ctx.fillStyle=g;ctx.fillRect(x,y,w*ratio,16);ctx.strokeStyle="rgba(247,214,235,.8)";ctx.lineWidth=1;ctx.strokeRect(x,y,w,16);
     ctx.font="bold 11px Arial";ctx.fillStyle="#fff";ctx.fillText(RAID_BOSS_NAMES[activeRaidBoss.raidIndex],canvas.width/2,y+8,w-12);
-    const elapsed=150-raidIntroTime;
-    if(raidIntroTime>0&&elapsed<66){
-      ctx.globalAlpha=Math.min(1,(elapsed+1)/8,(66-elapsed)/16);
-      ctx.fillStyle="rgba(28,10,21,.7)";ctx.fillRect(canvas.width/2-82,y+24,164,18);
-      ctx.font="bold 11px Arial";ctx.fillStyle="#ffc1cc";ctx.fillText("보스 등장 · 전투 준비",canvas.width/2,y+33);
+    if(raidIntroTime>0){
+      ctx.fillStyle="rgba(28,10,21,.78)";ctx.fillRect(x,y+22,w,32);
+      ctx.strokeStyle="rgba(255,116,139,.65)";ctx.strokeRect(x,y+22,w,32);
+      ctx.font=`bold ${noticeFont}px Arial`;ctx.fillStyle="#ffbcc8";ctx.fillText("주의 · 보스 등장",canvas.width/2,y+32,w-16);
+      ctx.font="11px Arial";ctx.fillStyle="#f1dfe7";ctx.fillText(`${formatRaidTime(survivalFrames)} · BOSS ENCOUNTER`,canvas.width/2,y+46,w-16);
     }else{
-      ctx.font="10px Arial";ctx.fillStyle="#d4c5b8";ctx.fillText("보스전 · 시간 정지",canvas.width/2,y+30);
+      ctx.font="11px Arial";ctx.fillStyle="#d4c5b8";ctx.fillText(`${formatRaidTime(survivalFrames)} · 보스전 · 시간 정지`,canvas.width/2,y+30);
     }
   }else{
     const remaining=RAID_BOSS_TIMES[nextRaidBossIndex]-survivalFrames;
-    const warning=remaining>0&&remaining<=300;
-    const width=warning?w:96;
-    ctx.fillStyle="rgba(6,10,18,.74)";ctx.fillRect((canvas.width-width)/2,y,width,24);
-    ctx.font="bold 12px Arial";ctx.fillStyle=warning?"#ffc4a3":"#fff";
-    const label=warning?`${formatRaidTime(survivalFrames)}  ·  ⚠ 보스 접근 ${Math.ceil(remaining/60)}초`:formatRaidTime(survivalFrames);
-    ctx.fillText(label,canvas.width/2,y+12,width-12);
-    if(warning){ctx.fillStyle="#cf725c";ctx.fillRect(x,y+23,w*remaining/300,1);}
+    const warning=nextRaidBossIndex<RAID_BOSS_TIMES.length&&remaining>0&&remaining<=300;
+    if(warning){
+      ctx.fillStyle="rgba(28,10,21,.78)";ctx.fillRect(x,y,w,44);
+      ctx.strokeStyle=`rgba(255,116,139,${.6+Math.sin(raidWarningPulse)*.15})`;ctx.lineWidth=1;ctx.strokeRect(x,y,w,44);
+      ctx.font=`bold ${noticeFont}px Arial`;ctx.fillStyle="#ffbcc8";
+      ctx.fillText(`주의 · 보스 접근 감지 · ${Math.ceil(remaining/60)}초`,canvas.width/2,y+12,w-20);
+      ctx.font="11px Arial";ctx.fillStyle="#f1dfe7";
+      ctx.fillText(`${RAID_BOSS_NAMES[nextRaidBossIndex]} · ${formatRaidTime(survivalFrames)}`,canvas.width/2,y+29,w-20);
+      ctx.fillStyle="#e27e80";ctx.fillRect(x,y+42,w*remaining/300,2);
+    }else{
+      ctx.fillStyle="rgba(6,10,18,.74)";ctx.fillRect(canvas.width/2-48,y,96,24);
+      ctx.font="bold 12px Arial";ctx.fillStyle="#fff";ctx.fillText(formatRaidTime(survivalFrames),canvas.width/2,y+12,84);
+    }
   }
   ctx.restore();
 }

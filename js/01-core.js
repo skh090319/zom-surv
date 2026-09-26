@@ -6,72 +6,74 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d", { alpha: false });
 
 const playerSprite = new Image();
-playerSprite.src = "player.webp";
+setGameImageSource(playerSprite, "assets/characters-original-v2/default.webp");
 let playerSpriteLoaded = false;
 playerSprite.onload = () => {
   playerSpriteLoaded = true;
 };
 
 const suncallSprite = new Image();
-suncallSprite.src = "suncall.webp";
+setGameImageSource(suncallSprite, "assets/characters-original-v2/suncall.webp");
 let suncallSpriteLoaded = false;
 suncallSprite.onload = () => {
   suncallSpriteLoaded = true;
 };
 
 const luminousSprite = new Image();
-luminousSprite.src = "assets/luminous.webp";
+setGameImageSource(luminousSprite, "assets/characters-original-v2/luminous.webp");
 let luminousSpriteLoaded = false;
 luminousSprite.onload = () => {
   luminousSpriteLoaded = true;
 };
 
 const luminousAttackSprite = new Image();
-luminousAttackSprite.src = "assets/luminous-attack.webp";
+setGameImageSource(luminousAttackSprite, "assets/characters-original-v2/luminous-attack.webp");
 let luminousAttackSpriteLoaded = false;
 luminousAttackSprite.onload = () => {
   luminousAttackSpriteLoaded = true;
 };
 
 const luminousBulletSprite = new Image();
-luminousBulletSprite.src = "assets/luminous-bullet.webp";
+setGameImageSource(luminousBulletSprite, "assets/luminous-bullet.webp");
 let luminousBulletSpriteLoaded = false;
 luminousBulletSprite.onload = () => {
   luminousBulletSpriteLoaded = true;
 };
 
 const yupiterSprite = new Image();
-yupiterSprite.src = "assets/yupiter.webp";
+setGameImageSource(yupiterSprite, "assets/characters-original-v2/yupiter.webp");
 let yupiterSpriteLoaded = false;
 yupiterSprite.onload = () => {
   yupiterSpriteLoaded = true;
 };
 
 const yupiterCrescentSprite = new Image();
-yupiterCrescentSprite.src = "assets/yupiter-crescent.webp";
+setGameImageSource(yupiterCrescentSprite, yupiterSprite.assetSource);
 let yupiterCrescentSpriteLoaded = false;
 yupiterCrescentSprite.onload = () => { yupiterCrescentSpriteLoaded = true; };
 
 const yupiterCrescentThrownSprite = new Image();
-yupiterCrescentThrownSprite.src = "assets/yupiter-crescent-thrown.webp";
+setGameImageSource(yupiterCrescentThrownSprite, "assets/characters-original-v2/yupiter-crescent-thrown.webp");
 let yupiterCrescentThrownSpriteLoaded = false;
 yupiterCrescentThrownSprite.onload = () => { yupiterCrescentThrownSpriteLoaded = true; };
 
 const yupiterSeveringSprite = new Image();
-yupiterSeveringSprite.src = "assets/yupiter-severing.webp";
+setGameImageSource(yupiterSeveringSprite, "assets/characters-original-v2/yupiter-severing.webp");
 let yupiterSeveringSpriteLoaded = false;
 yupiterSeveringSprite.onload = () => { yupiterSeveringSpriteLoaded = true; };
 
 const yupiterFlameSprite = new Image();
-yupiterFlameSprite.src = "assets/yupiter-flame.webp";
+setGameImageSource(yupiterFlameSprite, "assets/characters-original-v2/yupiter-flame.webp");
 let yupiterFlameSpriteLoaded = false;
 yupiterFlameSprite.onload = () => { yupiterFlameSpriteLoaded = true; };
 
 const yupiterHudPortrait = new Image();
-yupiterHudPortrait.src = "assets/yupiter-hud-portrait-user.webp";
+setGameImageSource(yupiterHudPortrait, yupiterSprite.assetSource);
+yupiterHudPortrait.portraitCrop = [0.42, 0.05, 0.48];
 
 const yupiterUltimateIcon = new Image();
-yupiterUltimateIcon.src = "assets/yupiter-ultimate-icon-user.webp";
+setGameImageSource(yupiterUltimateIcon, yupiterSprite.assetSource);
+yupiterUltimateIcon.portraitCrop = [0.3, 0.05, 0.65];
 
 const yupiterESkillIcons = [
   "assets/yupiter-e-crescent.webp",
@@ -79,33 +81,33 @@ const yupiterESkillIcons = [
   "assets/yupiter-e-flame.webp"
 ].map(source => {
   const image = new Image();
-  image.src = source;
+  setGameImageSource(image, source);
   return image;
 });
 
 const renSprite = new Image();
-renSprite.src = "assets/ren.webp";
+setGameImageSource(renSprite, "assets/characters-original-v2/ren.webp");
 let renSpriteLoaded = false;
 renSprite.onload = () => { renSpriteLoaded = true; };
 
 const renAttackSprite = new Image();
-renAttackSprite.src = "assets/ren-attack.webp";
+setGameImageSource(renAttackSprite, "assets/characters-original-v2/ren-attack.webp");
 let renAttackSpriteLoaded = false;
 renAttackSprite.onload = () => { renAttackSpriteLoaded = true; };
 
 const nightLordSprite = new Image();
-nightLordSprite.src = "assets/night-lord.webp";
+setGameImageSource(nightLordSprite, "assets/characters-original-v2/night-lord.webp");
 let nightLordSpriteLoaded = false;
 nightLordSprite.onload = () => { nightLordSpriteLoaded = true; };
 
 const nightLordAttackSprite = new Image();
-nightLordAttackSprite.src = "assets/night-lord-attack.webp";
+setGameImageSource(nightLordAttackSprite, "assets/characters-original-v2/night-lord-attack.webp");
 let nightLordAttackSpriteLoaded = false;
 nightLordAttackSprite.onload = () => { nightLordAttackSpriteLoaded = true; };
 
 const nightLordSkillIcons = ["q", "e", "x", "r"].map(key => {
   const image = new Image();
-  image.src = `assets/night-lord-skill-${key}.webp`;
+  setGameImageSource(image, `assets/night-lord-skill-${key}.webp`);
   return image;
 });
 
@@ -119,18 +121,18 @@ for (const [id, source] of Object.entries({
   nightExecutionTranscend: "assets/night-lord-augment-slaughterer.webp"
 })) {
   const image = new Image();
-  image.src = source;
+  setGameImageSource(image, source);
   nightLordAugmentIcons[id] = image;
 }
 
 const zeroSprite = new Image();
-zeroSprite.src = "assets/zero.webp";
+setGameImageSource(zeroSprite, "assets/characters-original-v2/zero.webp");
 let zeroSpriteLoaded = false;
 zeroSprite.onload = () => { zeroSpriteLoaded = true; };
 
 const zeroSkillIcons = ["q", "e", "x", "r"].map(key => {
   const image = new Image();
-  image.src = `assets/zero-skill-${key}.webp`;
+  setGameImageSource(image, `assets/zero-skill-${key}.webp`);
   return image;
 });
 
@@ -144,84 +146,85 @@ for (const [id, source] of Object.entries({
   zeroJudgmentTranscend: "assets/zero-augment-eternal.webp"
 })) {
   const image = new Image();
-  image.src = source;
+  setGameImageSource(image, source);
   zeroAugmentIcons[id] = image;
 }
 
 const paladinSprite = new Image();
-paladinSprite.src = "assets/paladin.webp";
+setGameImageSource(paladinSprite, "assets/characters-original-v2/paladin.webp");
 let paladinSpriteLoaded = false;
 paladinSprite.onload = () => { paladinSpriteLoaded = true; };
 
 const paladinSkillIcons = ["q", "e", "x", "r"].map(key => {
   const image = new Image();
-  image.src = `assets/paladin-skill-${key}.webp`;
+  setGameImageSource(image, `assets/paladin-skill-${key}.webp`);
   return image;
 });
 
 const paladinAugmentIcons = {};
 for (const id of ["combo", "speed", "release"]) {
-  const normal = new Image(); normal.src = `assets/paladin-augment-${id}.webp`;
-  const transcend = new Image(); transcend.src = `assets/paladin-augment-${id}-transcend.webp`;
+  const normal = new Image(); setGameImageSource(normal, `assets/paladin-augment-${id}.webp`);
+  const transcend = new Image(); setGameImageSource(transcend, `assets/paladin-augment-${id}-transcend.webp`);
   paladinAugmentIcons[`paladin${id[0].toUpperCase()}${id.slice(1)}`] = normal;
   paladinAugmentIcons[`paladin${id[0].toUpperCase()}${id.slice(1)}Transcend`] = transcend;
 }
 
 const arcSprite = new Image();
-arcSprite.src = "assets/arc.webp";
+setGameImageSource(arcSprite, "assets/characters-original-v2/arc.webp");
 let arcSpriteLoaded = false;
 arcSprite.onload = () => { arcSpriteLoaded = true; };
 const arcSkillIconAtlas = new Image();
-arcSkillIconAtlas.src = "assets/arc-skill-icons.webp";
+setGameImageSource(arcSkillIconAtlas, "assets/arc-skill-icons.webp");
 const arcAugmentIconAtlas = new Image();
-arcAugmentIconAtlas.src = "assets/arc-augment-icons.webp";
+setGameImageSource(arcAugmentIconAtlas, "assets/arc-augment-icons.webp");
 const terraSprite = new Image();
-terraSprite.src = "assets/terra.webp";
+setGameImageSource(terraSprite, "assets/terra.webp");
 let terraSpriteLoaded = false;
 terraSprite.onload = () => { terraSpriteLoaded = true; };
 const terraSkillIconAtlas = new Image();
-terraSkillIconAtlas.src = "assets/terra-skill-icons.webp";
+setGameImageSource(terraSkillIconAtlas, "assets/terra-skill-icons.webp");
 const terraAugmentIconAtlas = new Image();
-terraAugmentIconAtlas.src = "assets/terra-augment-icons.webp";
+setGameImageSource(terraAugmentIconAtlas, "assets/terra-augment-icons.webp");
 const terraRockAtlas = new Image();
-terraRockAtlas.src = "assets/terra-rock-atlas.webp";
+setGameImageSource(terraRockAtlas, "assets/terra-rock-atlas.webp");
 let terraRockAtlasLoaded = false;
 terraRockAtlas.onload = () => { terraRockAtlasLoaded = true; };
-const voidSprite = new Image(); voidSprite.src = "assets/void.webp";
+const voidSprite = new Image(); setGameImageSource(voidSprite, "assets/void.webp");
 let voidSpriteLoaded = false; voidSprite.onload = () => { voidSpriteLoaded = true; };
-const voidSkillIconAtlas = new Image(); voidSkillIconAtlas.src = "assets/void-skill-icons.webp";
-const voidAugmentIconAtlas = new Image(); voidAugmentIconAtlas.src = "assets/void-augment-icons.webp";
-const carmillaSprite=new Image();carmillaSprite.src="assets/carmilla.webp";let carmillaSpriteLoaded=false;carmillaSprite.onload=()=>carmillaSpriteLoaded=true;
-const carmillaSkillIconAtlas=new Image();carmillaSkillIconAtlas.src="assets/carmilla-skill-icons.webp";
-const carmillaAugmentIconAtlas=new Image();carmillaAugmentIconAtlas.src="assets/carmilla-augment-icons.webp";
-const vargasSprite=new Image();vargasSprite.src="assets/vargas.webp";let vargasSpriteLoaded=false;vargasSprite.onload=()=>vargasSpriteLoaded=true;
-const vargasSkillIconAtlas=new Image();vargasSkillIconAtlas.src="assets/vargas-skill-icons.webp";
-const vargasAugmentIconAtlas=new Image();vargasAugmentIconAtlas.src="assets/vargas-augment-icons.webp";
-const echoSprite=new Image();echoSprite.src="assets/echo.webp";let echoSpriteLoaded=false;echoSprite.onload=()=>echoSpriteLoaded=true;
-const echoSkillIconAtlas=new Image();echoSkillIconAtlas.src="assets/echo-skill-icons.webp";
-const echoAugmentIconAtlas=new Image();echoAugmentIconAtlas.src="assets/echo-augment-icons.webp";
-const ariaSprite=new Image();ariaSprite.src="assets/aria.webp";let ariaSpriteLoaded=false;ariaSprite.onload=()=>ariaSpriteLoaded=true;
-const ariaSkillIconAtlas=new Image();ariaSkillIconAtlas.src="assets/aria-skill-icons.webp";
-const ariaAugmentIconAtlas=new Image();ariaAugmentIconAtlas.src="assets/aria-augment-icons.webp";
-const moiraSprite=new Image();moiraSprite.src="assets/moira.webp";let moiraSpriteLoaded=false;moiraSprite.onload=()=>moiraSpriteLoaded=true;
-const moiraSkillIconAtlas=new Image();moiraSkillIconAtlas.src="assets/moira-skill-icons.webp";
-const moiraAugmentIconAtlas=new Image();moiraAugmentIconAtlas.src="assets/moira-augment-icons.webp";
-const mareSprite=new Image();mareSprite.src="assets/mare.webp";let mareSpriteLoaded=false;mareSprite.onload=()=>mareSpriteLoaded=true;
-const mareSkillIconAtlas=new Image();mareSkillIconAtlas.src="assets/mare-skill-icons.webp";
-const mareAugmentIconAtlas=new Image();mareAugmentIconAtlas.src="assets/mare-augment-icons.webp";
-const mareLeviathanSprite=new Image();mareLeviathanSprite.src="assets/mare-leviathan.webp";let mareLeviathanLoaded=false;mareLeviathanSprite.onload=()=>mareLeviathanLoaded=true;
+const voidSkillIconAtlas = new Image(); setGameImageSource(voidSkillIconAtlas, "assets/void-skill-icons.webp");
+const voidAugmentIconAtlas = new Image(); setGameImageSource(voidAugmentIconAtlas, "assets/void-augment-icons.webp");
+const carmillaSprite=new Image();setGameImageSource(carmillaSprite, "assets/carmilla.webp");let carmillaSpriteLoaded=false;carmillaSprite.onload=()=>carmillaSpriteLoaded=true;
+const carmillaSkillIconAtlas=new Image();setGameImageSource(carmillaSkillIconAtlas, "assets/carmilla-skill-icons.webp");
+const carmillaAugmentIconAtlas=new Image();setGameImageSource(carmillaAugmentIconAtlas, "assets/carmilla-augment-icons.webp");
+const vargasSprite=new Image();setGameImageSource(vargasSprite, "assets/vargas.webp");let vargasSpriteLoaded=false;vargasSprite.onload=()=>vargasSpriteLoaded=true;
+const vargasSkillIconAtlas=new Image();setGameImageSource(vargasSkillIconAtlas, "assets/vargas-skill-icons.webp");
+const vargasAugmentIconAtlas=new Image();setGameImageSource(vargasAugmentIconAtlas, "assets/vargas-augment-icons.webp");
+const echoSprite=new Image();setGameImageSource(echoSprite, "assets/echo.webp");let echoSpriteLoaded=false;echoSprite.onload=()=>echoSpriteLoaded=true;
+const echoSkillIconAtlas=new Image();setGameImageSource(echoSkillIconAtlas, "assets/echo-skill-icons.webp");
+const echoAugmentIconAtlas=new Image();setGameImageSource(echoAugmentIconAtlas, "assets/echo-augment-icons.webp");
+const ariaSprite=new Image();setGameImageSource(ariaSprite, "assets/aria.webp");let ariaSpriteLoaded=false;ariaSprite.onload=()=>ariaSpriteLoaded=true;
+const ariaSkillIconAtlas=new Image();setGameImageSource(ariaSkillIconAtlas, "assets/aria-skill-icons.webp");
+const ariaAugmentIconAtlas=new Image();setGameImageSource(ariaAugmentIconAtlas, "assets/aria-augment-icons.webp");
+const moiraSprite=new Image();setGameImageSource(moiraSprite, "assets/moira.webp");let moiraSpriteLoaded=false;moiraSprite.onload=()=>moiraSpriteLoaded=true;
+const moiraSkillIconAtlas=new Image();setGameImageSource(moiraSkillIconAtlas, "assets/moira-skill-icons.webp");
+const moiraAugmentIconAtlas=new Image();setGameImageSource(moiraAugmentIconAtlas, "assets/moira-augment-icons.webp");
+const mareSprite=new Image();setGameImageSource(mareSprite, "assets/mare.webp");let mareSpriteLoaded=false;mareSprite.onload=()=>mareSpriteLoaded=true;
+const mareSkillIconAtlas=new Image();setGameImageSource(mareSkillIconAtlas, "assets/mare-skill-icons.webp");
+const mareAugmentIconAtlas=new Image();setGameImageSource(mareAugmentIconAtlas, "assets/mare-augment-icons.webp");
+const mareLeviathanSprite=new Image();setGameImageSource(mareLeviathanSprite, "assets/mare-leviathan.webp");let mareLeviathanLoaded=false;mareLeviathanSprite.onload=()=>mareLeviathanLoaded=true;
 
 const renHudPortrait = new Image();
-renHudPortrait.src = "assets/ren-hud-portrait.webp";
+setGameImageSource(renHudPortrait, renSprite.assetSource);
+renHudPortrait.portraitCrop = [0.27, 0.19, 0.44];
 
 const renSkillIcons = ["q-deploy", "x", "e", "r"].map(key => {
   const image = new Image();
-  image.src = `assets/ren-skill-${key}.webp`;
+  setGameImageSource(image, `assets/ren-skill-${key}.webp`);
   return image;
 });
 
 const renShadowShardSprite = new Image();
-renShadowShardSprite.src = "assets/ren-shadow-shard.webp";
+setGameImageSource(renShadowShardSprite, "assets/ren-shadow-shard.webp");
 let renShadowShardSpriteLoaded = false;
 renShadowShardSprite.onload = () => { renShadowShardSpriteLoaded = true; };
 
@@ -233,92 +236,92 @@ for (const [id, source] of Object.entries({
   reaperFootsteps: "assets/ren-augment-reaper-footsteps.webp"
 })) {
   const image = new Image();
-  image.src = source;
+  setGameImageSource(image, source);
   renAugmentIcons[id] = image;
 }
 
 const crescentBladeSprite = new Image();
-crescentBladeSprite.src = "assets/crescent-blade.webp";
+setGameImageSource(crescentBladeSprite, "assets/crescent-blade.webp");
 let crescentBladeSpriteLoaded = false;
 crescentBladeSprite.onload = () => {
   crescentBladeSpriteLoaded = true;
 };
 
 const severingBladeSprite = new Image();
-severingBladeSprite.src = "assets/severing-blade.webp";
+setGameImageSource(severingBladeSprite, "assets/severing-blade.webp");
 let severingBladeSpriteLoaded = false;
 severingBladeSprite.onload = () => { severingBladeSpriteLoaded = true; };
 
 const flameCannonSprite = new Image();
-flameCannonSprite.src = "assets/flame-cannon.webp";
+setGameImageSource(flameCannonSprite, "assets/flame-cannon.webp");
 let flameCannonSpriteLoaded = false;
 flameCannonSprite.onload = () => { flameCannonSpriteLoaded = true; };
 
 const martialLawIcon = new Image();
-martialLawIcon.src = "assets/augment-martial-law.webp";
+setGameImageSource(martialLawIcon, "assets/augment-martial-law.webp");
 let martialLawIconLoaded = false;
 martialLawIcon.onload = () => { martialLawIconLoaded = true; };
 const swordAuraIcon = new Image();
-swordAuraIcon.src = "assets/augment-sword-aura.webp";
+setGameImageSource(swordAuraIcon, "assets/augment-sword-aura.webp");
 let swordAuraIconLoaded = false;
 swordAuraIcon.onload = () => { swordAuraIconLoaded = true; };
 const trackerIcon = new Image();
-trackerIcon.src = "assets/augment-tracker.webp";
+setGameImageSource(trackerIcon, "assets/augment-tracker.webp");
 let trackerIconLoaded = false;
 trackerIcon.onload = () => { trackerIconLoaded = true; };
 
 const gunSprite = new Image();
-gunSprite.src = "gun.webp";
+setGameImageSource(gunSprite, "gun.webp");
 let gunSpriteLoaded = false;
 gunSprite.onload = () => {
   gunSpriteLoaded = true;
 };
 
 const backgroundImage = new Image();
-backgroundImage.src = "background.webp";
+setGameImageSource(backgroundImage, "background.webp");
 let backgroundLoaded = false;
 backgroundImage.onload = () => {
   backgroundLoaded = true;
 };
 
 const lobbyBackgroundImage = new Image();
-lobbyBackgroundImage.src = "assets/lobby-background-v1.webp";
+setGameImageSource(lobbyBackgroundImage, "assets/lobby-background-v1.webp");
 let lobbyBackgroundLoaded = false;
 lobbyBackgroundImage.onload = () => { lobbyBackgroundLoaded = true; };
 
 const lobbyButtonPanelImage = new Image();
-lobbyButtonPanelImage.src = "assets/lobby-button-panel-v1.webp";
+setGameImageSource(lobbyButtonPanelImage, "assets/lobby-button-panel-v1.webp");
 let lobbyButtonPanelLoaded = false;
 lobbyButtonPanelImage.onload = () => { lobbyButtonPanelLoaded = true; };
 
 const augmentIconAtlas = new Image();
-augmentIconAtlas.src = "assets/augment-icons.webp";
+setGameImageSource(augmentIconAtlas, "assets/augment-icons.webp");
 let augmentIconAtlasLoaded = false;
 augmentIconAtlas.onload = () => {
   augmentIconAtlasLoaded = true;
 };
 
 const immortalIcon = new Image();
-immortalIcon.src = "assets/augment-immortal.webp";
+setGameImageSource(immortalIcon, "assets/augment-immortal.webp");
 let immortalIconLoaded = false;
 immortalIcon.onload = () => {
   immortalIconLoaded = true;
 };
 
 const magnetItemSprite = new Image();
-magnetItemSprite.src = "assets/item-magnet.webp";
+setGameImageSource(magnetItemSprite, "assets/item-magnet.webp");
 let magnetItemSpriteLoaded = false;
 magnetItemSprite.onload = () => { magnetItemSpriteLoaded = true; };
 
 const zombieSpriteAtlas = new Image();
-zombieSpriteAtlas.src = "assets/zombie-characters.webp";
+setGameImageSource(zombieSpriteAtlas, "assets/zombie-characters.webp");
 let zombieSpriteAtlasLoaded = false;
 zombieSpriteAtlas.onload = () => {
   zombieSpriteAtlasLoaded = true;
 };
 
 const transcendIconAtlas = new Image();
-transcendIconAtlas.src = "assets/transcend-icons.webp";
+setGameImageSource(transcendIconAtlas, "assets/transcend-icons.webp");
 let transcendIconAtlasLoaded = false;
 transcendIconAtlas.onload = () => {
   transcendIconAtlasLoaded = true;
@@ -576,7 +579,6 @@ function difficultyValue(easy, medium, hard) {
 }
 function getZombieDifficultyDamageMultiplier() { return difficultyValue(1, 1.5, 2.5); }
 function getZombieDifficultySpeedMultiplier() { return difficultyValue(1, 1.2, 1.4); }
-function getRaidBossDifficultyHpMultiplier() { return difficultyValue(1, 1.8, 4); }
 function getRaidBossDifficultySpeedMultiplier() { return difficultyValue(1, 1.2, 1.2); }
 let characterBackRect = { x: 0, y: 0, w: 180, h: 54 };
 let characterSelectRect = { x: 0, y: 0, w: 240, h: 300 };
@@ -608,7 +610,8 @@ function screenToWorld() {
 
 function getWorldViewScale() {
   if(!(typeof isMobileTouchDevice === "function" && isMobileTouchDevice() && canvas.height < canvas.width))return 1;
-  return Math.min(canvas.width,canvas.height)<520?0.62:0.78;
+  const baseScale = Math.min(canvas.width,canvas.height)<520?0.62:0.78;
+  return baseScale * (typeof getMobileViewZoom === "function" ? getMobileViewZoom() : 1);
 }
 
 function getCameraViewWidth() { return canvas.width / getWorldViewScale(); }

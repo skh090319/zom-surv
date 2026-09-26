@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v35";
+const CACHE_VERSION = "zombie-survival-v40";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -12,12 +12,13 @@ const CORE_ASSETS = [
   "./assets/lobby-button-panel-v1.webp",
   "./assets/fonts/BlackHanSans-Regular.ttf",
   "./assets/fonts/BlackHanSans-OFL.txt",
-  "./player.webp",
-  "./gun.webp",
-  "./assets/zombie-characters.webp",
+  "./assets/fonts/DoHyeon-Regular.ttf",
+  "./assets/fonts/DoHyeon-OFL.txt",
+  "./assets/characters-original-v2/default.webp",
   "./assets/pwa/icon-192.png",
   "./assets/pwa/icon-512.png",
   "./assets/pwa/icon-maskable-512.png",
+  "./js/00-assets.js",
   "./js/01-core.js",
   "./js/02-upgrades.js",
   "./js/03-input.js",
@@ -52,6 +53,7 @@ const CORE_ASSETS = [
   "./js/08-ui.js",
   "./js/08-guide.js",
   "./js/08-mobile.js",
+  "./js/08-mobile-settings.js",
   "./js/08-mobile-targeting.js",
   "./js/09-main.js",
   "./js/pwa.js"
@@ -93,10 +95,10 @@ self.addEventListener("fetch", event => {
   }
 
   event.respondWith(caches.match(request, { ignoreSearch: true }).then(cached => {
-    const network = fetch(request).then(response => {
+    if (cached) return cached;
+    return fetch(request).then(response => {
       if (response.ok) caches.open(RUNTIME_CACHE).then(cache => cache.put(request, response.clone()));
       return response;
-    });
-    return cached || network.catch(() => new Response("Offline", { status: 503, statusText: "Offline" }));
+    }).catch(() => new Response("Offline", { status: 503, statusText: "Offline" }));
   }));
 });

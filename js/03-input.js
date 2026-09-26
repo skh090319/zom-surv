@@ -17,7 +17,7 @@ addEventListener("keydown", e => {
     return;
   }
 
-  if(screenMode==="mobileSettings"&&key==="escape"){saveMobileControlSettings();screenMode="home";return;}
+  if(screenMode==="mobileSettings"&&key==="escape"){leaveMobileSettingsPage();return;}
 
   if (choosingUpgrade) {
     if (upgradeAnimTime < 18 || upgradeSelectionEffect) return;
@@ -116,7 +116,11 @@ canvas.addEventListener("mousedown", event => {
   if (screenMode === "home") {
     if(homeDifficultyOpen){
       const choice=homeDifficultyChoiceRects.find(rect=>pointInRect(event.clientX,event.clientY,rect));
-      if(choice){selectedDifficulty=choice.value;try{localStorage.setItem("zombieSurvivalDifficulty",selectedDifficulty);}catch(error){};}
+      if(choice){
+        selectedDifficulty=choice.value;
+        try{localStorage.setItem("zombieSurvivalDifficulty",selectedDifficulty);}catch(error){}
+        return;
+      }
       homeDifficultyOpen=false;return;
     }
     if(pointInRect(event.clientX,event.clientY,homeSettingsRect)){

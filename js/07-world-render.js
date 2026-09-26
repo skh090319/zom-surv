@@ -209,8 +209,8 @@ function drawPlayer() {
       player.x + Math.cos(castAngle) * castLunge,
       player.y + Math.sin(castAngle) * castLunge
     );
-    if (luminousIsAttacking && Math.cos(castAngle) > 0) ctx.scale(-1, 1);
-    if (selectedCharacter === "ren" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
+    if (luminousIsAttacking && Math.cos(castAngle) < 0) ctx.scale(-1, 1);
+    if (selectedCharacter === "ren" && Math.cos(mouseAngle) < 0) ctx.scale(-1, 1);
     if (selectedCharacter === "nightLord" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "zero" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "paladin" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
@@ -533,9 +533,9 @@ function drawRenAttackOverlay() {
     ctx.translate(effect.x, effect.y);
     if (effect.targetId !== null && (renAttackSpriteLoaded || renSpriteLoaded)) {
       ctx.filter = effect.shadow ? "grayscale(1) brightness(0.42) sepia(1) hue-rotate(285deg) saturate(5)" : "none";
-      if (Math.cos(effect.angle) > 0) ctx.scale(-1, 1);
+      if (Math.cos(effect.angle) < 0) ctx.scale(-1, 1);
       ctx.drawImage(renAttackSpriteLoaded ? renAttackSprite : renSprite, -56, -74, 112, 112);
-      if (Math.cos(effect.angle) > 0) ctx.scale(-1, 1);
+      if (Math.cos(effect.angle) < 0) ctx.scale(-1, 1);
     }
     ctx.filter = "none";
     ctx.rotate(effect.angle);

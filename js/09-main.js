@@ -1,6 +1,7 @@
 // 게임 초기화와 메인 루프
 
 function draw() {
+  prepareGameImages();
   if (typeof isMobilePortraitMode === "function" && isMobilePortraitMode()) {
     drawMobilePortraitLock();
     return;

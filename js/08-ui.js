@@ -292,9 +292,9 @@ function drawNightLordPortrait(x, y, radius) {
   ctx.fillStyle = "#160b26";
   ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
   if (nightLordSpriteLoaded && nightLordSprite.naturalWidth > 0) {
-    const sourceSize = Math.min(nightLordSprite.naturalWidth, nightLordSprite.naturalHeight) * 0.58;
-    const sourceX = nightLordSprite.naturalWidth * 0.21;
-    const sourceY = nightLordSprite.naturalHeight * 0.08;
+    const sourceSize = Math.min(nightLordSprite.naturalWidth, nightLordSprite.naturalHeight) * 0.48;
+    const sourceX = nightLordSprite.naturalWidth * 0.38;
+    const sourceY = nightLordSprite.naturalHeight * 0.10;
     ctx.drawImage(nightLordSprite, sourceX, sourceY, sourceSize, sourceSize, x - radius, y - radius, radius * 2, radius * 2);
   }
   ctx.restore();
@@ -504,7 +504,14 @@ function drawYupiterHudIcon(x, y, radius, image, ready, fillCrop = false) {
   if (image && image.complete && image.naturalWidth > 0) {
     ctx.globalAlpha = ready ? 1 : 0.4;
     const padding = fillCrop ? 0 : radius * 0.25;
-    ctx.drawImage(image, x - radius + padding, y - radius + padding, (radius - padding) * 2, (radius - padding) * 2);
+    if (fillCrop && image.portraitCrop) {
+      const [left, top, size] = image.portraitCrop;
+      const side = Math.min(image.naturalWidth, image.naturalHeight) * size;
+      ctx.drawImage(image, image.naturalWidth * left, image.naturalHeight * top, side, side,
+        x - radius, y - radius, radius * 2, radius * 2);
+    } else {
+      ctx.drawImage(image, x - radius + padding, y - radius + padding, (radius - padding) * 2, (radius - padding) * 2);
+    }
   }
   ctx.restore();
   ctx.save();
@@ -795,6 +802,7 @@ function drawLobbyEmblem(cx,cy,r,color,glyph){
 function difficultyLabel(value=selectedDifficulty){return value==="easy"?"EASY":value==="hard"?"HARD":"MEDIUM";}
 
 const LOBBY_DISPLAY_FONT='"Black Han Sans", "Arial Black", "Malgun Gothic", sans-serif';
+const LOBBY_BUTTON_FONT='"Do Hyeon", "Malgun Gothic", sans-serif';
 
 function drawHomeDifficultyPicker(){
   if(!homeDifficultyOpen){homeDifficultyChoiceRects=[];return;}
@@ -803,7 +811,7 @@ function drawHomeDifficultyPicker(){
   const shell=ctx.createLinearGradient(x,y,x,y+h);shell.addColorStop(0,"rgba(31,38,45,.99)");shell.addColorStop(1,"rgba(5,9,13,.99)");
   drawRoundedRect(x,y,w,h,9,shell,"rgba(173,188,198,.7)",1.5);ctx.fillStyle="#d94a50";ctx.fillRect(x+1,y+1,w-2,4);
   ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font=`20px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("위협 단계 설정",x+24,y+38);
-  ctx.fillStyle="rgba(205,215,222,.62)";ctx.font="11px Arial";ctx.fillText("현재는 모든 단계의 게임 수치가 동일합니다",x+24,y+59);
+  ctx.fillStyle="rgba(205,215,222,.62)";ctx.font="11px Arial";ctx.fillText("선택 즉시 적용 · 빈 공간을 눌러 닫기",x+24,y+59);
   const gap=10,pad=24,choiceY=y+82,choiceH=h-106,choiceW=(w-pad*2-gap*2)/3;
   homeDifficultyChoiceRects=["easy","medium","hard"].map((value,index)=>({value,x:x+pad+index*(choiceW+gap),y:choiceY,w:choiceW,h:choiceH}));
   const details={easy:["EASY","생존 준비","#69d8a5"],medium:["MEDIUM","표준 위협","#e0b04f"],hard:["HARD","극한 경계","#e45b62"]};
@@ -912,7 +920,7 @@ function drawHomeScreen() {
   const startHover=pointInRect(mouse.x,mouse.y,homeStartRect),lift=startHover?-4:0;
   drawLobbyPanel(homeStartRect,"#d94a50",{hover:startHover,primary:true});
   drawLobbyEmblem(leftX+39,startY+38+lift,22,"#d94a50","▶");
-  ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.22)";ctx.shadowBlur=5;ctx.font=`27px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("작전 시작",leftX+menuW/2,startY+47+lift);ctx.shadowBlur=0;ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
+  ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.22)";ctx.shadowBlur=5;ctx.font=`27px ${LOBBY_BUTTON_FONT}`;ctx.fillText("작전 시작",leftX+menuW/2,startY+47+lift);ctx.shadowBlur=0;ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
 
   // 보조 메뉴: 언제나 두 칸씩 배치
   const gap=10,cardY=startY+86,cardH=98,cardCols=2,cardW=(menuW-gap)/2;
@@ -922,7 +930,7 @@ function drawHomeScreen() {
   for(const [rect,color,glyph,label,no] of cards){
     const hover=pointInRect(mouse.x,mouse.y,rect),cy=drawLobbyPanel(rect,color,{hover});
     drawLobbyEmblem(rect.x+28,cy+rect.h/2,18,color,glyph);
-    ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=4;ctx.font=`${cardW<130?15:18}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,cy+rect.h/2+6);ctx.shadowBlur=0;
+    ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=4;ctx.font=`${cardW<130?15:18}px ${LOBBY_BUTTON_FONT}`;ctx.fillText(label,rect.x+rect.w/2,cy+rect.h/2+6);ctx.shadowBlur=0;
     ctx.fillStyle=hover?color:"rgba(255,255,255,.35)";ctx.font="bold 17px Arial";ctx.fillText("›",rect.x+rect.w-22,cy+rect.h/2+6);
     ctx.textAlign="right";ctx.fillStyle="rgba(255,255,255,.16)";ctx.font="bold 10px monospace";ctx.fillText(no,rect.x+rect.w-11,cy+18);
   }
@@ -953,7 +961,7 @@ const characterSkillGuide = {
   mare:{name:"마레",color:"#45dff0",passive:"물 공격을 반복 적중시키면 침수가 중첩됩니다. 교차한 해류는 합류 폭발을 일으킵니다.",skills:[["기본 공격 · 물길 가르기","전방에 지속되는 해류를 남겨 적을 운반합니다. 해류가 교차하면 광역 피해가 발생합니다."],["Q · 밀물","실제로 전진하는 거대한 파도가 닿은 적을 밀어내고 침수를 중첩합니다."],["E · 소용돌이 핵","물의 핵을 설치해 적을 끌어당깁니다. 다시 사용하면 핵이 폭발합니다."],["X · 수압","침수된 모든 적을 압축해 중첩에 비례한 피해를 줍니다."],["R · 세계를 삼킨 바다","10레벨부터 영체 고래를 직접 조종하며 강화 해류를 남깁니다. 종료 시 모든 해류가 모여 폭발합니다."]]},
 };
 
-function getCharacterPreviewSprite(id){return id==="default"?playerSprite:id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:id==="echo"?echoSprite:id==="aria"?ariaSprite:id==="moira"?moiraSprite:id==="mare"?mareSprite:vargasSprite;}
+function getCharacterPreviewSprite(id, thumbnail = false){if(thumbnail)return getCharacterThumbnail(id);const image = id==="default"?playerSprite:id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:id==="echo"?echoSprite:id==="aria"?ariaSprite:id==="moira"?moiraSprite:id==="mare"?mareSprite:vargasSprite;return ensureGameImage(image, "high");}
 
 const characterSkillVideoKeys = {
   default:["attack","reload"], suncall:["attack","reload"], luminous:["attack"],
@@ -1116,7 +1124,7 @@ function drawCharacterSelectScreen() {
     }
     ctx.textAlign = "center";
 
-    const sprite = getCharacterPreviewSprite(card.id);
+    const sprite = getCharacterPreviewSprite(card.id, true);
     const loaded = sprite&&sprite.complete&&sprite.naturalWidth>0;
     if (loaded) {
       ctx.save();

@@ -50,7 +50,7 @@ function game() {
   const load=file=>vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
   load('03-input.js');
   // Load the real entry-point order, including overrides of the original casts.
-  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','08-mobile.js','08-mobile-targeting.js'])load(file);
+  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
   return {context,draws,storage,run:code=>vm.runInContext(code,context),touch(type,id,x,y){context.canvas.dispatchEvent({type,preventDefault(){},changedTouches:[{identifier:id,clientX:x,clientY:y}]});}};
 }
 
@@ -180,14 +180,138 @@ test('control size has no upper limit',()=>{
   assert.equal(g.run('clampMobileControlScale(.1)'),.72);
 });
 
-test('difficulty selector stores the selected mode',()=>{
-  const g=game();g.context.screenMode='home';
-  g.context.homeDifficultyRect={x:300,y:200,w:120,h:60};
-  g.context.canvas.dispatchEvent({type:'mousedown',button:0,clientX:340,clientY:220});
-  assert.equal(g.context.homeDifficultyOpen,true);
+for(const input of ['mouse','touch']){
+  test(`${input} difficulty selection applies and stays open until dismissed`,()=>{
+    const g=game();g.context.screenMode='home';
+    const click=(x,y)=>{
+      if(input==='touch'){
+        g.touch('touchstart',4,x,y);g.touch('touchend',4,x,y);
+      }else g.context.canvas.dispatchEvent({type:'mousedown',button:0,clientX:x,clientY:y});
+    };
+    g.context.homeDifficultyRect={x:300,y:200,w:120,h:60};
+    click(340,220);assert.equal(g.context.homeDifficultyOpen,true);
+    g.context.homeDifficultyChoiceRects=['easy','medium','hard'].map((value,i)=>({value,x:200+i*110,y:100,w:100,h:80}));
+    for(const index of [2,0,1,1]){
+      const choice=g.context.homeDifficultyChoiceRects[index];
+      click(choice.x+50,140);
+      assert.equal(g.context.selectedDifficulty,choice.value);
+      assert.equal(g.storage.get('zombieSurvivalDifficulty'),choice.value);
+      assert.equal(g.context.homeDifficultyOpen,true);
+      assert.equal(g.context.screenMode,'home');
+    }
+    click(10,10);assert.equal(g.context.homeDifficultyOpen,false);
+    assert.equal(g.context.selectedDifficulty,'medium');
+    click(340,220);assert.equal(g.context.homeDifficultyOpen,true);
+    g.context.dispatchEvent({type:'keydown',key:'Escape'});
+    assert.equal(g.context.homeDifficultyOpen,false);
+    assert.equal(g.context.selectedDifficulty,'medium');
+  });
+}
+
+test('difficulty selection stays open even when storage is unavailable',()=>{
+  const g=game();g.context.screenMode='home';g.context.homeDifficultyOpen=true;
   g.context.homeDifficultyChoiceRects=[{value:'hard',x:400,y:100,w:100,h:80}];
+  g.context.localStorage.setItem=()=>{throw new Error('Storage unavailable');};
   g.context.canvas.dispatchEvent({type:'mousedown',button:0,clientX:450,clientY:140});
   assert.equal(g.context.selectedDifficulty,'hard');
-  assert.equal(g.storage.get('zombieSurvivalDifficulty'),'hard');
-  assert.equal(g.context.homeDifficultyOpen,false);
+  assert.equal(g.context.homeDifficultyOpen,true);
+});
+
+test('settings open a category menu and return one level at a time',()=>{
+  const g=game();g.run('openMobileSettings();drawMobileControlSettings()');
+  assert.equal(g.run('mobileSettingsPage'),'menu');
+  const entries=g.run('mobileSettingsCategoryRects');
+  assert.deepEqual(Array.from(entries,c=>c.page),['view','controls']);
+  const entry=entries[1];
+  g.touch('touchstart',3,entry.x+40,entry.y+40);g.touch('touchend',3,entry.x+40,entry.y+40);
+  assert.equal(g.run('mobileSettingsPage'),'controls');
+  g.context.dispatchEvent({type:'keydown',key:'Escape'});
+  assert.equal(g.context.screenMode,'mobileSettings');assert.equal(g.run('mobileSettingsPage'),'menu');
+  g.context.dispatchEvent({type:'keydown',key:'Escape'});assert.equal(g.context.screenMode,'home');
+});
+
+test('attack, joystick and every skill can move and resize independently',()=>{
+  const g=game();g.run('openMobileSettings();mobileSettingsPage="controls"');
+  const snapshot=()=>JSON.parse(g.run('JSON.stringify(getMobileControlLayout())'));
+  for(const target of ['attack','q','e','x','r','joystick']){
+    const before=snapshot();
+    g.run(`mobileSettingsTarget='${target}';setMobileSettingScale(1.3);moveMobileSettingControl({controlTarget:'${target}',offsetX:0,offsetY:0},{x:${target==='joystick'?200:600},y:260});saveMobileControlSettings()`);
+    const after=snapshot();
+    if(target!=='attack')assert.deepEqual(after.attack,before.attack);
+    if(target!=='joystick')assert.deepEqual(after.joystick,before.joystick);
+    for(const skill of before.skills)if(skill.key!==target)assert.deepEqual(after.skills.find(s=>s.key===skill.key),skill);
+    const control=target==='attack'||target==='joystick'?after[target]:after.skills.find(s=>s.key===target);
+    const original=target==='attack'||target==='joystick'?before[target]:before.skills.find(s=>s.key===target);
+    assert.ok(control.r>original.r,target+' changes its own radius');
+    const saved=g.run('JSON.stringify(mobileControlSettings)');
+    g.run('mobileControlSettings=loadMobileControlSettings()');assert.equal(g.run('JSON.stringify(mobileControlSettings)'),saved);
+  }
+});
+
+test('touching a skill selects that skill, not the basic attack group',()=>{
+  const g=game();g.run('openMobileSettings();mobileSettingsPage="controls"');
+  const skill=g.run('getMobileControlLayout().skills.find(s=>s.key==="e")');
+  const before=g.run('JSON.stringify(getMobileControlLayout().attack)');
+  g.touch('touchstart',8,skill.x,skill.y);
+  assert.equal(g.run('mobileSettingsTarget'),'e');
+  g.touch('touchmove',8,skill.x-30,skill.y+25);g.touch('touchend',8,skill.x-30,skill.y+25);
+  assert.equal(g.run('JSON.stringify(getMobileControlLayout().attack)'),before);
+  assert.ok(g.run('mobileControlSettings.skills.e.x!==null'));
+});
+
+test('legacy settings migrate without coupling future skill edits',()=>{
+  const g=game();g.storage.set('zombieSurvivalMobileControls',JSON.stringify({attackX:.82,attackY:.8,actionScale:1.2,joystickScale:1.1}));
+  g.run('mobileControlSettings=loadMobileControlSettings()');
+  assert.equal(g.run('mobileControlSettings.actionScale'),1.2);
+  assert.equal(g.run('mobileControlSettings.skillAnchorX'),.82);
+  assert.equal(g.run('mobileControlSettings.skills.e.scale'),1.2);
+  const before=g.run('JSON.stringify(getMobileControlLayout().skills)');
+  g.run('mobileSettingsTarget="attack";setMobileSettingScale(2);mobileControlSettings.attackX=.95');
+  assert.equal(g.run('JSON.stringify(getMobileControlLayout().skills)'),before);
+});
+
+function loadCamera(g){
+  const source=fs.readFileSync(path.join(root,'js/01-core.js'),'utf8');
+  vm.runInContext(source.slice(source.indexOf('function screenToWorld()')),g.context);
+}
+
+test('pinch and plus/minus use the same saved zoom with a player-centered camera',()=>{
+  const g=game();loadCamera(g);g.run('openMobileSettings();mobileSettingsPage="view"');
+  const send=(type,points)=>g.context.canvas.dispatchEvent({type,preventDefault(){},changedTouches:points.map(([identifier,clientX,clientY])=>({identifier,clientX,clientY}))});
+  send('touchstart',[[1,300,180]]);send('touchstart',[[2,400,180]]);
+  send('touchmove',[[1,275,180],[2,425,180]]);
+  assert.equal(g.run('getMobileViewZoom()'),1.5);assert.equal(g.run('getWorldViewScale()'),.62*1.5);
+  assert.ok(Math.abs(g.run('(player.x-camera.x)*getWorldViewScale()')-422)<1e-8);
+  assert.ok(Math.abs(g.run('(player.y-camera.y)*getWorldViewScale()')-195)<1e-8);
+  send('touchend',[[1,275,180]]);send('touchend',[[2,425,180]]);
+  assert.equal(g.run('mobileUiGesture'),null);assert.equal(g.run('mobileSettingsPage'),'view');
+  g.run('mobileSettingsPlusRect={x:620,y:330,w:48,h:40};mobileSettingsMinusRect={x:160,y:330,w:48,h:40}');
+  g.touch('touchstart',4,640,350);g.touch('touchend',4,640,350);
+  assert.equal(g.run('getMobileViewZoom()'),1.6);
+  g.touch('touchstart',4,180,350);g.touch('touchend',4,180,350);
+  assert.equal(g.run('getMobileViewZoom()'),1.5);
+  g.run('mobileControlSettings=loadMobileControlSettings()');assert.equal(g.run('getMobileViewZoom()'),1.5);
+  g.context.mouse.x=422;g.context.mouse.y=195;g.run('screenToWorld()');
+  assert.ok(Math.abs(g.context.mouse.worldX-g.context.player.x)<1e-8);
+});
+
+test('zoom cancellation cannot click controls and is isolated from desktop and gameplay input',()=>{
+  const g=game();loadCamera(g);g.run('openMobileSettings();mobileSettingsPage="view"');
+  g.touch('touchstart',1,250,180);g.touch('touchstart',2,400,180);g.touch('touchmove',2,550,180);
+  g.touch('touchcancel',1,250,180);g.touch('touchend',2,550,180);
+  assert.equal(g.run('mobileViewTouches.size'),0);assert.equal(g.run('mobileViewPinchConsumed'),false);
+  g.context.navigator.maxTouchPoints=0;assert.equal(g.run('getWorldViewScale()'),1);
+  g.context.navigator.maxTouchPoints=1;
+  g.run('mobileSettingsPage="controls";mobileSettingsTarget="e";setMobileSettingScale(9)');
+  assert.equal(g.run('getMobileSettingScale()'),9);
+  g.run('setMobileViewZoom(.1)');assert.equal(g.run('getMobileViewZoom()'),.5);
+  g.run('setMobileViewZoom(100)');assert.equal(g.run('getMobileViewZoom()'),2);
+});
+
+test('resetting one settings category leaves the other category unchanged',()=>{
+  const g=game();loadCamera(g);
+  g.run('mobileControlSettings.viewZoom=1.5;mobileControlSettings.skills.q.scale=2;mobileSettingsPage="controls";resetMobileSettingsPage()');
+  assert.equal(g.run('getMobileViewZoom()'),1.5);assert.equal(g.run('mobileControlSettings.skills.q.scale'),1);
+  g.run('mobileControlSettings.skills.q.scale=2;mobileSettingsPage="view";resetMobileSettingsPage()');
+  assert.equal(g.run('getMobileViewZoom()'),1);assert.equal(g.run('mobileControlSettings.skills.q.scale'),2);
 });
