@@ -1009,6 +1009,9 @@ function drawCharacterDetailOverlay(){
 function drawCharacterSelectScreen() {
   drawMenuBackdrop(0.2);
   const centerX = canvas.width / 2;
+  const mobileSelect=typeof isMobileTouchDevice==="function"&&isMobileTouchDevice();
+  const headerOffset=mobileSelect?Math.min(143,characterScrollY):0;
+  ctx.save();ctx.translate(0,-headerOffset);
   const headerGlow = ctx.createRadialGradient(centerX, 65, 0, centerX, 65, 350);
   headerGlow.addColorStop(0, "rgba(122,88,206,0.22)");
   headerGlow.addColorStop(1, "rgba(0,0,0,0)");
@@ -1029,6 +1032,7 @@ function drawCharacterSelectScreen() {
   ctx.fillStyle = "#c8d5ec";
   ctx.font = "bold 13px Arial";
   ctx.fillText(`☠  누적 처치  ${totalZombieKills.toLocaleString()}`, centerX, 118);
+  ctx.restore();
 
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
   const maxCardsPerRow = 4;
@@ -1038,7 +1042,8 @@ function drawCharacterSelectScreen() {
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
   const cardH = 490;
   const contentHeight = rowCount * cardH + (rowCount - 1) * gap;
-  characterScrollMax = Math.max(0, contentHeight - (canvas.height - y - 18));
+  const listTop=mobileSelect?8:y;
+  characterScrollMax = Math.max(0, contentHeight - (canvas.height - listTop - 18));
   characterScrollY = Math.max(0, Math.min(characterScrollMax, characterScrollY));
   const rowStartX = centerX - (cardW * maxCardsPerRow + gap * (maxCardsPerRow - 1)) / 2;
   characterCards = characterIds.map((id, index) => {
@@ -1069,7 +1074,8 @@ function drawCharacterSelectScreen() {
 
   ctx.save();
   ctx.beginPath();
-  ctx.rect(0, y - 8, canvas.width, canvas.height - y + 8);
+  const clipTop=mobileSelect?Math.max(8,y-headerOffset):y-8;
+  ctx.rect(0,clipTop,canvas.width,canvas.height-clipTop);
   ctx.clip();
   for (const card of characterCards) {
     const cardScale = 1;
@@ -1160,7 +1166,7 @@ function drawCharacterSelectScreen() {
   ctx.restore();
 
   if (characterScrollMax > 0) {
-    const trackY = y, trackH = canvas.height - y - 18;
+    const trackY = mobileSelect?clipTop:y, trackH = canvas.height - trackY - 18;
     const thumbH = Math.max(48, trackH * trackH / contentHeight);
     const thumbY = trackY + (trackH - thumbH) * characterScrollY / characterScrollMax;
     drawRoundedRect(canvas.width - 13, trackY, 5, trackH, 3, "rgba(255,255,255,.08)");
@@ -1168,7 +1174,7 @@ function drawCharacterSelectScreen() {
   }
 
   const compactSelect = canvas.width < 760;
-  characterBackRect = { x: compactSelect ? 18 : 28, y: compactSelect ? 18 : 28, w: compactSelect ? 112 : 180, h: compactSelect ? 42 : 54 };
+  characterBackRect = { x: compactSelect ? 18 : 28, y: (compactSelect ? 18 : 28)-headerOffset, w: compactSelect ? 112 : 180, h: compactSelect ? 42 : 54 };
   const backHover = pointInRect(mouse.x, mouse.y, characterBackRect);
   ctx.save();
   ctx.shadowColor = backHover ? "#8b7cff" : "transparent";
