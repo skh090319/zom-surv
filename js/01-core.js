@@ -600,7 +600,8 @@ function screenToWorld() {
 }
 
 function getWorldViewScale() {
-  return typeof isMobileTouchDevice === "function" && isMobileTouchDevice() && canvas.height < canvas.width ? 0.78 : 1;
+  if(!(typeof isMobileTouchDevice === "function" && isMobileTouchDevice() && canvas.height < canvas.width))return 1;
+  return Math.min(canvas.width,canvas.height)<520?0.62:0.78;
 }
 
 function getCameraViewWidth() { return canvas.width / getWorldViewScale(); }

@@ -1191,8 +1191,15 @@ function drawCharacterSelectScreen() {
 function drawPauseButton() {
   if (screenMode !== "game") return;
 
+  const mobilePhone=typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&Math.min(canvas.width,canvas.height)<520;
+
   pauseButtonRect = paused
-    ? {
+    ? mobilePhone?{
+        x:canvas.width/2-82,
+        y:canvas.height-43,
+        w:164,
+        h:34
+      }:{
         x: canvas.width / 2 - 110,
         y: 138 + Math.min(545, canvas.height - 190) - 62,
         w: 220,
@@ -1207,19 +1214,19 @@ function drawPauseButton() {
     pauseButtonRect.y,
     pauseButtonRect.w,
     pauseButtonRect.h,
-    paused ? 11 : 12,
+    paused ? (mobilePhone?8:11) : 12,
     hover ? "rgba(50,50,70,0.96)" : "rgba(20,20,30,0.88)",
     paused ? "#b967ff" : "white",
     hover ? 3 : 2
   );
 
   ctx.fillStyle = "white";
-  ctx.font = paused ? "bold 18px Arial" : "bold 25px Arial";
+  ctx.font = paused ? `bold ${mobilePhone?14:18}px Arial` : "bold 25px Arial";
   ctx.textAlign = "center";
   ctx.fillText(
     paused ? "게임 재개" : "Ⅱ",
     pauseButtonRect.x + pauseButtonRect.w / 2,
-    pauseButtonRect.y + (paused ? 29 : 36)
+    pauseButtonRect.y + (paused ? (mobilePhone?23:29) : 36)
   );
   ctx.textAlign = "left";
 }
@@ -1248,45 +1255,42 @@ function getSelectedAugmentDescription(item) {
 function drawPauseOverlay() {
   if (!paused || screenMode !== "game") return;
   pauseAugmentCardRects = [];
+  const mobilePhone=typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&Math.min(canvas.width,canvas.height)<520;
 
-  ctx.fillStyle = "rgba(0,0,0,0.86)";
+  ctx.fillStyle = mobilePhone?"rgba(0,0,0,0.97)":"rgba(0,0,0,0.86)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.textAlign = "center";
   ctx.fillStyle = "white";
-  ctx.font = "bold 64px Arial";
-  ctx.fillText("PAUSED", canvas.width / 2, 82);
+  ctx.font = `bold ${mobilePhone?30:64}px Arial`;
+  ctx.fillText("PAUSED", canvas.width / 2, mobilePhone?34:82);
 
-  ctx.fillStyle = "#b967ff";
-  ctx.font = "18px Arial";
-  ctx.fillText("아래 게임 재개 버튼을 누르면 계속됩니다.", canvas.width / 2, 116);
+  if(!mobilePhone){ctx.fillStyle = "#b967ff";ctx.font = "18px Arial";ctx.fillText("아래 게임 재개 버튼을 누르면 계속됩니다.", canvas.width / 2, 116);}
 
-  const panelW = Math.min(960, canvas.width - 44);
-  const panelH = Math.min(545, canvas.height - 190);
+  const panelW = mobilePhone?canvas.width-28:Math.min(960, canvas.width - 44);
+  const panelH = mobilePhone?canvas.height-62:Math.min(545, canvas.height - 190);
   const panelX = canvas.width / 2 - panelW / 2;
-  const panelY = 138;
+  const panelY = mobilePhone?46:138;
 
   drawRoundedRect(
     panelX,
     panelY,
     panelW,
     panelH,
-    18,
+    mobilePhone?12:18,
     "rgba(16,16,26,0.97)",
     "#7451a8",
     3
   );
 
   ctx.fillStyle = "white";
-  ctx.font = "bold 25px Arial";
-  ctx.fillText(`선택한 증강 ${selectedAugments.length}종`, canvas.width / 2, panelY + 38);
-  ctx.fillStyle = "rgba(205,210,225,0.62)";
-  ctx.font = "12px Arial";
-  ctx.fillText("증강을 클릭하면 상세 설명을 볼 수 있습니다.", canvas.width / 2, panelY + 57);
+  ctx.font = `bold ${mobilePhone?18:25}px Arial`;
+  ctx.fillText(`선택한 증강 ${selectedAugments.length}종`, canvas.width / 2, panelY + (mobilePhone?25:38));
+  if(!mobilePhone){ctx.fillStyle = "rgba(205,210,225,0.62)";ctx.font = "12px Arial";ctx.fillText("증강을 클릭하면 상세 설명을 볼 수 있습니다.", canvas.width / 2, panelY + 57);}
 
-  const listTop = panelY + 70;
+  const listTop = panelY + (mobilePhone?36:70);
   const selectedPauseItem = selectedAugments.find(item => item.id === selectedPauseAugmentId);
-  const listBottom = panelY + panelH - (selectedPauseItem ? 180 : 82);
+  const listBottom = panelY + panelH - (mobilePhone?(selectedPauseItem?102:48):(selectedPauseItem ? 180 : 82));
   const availableHeight = listBottom - listTop;
 
   if (selectedAugments.length === 0) {
@@ -1294,29 +1298,29 @@ function drawPauseOverlay() {
     ctx.font = "18px Arial";
     ctx.fillText("아직 선택한 증강이 없습니다.", canvas.width / 2, listTop + 55);
   } else {
-    const cols =
+    const cols = mobilePhone?(selectedAugments.length>=13?5:selectedAugments.length>=9?4:selectedAugments.length>=5?3:2):
       selectedAugments.length >= 13 ? 4 :
       selectedAugments.length >= 7 ? 3 :
       selectedAugments.length >= 3 ? 2 : 1;
 
-    const gapX = 10;
-    const gapY = 9;
-    const sidePad = 20;
+    const gapX = mobilePhone?7:10;
+    const gapY = mobilePhone?6:9;
+    const sidePad = mobilePhone?12:20;
     const rows = Math.ceil(selectedAugments.length / cols);
 
     const cardW =
       (panelW - sidePad * 2 - gapX * (cols - 1)) / cols;
 
     const cardH = Math.max(
-      36,
+      mobilePhone?27:36,
       Math.min(
-        58,
+        mobilePhone?42:58,
         (availableHeight - gapY * Math.max(0, rows - 1)) / rows
       )
     );
 
-    const titleFont = cardH < 44 ? 12 : cardH < 52 ? 14 : 16;
-    const subFont = cardH < 44 ? 10 : 12;
+    const titleFont = mobilePhone?(cardH<34?10:12):(cardH < 44 ? 12 : cardH < 52 ? 14 : 16);
+    const subFont = mobilePhone?9:(cardH < 44 ? 10 : 12);
 
     for (let i = 0; i < selectedAugments.length; i++) {
       const item = selectedAugments[i];
@@ -1410,10 +1414,10 @@ function drawPauseOverlay() {
   }
 
   if (selectedPauseItem) {
-    const detailX = panelX + 20;
-    const detailY = panelY + panelH - 166;
-    const detailW = panelW - 40;
-    const detailH = 88;
+    const detailX = panelX + (mobilePhone?12:20);
+    const detailY = panelY + panelH - (mobilePhone?94:166);
+    const detailW = panelW - (mobilePhone?24:40);
+    const detailH = mobilePhone?54:88;
     const detailUpgrade = upgrades.find(u => u.id === selectedPauseItem.id);
     const detailTranscended = detailUpgrade && detailUpgrade.category !== "combat" && detailUpgrade.category !== "emerald" && selectedPauseItem.count >= 4;
     const detailStroke = detailTranscended ? "#ffd700" : (selectedPauseItem.category === "combat" ? "#00e5ff" : selectedPauseItem.category === "emerald" ? "#00ff88" : "#aeb3bd");
@@ -1426,18 +1430,18 @@ function drawPauseOverlay() {
 
     ctx.textAlign = "left";
     ctx.fillStyle = detailStroke;
-    ctx.font = "bold 17px Arial";
-    ctx.fillText(getSelectedAugmentDisplayName(selectedPauseItem), detailX + 18, detailY + 27);
+    ctx.font = `bold ${mobilePhone?12:17}px Arial`;
+    ctx.fillText(getSelectedAugmentDisplayName(selectedPauseItem), detailX + (mobilePhone?10:18), detailY + (mobilePhone?18:27));
     ctx.fillStyle = "rgba(240,243,252,0.88)";
-    ctx.font = "14px Arial";
-    wrapTextLeft(getSelectedAugmentDescription(selectedPauseItem), detailX + 18, detailY + 52, detailW - 36, 19);
+    ctx.font = `${mobilePhone?10:14}px Arial`;
+    wrapTextLeft(getSelectedAugmentDescription(selectedPauseItem), detailX + (mobilePhone?10:18), detailY + (mobilePhone?35:52), detailW - (mobilePhone?20:36), mobilePhone?12:19);
   }
 
   pauseHomeButtonRect = {
-    x: canvas.width - 74,
-    y: 18,
-    w: 54,
-    h: 54
+    x: canvas.width - (mobilePhone?50:74),
+    y: mobilePhone?6:18,
+    w: mobilePhone?40:54,
+    h: mobilePhone?34:54
   };
 
   const homeHover = pointInRect(
@@ -1455,7 +1459,7 @@ function drawPauseOverlay() {
     pauseHomeButtonRect.y,
     pauseHomeButtonRect.w,
     pauseHomeButtonRect.h,
-    12,
+    mobilePhone?8:12,
     homeHover ? "#4a1622" : "#2e1118",
     "#ff5f7a",
     homeHover ? 4 : 2
@@ -1465,11 +1469,11 @@ function drawPauseOverlay() {
 
   ctx.textAlign = "center";
   ctx.fillStyle = "white";
-  ctx.font = "bold 25px Arial";
+  ctx.font = `bold ${mobilePhone?18:25}px Arial`;
   ctx.fillText(
     "⌂",
     pauseHomeButtonRect.x + pauseHomeButtonRect.w / 2,
-    pauseHomeButtonRect.y + 36
+    pauseHomeButtonRect.y + (mobilePhone?23:36)
   );
 
   ctx.textAlign = "left";
