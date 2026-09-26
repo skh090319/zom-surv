@@ -1,8 +1,15 @@
 // 마레 스킬 고급 연출 + 이동하는 밀물 판정
+// Preview, collision and animation use the same travelling-wave dimensions.
+const MARE_TIDE_GEOMETRY={start:35,travel:670,halfDepth:42,duration:64};
+function getMareTideGeometry(){
+  const g=MARE_TIDE_GEOMETRY;
+  return {...g,range:g.start+g.travel*(g.duration-1)/g.duration+g.halfDepth,width:transcended.mareDepth?620:430};
+}
 activateMareQ=function(){
   if(player.mareQCooldown>0)return;
   const a=Math.atan2(mouse.worldY-player.y,mouse.worldX-player.x);
-  mareEffects.push({type:"tide",x:player.x,y:player.y,a,width:transcended.mareDepth?620:430,life:64,maxLife:64,hit:new Set()});
+  const g=getMareTideGeometry();
+  mareEffects.push({type:"tide",x:player.x,y:player.y,a,width:g.width,life:g.duration,maxLife:g.duration,hit:new Set()});
   player.mareQCooldown=MARE_Q_CD;
 };
 
@@ -13,13 +20,13 @@ updateMare=function(){
       if(e.type!=="tide"||!e.hit)continue;
       const p=1-e.life/e.maxLife;
       const ux=Math.cos(e.a),uy=Math.sin(e.a);
-      const crest=35+p*670;
+      const crest=MARE_TIDE_GEOMETRY.start+p*MARE_TIDE_GEOMETRY.travel;
       for(const z of zombies){
         if(e.hit.has(z))continue;
         const dx=z.x-e.x,dy=z.y-e.y;
         const forward=dx*ux+dy*uy;
         const side=Math.abs(dx*uy-dy*ux);
-        if(Math.abs(forward-crest)>42+z.r||side>e.width*.5+z.r)continue;
+        if(Math.abs(forward-crest)>MARE_TIDE_GEOMETRY.halfDepth+z.r||side>e.width*.5+z.r)continue;
         e.hit.add(z);
         mareWet(z,2);
         const push=110+(player.mareFoamLevel||0)*10;
@@ -43,7 +50,7 @@ drawMareEffects=function(){
   for(const e of skills){
     const p=1-e.life/e.maxLife,a=Math.max(0,1-p);ctx.globalCompositeOperation="lighter";
     if(e.type==="tide"){
-      const ux=Math.cos(e.a),uy=Math.sin(e.a),crest=35+p*670,cx=e.x+ux*crest,cy=e.y+uy*crest;
+      const ux=Math.cos(e.a),uy=Math.sin(e.a),crest=MARE_TIDE_GEOMETRY.start+p*MARE_TIDE_GEOMETRY.travel,cx=e.x+ux*crest,cy=e.y+uy*crest;
       ctx.save();ctx.translate(cx,cy);ctx.rotate(e.a);const half=e.width*.5;
       const body=ctx.createLinearGradient(-105,0,75,0);body.addColorStop(0,"rgba(1,49,83,0)");body.addColorStop(.35,`rgba(8,112,159,${a*.35})`);body.addColorStop(.72,`rgba(38,207,230,${a*.58})`);body.addColorStop(1,`rgba(224,255,255,${a*.82})`);ctx.fillStyle=body;
       ctx.beginPath();ctx.moveTo(-120,-half);for(let i=0;i<=10;i++){const y=-half+i*e.width/10;ctx.lineTo(38+Math.sin(i*.82+time)*9,y)}ctx.quadraticCurveTo(94,0,38,half);for(let i=10;i>=0;i--){const y=-half+i*e.width/10;ctx.lineTo(-120+Math.cos(i*.7)*8,y)}ctx.closePath();ctx.fill();

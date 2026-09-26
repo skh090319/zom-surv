@@ -84,7 +84,7 @@ function updateMobileDragAim(state,p,spec){
 }
 
 function applyMobileDragAim(state,spec){
-  if(!spec||!state.dragged)return;
+  if(!spec||spec.aim===false||!state.dragged)return;
   const target=getMobileAimPoint(state,spec),scale=getWorldViewScale();
   mouse.x=(target.x-camera.x)*scale;mouse.y=(target.y-camera.y)*scale;screenToWorld();
 }

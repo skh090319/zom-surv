@@ -74,3 +74,21 @@ test('raid boss damage uses Easy as the baseline', () => {
     assert.equal(game.context.player.hp, expectedHp);
   }
 });
+
+test('mobile boss notices stay within the top HUD on phone and tablet sizes',()=>{
+  for(const [width,height] of [[568,280],[844,390],[1024,768]]){
+    const game=bossGame(),rects=[],labels=[];
+    game.context.canvas={width,height};game.context.isMobileTouchDevice=()=>true;
+    game.context.ctx=new Proxy({}, {get:(obj,key)=>key in obj?obj[key]:(...args)=>{
+      if(key==='fillRect'||key==='strokeRect')rects.push(args);
+      if(key==='fillText')labels.push(args);
+      if(key==='createLinearGradient')return {addColorStop(){}};
+    }});
+    for(const code of ['survivalFrames=RAID_BOSS_TIMES[0]-120;drawRaidBossUI()', 'startRaidBoss(0);raidIntroTime=120;drawRaidBossUI()']){
+      rects.length=0;labels.length=0;game.run(code);
+      assert.ok(rects.length>0);assert.ok(labels.length>0);
+      for(const [x,y,w,h] of rects){assert.ok(x>=0&&x+w<=width);assert.ok(y>=48&&y+h<=96);}
+      assert.ok(labels.every(([text])=>text!=='BOSS ENCOUNTER'));
+    }
+  }
+});

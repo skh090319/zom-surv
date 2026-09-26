@@ -28,7 +28,9 @@ function game() {
     player: new Proxy({x:1000,y:1000,level:20,r:20,yupiterWeapon:0}, {get:(obj,k)=>obj[k]??0}),
     camera:{x:500,y:750}, mouse:{x:0,y:0,worldX:0,worldY:0}, keys:{},
     zombies:[], selectedCharacter:'mare', screenMode:'game', paused:false, choosingUpgrade:false, gameOver:false, raidVictory:false,
-    transcended:{}, renPlacedClones:[], renFlyingClones:[], arcZones:[], echoKnots:[], ariaSoils:[],
+    transcended:{}, renPlacedClones:[], renFlyingClones:[], arcZones:[], echoKnots:[], echoRifts:[], ariaSoils:[],
+    terraStructures:[],voidTerrains:[],bloodDrops:[],moiraLinks:[],
+    scaledDamage:value=>value,enemyMaxHpDamage:(enemy,ratio)=>enemy.maxHp*ratio,killZombie(index){context.zombies.splice(index,1);},
     REN_CLONE_THROW_RANGE:320, REN_ULTIMATE_RADIUS:429, REN_ATTACK_RANGE:216, ZERO_ATTACK_RANGE:200,
     getRenCloneCount:()=>4, arcAreaScale:()=>1, getPaladinTier:()=>0,
     getWorldViewScale:()=>.78, WORLD:{width:4000,height:4000},
@@ -46,7 +48,9 @@ function game() {
     dispatchEvent:event=>(listeners[event.type]||[]).forEach(fn=>fn(event))};
   vm.createContext(context);
   const load=file=>vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
-  load('03-input.js');load('08-mobile.js');load('08-mobile-targeting.js');load('04-mare.js');
+  load('03-input.js');
+  // Load the real entry-point order, including overrides of the original casts.
+  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','08-mobile.js','08-mobile-targeting.js'])load(file);
   return {context,draws,storage,run:code=>vm.runInContext(code,context),touch(type,id,x,y){context.canvas.dispatchEvent({type,preventDefault(){},changedTouches:[{identifier:id,clientX:x,clientY:y}]});}};
 }
 
@@ -70,17 +74,22 @@ test('marker and released Mare core use the same position, even while moving and
   assert.ok(Math.abs(g.context.mouse.worldX-expected.x)<.00001);
   g.touch('touchend',2,button.x-35,button.y-10);
   const core=g.run('mareCore');assert.ok(Math.hypot(core.x-expected.x,core.y-expected.y)<.00001);
-  assert.equal(g.run('getMobileSkillTargetSpec("e")'),null); // Recast detonates, not a new location.
+  const recast=g.run('getMobileSkillTargetSpec("e")');
+  assert.equal(recast.aim,false);assert.equal(recast.shapes[0].x,core.x);assert.equal(recast.shapes[0].r,210);
 });
 
-test('buffs, recall, automatic and mark detonations never invent a range',()=>{
+test('buffs, recall and automatic casts show effects without changing aim',()=>{
   const g=game();
-  const noAim={default:['r'],suncall:['r'],luminous:['r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','r'],moira:['x','r'],mare:['x','r']};
+  const noAim={default:['r'],suncall:['r'],luminous:['r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','r'],moira:['x','r'],mare:['x']};
   for(const [character,keys] of Object.entries(noAim))for(const key of keys){
     g.context.selectedCharacter=character;
-    assert.equal(g.run(`getMobileSkillTargetSpec('${key}')`),null,character+' '+key);
+    assert.equal(g.run(`getMobileSkillTargetSpec('${key}').aim`),false,character+' '+key);
+    g.draws.length=0;
     g.run(`mobileSkillAim={key:'${key}',dragged:true,angle:0,strength:1};drawMobileTargetingIndicator()`);
-    assert.equal(g.draws.length,0,character+' '+key+' draws nothing');
+    assert.ok(g.draws.length>0,character+' '+key+' has an effect or status preview');
+    g.context.mouse.worldX=1789;g.context.mouse.worldY=654;
+    g.run(`applyMobileDragAim(mobileSkillAim,getMobileSkillTargetSpec('${key}'))`);
+    assert.equal(g.context.mouse.worldX,1789);assert.equal(g.context.mouse.worldY,654);
   }
 });
 
@@ -101,20 +110,48 @@ test('geometry matches cast dimensions and empowered states',()=>{
   g.context.selectedCharacter='arc';assert.equal(g.run('getMobileSkillTargetSpec("q").type'),'target');
   assert.equal(g.run('getMobileSkillTargetSpec("x").range'),620);
   g.context.selectedCharacter='vargas';assert.equal(g.run('getMobileSkillTargetSpec("q").type'),'self');
-  g.context.selectedCharacter='mare';assert.equal(g.run('getMobileSkillTargetSpec("q").range'),420);
-  assert.equal(g.run('getMobileSkillTargetSpec("q").centered'),true);
+  g.context.selectedCharacter='mare';assert.ok(g.run('getMobileSkillTargetSpec("q").range')>700);
+  assert.equal(g.run('getMobileSkillTargetSpec("q").centered'),undefined);
   g.context.player.mareUltimateTime=420;
   assert.equal(g.run('getMobileSkillTargetSpec("q").range'),252);
   assert.equal(g.run('getMobileSkillTargetSpec("e").type'),'rect');
 });
 
-test('all skill shapes render with finite geometry',()=>{
+test('every mobile skill has a finite drag preview, and no hold preview',()=>{
   const g=game();
   for(const character of ['ren','nightLord','zero','paladin','arc','terra','void','vargas','echo','aria','moira','mare','carmilla','yupiter']){
     g.context.selectedCharacter=character;g.context.player.voidMass=100;
-    for(const key of ['q','e','x','r'])g.run(`mobileSkillAim={key:'${key}',dragged:true,angle:.3,strength:.6};drawMobileTargetingIndicator()`);
+    for(const key of g.run('MOBILE_SKILL_KEYS[selectedCharacter]')){
+      assert.ok(g.run(`getMobileSkillTargetSpec('${key}')`),character+' '+key);
+      g.draws.length=0;g.run(`mobileSkillAim={key:'${key}',dragged:false,angle:.3,strength:.6};drawMobileTargetingIndicator()`);assert.equal(g.draws.length,0);
+      g.run('mobileSkillAim.dragged=true;drawMobileTargetingIndicator()');assert.ok(g.draws.length>0);
+    }
     g.run('mobileSkillAim=null;mobileAttackAim={dragged:true,angle:.2,strength:.7};drawMobileTargetingIndicator()');
   }
+});
+
+test('Mare tide preview matches the final travelling-wave collision, only in front',()=>{
+  const g=game();Object.assign(g.context.player,{damage:100,mareFoamLevel:0});
+  const range=g.run('getMobileSkillTargetSpec("q").range');
+  const enemy=(id,x,y)=>({id,x,y,r:0,hp:10000,maxHp:10000});
+  const inside=enemy('front',1600,1000),behind=enemy('behind',800,1000),tooFar=enemy('far',1000+range+1,1000),side=enemy('side',1600,1216);
+  g.context.zombies.push(inside,behind,tooFar,side);
+  g.context.mouse.worldX=1800;g.context.mouse.worldY=1000;g.run('activateMareQ()');
+  const tide=g.run('mareEffects.find(e=>e.type==="tide")');
+  assert.ok(tide.hit instanceof Set||typeof tide.hit.has==='function');
+  for(let i=0;i<64;i++)g.run('updateMare()');
+  assert.ok(tide.hit.has(inside));assert.equal(tide.hit.has(behind),false);
+  assert.equal(tide.hit.has(tooFar),false);assert.equal(tide.hit.has(side),false);
+});
+
+test('dragging Mare ultimate sets the actual whale summon angle on release',()=>{
+  const g=game(),button=g.run('getMobileControlLayout().skills.find(s=>s.key==="r")');
+  assert.equal(g.run('getMobileSkillTargetSpec("r").type'),'direction');
+  g.touch('touchstart',8,button.x,button.y);g.touch('touchmove',8,button.x-50,button.y-30);
+  g.context.player.x+=75;g.run('updateMobileAttackAim()');
+  g.touch('touchend',8,button.x-50,button.y-30);
+  assert.ok(Math.abs(g.context.player.mareUltimateAngle-Math.atan2(-30,-50))<1e-9);
+  assert.equal(g.context.player.mareUltimateTime,420);
 });
 
 test('settings stay below controls and on screen on small phones and tablets, and open via touch',()=>{

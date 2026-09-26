@@ -567,7 +567,39 @@ function formatRaidTime(frames) {
   const seconds=Math.floor(frames/60);return `${String(Math.floor(seconds/60)).padStart(2,"0")}:${String(seconds%60).padStart(2,"0")}`;
 }
 
+function drawMobileRaidBossUI(){
+  // Keep notifications in the top HUD; do not cover the player or touch controls.
+  const w=Math.min(400,canvas.width*.62),x=(canvas.width-w)/2,y=52;
+  ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";ctx.shadowBlur=0;
+  if(activeRaidBoss){
+    const ratio=Math.max(0,Math.min(1,activeRaidBoss.hp/activeRaidBoss.maxHp));
+    ctx.fillStyle="rgba(7,8,18,.8)";ctx.fillRect(x-3,y-3,w+6,22);
+    const g=ctx.createLinearGradient(x,0,x+w,0);g.addColorStop(0,"#9f2d79");g.addColorStop(1,"#df536c");
+    ctx.fillStyle=g;ctx.fillRect(x,y,w*ratio,16);ctx.strokeStyle="rgba(247,214,235,.8)";ctx.lineWidth=1;ctx.strokeRect(x,y,w,16);
+    ctx.font="bold 11px Arial";ctx.fillStyle="#fff";ctx.fillText(RAID_BOSS_NAMES[activeRaidBoss.raidIndex],canvas.width/2,y+8,w-12);
+    const elapsed=150-raidIntroTime;
+    if(raidIntroTime>0&&elapsed<66){
+      ctx.globalAlpha=Math.min(1,(elapsed+1)/8,(66-elapsed)/16);
+      ctx.fillStyle="rgba(28,10,21,.7)";ctx.fillRect(canvas.width/2-82,y+24,164,18);
+      ctx.font="bold 11px Arial";ctx.fillStyle="#ffc1cc";ctx.fillText("보스 등장 · 전투 준비",canvas.width/2,y+33);
+    }else{
+      ctx.font="10px Arial";ctx.fillStyle="#d4c5b8";ctx.fillText("보스전 · 시간 정지",canvas.width/2,y+30);
+    }
+  }else{
+    const remaining=RAID_BOSS_TIMES[nextRaidBossIndex]-survivalFrames;
+    const warning=remaining>0&&remaining<=300;
+    const width=warning?w:96;
+    ctx.fillStyle="rgba(6,10,18,.74)";ctx.fillRect((canvas.width-width)/2,y,width,24);
+    ctx.font="bold 12px Arial";ctx.fillStyle=warning?"#ffc4a3":"#fff";
+    const label=warning?`${formatRaidTime(survivalFrames)}  ·  ⚠ 보스 접근 ${Math.ceil(remaining/60)}초`:formatRaidTime(survivalFrames);
+    ctx.fillText(label,canvas.width/2,y+12,width-12);
+    if(warning){ctx.fillStyle="#cf725c";ctx.fillRect(x,y+23,w*remaining/300,1);}
+  }
+  ctx.restore();
+}
+
 function drawRaidBossUI() {
+  if(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&!raidVictory){drawMobileRaidBossUI();return;}
   ctx.save();
   ctx.textAlign="center";
   if(activeRaidBoss){

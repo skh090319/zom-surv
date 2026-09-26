@@ -1,6 +1,6 @@
-// Mobile aiming geometry follows the cast functions. Buffs, recalls and automatic
-// detonations deliberately have no preview; null never invents a casting range.
-function getMobileSkillTargetSpec(key){
+// Aimed casts show geometry; automatic casts show their real targets/effect areas.
+// Self buffs use a small status marker rather than implying an attack radius.
+function getMobileAimedSkillTargetSpec(key){
   const area=radius=>({type:"self",range:radius});
   const target=(range,radius,extra={})=>({type:"target",range,radius,variable:true,...extra});
   const line=(range,width,extra={})=>({type:"line",range,width,...extra});
@@ -8,14 +8,14 @@ function getMobileSkillTargetSpec(key){
   const level=name=>player[name]||0;
   switch(selectedCharacter){
     case "yupiter":
-      return key==="r"&&player.yupiterWeapon===2?line(1440,68):null;
+      return key==="r"&&player.yupiterWeapon===2?line(1440,68,{offset:42,capsule:true}):null;
     case "ren":
       if(key==="q")return renPlacedClones.length+renFlyingClones.length>=getRenCloneCount()?null:target(REN_CLONE_THROW_RANGE,24);
       return key==="r"?area(REN_ULTIMATE_RADIUS):null;
     case "nightLord":
-      return key==="q"?line(300,68,{variable:true}):null;
+      return key==="q"?line(300,68,{variable:true,capsule:true,clampDash:true}):null;
     case "zero":
-      if(key==="q")return line((transcended.zeroThrust?330:210)*(1+level("zeroThrustLevel")*.15),56);
+      if(key==="q")return line((transcended.zeroThrust?330:210)*(1+level("zeroThrustLevel")*.15),56,{capsule:true,clampDash:true});
       return key==="x"?target(470,165*(1+level("zeroJudgmentLevel")*.15)):null;
     case "paladin":
       if(key==="e")return cone(170,Math.PI*.75+.24);
@@ -52,11 +52,73 @@ function getMobileSkillTargetSpec(key){
       if(key==="q")return target(360,0);
       return key==="e"?target(330,24):null;
     case "mare":
-      if(key==="q")return player.mareUltimateTime>0?line(18*14,210):{type:"rect",range:420,width:transcended.mareDepth?620:430,centered:true};
+      if(key==="q")return player.mareUltimateTime>0?line(18*14,210,{capsule:true,clampDash:true}):{type:"rect",...getMareTideGeometry()};
       if(key==="e")return player.mareUltimateTime>0?{type:"rect",range:470,width:420}:(mareCore?null:target(360,250));
+      if(key==="r")return {type:"direction",range:260,width:64,label:"고래 소환 방향",whale:true};
       return null;
     default:return null;
   }
+}
+
+function getMobileSkillTargetSpec(key){
+  const aimed=getMobileAimedSkillTargetSpec(key);
+  if(aimed)return aimed;
+  if(!(MOBILE_SKILL_KEYS[selectedCharacter]||[]).includes(key))return null;
+  const circle=(p,r)=>({type:"circle",x:p.x,y:p.y,r});
+  const segment=(a,b,width)=>({type:"segment",x1:a.x,y1:a.y,x2:b.x,y2:b.y,width});
+  const effects=(shapes,label="효과 범위")=>({type:"effects",range:0,aim:false,shapes,label});
+  const status=label=>({type:"status",range:0,aim:false,label});
+  const marked=(list)=>list.filter(z=>z.hp>0).map(z=>circle(z,(z.r||20)+8));
+  switch(selectedCharacter){
+    case "yupiter":
+      if(key==="e"&&player.yupiterWeapon===2)return effects(zombies.filter(z=>z.flameMarked).map(z=>circle(z,155)),"표식 폭발");
+      if(key==="r"&&player.yupiterWeapon===0)return effects([circle(player,345)],"회전검 최대 범위");
+      return status(key==="q"?"무기 전환":"자신 강화");
+    case "ren":
+      if(key==="q")return effects(renPlacedClones.map(c=>segment(c,player,12)),"분신 회수");
+      if(key==="x"){const clone=renPlacedClones.at(-1);return effects(clone?[segment(player,clone,92),circle(clone,24)]:[],"분신으로 이동");}
+      if(key==="e")return effects(renPlacedClones.map(c=>circle(c,480)),"분신 습격 범위");
+      break;
+    case "nightLord":
+      if(key==="x"){
+        let target=null,distance=360;
+        for(const z of zombies){const d=Math.hypot(z.x-player.x,z.y-player.y);if(z.hp>0&&z.hp/z.maxHp<=.25+(player.nightLordExecutionLevel||0)*.03&&d<distance){target=z;distance=d;}}
+        return effects([circle(player,360),...(target?[circle(target,transcended.nightExecution?180:(target.r||20)+8)]:[])],target?"처형 대상":"처형 대상 탐색");
+      }
+      break;
+    case "zero":if(key==="r")return effects([circle(player,520)],"자동 참격 범위");break;
+    case "terra":if(key==="x"){
+      const structures=terraStructures.filter(s=>s.type!=="collapseField"||s.borderRocks?.length),count=structures.length;
+      const center=count?{x:structures.reduce((n,s)=>n+(s.x2??s.x),0)/count,y:structures.reduce((n,s)=>n+(s.y2??s.y),0)/count}:player;
+      const r=(250+count*28)*(player.terraVibration>=100?1.25:1)*(transcended.terraRampart?1.3:1);
+      return effects([circle(center,r)],"지각 압축 범위");
+    }break;
+    case "void":if(key==="x")return effects(voidTerrains.map(t=>circle({x:t.x+Math.cos(t.angle)*t.length*.5,y:t.y+Math.sin(t.angle)*t.length*.5},Math.max(130,t.length*.45))),"지반 붕괴 범위");break;
+    case "carmilla":return effects(bloodDrops.filter(d=>!d.returning).map(d=>segment(d,player,16)),"피의 회수 경로");
+    case "echo":
+      if(key==="q")return effects([...echoRifts.map(r=>({type:"segment",...r,width:68})),...echoKnots.map(k=>circle(k,k.r))],"균열 절단 범위");
+      if(key==="r"&&echoKnots.length>=3){
+        const cx=echoKnots.reduce((n,k)=>n+k.x,0)/echoKnots.length,cy=echoKnots.reduce((n,k)=>n+k.y,0)/echoKnots.length;
+        const points=[...echoKnots].sort((a,b)=>Math.atan2(a.y-cy,a.x-cx)-Math.atan2(b.y-cy,b.x-cx));
+        return effects([{type:"polygon",points},...points.map((p,i)=>segment(p,points[(i+1)%points.length],210))],"세계선 붕괴 범위");
+      }
+      return status(key==="r"?"매듭 3개 필요":"이동할 매듭 필요");
+    case "aria":
+      if(key==="q")return effects(ariaSoils.map(s=>circle(s,(transcended.ariaThorn?90:78)+s.stage*12)),"가시 성장 범위");
+      if(key!=="r")return status("정원 필요");
+      break;
+    case "moira":
+      if(key==="x")return effects(marked(moiraLinks),"고통 전이 대상");
+      if(key==="r")return effects(marked(zombies),"연결할 적");
+      break;
+    case "mare":
+      if(key==="e"&&mareCore)return effects([circle(mareCore,210)],"소용돌이 붕괴 범위");
+      if(key==="x")return effects(marked(zombies.filter(z=>z.mareWet>0)),"침수된 적 폭발");
+      break;
+  }
+  if(["default","suncall","luminous"].includes(selectedCharacter))return status("재장전");
+  if(selectedCharacter==="void"&&key==="e")return status("공허 질량 필요");
+  return status(selectedCharacter==="paladin"&&key==="q"?"반격 준비":"자신 강화");
 }
 
 function getMobileAttackTargetSpec(){
@@ -66,7 +128,7 @@ function getMobileAttackTargetSpec(){
   switch(selectedCharacter){
     case "ren":return {type:"self",range:REN_ATTACK_RANGE};
     case "nightLord":return cone((player.nightLordUltimateTime>0?205:128)*(1+(player.nightLordReachLevel||0)*.15),player.nightLordFrenzyTime>0||transcended.nightReach?Math.PI*2:Math.PI*.9);
-    case "zero":return line(ZERO_ATTACK_RANGE,ZERO_ATTACK_RANGE/3);
+    case "zero":return {...line(ZERO_ATTACK_RANGE,20),startWidth:ZERO_ATTACK_RANGE/3+20};
     case "paladin":{const tier=getPaladinTier();return cone([138,158,182,215][tier],[.58,.68,.88,1.18][tier]*Math.PI);}
     case "carmilla":return cone(155,1.8);
     case "vargas":return cone((player.vargasUltimateTime>0?205:155)*(transcended.vargasSkeleton?1.25:1),1.45);
@@ -79,7 +141,7 @@ function getMobileAttackTargetSpec(){
     case "arc":return line(504,22);
     case "yupiter":
       if(player.yupiterWeapon===1)return cone((player.trackerLevel>0?220:145)*(player.severingUltimateTime>0?3.5:1),player.trackerLevel>0?Math.PI*2:Math.PI*(.42+player.swordAuraLevel/12)*2);
-      return player.yupiterWeapon===2?cone(754,.56):line(700,50);
+      return player.yupiterWeapon===2?cone(788,.56):line(550,50);
     default:return line(player.gatlingLevel>0?1200:1300,player.gatlingLevel>0?8:10);
   }
 }
@@ -178,6 +240,44 @@ function drawMobileAimLane(range,width,{arrow=false,startWidth=width,capsule=fal
   if(arrow){const tip=Math.min(15,Math.max(7,width*.28));ctx.strokeStyle="#b5fcff";ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(range-tip,-tip);ctx.lineTo(range,0);ctx.lineTo(range-tip,tip);ctx.stroke();}
 }
 
+function drawMobileAimLabel(label,y=-35){
+  ctx.save();ctx.font="bold 11px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+  const width=ctx.measureText(label).width+16;
+  ctx.fillStyle="rgba(4,20,29,.8)";ctx.fillRect(-width/2,y-10,width,20);
+  ctx.fillStyle="#c8fcff";ctx.fillText(label,0,y);ctx.restore();
+}
+
+function drawMobileEffectPreview(spec,scale){
+  for(const shape of spec.shapes){
+    if(shape.type==="circle"){
+      const x=(shape.x-player.x)*scale,y=(shape.y-player.y)*scale,r=shape.r*scale;
+      const sx=(shape.x-camera.x)*scale,sy=(shape.y-camera.y)*scale;
+      if(sx+r<0||sx-r>canvas.width||sy+r<0||sy-r>canvas.height)continue;
+      drawMobileAimRing(x,y,r,{simple:true});
+    }else if(shape.type==="segment"){
+      const dx=shape.x2-shape.x1,dy=shape.y2-shape.y1;
+      ctx.save();ctx.translate((shape.x1-player.x)*scale,(shape.y1-player.y)*scale);ctx.rotate(Math.atan2(dy,dx));
+      drawMobileAimLane(Math.hypot(dx,dy)*scale,shape.width*scale,{arrow:true,capsule:true});ctx.restore();
+    }else if(shape.type==="polygon"){
+      ctx.beginPath();shape.points.forEach((p,i)=>{const x=(p.x-player.x)*scale,y=(p.y-player.y)*scale;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+      ctx.closePath();ctx.fillStyle="rgba(60,213,229,.1)";ctx.fill();ctx.strokeStyle="#9df5ff";ctx.lineWidth=1.4;ctx.stroke();
+    }
+  }
+  if(!spec.shapes.length)drawMobileAimReticle(0,0);
+  drawMobileAimLabel(spec.label);
+}
+
+function drawMobileAimDirection(spec,scale){
+  const r=spec.range*scale;
+  drawMobileAimLane(r,spec.width*scale,{arrow:true,startWidth:16*scale});
+  if(spec.whale){
+    ctx.save();ctx.strokeStyle="rgba(193,253,255,.8)";ctx.fillStyle="rgba(90,222,244,.09)";ctx.lineWidth=1.2;
+    const s=scale;ctx.beginPath();ctx.moveTo(-105*s,0);
+    ctx.bezierCurveTo(-50*s,-48*s,100*s,-52*s,145*s,0);ctx.bezierCurveTo(115*s,40*s,-40*s,36*s,-105*s,0);
+    ctx.lineTo(-145*s,-32*s);ctx.lineTo(-130*s,0);ctx.lineTo(-145*s,32*s);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+  }
+}
+
 function drawMobileTargetingIndicator(){
   if(!isMobileTouchDevice()||screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory)return;
   const state=mobileSkillAim||mobileAttackAim;
@@ -187,20 +287,29 @@ function drawMobileTargetingIndicator(){
   const scale=getWorldViewScale(),point=getMobileAimPoint(state,spec),px=(player.x-camera.x)*scale,py=(player.y-camera.y)*scale;
   const range=spec.range*scale;
   ctx.save();ctx.translate(px,py);ctx.lineCap="round";ctx.lineJoin="round";
-  if(spec.type==="target"){
+  if(spec.type==="effects")drawMobileEffectPreview(spec,scale);
+  else if(spec.type==="status"){
+    drawMobileAimRing(0,0,(player.r+12)*scale,{simple:true});drawMobileAimLabel(spec.label);
+  }else if(spec.type==="target"){
     if(!spec.hideRange)drawMobileAimRing(0,0,range,{simple:true});
     const hit=resolveMobilePreviewTarget(spec,point);
     if(hit)drawMobileAimRing((hit.x-player.x)*scale,(hit.y-player.y)*scale,hit.radius*scale);
   }else if(spec.type==="self")drawMobileAimRing(0,0,range,{spokes:false});
   else{
-    ctx.rotate(state.angle||0);
-    if(spec.type==="offsetCircle")drawMobileAimRing(range,0,spec.radius*scale);
+    let angle=state.angle||0,aimedRange=range*(spec.variable?state.strength:1);
+    if(spec.clampDash){
+      const x=Math.max(player.r,Math.min(WORLD.width-player.r,point.x)),y=Math.max(player.r,Math.min(WORLD.height-player.r,point.y));
+      aimedRange=Math.hypot(x-player.x,y-player.y)*scale;angle=Math.atan2(y-player.y,x-player.x);
+    }
+    ctx.save();ctx.rotate(angle);
+    if(spec.type==="direction")drawMobileAimDirection(spec,scale);
+    else if(spec.type==="offsetCircle")drawMobileAimRing(range,0,spec.radius*scale);
     else if(spec.type==="cone")drawMobileAimCone(range,spec.arc,spec.centerArrow);
     else{
-      const aimedRange=range*(spec.variable?state.strength:1);
-      ctx.translate(((spec.offset||0)*scale)-(spec.centered?aimedRange:0),0);
-      drawMobileAimLane(spec.centered?aimedRange*2:aimedRange,spec.width*scale,{arrow:spec.type==="line",capsule:spec.capsule,startWidth:(spec.startWidth??spec.width)*scale});
+      ctx.translate((spec.offset||0)*scale,0);
+      drawMobileAimLane(aimedRange,spec.width*scale,{arrow:spec.type==="line",capsule:spec.capsule,startWidth:(spec.startWidth??spec.width)*scale});
     }
+    ctx.restore();if(spec.label)drawMobileAimLabel(spec.label);
   }
   ctx.restore();
 }
