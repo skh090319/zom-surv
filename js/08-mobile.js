@@ -350,8 +350,8 @@ function drawMobileHomeScreen(){
   ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=`${short?17:22}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.fillText(info.name,heroX,nameY);ctx.fillStyle=accent;ctx.fillRect(heroX-38,nameY+8,76,2);
   homeStartRect={x:outerX,y:top,w:menuW,h:startH};
   drawLobbyPanel(homeStartRect,"#d94a50",{primary:true});
-  ctx.fillStyle="#fff";ctx.font=`${short?16:20}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.textAlign="left";ctx.fillText("▶  작전 시작",outerX+22,top+(short?22:28));
-  ctx.fillStyle="rgba(235,250,255,.7)";ctx.font=`${short?9:11}px Arial`;ctx.fillText(info.name+"으로 생존 시작",outerX+51,top+startH-(short?7:11));
+  ctx.fillStyle="#fff";ctx.font=`${short?16:20}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.textAlign="center";ctx.fillText("작전 시작",outerX+menuW/2,top+(short?22:28));
+  ctx.fillStyle="rgba(235,250,255,.7)";ctx.font=`${short?9:11}px Arial`;ctx.fillText(info.name+"으로 생존 시작",outerX+menuW/2,top+startH-(short?7:11));
   const cards=[["#9874c4","◆","캐릭터","생존자 선택"],["#b99a55","✦","증강 도감","빌드 확인"],["#5d9b84","?","기본 조작법","이동·공격·스킬"],["#a64e59","☣","몬스터 도감","적·보스 정보"]];
   const rects=[];
   for(let i=0;i<cards.length;i++){
@@ -359,8 +359,8 @@ function drawMobileHomeScreen(){
     rects.push(rect);
     const [color,icon,label,sub]=cards[i];drawLobbyPanel(rect,color);
     ctx.fillStyle=color;ctx.font=`bold ${short?15:18}px Arial`;ctx.textAlign="center";ctx.fillText(icon,rect.x+(short?19:23),rect.y+cardH*.45);
-    ctx.fillStyle="#fff";ctx.font=`${short?11:14}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.textAlign="left";ctx.fillText(label,rect.x+(short?35:43),rect.y+cardH*.43);
-    if(cardH>=46){ctx.fillStyle="rgba(225,233,246,.7)";ctx.font=`${short?8:10}px Arial`;ctx.fillText(sub,rect.x+15,rect.y+cardH-11);}
+    ctx.fillStyle="#fff";ctx.font=`${short?11:14}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.textAlign="center";ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH*.43);
+    if(cardH>=46){ctx.fillStyle="rgba(225,233,246,.7)";ctx.font=`${short?8:10}px Arial`;ctx.fillText(sub,rect.x+rect.w/2,rect.y+cardH-11);}
   }
   [homeCharacterRect,homeAugmentGuideRect,homeGameGuideRect,homeMonsterGuideRect]=rects;
   homeSettingsRect=mobileSettingsHomeRect={x:outerX,y:cardY+2*(cardH+gap),w:cardW,h:settingsH};
@@ -368,8 +368,8 @@ function drawMobileHomeScreen(){
   const bottomCards=[[homeSettingsRect,"#568da1","⚙","조작 설정","위치·크기"],[homeDifficultyRect,"#b86a51","▲","난이도",difficultyLabel()]];
   for(const [rect,color,icon,label,sub] of bottomCards){
     drawLobbyPanel(rect,color);ctx.fillStyle=color;ctx.font=`bold ${short?15:17}px Arial`;ctx.textAlign="center";ctx.fillText(icon,rect.x+20,rect.y+settingsH*.62);
-    ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font=`${short?10:12}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+38,rect.y+(short?15:19));
-    ctx.fillStyle="#a8b6c1";ctx.font=`${short?7:9}px Arial`;ctx.fillText(sub,rect.x+38,rect.y+settingsH-(short?7:9));
+    ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=`${short?10:12}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,rect.y+(short?15:19));
+    ctx.fillStyle="#a8b6c1";ctx.font=`${short?7:9}px Arial`;ctx.fillText(sub,rect.x+rect.w/2,rect.y+settingsH-(short?7:9));
   }
   ctx.restore();drawHomeDifficultyPicker();
 }

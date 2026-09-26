@@ -567,7 +567,7 @@ function drawExpBar() {
   const mobileTouch = typeof isMobileTouchDevice === "function" && isMobileTouchDevice();
   const margin = mobileTouch ? Math.max(120, canvas.width * 0.29) : 260;
   const barX = margin;
-  const barY = canvas.height - 32;
+  const barY = canvas.height - (mobileTouch ? 52 : 32);
   const barW = mobileTouch ? Math.max(150, canvas.width - margin * 2) : Math.max(200, canvas.width - margin * 2);
   const barH = mobileTouch ? 14 : 18;
   const ratio = player.exp / player.expNeed;
@@ -588,6 +588,32 @@ function drawExpBar() {
   ctx.fillText(`LV.${player.level}  EXP ${player.exp}/${player.expNeed}`, canvas.width / 2, barY - 8);
 
   ctx.textAlign = "left";
+}
+
+function getMobileCharacterResource(){
+  if(selectedCharacter==="paladin"){
+    const tierNames=["봉인검","해방검","폭주검","진명 해방"],tier=getPaladinTier();
+    return{label:`PALADIN · ${tierNames[tier]}`,value:player.paladinCombo,max:100,color:["#91a4b8","#59c8ff","#ffd25f","#fff2a8"][tier],text:`${Math.floor(player.paladinCombo)} COMBO`};
+  }
+  if(selectedCharacter==="terra")return{label:"TERRA · 진동",value:player.terraVibration,max:100,color:"#c9e66b",text:`${Math.floor(player.terraVibration)} / 100`};
+  if(selectedCharacter==="arc")return{label:"ARC · 열기",value:player.arcHeat,max:100,color:player.arcHeat>=100?"#fff2a0":"#ff8d32",text:`${Math.floor(player.arcHeat)} / 100`};
+  if(selectedCharacter==="void"){
+    const max=100+player.voidCapacityLevel*20;return{label:"VOID · 공허 질량",value:player.voidMass,max,color:"#bd6cff",text:`${Math.floor(player.voidMass)} / ${max}`};
+  }
+  if(selectedCharacter==="carmilla"){
+    const max=getCarmillaBloodMoonNeed(),value=getCarmillaBloodCount();return{label:"CARMILLA · 혈월",value,max,color:"#ff4168",text:player.carmillaBloodMoonTime>0?"혈월 활성":`${Math.floor(Math.min(value,max))} / ${max}`};
+  }
+  if(selectedCharacter==="vargas"&&player.vargasShield>0)return{label:"VARGAS · 보호막",value:player.vargasShield,max:Math.max(1,player.maxHp*.25),color:"#53e895",text:`${player.vargasShield.toFixed(1)}`};
+  return null;
+}
+
+function drawMobileCharacterResource(){
+  if(!(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()))return;
+  const resource=getMobileCharacterResource();if(!resource)return;
+  const w=Math.min(330,Math.max(180,canvas.width*.36)),h=11,x=(canvas.width-w)/2,y=canvas.height-84,ratio=Math.max(0,Math.min(1,resource.value/resource.max));
+  ctx.save();ctx.fillStyle="rgba(2,7,13,.82)";ctx.fillRect(x-4,y-19,w+8,h+25);ctx.fillStyle="rgba(255,255,255,.1)";ctx.fillRect(x,y,w,h);
+  const g=ctx.createLinearGradient(x,0,x+w,0);g.addColorStop(0,`${resource.color}99`);g.addColorStop(1,resource.color);ctx.fillStyle=g;ctx.fillRect(x,y,w*ratio,h);ctx.strokeStyle="rgba(255,255,255,.72)";ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);
+  ctx.font="bold 10px Arial";ctx.textBaseline="alphabetic";ctx.fillStyle="#eef4ff";ctx.textAlign="left";ctx.fillText(resource.label,x,y-6);ctx.textAlign="right";ctx.fillStyle=resource.color;ctx.fillText(resource.text,x+w,y-6);ctx.restore();ctx.textAlign="left";
 }
 
 function drawMiniMap() {
@@ -879,7 +905,7 @@ function drawHomeScreen() {
   const startHover=pointInRect(mouse.x,mouse.y,homeStartRect),lift=startHover?-4:0;
   drawLobbyPanel(homeStartRect,"#d94a50",{hover:startHover,primary:true});
   ctx.fillStyle="rgba(0,0,0,.2)";ctx.beginPath();ctx.arc(leftX+39,startY+38+lift,24,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(255,255,255,.48)";ctx.stroke();ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.textAlign="center";ctx.fillText("▶",leftX+41,startY+45+lift);
-  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font=`23px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("작전 시작",leftX+78,startY+32+lift);ctx.fillStyle="rgba(235,250,255,.68)";ctx.font="12px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+78,startY+54+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
+  ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=`23px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("작전 시작",leftX+menuW/2,startY+32+lift);ctx.fillStyle="rgba(235,250,255,.68)";ctx.font="12px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+menuW/2,startY+54+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
 
   // 보조 메뉴: 언제나 두 칸씩 배치
   const gap=10,cardY=startY+86,cardH=98,cardCols=2,cardW=(menuW-gap)/2;
@@ -890,8 +916,8 @@ function drawHomeScreen() {
     const hover=pointInRect(mouse.x,mouse.y,rect),cy=drawLobbyPanel(rect,color,{hover});
     ctx.fillStyle=`${color}32`;ctx.beginPath();ctx.arc(rect.x+27,cy+31,17,0,Math.PI*2);ctx.fill();ctx.strokeStyle=`${color}c8`;ctx.stroke();
     ctx.textAlign="center";ctx.fillStyle=color;ctx.font="bold 17px Arial";ctx.fillText(glyph,rect.x+27,cy+37);
-    ctx.textAlign="left";ctx.fillStyle="#f7f8ff";ctx.font=`${cardW<130?13:15}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+51,cy+34);
-    ctx.fillStyle="rgba(211,220,237,.62)";ctx.font=`${cardW<130?10:11}px Arial`;ctx.fillText(sub,rect.x+15,cy+68);
+    ctx.textAlign="center";ctx.fillStyle="#f7f8ff";ctx.font=`${cardW<130?13:15}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,cy+34);
+    ctx.fillStyle="rgba(211,220,237,.62)";ctx.font=`${cardW<130?10:11}px Arial`;ctx.fillText(sub,rect.x+rect.w/2,cy+68);
     ctx.fillStyle=hover?color:"rgba(255,255,255,.35)";ctx.font="bold 17px Arial";ctx.fillText("›",rect.x+rect.w-22,cy+72);
     ctx.textAlign="right";ctx.fillStyle="rgba(255,255,255,.16)";ctx.font="bold 10px monospace";ctx.fillText(no,rect.x+rect.w-11,cy+18);
   }

@@ -91,6 +91,7 @@ function draw() {
     // 생존/진행 정보는 항상 표시한다.
     drawHealthBar();
     drawExpBar();
+    drawMobileCharacterResource();
     drawRaidBossUI();
   }
   drawVisionEffect();
