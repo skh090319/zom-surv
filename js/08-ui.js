@@ -735,25 +735,30 @@ function drawLobbyBackdrop(){
   if(lobbyBackgroundLoaded){
     const scale=Math.max(canvas.width/lobbyBackgroundImage.naturalWidth,canvas.height/lobbyBackgroundImage.naturalHeight);
     const dw=lobbyBackgroundImage.naturalWidth*scale,dh=lobbyBackgroundImage.naturalHeight*scale;
-    ctx.drawImage(lobbyBackgroundImage,(canvas.width-dw)/2,(canvas.height-dh)/2,dw,dh);
+    ctx.save();ctx.filter="brightness(1.38) contrast(1.08) saturate(.9)";ctx.drawImage(lobbyBackgroundImage,(canvas.width-dw)/2,(canvas.height-dh)/2,dw,dh);ctx.restore();
   }
   const shade=ctx.createLinearGradient(0,0,canvas.width,0);
-  shade.addColorStop(0,"rgba(1,4,9,.91)");shade.addColorStop(.48,"rgba(2,6,12,.62)");shade.addColorStop(.72,"rgba(2,5,10,.28)");shade.addColorStop(1,"rgba(1,3,7,.72)");
+  shade.addColorStop(0,"rgba(1,4,8,.55)");shade.addColorStop(.42,"rgba(2,6,11,.22)");shade.addColorStop(.72,"rgba(2,5,9,.05)");shade.addColorStop(1,"rgba(1,3,7,.34)");
   ctx.fillStyle=shade;ctx.fillRect(0,0,canvas.width,canvas.height);
   const vignette=ctx.createRadialGradient(canvas.width*.55,canvas.height*.42,40,canvas.width*.55,canvas.height*.45,Math.max(canvas.width,canvas.height)*.72);
-  vignette.addColorStop(0,"rgba(0,0,0,0)");vignette.addColorStop(1,"rgba(0,2,6,.72)");ctx.fillStyle=vignette;ctx.fillRect(0,0,canvas.width,canvas.height);
+  vignette.addColorStop(0,"rgba(0,0,0,0)");vignette.addColorStop(.7,"rgba(0,1,4,.08)");vignette.addColorStop(1,"rgba(0,2,6,.42)");ctx.fillStyle=vignette;ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
 function drawLobbyPanel(rect,color,{hover=false,primary=false}={}){
   const y=rect.y+(hover?-2:0),g=ctx.createLinearGradient(rect.x,y,rect.x,y+rect.h);
-  g.addColorStop(0,primary?"rgba(35,45,54,.98)":"rgba(25,30,36,.97)");g.addColorStop(.45,"rgba(12,17,22,.98)");g.addColorStop(1,"rgba(5,9,13,.98)");
-  ctx.save();ctx.shadowColor="rgba(0,0,0,.9)";ctx.shadowBlur=16;ctx.shadowOffsetY=7;drawRoundedRect(rect.x,y,rect.w,rect.h,primary?8:6,g,hover?color:"rgba(117,132,143,.7)",hover?2:1.2);ctx.restore();
-  ctx.fillStyle=primary?color:`${color}b8`;ctx.fillRect(rect.x+1,y+1,rect.w-2,primary?4:3);
-  ctx.fillStyle="rgba(255,255,255,.09)";ctx.fillRect(rect.x+9,y+8,rect.w-18,1);
-  ctx.fillStyle="rgba(2,4,7,.9)";
+  g.addColorStop(0,primary?"rgba(48,51,51,.91)":"rgba(34,38,39,.9)");g.addColorStop(.2,"rgba(22,27,29,.91)");g.addColorStop(.7,"rgba(10,15,18,.94)");g.addColorStop(1,"rgba(5,9,11,.96)");
+  ctx.save();ctx.shadowColor="rgba(0,0,0,.78)";ctx.shadowBlur=12;ctx.shadowOffsetY=6;drawRoundedRect(rect.x,y,rect.w,rect.h,primary?6:4,g,hover?color:"rgba(112,124,126,.76)",hover?2:1.2);ctx.restore();
+  ctx.fillStyle=primary?"#b84042":`${color}b8`;ctx.fillRect(rect.x+1,y+1,rect.w-2,primary?5:3);
+  ctx.fillStyle="rgba(226,232,229,.1)";ctx.fillRect(rect.x+10,y+9,rect.w-20,1);
+  ctx.fillStyle="rgba(1,3,4,.95)";
   for(const [rx,ry] of [[rect.x+8,y+9],[rect.x+rect.w-8,y+9],[rect.x+8,y+rect.h-9],[rect.x+rect.w-8,y+rect.h-9]]){ctx.beginPath();ctx.arc(rx,ry,2,0,Math.PI*2);ctx.fill();}
-  ctx.save();ctx.beginPath();ctx.rect(rect.x,y,rect.w,rect.h);ctx.clip();ctx.globalAlpha=.13;ctx.strokeStyle=color;ctx.lineWidth=3;
-  for(let x=rect.x-rect.h;x<rect.x+rect.w;x+=18){ctx.beginPath();ctx.moveTo(x,y+rect.h);ctx.lineTo(x+rect.h,y);ctx.stroke();}ctx.restore();
+  // 불규칙한 긁힘과 녹 자국으로 폐허의 철판 질감을 만든다.
+  ctx.save();ctx.beginPath();ctx.rect(rect.x+1,y+1,rect.w-2,rect.h-2);ctx.clip();
+  const marks=[[.18,.28,.31],[.54,.63,.19],[.72,.37,.15],[.34,.82,.23]];
+  ctx.lineWidth=1;
+  for(let i=0;i<marks.length;i++){const [px,py,pw]=marks[i];ctx.strokeStyle=i%2?"rgba(184,191,185,.075)":"rgba(114,54,43,.13)";ctx.beginPath();ctx.moveTo(rect.x+rect.w*px,y+rect.h*py);ctx.lineTo(rect.x+rect.w*(px+pw),y+rect.h*(py-.025));ctx.stroke();}
+  ctx.fillStyle="rgba(116,50,40,.12)";ctx.beginPath();ctx.arc(rect.x+rect.w*.84,y+rect.h*.76,Math.min(18,rect.h*.18),0,Math.PI*2);ctx.fill();ctx.restore();
+  ctx.strokeStyle="rgba(0,0,0,.7)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(rect.x+12,y+rect.h-1);ctx.lineTo(rect.x+rect.w-1,y+rect.h-1);ctx.stroke();
   return y;
 }
 
@@ -837,7 +842,7 @@ function drawHomeScreen() {
 
   // 시네마틱 로비 조명과 상하 레터박스
   const sideShade=ctx.createLinearGradient(0,0,canvas.width,0);
-  sideShade.addColorStop(0,"rgba(2,4,11,.96)");sideShade.addColorStop(.42,"rgba(3,5,13,.58)");sideShade.addColorStop(.72,"rgba(6,8,17,.18)");sideShade.addColorStop(1,"rgba(2,3,9,.82)");
+  sideShade.addColorStop(0,"rgba(2,4,9,.63)");sideShade.addColorStop(.4,"rgba(3,5,10,.25)");sideShade.addColorStop(.72,"rgba(6,8,13,.03)");sideShade.addColorStop(1,"rgba(2,3,8,.4)");
   ctx.fillStyle=sideShade;ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle="rgba(1,2,7,.8)";ctx.fillRect(0,0,canvas.width,54);ctx.fillRect(0,canvas.height-54,canvas.width,54);
   ctx.strokeStyle="rgba(255,255,255,.08)";ctx.beginPath();ctx.moveTo(0,54);ctx.lineTo(canvas.width,54);ctx.moveTo(0,canvas.height-54);ctx.lineTo(canvas.width,canvas.height-54);ctx.stroke();

@@ -330,7 +330,7 @@ function drawMobileHomeScreen(){
   const heroX=(heroLeft+heroRight)/2,top=outerY+titleH+gap,cardY=top+startH+gap,cardW=(menuW-gap)/2;
   ctx.save();
   const shade=ctx.createLinearGradient(0,0,canvas.width,0);
-  shade.addColorStop(0,"rgba(2,5,10,.78)");shade.addColorStop(.58,"rgba(4,7,12,.3)");shade.addColorStop(1,"rgba(2,3,7,.58)");
+  shade.addColorStop(0,"rgba(2,5,10,.48)");shade.addColorStop(.58,"rgba(4,7,12,.12)");shade.addColorStop(1,"rgba(2,3,7,.3)");
   ctx.fillStyle=shade;ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle="rgba(2,4,10,.72)";ctx.fillRect(0,0,canvas.width,Math.max(28,outerY-8));
   ctx.textAlign="left";ctx.fillStyle="#ff536d";ctx.font=`900 ${short?8:10}px Arial`;ctx.fillText("NIGHT PROTOCOL / 03",outerX,outerY-4);
