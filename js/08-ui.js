@@ -912,19 +912,18 @@ function drawHomeScreen() {
   const startHover=pointInRect(mouse.x,mouse.y,homeStartRect),lift=startHover?-4:0;
   drawLobbyPanel(homeStartRect,"#d94a50",{hover:startHover,primary:true});
   drawLobbyEmblem(leftX+39,startY+38+lift,22,"#d94a50","▶");
-  ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.22)";ctx.shadowBlur=5;ctx.font=`27px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("작전 시작",leftX+menuW/2,startY+34+lift);ctx.shadowBlur=0;ctx.fillStyle="rgba(242,248,255,.86)";ctx.font="bold 13px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+menuW/2,startY+57+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
+  ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.22)";ctx.shadowBlur=5;ctx.font=`27px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("작전 시작",leftX+menuW/2,startY+47+lift);ctx.shadowBlur=0;ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
 
   // 보조 메뉴: 언제나 두 칸씩 배치
   const gap=10,cardY=startY+86,cardH=98,cardCols=2,cardW=(menuW-gap)/2;
   const cardRect=i=>({x:leftX+(i%cardCols)*(cardW+gap),y:cardY+Math.floor(i/cardCols)*(cardH+gap),w:cardW,h:cardH});
   homeCharacterRect=cardRect(0);homeAugmentGuideRect=cardRect(1);homeGameGuideRect=cardRect(2);homeMonsterGuideRect=cardRect(3);homeSettingsRect=cardRect(4);homeDifficultyRect=cardRect(5);mobileSettingsHomeRect=homeSettingsRect;
-  const cards=[[homeCharacterRect,"#9874c4","◆","캐릭터","생존자 선택","01"],[homeAugmentGuideRect,"#b99a55","✦","증강 도감","빌드 설계","02"],[homeGameGuideRect,"#5d9b84","?","게임 가이드","조작·보스","03"],[homeMonsterGuideRect,"#a64e59","☣","몬스터 도감","적·보스 정보","04"],[homeSettingsRect,"#568da1","⚙","조작 설정","버튼 위치·크기","05"],[homeDifficultyRect,"#b86a51","▲","난이도",difficultyLabel(),"06"]];
-  for(const [rect,color,glyph,label,sub,no] of cards){
+  const cards=[[homeCharacterRect,"#9874c4","◆","캐릭터","01"],[homeAugmentGuideRect,"#b99a55","✦","증강 도감","02"],[homeGameGuideRect,"#5d9b84","?","게임 가이드","03"],[homeMonsterGuideRect,"#a64e59","☣","몬스터 도감","04"],[homeSettingsRect,"#568da1","⚙","조작 설정","05"],[homeDifficultyRect,"#b86a51","▲","난이도","06"]];
+  for(const [rect,color,glyph,label,no] of cards){
     const hover=pointInRect(mouse.x,mouse.y,rect),cy=drawLobbyPanel(rect,color,{hover});
-    drawLobbyEmblem(rect.x+28,cy+34,18,color,glyph);
-    ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=4;ctx.font=`${cardW<130?15:18}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,cy+39);ctx.shadowBlur=0;
-    ctx.fillStyle="rgba(232,239,250,.82)";ctx.font=`bold ${cardW<130?11:12}px Arial`;ctx.fillText(sub,rect.x+rect.w/2,cy+72);
-    ctx.fillStyle=hover?color:"rgba(255,255,255,.35)";ctx.font="bold 17px Arial";ctx.fillText("›",rect.x+rect.w-22,cy+72);
+    drawLobbyEmblem(rect.x+28,cy+rect.h/2,18,color,glyph);
+    ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=4;ctx.font=`${cardW<130?15:18}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,cy+rect.h/2+6);ctx.shadowBlur=0;
+    ctx.fillStyle=hover?color:"rgba(255,255,255,.35)";ctx.font="bold 17px Arial";ctx.fillText("›",rect.x+rect.w-22,cy+rect.h/2+6);
     ctx.textAlign="right";ctx.fillStyle="rgba(255,255,255,.16)";ctx.font="bold 10px monospace";ctx.fillText(no,rect.x+rect.w-11,cy+18);
   }
 

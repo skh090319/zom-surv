@@ -330,9 +330,9 @@ function drawMobileHomeScreen(){
   drawLobbyBackdrop();
   const info=characterSkillGuide[selectedCharacter]||characterSkillGuide.default,accent=info.color||"#57ddff";
   const sprite=getCharacterPreviewSprite(selectedCharacter),short=canvas.height<390;
-  const gap=short?6:9,titleH=short?28:38,startH=short?48:62,settingsH=short?38:46;
-  const usableH=Math.min(canvas.height-(short?24:48),420),cardH=Math.max(short?37:48,Math.min(82,(usableH-titleH-startH-settingsH-gap*4)/2));
-  const frameH=titleH+startH+settingsH+cardH*2+gap*4,outerY=Math.max(short?8:18,(canvas.height-frameH)/2),outerX=Math.max(18,canvas.width*.035);
+  const gap=short?6:9,titleH=short?28:38,startH=short?48:62;
+  const usableH=Math.min(canvas.height-(short?24:48),420),cardH=Math.max(short?38:48,Math.min(68,(usableH-titleH-startH-gap*4)/3));
+  const frameH=titleH+startH+cardH*3+gap*4,outerY=Math.max(short?8:18,(canvas.height-frameH)/2),outerX=Math.max(18,canvas.width*.035);
   const frameW=canvas.width-outerX*2,menuW=Math.min(520,frameW*.52),heroLeft=outerX+menuW+Math.max(18,frameW*.035),heroRight=outerX+frameW;
   const heroX=(heroLeft+heroRight)/2,top=outerY+titleH+gap,cardY=top+startH+gap,cardW=(menuW-gap)/2;
   ctx.save();
@@ -356,26 +356,23 @@ function drawMobileHomeScreen(){
   homeStartRect={x:outerX,y:top,w:menuW,h:startH};
   drawLobbyPanel(homeStartRect,"#d94a50",{primary:true});
   drawMobileLobbyEmblem(outerX+(short?22:27),top+startH/2,short?14:18,"#d94a50","▶");
-  ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.2)";ctx.shadowBlur=4;ctx.font=`${short?18:23}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.textAlign="center";ctx.fillText("작전 시작",outerX+menuW/2,top+(short?24:31));ctx.shadowBlur=0;
-  ctx.fillStyle="rgba(242,248,255,.86)";ctx.font=`bold ${short?9:12}px Arial`;ctx.fillText(info.name+"으로 생존 시작",outerX+menuW/2,top+startH-(short?6:9));
-  const cards=[["#9874c4","◆","캐릭터","생존자 선택"],["#b99a55","✦","증강 도감","빌드 확인"],["#5d9b84","?","기본 조작법","이동·공격·스킬"],["#a64e59","☣","몬스터 도감","적·보스 정보"]];
+  ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.2)";ctx.shadowBlur=4;ctx.font=`${short?18:23}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("작전 시작",outerX+menuW/2,top+startH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
+  const cards=[["#9874c4","◆","캐릭터"],["#b99a55","✦","증강 도감"],["#5d9b84","?","기본 조작법"],["#a64e59","☣","몬스터 도감"]];
   const rects=[];
   for(let i=0;i<cards.length;i++){
     const rect={x:outerX+(i%2)*(cardW+gap),y:cardY+Math.floor(i/2)*(cardH+gap),w:cardW,h:cardH};
     rects.push(rect);
-    const [color,icon,label,sub]=cards[i];drawLobbyPanel(rect,color);
-    drawMobileLobbyEmblem(rect.x+(short?19:24),rect.y+cardH*.42,short?12:15,color,icon);
-    ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=3;ctx.font=`${short?13:17}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.textAlign="center";ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH*.46);ctx.shadowBlur=0;
-    if(cardH>=46){ctx.fillStyle="rgba(236,242,252,.84)";ctx.font=`bold ${short?9:11}px Arial`;ctx.fillText(sub,rect.x+rect.w/2,rect.y+cardH-9);}
+    const [color,icon,label]=cards[i];drawLobbyPanel(rect,color);
+    drawMobileLobbyEmblem(rect.x+(short?19:24),rect.y+cardH/2,short?12:15,color,icon);
+    ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=3;ctx.font=`${short?13:17}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
   }
   [homeCharacterRect,homeAugmentGuideRect,homeGameGuideRect,homeMonsterGuideRect]=rects;
-  homeSettingsRect=mobileSettingsHomeRect={x:outerX,y:cardY+2*(cardH+gap),w:cardW,h:settingsH};
-  homeDifficultyRect={x:outerX+cardW+gap,y:homeSettingsRect.y,w:cardW,h:settingsH};
-  const bottomCards=[[homeSettingsRect,"#568da1","⚙","조작 설정","위치·크기"],[homeDifficultyRect,"#b86a51","▲","난이도",difficultyLabel()]];
-  for(const [rect,color,icon,label,sub] of bottomCards){
-    drawLobbyPanel(rect,color);drawMobileLobbyEmblem(rect.x+(short?18:21),rect.y+settingsH/2,short?11:13,color,icon);
-    ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=`${short?12:15}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,rect.y+(short?16:21));
-    ctx.fillStyle="rgba(225,235,247,.82)";ctx.font=`bold ${short?8:10}px Arial`;ctx.fillText(sub,rect.x+rect.w/2,rect.y+settingsH-(short?5:7));
+  homeSettingsRect=mobileSettingsHomeRect={x:outerX,y:cardY+2*(cardH+gap),w:cardW,h:cardH};
+  homeDifficultyRect={x:outerX+cardW+gap,y:homeSettingsRect.y,w:cardW,h:cardH};
+  const bottomCards=[[homeSettingsRect,"#568da1","⚙","조작 설정"],[homeDifficultyRect,"#b86a51","▲","난이도"]];
+  for(const [rect,color,icon,label] of bottomCards){
+    drawLobbyPanel(rect,color);drawMobileLobbyEmblem(rect.x+(short?19:24),rect.y+cardH/2,short?12:15,color,icon);
+    ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#fff";ctx.font=`${short?13:17}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH/2+1);ctx.textBaseline="alphabetic";
   }
   ctx.restore();drawHomeDifficultyPicker();
 }
