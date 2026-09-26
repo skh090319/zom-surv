@@ -35,8 +35,10 @@ function game() {
     pointInRect:(x,y,r)=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h,
     screenToWorld(){context.mouse.worldX=context.mouse.x/.78+context.camera.x;context.mouse.worldY=context.mouse.y/.78+context.camera.y;},
     characterSkillGuide:{default:{name:'기본 캐릭터',color:'#bb66ff'}}, getCharacterPreviewSprite:()=>null,
-    drawMenuBackdrop(){}, drawBloodiedLobbyTitle(){}, drawRoundedRect(){},
+    drawMenuBackdrop(){}, drawLobbyBackdrop(){}, drawLobbyPanel(){}, drawBloodiedLobbyTitle(){}, drawRoundedRect(){},
+    difficultyLabel:()=> 'MEDIUM', drawHomeDifficultyPicker(){},
     homeStartRect:{},homeCharacterRect:{},homeAugmentGuideRect:{},homeGameGuideRect:{},homeMonsterGuideRect:{},
+    homeSettingsRect:{x:0,y:0,w:0,h:0},homeDifficultyRect:{x:0,y:0,w:0,h:0},homeDifficultyOpen:false,homeDifficultyChoiceRects:[],selectedDifficulty:'medium',
     pauseButtonRect:{x:0,y:0,w:0,h:0}
   };
   context.canvas={width:844,height:390, getBoundingClientRect:()=>({left:0,top:0,width:context.canvas.width,height:context.canvas.height}),
@@ -137,4 +139,16 @@ test('control size has no upper limit',()=>{
   assert.equal(g.run('clampMobileControlScale(2.5)'),2.5);
   assert.equal(g.run('clampMobileControlScale(8)'),8);
   assert.equal(g.run('clampMobileControlScale(.1)'),.72);
+});
+
+test('difficulty selector stores a choice without changing game balance',()=>{
+  const g=game();g.context.screenMode='home';
+  g.context.homeDifficultyRect={x:300,y:200,w:120,h:60};
+  g.context.canvas.dispatchEvent({type:'mousedown',button:0,clientX:340,clientY:220});
+  assert.equal(g.context.homeDifficultyOpen,true);
+  g.context.homeDifficultyChoiceRects=[{value:'hard',x:400,y:100,w:100,h:80}];
+  g.context.canvas.dispatchEvent({type:'mousedown',button:0,clientX:450,clientY:140});
+  assert.equal(g.context.selectedDifficulty,'hard');
+  assert.equal(g.storage.get('zombieSurvivalDifficulty'),'hard');
+  assert.equal(g.context.homeDifficultyOpen,false);
 });

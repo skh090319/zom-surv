@@ -320,7 +320,7 @@ function drawCommonAttackIcon(cx,cy,r){
 }
 
 function drawMobileHomeScreen(){
-  drawMenuBackdrop(.66);
+  drawLobbyBackdrop();
   const info=characterSkillGuide[selectedCharacter]||characterSkillGuide.default,accent=info.color||"#57ddff";
   const sprite=getCharacterPreviewSprite(selectedCharacter),short=canvas.height<390;
   const gap=short?6:9,titleH=short?28:38,startH=short?48:62,settingsH=short?38:46;
@@ -330,7 +330,7 @@ function drawMobileHomeScreen(){
   const heroX=(heroLeft+heroRight)/2,top=outerY+titleH+gap,cardY=top+startH+gap,cardW=(menuW-gap)/2;
   ctx.save();
   const shade=ctx.createLinearGradient(0,0,canvas.width,0);
-  shade.addColorStop(0,"rgba(2,5,13,.96)");shade.addColorStop(.58,"rgba(4,7,16,.45)");shade.addColorStop(1,"rgba(2,3,9,.86)");
+  shade.addColorStop(0,"rgba(2,5,10,.78)");shade.addColorStop(.58,"rgba(4,7,12,.3)");shade.addColorStop(1,"rgba(2,3,7,.58)");
   ctx.fillStyle=shade;ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle="rgba(2,4,10,.72)";ctx.fillRect(0,0,canvas.width,Math.max(28,outerY-8));
   ctx.textAlign="left";ctx.fillStyle="#ff536d";ctx.font=`900 ${short?8:10}px Arial`;ctx.fillText("NIGHT PROTOCOL / 03",outerX,outerY-4);
@@ -347,31 +347,29 @@ function drawMobileHomeScreen(){
   const nameY=outerY+frameH-(short?9:20);
   ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=`900 ${short?17:22}px Arial`;ctx.fillText(info.name,heroX,nameY);ctx.fillStyle=accent;ctx.fillRect(heroX-38,nameY+8,76,2);
   homeStartRect={x:outerX,y:top,w:menuW,h:startH};
-  const play=ctx.createLinearGradient(outerX,top,outerX+menuW,top);play.addColorStop(0,"#14899f");play.addColorStop(1,"#293e83");
-  ctx.save();ctx.shadowColor="#2edfff";ctx.shadowBlur=14;drawRoundedRect(outerX,top,menuW,startH,11,play,"#74efff",2);ctx.restore();
+  drawLobbyPanel(homeStartRect,"#d94a50",{primary:true});
   ctx.fillStyle="#fff";ctx.font=`900 ${short?16:20}px Arial`;ctx.textAlign="left";ctx.fillText("▶  작전 시작",outerX+22,top+(short?22:28));
   ctx.fillStyle="rgba(235,250,255,.7)";ctx.font=`${short?9:11}px Arial`;ctx.fillText(info.name+"으로 생존 시작",outerX+51,top+startH-(short?7:11));
-  const cards=[["#b875ff","◆","캐릭터","생존자 선택"],["#ffd15b","✦","증강 도감","빌드 확인"],["#5fe3ad","?","기본 조작법","이동·공격·스킬"],["#ff6b83","☣","몬스터 도감","적·보스 정보"]];
+  const cards=[["#9874c4","◆","캐릭터","생존자 선택"],["#b99a55","✦","증강 도감","빌드 확인"],["#5d9b84","?","기본 조작법","이동·공격·스킬"],["#a64e59","☣","몬스터 도감","적·보스 정보"]];
   const rects=[];
   for(let i=0;i<cards.length;i++){
     const rect={x:outerX+(i%2)*(cardW+gap),y:cardY+Math.floor(i/2)*(cardH+gap),w:cardW,h:cardH};
     rects.push(rect);
-    const [color,icon,label,sub]=cards[i],fill=ctx.createLinearGradient(rect.x,rect.y,rect.x+rect.w,rect.y+rect.h);
-    fill.addColorStop(0,color+"58");fill.addColorStop(1,color+"20");
-    ctx.save();ctx.shadowColor=color;ctx.shadowBlur=10;drawRoundedRect(rect.x,rect.y,rect.w,rect.h,10,fill,color+"a8",1.5);ctx.restore();
+    const [color,icon,label,sub]=cards[i];drawLobbyPanel(rect,color);
     ctx.fillStyle=color;ctx.font=`bold ${short?15:18}px Arial`;ctx.textAlign="center";ctx.fillText(icon,rect.x+(short?19:23),rect.y+cardH*.45);
     ctx.fillStyle="#fff";ctx.font=`900 ${short?11:14}px Arial`;ctx.textAlign="left";ctx.fillText(label,rect.x+(short?35:43),rect.y+cardH*.43);
     if(cardH>=46){ctx.fillStyle="rgba(225,233,246,.7)";ctx.font=`${short?8:10}px Arial`;ctx.fillText(sub,rect.x+15,rect.y+cardH-11);}
   }
   [homeCharacterRect,homeAugmentGuideRect,homeGameGuideRect,homeMonsterGuideRect]=rects;
-  mobileSettingsHomeRect={x:outerX,y:cardY+2*(cardH+gap),w:menuW,h:settingsH};
-  const rect=mobileSettingsHomeRect,fill=ctx.createLinearGradient(rect.x,rect.y,rect.x+rect.w,rect.y+rect.h);
-  fill.addColorStop(0,"rgba(84,216,255,.34)");fill.addColorStop(1,"rgba(84,216,255,.1)");
-  ctx.save();ctx.shadowColor="#54d8ff";ctx.shadowBlur=10;drawRoundedRect(rect.x,rect.y,rect.w,rect.h,10,fill,"rgba(105,226,255,.62)",1.3);ctx.restore();
-  ctx.fillStyle="#7be7ff";ctx.font=`bold ${short?16:18}px Arial`;ctx.textAlign="center";ctx.fillText("⚙",rect.x+23,rect.y+settingsH*.64);
-  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font=`900 ${short?11:13}px Arial`;ctx.fillText("조작 설정",rect.x+43,rect.y+(short?16:20));
-  ctx.fillStyle="#a8c8da";ctx.font=`${short?8:10}px Arial`;ctx.fillText("버튼 위치·크기",rect.x+43,rect.y+settingsH-(short?7:10));
-  ctx.restore();
+  homeSettingsRect=mobileSettingsHomeRect={x:outerX,y:cardY+2*(cardH+gap),w:cardW,h:settingsH};
+  homeDifficultyRect={x:outerX+cardW+gap,y:homeSettingsRect.y,w:cardW,h:settingsH};
+  const bottomCards=[[homeSettingsRect,"#568da1","⚙","조작 설정","위치·크기"],[homeDifficultyRect,"#b86a51","▲","난이도",difficultyLabel()]];
+  for(const [rect,color,icon,label,sub] of bottomCards){
+    drawLobbyPanel(rect,color);ctx.fillStyle=color;ctx.font=`bold ${short?15:17}px Arial`;ctx.textAlign="center";ctx.fillText(icon,rect.x+20,rect.y+settingsH*.62);
+    ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font=`900 ${short?10:12}px Arial`;ctx.fillText(label,rect.x+38,rect.y+(short?15:19));
+    ctx.fillStyle="#a8b6c1";ctx.font=`${short?7:9}px Arial`;ctx.fillText(sub,rect.x+38,rect.y+settingsH-(short?7:9));
+  }
+  ctx.restore();drawHomeDifficultyPicker();
 }
 
 function drawMobileControlSettings(){

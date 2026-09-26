@@ -730,6 +730,55 @@ function drawMenuBackdrop(alpha = 0.48) {
   ctx.restore();
 }
 
+function drawLobbyBackdrop(){
+  ctx.fillStyle="#02050a";ctx.fillRect(0,0,canvas.width,canvas.height);
+  if(lobbyBackgroundLoaded){
+    const scale=Math.max(canvas.width/lobbyBackgroundImage.naturalWidth,canvas.height/lobbyBackgroundImage.naturalHeight);
+    const dw=lobbyBackgroundImage.naturalWidth*scale,dh=lobbyBackgroundImage.naturalHeight*scale;
+    ctx.drawImage(lobbyBackgroundImage,(canvas.width-dw)/2,(canvas.height-dh)/2,dw,dh);
+  }
+  const shade=ctx.createLinearGradient(0,0,canvas.width,0);
+  shade.addColorStop(0,"rgba(1,4,9,.91)");shade.addColorStop(.48,"rgba(2,6,12,.62)");shade.addColorStop(.72,"rgba(2,5,10,.28)");shade.addColorStop(1,"rgba(1,3,7,.72)");
+  ctx.fillStyle=shade;ctx.fillRect(0,0,canvas.width,canvas.height);
+  const vignette=ctx.createRadialGradient(canvas.width*.55,canvas.height*.42,40,canvas.width*.55,canvas.height*.45,Math.max(canvas.width,canvas.height)*.72);
+  vignette.addColorStop(0,"rgba(0,0,0,0)");vignette.addColorStop(1,"rgba(0,2,6,.72)");ctx.fillStyle=vignette;ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function drawLobbyPanel(rect,color,{hover=false,primary=false}={}){
+  const y=rect.y+(hover?-2:0),g=ctx.createLinearGradient(rect.x,y,rect.x,y+rect.h);
+  g.addColorStop(0,primary?"rgba(35,45,54,.98)":"rgba(25,30,36,.97)");g.addColorStop(.45,"rgba(12,17,22,.98)");g.addColorStop(1,"rgba(5,9,13,.98)");
+  ctx.save();ctx.shadowColor="rgba(0,0,0,.9)";ctx.shadowBlur=16;ctx.shadowOffsetY=7;drawRoundedRect(rect.x,y,rect.w,rect.h,primary?8:6,g,hover?color:"rgba(117,132,143,.7)",hover?2:1.2);ctx.restore();
+  ctx.fillStyle=primary?color:`${color}b8`;ctx.fillRect(rect.x+1,y+1,rect.w-2,primary?4:3);
+  ctx.fillStyle="rgba(255,255,255,.09)";ctx.fillRect(rect.x+9,y+8,rect.w-18,1);
+  ctx.fillStyle="rgba(2,4,7,.9)";
+  for(const [rx,ry] of [[rect.x+8,y+9],[rect.x+rect.w-8,y+9],[rect.x+8,y+rect.h-9],[rect.x+rect.w-8,y+rect.h-9]]){ctx.beginPath();ctx.arc(rx,ry,2,0,Math.PI*2);ctx.fill();}
+  ctx.save();ctx.beginPath();ctx.rect(rect.x,y,rect.w,rect.h);ctx.clip();ctx.globalAlpha=.13;ctx.strokeStyle=color;ctx.lineWidth=3;
+  for(let x=rect.x-rect.h;x<rect.x+rect.w;x+=18){ctx.beginPath();ctx.moveTo(x,y+rect.h);ctx.lineTo(x+rect.h,y);ctx.stroke();}ctx.restore();
+  return y;
+}
+
+function difficultyLabel(value=selectedDifficulty){return value==="easy"?"EASY":value==="hard"?"HARD":"MEDIUM";}
+
+function drawHomeDifficultyPicker(){
+  if(!homeDifficultyOpen){homeDifficultyChoiceRects=[];return;}
+  ctx.save();ctx.fillStyle="rgba(0,2,6,.78)";ctx.fillRect(0,0,canvas.width,canvas.height);
+  const w=Math.min(520,canvas.width*.78),h=Math.min(280,canvas.height*.76),x=(canvas.width-w)/2,y=(canvas.height-h)/2;
+  const shell=ctx.createLinearGradient(x,y,x,y+h);shell.addColorStop(0,"rgba(31,38,45,.99)");shell.addColorStop(1,"rgba(5,9,13,.99)");
+  drawRoundedRect(x,y,w,h,9,shell,"rgba(173,188,198,.7)",1.5);ctx.fillStyle="#d94a50";ctx.fillRect(x+1,y+1,w-2,4);
+  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 20px Arial";ctx.fillText("위협 단계 설정",x+24,y+38);
+  ctx.fillStyle="rgba(205,215,222,.62)";ctx.font="11px Arial";ctx.fillText("현재는 모든 단계의 게임 수치가 동일합니다",x+24,y+59);
+  const gap=10,pad=24,choiceY=y+82,choiceH=h-106,choiceW=(w-pad*2-gap*2)/3;
+  homeDifficultyChoiceRects=["easy","medium","hard"].map((value,index)=>({value,x:x+pad+index*(choiceW+gap),y:choiceY,w:choiceW,h:choiceH}));
+  const details={easy:["EASY","생존 준비","#69d8a5"],medium:["MEDIUM","표준 위협","#e0b04f"],hard:["HARD","극한 경계","#e45b62"]};
+  for(const rect of homeDifficultyChoiceRects){
+    const [label,sub,color]=details[rect.value],selected=rect.value===selectedDifficulty;
+    drawLobbyPanel(rect,color,{hover:selected});ctx.textAlign="center";ctx.fillStyle=color;ctx.font=`900 ${choiceW<120?14:17}px Arial`;ctx.fillText(label,rect.x+rect.w/2,rect.y+rect.h*.43);
+    ctx.fillStyle="rgba(226,233,238,.68)";ctx.font="10px Arial";ctx.fillText(sub,rect.x+rect.w/2,rect.y+rect.h*.65);
+    if(selected){ctx.fillStyle=color;ctx.font="900 10px Arial";ctx.fillText("SELECTED",rect.x+rect.w/2,rect.y+rect.h-13);}
+  }
+  ctx.restore();
+}
+
 function drawMenuButton(rect, hover, color, label, sublabel, glyph) {
   const lift = hover ? -3 : 0;
   const x = rect.x;
@@ -780,7 +829,7 @@ function drawBloodiedLobbyTitle(text,x,y,size,baseFill){
 
 function drawHomeScreen() {
   if(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&canvas.height<520){drawMobileHomeScreen();return;}
-  drawMenuBackdrop(0.62);
+  drawLobbyBackdrop();
   const t=performance.now()*.001,wide=canvas.width>=900,margin=Math.max(28,canvas.width*.045);
   const info=characterSkillGuide[selectedCharacter]||characterSkillGuide.default;
   const accent=info.color||"#57ddff",sprite=getCharacterPreviewSprite(selectedCharacter);
@@ -821,49 +870,32 @@ function drawHomeScreen() {
   ctx.fillStyle="#aeb8cb";ctx.font=`${wide?16:13}px Arial`;ctx.fillText("밤이 끝나기 전에 살아남아라.",leftX,titleY+54+titleSize*.9);
 
   // 메인 플레이 버튼
-  const menuW=wide?Math.min(500,canvas.width*.41):Math.min(410,canvas.width*.55),startY=Math.min(canvas.height-292,titleY+82+titleSize*.9);
+  const menuW=wide?Math.min(500,canvas.width*.41):Math.min(410,canvas.width*.55),startY=Math.min(canvas.height-400,titleY+82+titleSize*.9);
   homeStartRect={x:leftX,y:startY,w:menuW,h:76};
   const startHover=pointInRect(mouse.x,mouse.y,homeStartRect),lift=startHover?-4:0;
-  const playGradient=ctx.createLinearGradient(leftX,startY,leftX+menuW,startY);playGradient.addColorStop(0,startHover?"#159bb5":"#126e82");playGradient.addColorStop(1,startHover?"#3854ae":"#26386d");
-  ctx.save();ctx.shadowColor="#21d8ff";ctx.shadowBlur=startHover?34:17;drawRoundedRect(leftX,startY+lift,menuW,76,10,playGradient,"#73edff",2);ctx.restore();
+  drawLobbyPanel(homeStartRect,"#d94a50",{hover:startHover,primary:true});
   ctx.fillStyle="rgba(0,0,0,.2)";ctx.beginPath();ctx.arc(leftX+39,startY+38+lift,24,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(255,255,255,.48)";ctx.stroke();ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.textAlign="center";ctx.fillText("▶",leftX+41,startY+45+lift);
   ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 23px Arial";ctx.fillText("작전 시작",leftX+78,startY+32+lift);ctx.fillStyle="rgba(235,250,255,.68)";ctx.font="12px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+78,startY+54+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
 
   // 보조 메뉴: 언제나 두 칸씩 배치
   const gap=10,cardY=startY+86,cardH=98,cardCols=2,cardW=(menuW-gap)/2;
   const cardRect=i=>({x:leftX+(i%cardCols)*(cardW+gap),y:cardY+Math.floor(i/cardCols)*(cardH+gap),w:cardW,h:cardH});
-  homeCharacterRect=cardRect(0);homeAugmentGuideRect=cardRect(1);homeGameGuideRect=cardRect(2);homeMonsterGuideRect=cardRect(3);
-  const cards=[[homeCharacterRect,"#b875ff","◆","캐릭터","생존자 선택","01"],[homeAugmentGuideRect,"#ffd15b","✦","증강 도감","빌드 설계","02"],[homeGameGuideRect,"#5fe3ad","?","게임 가이드","조작·보스","03"],[homeMonsterGuideRect,"#ff6b83","☣","몬스터 도감","적·보스 정보","04"]];
+  homeCharacterRect=cardRect(0);homeAugmentGuideRect=cardRect(1);homeGameGuideRect=cardRect(2);homeMonsterGuideRect=cardRect(3);homeSettingsRect=cardRect(4);homeDifficultyRect=cardRect(5);mobileSettingsHomeRect=homeSettingsRect;
+  const cards=[[homeCharacterRect,"#9874c4","◆","캐릭터","생존자 선택","01"],[homeAugmentGuideRect,"#b99a55","✦","증강 도감","빌드 설계","02"],[homeGameGuideRect,"#5d9b84","?","게임 가이드","조작·보스","03"],[homeMonsterGuideRect,"#a64e59","☣","몬스터 도감","적·보스 정보","04"],[homeSettingsRect,"#568da1","⚙","조작 설정","버튼 위치·크기","05"],[homeDifficultyRect,"#b86a51","▲","난이도",difficultyLabel(),"06"]];
   for(const [rect,color,glyph,label,sub,no] of cards){
-    const hover=pointInRect(mouse.x,mouse.y,rect),cy=rect.y+(hover?-4:0),g=ctx.createLinearGradient(rect.x,cy,rect.x+rect.w,cy+rect.h);
-    g.addColorStop(0,hover?`${color}70`:`${color}52`);g.addColorStop(.55,hover?`${color}48`:`${color}34`);g.addColorStop(1,hover?`${color}28`:`${color}1c`);
-    ctx.save();ctx.shadowColor=color;ctx.shadowBlur=hover?34:20;drawRoundedRect(rect.x,cy,rect.w,rect.h,12,g,hover?`${color}ee`:`${color}9c`,hover?2:1.5);ctx.restore();
-    ctx.save();ctx.shadowColor=color;ctx.shadowBlur=hover?20:12;ctx.fillStyle=color;ctx.fillRect(rect.x+1,cy+1,rect.w-2,3);ctx.restore();ctx.fillStyle=`${color}2e`;ctx.beginPath();ctx.arc(rect.x+27,cy+31,17,0,Math.PI*2);ctx.fill();ctx.strokeStyle=`${color}cc`;ctx.stroke();
-    ctx.save();ctx.shadowColor=color;ctx.shadowBlur=hover?16:9;ctx.textAlign="center";ctx.fillStyle=color;ctx.font="bold 17px Arial";ctx.fillText(glyph,rect.x+27,cy+37);ctx.restore();
+    const hover=pointInRect(mouse.x,mouse.y,rect),cy=drawLobbyPanel(rect,color,{hover});
+    ctx.fillStyle=`${color}32`;ctx.beginPath();ctx.arc(rect.x+27,cy+31,17,0,Math.PI*2);ctx.fill();ctx.strokeStyle=`${color}c8`;ctx.stroke();
+    ctx.textAlign="center";ctx.fillStyle=color;ctx.font="bold 17px Arial";ctx.fillText(glyph,rect.x+27,cy+37);
     ctx.textAlign="left";ctx.fillStyle="#f7f8ff";ctx.font=`900 ${cardW<130?13:15}px Arial`;ctx.fillText(label,rect.x+51,cy+34);
     ctx.fillStyle="rgba(211,220,237,.62)";ctx.font=`${cardW<130?10:11}px Arial`;ctx.fillText(sub,rect.x+15,cy+68);
     ctx.fillStyle=hover?color:"rgba(255,255,255,.35)";ctx.font="bold 17px Arial";ctx.fillText("›",rect.x+rect.w-22,cy+72);
     ctx.textAlign="right";ctx.fillStyle="rgba(255,255,255,.16)";ctx.font="bold 10px monospace";ctx.fillText(no,rect.x+rect.w-11,cy+18);
   }
-  const briefingY=cardY+Math.ceil(cards.length/cardCols)*(cardH+gap)-gap+12;
-  const mobileTablet=typeof isMobileTouchDevice==="function"&&isMobileTouchDevice();
-  if(mobileTablet){
-    mobileSettingsHomeRect={x:leftX,y:briefingY,w:menuW,h:34};
-    const settingsGradient=ctx.createLinearGradient(leftX,briefingY,leftX+menuW,briefingY);
-    settingsGradient.addColorStop(0,"rgba(48,183,218,.3)");settingsGradient.addColorStop(1,"rgba(68,118,188,.15)");
-    ctx.save();ctx.shadowColor="#54d8ff";ctx.shadowBlur=10;drawRoundedRect(leftX,briefingY,menuW,34,8,settingsGradient,"rgba(105,226,255,.55)",1.2);ctx.restore();
-    ctx.textAlign="left";ctx.fillStyle="#79e7ff";ctx.font="bold 14px Arial";ctx.fillText("⚙",leftX+14,briefingY+22);
-    ctx.fillStyle="#edfaff";ctx.font="900 11px Arial";ctx.fillText("조작 설정",leftX+37,briefingY+21);
-    ctx.textAlign="right";ctx.fillStyle="rgba(205,232,244,.58)";ctx.font="10px Arial";ctx.fillText("버튼 위치·크기 변경  ›",leftX+menuW-13,briefingY+21);
-  }else{
-    ctx.fillStyle="rgba(7,10,18,.74)";drawRoundedRect(leftX,briefingY,menuW,34,8,"rgba(7,10,18,.74)","rgba(255,255,255,.1)",1);
-    ctx.textAlign="left";ctx.fillStyle="rgba(196,209,231,.58)";ctx.font="bold 10px Arial";ctx.fillText("OPERATION",leftX+13,briefingY+21);ctx.fillStyle="#ff637a";ctx.fillText("BOSS  02:00 · 04:00 · 06:00",leftX+92,briefingY+21);
-  }
 
   // 상단 상태바 / 하단 조작 정보
   ctx.textAlign="left";ctx.fillStyle="#d9e2f4";ctx.font="bold 12px Arial";ctx.fillText("Z/S  //  OPERATIONS",margin,34);ctx.fillStyle="rgba(220,230,248,.46)";ctx.font="11px Arial";ctx.textAlign="right";ctx.fillText(`누적 처치 ${totalZombieKills.toLocaleString()}  ·  생존자 ${info.name}`,canvas.width-margin,34);
   ctx.textAlign="left";ctx.fillStyle="rgba(218,225,240,.5)";ctx.font="11px Arial";ctx.fillText("WASD  이동     MOUSE  조준·공격     Q E X R  스킬",margin,canvas.height-24);ctx.textAlign="right";ctx.fillText("BUILD 2026.09  ·  ONLINE",canvas.width-margin,canvas.height-24);
-  ctx.restore();ctx.textAlign="left";
+  ctx.restore();ctx.textAlign="left";drawHomeDifficultyPicker();
 }
 
 const characterSkillGuide = {

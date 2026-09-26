@@ -281,6 +281,11 @@ backgroundImage.onload = () => {
   backgroundLoaded = true;
 };
 
+const lobbyBackgroundImage = new Image();
+lobbyBackgroundImage.src = "assets/lobby-background-v1.webp";
+let lobbyBackgroundLoaded = false;
+lobbyBackgroundImage.onload = () => { lobbyBackgroundLoaded = true; };
+
 const augmentIconAtlas = new Image();
 augmentIconAtlas.src = "assets/augment-icons.webp";
 let augmentIconAtlasLoaded = false;
@@ -553,6 +558,14 @@ let homeCharacterRect = { x: 0, y: 0, w: 260, h: 64 };
 let homeAugmentGuideRect = { x: 0, y: 0, w: 260, h: 64 };
 let homeGameGuideRect = { x: 0, y: 0, w: 260, h: 64 };
 let homeMonsterGuideRect = { x: 0, y: 0, w: 260, h: 64 };
+let homeSettingsRect = { x: 0, y: 0, w: 260, h: 64 };
+let homeDifficultyRect = { x: 0, y: 0, w: 260, h: 64 };
+let homeDifficultyOpen = false;
+let homeDifficultyChoiceRects = [];
+let selectedDifficulty = (() => {
+  try { const value = localStorage.getItem("zombieSurvivalDifficulty"); return ["easy","medium","hard"].includes(value) ? value : "medium"; }
+  catch (error) { return "medium"; }
+})();
 let characterBackRect = { x: 0, y: 0, w: 180, h: 54 };
 let characterSelectRect = { x: 0, y: 0, w: 240, h: 300 };
 

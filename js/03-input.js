@@ -2,6 +2,8 @@
 
 addEventListener("keydown", e => {
   const key = e.key.toLowerCase();
+
+  if(homeDifficultyOpen&&key==="escape"){homeDifficultyOpen=false;return;}
   keys[key] = true;
 
   if (screenMode === "character" && characterDetailId && key === "escape") {
@@ -112,9 +114,15 @@ canvas.addEventListener("mousedown", event => {
   }
   if (event.button !== 0) return;
   if (screenMode === "home") {
-    if(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&pointInRect(event.clientX,event.clientY,mobileSettingsHomeRect)){
+    if(homeDifficultyOpen){
+      const choice=homeDifficultyChoiceRects.find(rect=>pointInRect(event.clientX,event.clientY,rect));
+      if(choice){selectedDifficulty=choice.value;try{localStorage.setItem("zombieSurvivalDifficulty",selectedDifficulty);}catch(error){};}
+      homeDifficultyOpen=false;return;
+    }
+    if(pointInRect(event.clientX,event.clientY,homeSettingsRect)){
       openMobileSettings();return;
     }
+    if(pointInRect(event.clientX,event.clientY,homeDifficultyRect)){homeDifficultyOpen=true;return;}
     if (pointInRect(mouse.x, mouse.y, homeStartRect)) {
       restart();
       screenMode = "game";
