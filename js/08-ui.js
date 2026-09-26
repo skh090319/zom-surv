@@ -745,20 +745,17 @@ function drawLobbyBackdrop(){
 }
 
 function drawLobbyPanel(rect,color,{hover=false,primary=false}={}){
-  const y=rect.y+(hover?-2:0),g=ctx.createLinearGradient(rect.x,y,rect.x,y+rect.h);
-  g.addColorStop(0,primary?"rgba(48,51,51,.91)":"rgba(34,38,39,.9)");g.addColorStop(.2,"rgba(22,27,29,.91)");g.addColorStop(.7,"rgba(10,15,18,.94)");g.addColorStop(1,"rgba(5,9,11,.96)");
-  ctx.save();ctx.shadowColor="rgba(0,0,0,.78)";ctx.shadowBlur=12;ctx.shadowOffsetY=6;drawRoundedRect(rect.x,y,rect.w,rect.h,primary?6:4,g,hover?color:"rgba(112,124,126,.76)",hover?2:1.2);ctx.restore();
-  ctx.fillStyle=primary?"#b84042":`${color}b8`;ctx.fillRect(rect.x+1,y+1,rect.w-2,primary?5:3);
-  ctx.fillStyle="rgba(226,232,229,.1)";ctx.fillRect(rect.x+10,y+9,rect.w-20,1);
-  ctx.fillStyle="rgba(1,3,4,.95)";
-  for(const [rx,ry] of [[rect.x+8,y+9],[rect.x+rect.w-8,y+9],[rect.x+8,y+rect.h-9],[rect.x+rect.w-8,y+rect.h-9]]){ctx.beginPath();ctx.arc(rx,ry,2,0,Math.PI*2);ctx.fill();}
-  // 불규칙한 긁힘과 녹 자국으로 폐허의 철판 질감을 만든다.
-  ctx.save();ctx.beginPath();ctx.rect(rect.x+1,y+1,rect.w-2,rect.h-2);ctx.clip();
-  const marks=[[.18,.28,.31],[.54,.63,.19],[.72,.37,.15],[.34,.82,.23]];
-  ctx.lineWidth=1;
-  for(let i=0;i<marks.length;i++){const [px,py,pw]=marks[i];ctx.strokeStyle=i%2?"rgba(184,191,185,.075)":"rgba(114,54,43,.13)";ctx.beginPath();ctx.moveTo(rect.x+rect.w*px,y+rect.h*py);ctx.lineTo(rect.x+rect.w*(px+pw),y+rect.h*(py-.025));ctx.stroke();}
-  ctx.fillStyle="rgba(116,50,40,.12)";ctx.beginPath();ctx.arc(rect.x+rect.w*.84,y+rect.h*.76,Math.min(18,rect.h*.18),0,Math.PI*2);ctx.fill();ctx.restore();
-  ctx.strokeStyle="rgba(0,0,0,.7)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(rect.x+12,y+rect.h-1);ctx.lineTo(rect.x+rect.w-1,y+rect.h-1);ctx.stroke();
+  const y=rect.y+(hover?-3:0);
+  if(lobbyButtonPanelLoaded){
+    const sw=lobbyButtonPanelImage.naturalWidth,sh=lobbyButtonPanelImage.naturalHeight,sourceCap=Math.min(sw*.16,sh*.58),destCap=Math.min(rect.w*.25,rect.h*.58);
+    ctx.save();ctx.shadowColor="rgba(0,0,0,.78)";ctx.shadowBlur=hover?18:12;ctx.shadowOffsetY=6;ctx.filter=hover?"brightness(1.18) contrast(1.04)":"brightness(.92) contrast(1.05)";
+    ctx.drawImage(lobbyButtonPanelImage,0,0,sourceCap,sh,rect.x,y,destCap,rect.h);
+    ctx.drawImage(lobbyButtonPanelImage,sourceCap,0,sw-sourceCap*2,sh,rect.x+destCap,y,rect.w-destCap*2,rect.h);
+    ctx.drawImage(lobbyButtonPanelImage,sw-sourceCap,0,sourceCap,sh,rect.x+rect.w-destCap,y,destCap,rect.h);ctx.restore();
+    ctx.fillStyle=primary?"rgba(205,54,58,.68)":`${color}54`;ctx.fillRect(rect.x+destCap*.75,y+rect.h*.14,rect.w-destCap*1.5,Math.max(2,rect.h*.035));
+  }else{
+    const g=ctx.createLinearGradient(rect.x,y,rect.x,y+rect.h);g.addColorStop(0,"#343a3d");g.addColorStop(1,"#080c0f");drawRoundedRect(rect.x,y,rect.w,rect.h,5,g,"#7b8589",1.5);
+  }
   return y;
 }
 

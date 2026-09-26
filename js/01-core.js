@@ -286,6 +286,11 @@ lobbyBackgroundImage.src = "assets/lobby-background-v1.webp";
 let lobbyBackgroundLoaded = false;
 lobbyBackgroundImage.onload = () => { lobbyBackgroundLoaded = true; };
 
+const lobbyButtonPanelImage = new Image();
+lobbyButtonPanelImage.src = "assets/lobby-button-panel-v1.webp";
+let lobbyButtonPanelLoaded = false;
+lobbyButtonPanelImage.onload = () => { lobbyButtonPanelLoaded = true; };
+
 const augmentIconAtlas = new Image();
 augmentIconAtlas.src = "assets/augment-icons.webp";
 let augmentIconAtlasLoaded = false;
