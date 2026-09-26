@@ -31,7 +31,7 @@ test('boss health and movement always scale from Easy values', () => {
   const expected = {
     easy: [[37500, 0], [150000, 2.3], [600000, 5.07]],
     medium: [[67500, 0], [270000, 2.76], [1080000, 6.084]],
-    hard: [[105000, 0], [600000, 2.76], [2400000, 6.084]]
+    hard: [[105000, 0], [420000, 2.76], [1680000, 6.084]]
   };
   for (const [difficulty, bosses] of Object.entries(expected)) {
     const game = bossGame(difficulty);

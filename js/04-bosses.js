@@ -70,7 +70,7 @@ function startRaidBoss(index) {
       : Math.min(WORLD.height - 180, player.y + bossSpawnGap));
   const difficultyHp = getRaidBossDifficultyHpMultiplier();
   const difficultySpeed = getRaidBossDifficultySpeedMultiplier();
-  const bossHp = RAID_BOSS_HP[index] * difficultyHp * (selectedDifficulty === "hard" && index === 0 ? 0.7 : 1);
+  const bossHp = RAID_BOSS_HP[index] * difficultyHp * (selectedDifficulty === "hard" ? 0.7 : 1);
   activeRaidBoss = {
     id: `raid-${index}-${Date.now()}`,
     isRaidBoss: true,
