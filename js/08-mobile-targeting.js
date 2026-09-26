@@ -52,7 +52,7 @@ function getMobileSkillTargetSpec(key){
       if(key==="q")return target(360,0);
       return key==="e"?target(330,24):null;
     case "mare":
-      if(key==="q")return player.mareUltimateTime>0?line(18*14,210):{type:"rect",range:740,width:transcended.mareDepth?620:430};
+      if(key==="q")return player.mareUltimateTime>0?line(18*14,210):{type:"rect",range:420,width:transcended.mareDepth?620:430,centered:true};
       if(key==="e")return player.mareUltimateTime>0?{type:"rect",range:470,width:420}:(mareCore?null:target(360,250));
       return null;
     default:return null;
@@ -196,7 +196,11 @@ function drawMobileTargetingIndicator(){
     ctx.rotate(state.angle||0);
     if(spec.type==="offsetCircle")drawMobileAimRing(range,0,spec.radius*scale);
     else if(spec.type==="cone")drawMobileAimCone(range,spec.arc,spec.centerArrow);
-    else{ctx.translate((spec.offset||0)*scale,0);drawMobileAimLane(range*(spec.variable?state.strength:1),spec.width*scale,{arrow:spec.type==="line",capsule:spec.capsule,startWidth:(spec.startWidth??spec.width)*scale});}
+    else{
+      const aimedRange=range*(spec.variable?state.strength:1);
+      ctx.translate(((spec.offset||0)*scale)-(spec.centered?aimedRange:0),0);
+      drawMobileAimLane(spec.centered?aimedRange*2:aimedRange,spec.width*scale,{arrow:spec.type==="line",capsule:spec.capsule,startWidth:(spec.startWidth??spec.width)*scale});
+    }
   }
   ctx.restore();
 }

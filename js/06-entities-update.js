@@ -388,7 +388,10 @@ function updateZombies() {
         const dodged = tryDodgeAttack();
 
         if (!dodged) {
-          const incomingDamage = z.isBossMinion ? Math.max(4, player.maxHp * 0.05) : (player.crownLevel > 0 ? 20 : 10);
+          const bossMinionDamageMultiplier = selectedDifficulty === "hard" ? 3 : (selectedDifficulty === "medium" ? 1.3 : 1);
+          const incomingDamage = z.isBossMinion
+            ? Math.max(4, player.maxHp * 0.05) * bossMinionDamageMultiplier
+            : (player.crownLevel > 0 ? 20 : 10) * getZombieDifficultyDamageMultiplier();
           const carmillaFatalGuard = selectedCharacter === "carmilla" && player.carmillaBloodMoonTime > 0 && transcended.carmillaFeast;
           let remainingDamage=incomingDamage;
           if(selectedCharacter==="vargas"&&player.vargasShield>0){const absorbed=Math.min(player.vargasShield,remainingDamage);player.vargasShield-=absorbed;remainingDamage-=absorbed;}

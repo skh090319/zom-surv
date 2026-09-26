@@ -68,6 +68,9 @@ function startRaidBoss(index) {
     : (player.y - bossSpawnGap >= 180
       ? player.y - bossSpawnGap
       : Math.min(WORLD.height - 180, player.y + bossSpawnGap));
+  const difficultyHp = getRaidBossDifficultyHpMultiplier();
+  const difficultySpeed = getRaidBossDifficultySpeedMultiplier();
+  const bossHp = RAID_BOSS_HP[index] * difficultyHp;
   activeRaidBoss = {
     id: `raid-${index}-${Date.now()}`,
     isRaidBoss: true,
@@ -75,12 +78,12 @@ function startRaidBoss(index) {
     x: spawnX, y: spawnY,
     anchorX: spawnX, anchorY: spawnY,
     r: index === 0 ? 82 : 76,
-    hp: RAID_BOSS_HP[index], maxHp: RAID_BOSS_HP[index],
-    speed: index === 0 ? 0 : (index === 1 ? 2.3 : 5.07),
+    hp: bossHp, maxHp: bossHp,
+    speed: (index === 0 ? 0 : (index === 1 ? 2.3 : 5.07)) * difficultySpeed,
     boss: true,
     pattern: null, patternTime: 0, patternStep: 0,
     cooldown: 115, lastPattern: -1, facing: 1,
-    anim: 0, flash: 0, lastHp: RAID_BOSS_HP[index],
+    anim: 0, flash: 0, lastHp: bossHp,
     dashVx: 0, dashVy: 0, queuedVolley: false
   };
   zombies.push(activeRaidBoss);
@@ -163,7 +166,11 @@ function raidPlayerDamage(ratio, lethal = false) {
     return;
   }
   if (player.invincibleTime > 0 || tryDodgeAttack()) return;
-  let damage = player.maxHp * ratio;
+  const bossIndex = activeRaidBoss?.raidIndex ?? -1;
+  const difficultyDamage = selectedDifficulty === "medium"
+    ? 1.3
+    : (selectedDifficulty === "hard" && bossIndex >= 0 && bossIndex < 2 ? 3 : 1);
+  let damage = player.maxHp * ratio * difficultyDamage;
   if (selectedCharacter === "vargas" && player.vargasShield > 0) {
     const absorbed = Math.min(player.vargasShield, damage);
     player.vargasShield -= absorbed;
@@ -183,8 +190,9 @@ function addRaidProjectile(data) {
 
 function firePoisonVolley(boss) {
   const base = Math.atan2(player.y - boss.y, player.x - boss.x);
-  for (let i = -1; i <= 1; i++) {
-    const a = base + i * 0.18;
+  const count = selectedDifficulty === "hard" ? 6 : 3;
+  for (let i = 0; i < count; i++) {
+    const a = base + (i - (count - 1) / 2) * 0.18;
     addRaidProjectile({ type: "venom", x: boss.x, y: boss.y, vx: Math.cos(a) * 7.2, vy: Math.sin(a) * 7.2, r: 15, damage: 0.14 });
   }
 }
@@ -216,20 +224,26 @@ function updateBloomBoss(boss) {
   } else if (boss.pattern === 2) {
     if (boss.patternTime === 24) {
       const a = Math.atan2(player.y - boss.y, player.x - boss.x);
-      addRaidProjectile({ type: "vine", x: boss.x, y: boss.y, vx: Math.cos(a) * 10, vy: Math.sin(a) * 10, r: 13, damage: 0.08, life: 95 });
+      const count = selectedDifficulty === "hard" ? 2 : 1;
+      for (let i = 0; i < count; i++) {
+        const shotAngle = a + (i - (count - 1) / 2) * 0.2;
+        addRaidProjectile({ type: "vine", x: boss.x, y: boss.y, vx: Math.cos(shotAngle) * 10, vy: Math.sin(shotAngle) * 10, r: 13, damage: 0.08, life: 95 });
+      }
     }
     if (boss.patternTime > 58) finishRaidPattern(boss, 75);
   }
 }
 
 function summonReaperMinions(boss) {
-  for (let i = 0; i < 5; i++) {
-    const a = i * Math.PI * 2 / 5;
+  const count = selectedDifficulty === "hard" ? 10 : 5;
+  const speedMultiplier = selectedDifficulty === "hard" ? 3 : (selectedDifficulty === "medium" ? 1.2 : 1);
+  for (let i = 0; i < count; i++) {
+    const a = i * Math.PI * 2 / count;
     zombies.push({
       id: `reaper-minion-${Date.now()}-${i}`, isBossMinion: true, raidSprite: 1,
       x: boss.x + Math.cos(a) * 120, y: boss.y + Math.sin(a) * 120,
       controlImmuneX: boss.x + Math.cos(a) * 120, controlImmuneY: boss.y + Math.sin(a) * 120,
-      r: 26, hp: 420, maxHp: 420, speed: 1.45, boss: false, damage: 5
+      r: 26, hp: 420, maxHp: 420, speed: 1.45 * speedMultiplier, boss: false, damage: 5
     });
   }
 }
@@ -248,7 +262,8 @@ function updateReaperBoss(boss) {
     }
     if (boss.patternTime > 65) finishRaidPattern(boss, 90);
   } else if (boss.pattern === 1) {
-    if (boss.patternTime === 22) {
+    const scytheTimes = selectedDifficulty === "hard" ? [22, 74] : [22];
+    if (scytheTimes.includes(boss.patternTime)) {
       const a = Math.atan2(player.y - boss.y, player.x - boss.x);
       addRaidProjectile({ type: "scythe", x: boss.x, y: boss.y, vx: Math.cos(a) * 10, vy: Math.sin(a) * 10, r: 62, damage: 0.2, life: 170, owner: boss, returning: false, travel: 0 });
     }
@@ -264,6 +279,14 @@ function fireAbyssOrb(boss) {
   addRaidProjectile({ type: "abyssOrb", x: boss.x, y: boss.y, vx: Math.cos(a) * 8.2, vy: Math.sin(a) * 8.2, r: 16, damage: 0.6, life: 180 });
 }
 
+function fireAbyssOrbRing(boss) {
+  const count = 12;
+  for (let i = 0; i < count; i++) {
+    const a = i * Math.PI * 2 / count;
+    addRaidProjectile({ type: "abyssOrb", x: boss.x, y: boss.y, vx: Math.cos(a) * 8.2, vy: Math.sin(a) * 8.2, r: 16, damage: 0.6, life: 180 });
+  }
+}
+
 function setupAbyssDash(boss) {
   const a = Math.atan2(player.y - boss.y, player.x - boss.x);
   // 13프레임 동안 예고 직사각형의 650px 끝까지 정확히 완주한다.
@@ -275,17 +298,20 @@ function setupAbyssDash(boss) {
 function updateAbyssBoss(boss) {
   boss.patternTime++;
   if (boss.pattern === 0) {
-    if ([18, 34, 50, 66].includes(boss.patternTime)) fireAbyssOrb(boss);
+    if (selectedDifficulty === "hard") {
+      if (boss.patternTime === 18) fireAbyssOrbRing(boss);
+    } else if ([18, 34, 50, 66].includes(boss.patternTime)) fireAbyssOrb(boss);
     if (boss.patternTime > 92) finishRaidPattern(boss, 90);
   } else if (boss.pattern === 1) {
-    if ([1, 38, 75, 112].includes(boss.patternTime)) {
+    const lightningTimes = selectedDifficulty === "hard" ? [1, 23, 45, 67, 89, 111, 133, 155] : [1, 38, 75, 112];
+    if (lightningTimes.includes(boss.patternTime)) {
       raidBossZones.push({ type: "lightning", x: player.x, y: player.y, r: 92, delay: 42, life: 62, struck: false });
     }
     if (boss.patternTime > 176) finishRaidPattern(boss, 105);
   } else if (boss.pattern === 2) {
     const cycle = boss.patternTime % 62;
-    // 총 세 번만 예고하고 세 번 모두 실제 대시로 이어지게 한다.
-    if (boss.patternTime === 1 || boss.patternTime === 63 || boss.patternTime === 125) setupAbyssDash(boss);
+    const dashTimes = selectedDifficulty === "hard" ? [1, 63, 125, 187, 249] : [1, 63, 125];
+    if (dashTimes.includes(boss.patternTime)) setupAbyssDash(boss);
     if (cycle >= 39 && cycle <= 51) {
       boss.x += boss.dashVx; boss.y += boss.dashVy;
       if (!boss.dashHit && Math.hypot(player.x - boss.x, player.y - boss.y) < boss.r + player.r + 22) {
@@ -293,7 +319,7 @@ function updateAbyssBoss(boss) {
         raidPlayerDamage(1, true);
       }
     }
-    if (boss.patternTime > 186) finishRaidPattern(boss, 125);
+    if (boss.patternTime > (selectedDifficulty === "hard" ? 310 : 186)) finishRaidPattern(boss, 125);
   }
 }
 

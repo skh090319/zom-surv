@@ -185,7 +185,7 @@ function spawnZombie() {
     x,
     y,
     r: boss ? 36 : 21,
-    speed: boss ? 1.1 : 1.45 + wave * 0.05,
+    speed: (boss ? 1.1 : 1.45 + wave * 0.05) * getZombieDifficultySpeedMultiplier(),
     hp: boss ? 240 + wave * 35 : 75 + wave * 12,
     maxHp: boss ? 240 + wave * 35 : 75 + wave * 12,
     boss

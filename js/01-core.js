@@ -568,9 +568,16 @@ let homeDifficultyRect = { x: 0, y: 0, w: 260, h: 64 };
 let homeDifficultyOpen = false;
 let homeDifficultyChoiceRects = [];
 let selectedDifficulty = (() => {
-  try { const value = localStorage.getItem("zombieSurvivalDifficulty"); return ["easy","medium","hard"].includes(value) ? value : "medium"; }
-  catch (error) { return "medium"; }
+  try { const value = localStorage.getItem("zombieSurvivalDifficulty"); return ["easy","medium","hard"].includes(value) ? value : "easy"; }
+  catch (error) { return "easy"; }
 })();
+function difficultyValue(easy, medium, hard) {
+  return selectedDifficulty === "hard" ? hard : (selectedDifficulty === "medium" ? medium : easy);
+}
+function getZombieDifficultyDamageMultiplier() { return difficultyValue(1, 1.5, 2.5); }
+function getZombieDifficultySpeedMultiplier() { return difficultyValue(1, 1.2, 1.4); }
+function getRaidBossDifficultyHpMultiplier() { return difficultyValue(1, 1.8, 4); }
+function getRaidBossDifficultySpeedMultiplier() { return difficultyValue(1, 1.2, 1.2); }
 let characterBackRect = { x: 0, y: 0, w: 180, h: 54 };
 let characterSelectRect = { x: 0, y: 0, w: 240, h: 300 };
 

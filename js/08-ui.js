@@ -1174,7 +1174,7 @@ function drawCharacterSelectScreen() {
   }
 
   const compactSelect = canvas.width < 760;
-  characterBackRect = { x: compactSelect ? 18 : 28, y: (compactSelect ? 18 : 28)-headerOffset, w: compactSelect ? 112 : 180, h: compactSelect ? 42 : 54 };
+  characterBackRect = { x: compactSelect ? 18 : 28, y: compactSelect ? 18 : 28, w: compactSelect ? 112 : 180, h: compactSelect ? 42 : 54 };
   const backHover = pointInRect(mouse.x, mouse.y, characterBackRect);
   ctx.save();
   ctx.shadowColor = backHover ? "#8b7cff" : "transparent";

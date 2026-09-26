@@ -101,7 +101,9 @@ test('geometry matches cast dimensions and empowered states',()=>{
   g.context.selectedCharacter='arc';assert.equal(g.run('getMobileSkillTargetSpec("q").type'),'target');
   assert.equal(g.run('getMobileSkillTargetSpec("x").range'),620);
   g.context.selectedCharacter='vargas';assert.equal(g.run('getMobileSkillTargetSpec("q").type'),'self');
-  g.context.selectedCharacter='mare';g.context.player.mareUltimateTime=420;
+  g.context.selectedCharacter='mare';assert.equal(g.run('getMobileSkillTargetSpec("q").range'),420);
+  assert.equal(g.run('getMobileSkillTargetSpec("q").centered'),true);
+  g.context.player.mareUltimateTime=420;
   assert.equal(g.run('getMobileSkillTargetSpec("q").range'),252);
   assert.equal(g.run('getMobileSkillTargetSpec("e").type'),'rect');
 });
@@ -141,7 +143,7 @@ test('control size has no upper limit',()=>{
   assert.equal(g.run('clampMobileControlScale(.1)'),.72);
 });
 
-test('difficulty selector stores a choice without changing game balance',()=>{
+test('difficulty selector stores the selected mode',()=>{
   const g=game();g.context.screenMode='home';
   g.context.homeDifficultyRect={x:300,y:200,w:120,h:60};
   g.context.canvas.dispatchEvent({type:'mousedown',button:0,clientX:340,clientY:220});
