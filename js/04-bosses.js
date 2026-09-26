@@ -70,7 +70,7 @@ function startRaidBoss(index) {
       : Math.min(WORLD.height - 180, player.y + bossSpawnGap));
   const difficultyHp = getRaidBossDifficultyHpMultiplier();
   const difficultySpeed = getRaidBossDifficultySpeedMultiplier();
-  const bossHp = RAID_BOSS_HP[index] * difficultyHp;
+  const bossHp = RAID_BOSS_HP[index] * difficultyHp * (selectedDifficulty === "hard" && index === 0 ? 0.7 : 1);
   activeRaidBoss = {
     id: `raid-${index}-${Date.now()}`,
     isRaidBoss: true,
@@ -190,7 +190,7 @@ function addRaidProjectile(data) {
 
 function firePoisonVolley(boss) {
   const base = Math.atan2(player.y - boss.y, player.x - boss.x);
-  const count = selectedDifficulty === "hard" ? 6 : 3;
+  const count = selectedDifficulty === "hard" ? 5 : 3;
   for (let i = 0; i < count; i++) {
     const a = base + (i - (count - 1) / 2) * 0.18;
     addRaidProjectile({ type: "venom", x: boss.x, y: boss.y, vx: Math.cos(a) * 7.2, vy: Math.sin(a) * 7.2, r: 15, damage: 0.14 });
