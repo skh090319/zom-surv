@@ -785,6 +785,13 @@ function drawLobbyPanel(rect,color,{hover=false,primary=false}={}){
   return y;
 }
 
+function drawLobbyEmblem(cx,cy,r,color,glyph){
+  ctx.save();ctx.translate(cx,cy);ctx.shadowColor=color;ctx.shadowBlur=8;ctx.fillStyle="rgba(3,7,11,.72)";ctx.strokeStyle=`${color}e8`;ctx.lineWidth=1.6;
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.strokeStyle=`${color}70`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r*.68,0,Math.PI*2);ctx.stroke();
+  for(let i=0;i<4;i++){ctx.save();ctx.rotate(i*Math.PI/2);ctx.fillStyle=`${color}c8`;ctx.fillRect(-1,-r-3,2,5);ctx.restore();}
+  ctx.fillStyle="#f3f7ff";ctx.shadowColor=color;ctx.shadowBlur=5;ctx.font=`bold ${Math.max(14,r*.92)}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(glyph,0,1);ctx.restore();ctx.textBaseline="alphabetic";
+}
+
 function difficultyLabel(value=selectedDifficulty){return value==="easy"?"EASY":value==="hard"?"HARD":"MEDIUM";}
 
 const LOBBY_DISPLAY_FONT='"Black Han Sans", "Arial Black", "Malgun Gothic", sans-serif';
@@ -904,8 +911,8 @@ function drawHomeScreen() {
   homeStartRect={x:leftX,y:startY,w:menuW,h:76};
   const startHover=pointInRect(mouse.x,mouse.y,homeStartRect),lift=startHover?-4:0;
   drawLobbyPanel(homeStartRect,"#d94a50",{hover:startHover,primary:true});
-  ctx.fillStyle="rgba(0,0,0,.2)";ctx.beginPath();ctx.arc(leftX+39,startY+38+lift,24,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(255,255,255,.48)";ctx.stroke();ctx.fillStyle="#fff";ctx.font="bold 20px Arial";ctx.textAlign="center";ctx.fillText("▶",leftX+41,startY+45+lift);
-  ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=`23px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("작전 시작",leftX+menuW/2,startY+32+lift);ctx.fillStyle="rgba(235,250,255,.68)";ctx.font="12px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+menuW/2,startY+54+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
+  drawLobbyEmblem(leftX+39,startY+38+lift,22,"#d94a50","▶");
+  ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.22)";ctx.shadowBlur=5;ctx.font=`27px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("작전 시작",leftX+menuW/2,startY+34+lift);ctx.shadowBlur=0;ctx.fillStyle="rgba(242,248,255,.86)";ctx.font="bold 13px Arial";ctx.fillText(`${info.name}으로 생존 작전을 시작합니다`,leftX+menuW/2,startY+57+lift);ctx.font="bold 23px Arial";ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText("›",leftX+menuW-35,startY+47+lift);
 
   // 보조 메뉴: 언제나 두 칸씩 배치
   const gap=10,cardY=startY+86,cardH=98,cardCols=2,cardW=(menuW-gap)/2;
@@ -914,10 +921,9 @@ function drawHomeScreen() {
   const cards=[[homeCharacterRect,"#9874c4","◆","캐릭터","생존자 선택","01"],[homeAugmentGuideRect,"#b99a55","✦","증강 도감","빌드 설계","02"],[homeGameGuideRect,"#5d9b84","?","게임 가이드","조작·보스","03"],[homeMonsterGuideRect,"#a64e59","☣","몬스터 도감","적·보스 정보","04"],[homeSettingsRect,"#568da1","⚙","조작 설정","버튼 위치·크기","05"],[homeDifficultyRect,"#b86a51","▲","난이도",difficultyLabel(),"06"]];
   for(const [rect,color,glyph,label,sub,no] of cards){
     const hover=pointInRect(mouse.x,mouse.y,rect),cy=drawLobbyPanel(rect,color,{hover});
-    ctx.fillStyle=`${color}32`;ctx.beginPath();ctx.arc(rect.x+27,cy+31,17,0,Math.PI*2);ctx.fill();ctx.strokeStyle=`${color}c8`;ctx.stroke();
-    ctx.textAlign="center";ctx.fillStyle=color;ctx.font="bold 17px Arial";ctx.fillText(glyph,rect.x+27,cy+37);
-    ctx.textAlign="center";ctx.fillStyle="#f7f8ff";ctx.font=`${cardW<130?13:15}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,cy+34);
-    ctx.fillStyle="rgba(211,220,237,.62)";ctx.font=`${cardW<130?10:11}px Arial`;ctx.fillText(sub,rect.x+rect.w/2,cy+68);
+    drawLobbyEmblem(rect.x+28,cy+34,18,color,glyph);
+    ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=4;ctx.font=`${cardW<130?15:18}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,cy+39);ctx.shadowBlur=0;
+    ctx.fillStyle="rgba(232,239,250,.82)";ctx.font=`bold ${cardW<130?11:12}px Arial`;ctx.fillText(sub,rect.x+rect.w/2,cy+72);
     ctx.fillStyle=hover?color:"rgba(255,255,255,.35)";ctx.font="bold 17px Arial";ctx.fillText("›",rect.x+rect.w-22,cy+72);
     ctx.textAlign="right";ctx.fillStyle="rgba(255,255,255,.16)";ctx.font="bold 10px monospace";ctx.fillText(no,rect.x+rect.w-11,cy+18);
   }
