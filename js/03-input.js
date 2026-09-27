@@ -79,7 +79,11 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="mare"&&key==="e")activateMareE();
     if(selectedCharacter==="mare"&&key==="x")activateMareX();
     if(selectedCharacter==="mare"&&key==="r")activateMareR();
-    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare") reload();
+    if(selectedCharacter==="nullZero"&&key==="q")activateNullZeroQ();
+    if(selectedCharacter==="nullZero"&&key==="e")activateNullZeroE();
+    if(selectedCharacter==="nullZero"&&key==="x")activateNullZeroX();
+    if(selectedCharacter==="nullZero"&&key==="r")activateNullZeroR();
+    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero") reload();
   }
   if ((gameOver || raidVictory) && key === "enter") {
     restart();
@@ -227,6 +231,7 @@ canvas.addEventListener("mousedown", event => {
       if(card.id==="aria")selectedCharacter="aria";
       if(card.id==="moira")selectedCharacter="moira";
       if(card.id==="mare")selectedCharacter="mare";
+      if(card.id==="nullZero")selectedCharacter="nullZero";
 
       return;
     }

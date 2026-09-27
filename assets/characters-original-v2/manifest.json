@@ -7,8 +7,8 @@
     "thumbnailWebpSize": 192,
     "webpQuality": 78,
     "alphaQuality": 100,
-    "sourcePngBytes": 35024726,
-    "runtimeWebpBytes": 2559638,
+    "sourcePngBytes": 37524728,
+    "runtimeWebpBytes": 2865054,
     "loading": "On demand by screen and character; thumbnails in selection and guide navigation."
   },
   "styleReferences": [
@@ -95,6 +95,12 @@
       "source": "yupiter-severing.png",
       "runtime": "yupiter-severing.webp",
       "prompt": "Use case: identity-preserve. Image 1 is the exact original Yupiter character to preserve. Make one full-body weapon-mode sprite variant. Replace only the crescent ring weapon with a magnificent oversized silver-and-ice-blue curved severing blade with emerald/gold handle; both hands swing it in a decisive sweeping slash. A short clean pale-cyan crescent trail follows the blade. No ring weapon remaining. Preserve face, fair skin, black hair with jade streak/braid, eye color, all ornate black emerald gold armor and robes, SD body proportions, painterly render style. Keep same character size and position in frame, feet level and large face aligned as closely as pose permits. Full body, no cut-off weapons, square canvas. Genuinely transparent alpha background; no scenery, floor, typography or watermark."
+    },
+    {
+      "id": "null-zero",
+      "source": "null-zero.png",
+      "runtime": "null-zero.webp",
+      "prompt": "Use case: stylized-concept. Final premium transparent full-body playable character for Zombie Survival: NULL-ZERO, an original pale-skinned male survivor consumed by a sentient computer virus. Compact heroic SD anime proportions, short layered black hair dissolving into intentional pixel fragments, one cyan eye and one fractured crimson-magenta error iris. Lightweight asymmetrical black and gunmetal high-collar coat with cyan healthy circuits and crimson corrupted fissures. One arm becomes a refined black-glass malware claw-blade while the other commands a cyan holographic ring. Controlled red/cyan code fragments, sharp transparent silhouette, crisp face and hands, no scenery or text."
     },
     {
       "id": "yupiter-flame",

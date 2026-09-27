@@ -7,7 +7,7 @@ function gameImageGroup(source) {
   const file = source.split("/").pop();
   if (source.includes("/bosses/")) return "boss";
   if (file.startsWith("lobby-")) return "lobby";
-  const owner = file.match(/^(suncall|luminous|yupiter|ren|night-lord|zero|paladin|arc|terra|void|carmilla|vargas|echo|aria|moira|mare)(?:[-.]|$)/);
+  const owner = file.match(/^(suncall|luminous|yupiter|ren|night-lord|zero|paladin|arc|terra|void|carmilla|vargas|echo|aria|moira|mare|null-zero)(?:[-.]|$)/);
   if (owner) return owner[1];
   if (/^(crescent-blade|severing-blade|flame-cannon|augment-sword-aura)/.test(file)) return "yupiter";
   if (/^(augment-|transcend-)/.test(file)) return "augment";
@@ -31,9 +31,9 @@ function ensureGameImage(image, priority = "auto") {
 }
 
 function getCharacterThumbnail(id) {
-  const fileId = id === "nightLord" ? "night-lord" : id;
+  const fileId = id === "nightLord" ? "night-lord" : (id === "nullZero" ? "null-zero" : id);
   if (!characterThumbnailImages.has(fileId)) {
-    const redesigned = ["suncall", "luminous", "yupiter", "ren", "night-lord", "zero", "paladin", "arc"].includes(fileId);
+    const redesigned = ["suncall", "luminous", "yupiter", "ren", "night-lord", "zero", "paladin", "arc", "null-zero"].includes(fileId);
     const swappedPortraitRevision = fileId === "zero" || fileId === "paladin" ? "?v=20260928-swap1" : "";
     const source = redesigned ? `assets/characters-original-v2/${fileId}-thumb.webp${swappedPortraitRevision}` : `assets/character-thumbs-v1/${fileId}.webp`;
     characterThumbnailImages.set(fileId, setGameImageSource(new Image(), source));
@@ -51,9 +51,10 @@ function prepareGameImages() {
   const key = [screenMode, selectedCharacter, page, tab, owner, detail, settings, upgrade].join("/");
   if (key === preparedImageScreen) return;
   preparedImageScreen = key;
-  const selected = selectedCharacter === "nightLord" ? "night-lord" : selectedCharacter;
-  const exclusive = owner === "nightLord" ? "night-lord" : owner;
-  const modal = detail === "nightLord" ? "night-lord" : detail;
+  const assetOwner = id => id === "nightLord" ? "night-lord" : (id === "nullZero" ? "null-zero" : id);
+  const selected = assetOwner(selectedCharacter);
+  const exclusive = assetOwner(owner);
+  const modal = assetOwner(detail);
   const playing = screenMode === "game" || (screenMode === "mobileSettings" && settings === "view");
   for (const image of gameImageRegistry) {
     const group = image.assetGroup;

@@ -56,6 +56,11 @@ function getMobileAimedSkillTargetSpec(key){
       if(key==="e")return player.mareUltimateTime>0?{type:"rect",range:470,width:420}:(mareCore?null:target(360,250));
       if(key==="r")return {type:"direction",range:260,width:64,label:"고래 소환 방향",whale:true};
       return null;
+    case "nullZero":
+      if(key==="q")return line(520+level("nullZeroPacketLevel")*34,72+level("nullZeroForkLevel")*8,{capsule:true});
+      if(key==="e")return target(430,185+level("nullZeroQuarantineLevel")*16);
+      if(key==="r")return area(transcended.nullZeroQuarantine?880:720);
+      return null;
     default:return null;
   }
 }
@@ -115,6 +120,9 @@ function getMobileSkillTargetSpec(key){
       if(key==="e"&&mareCore)return effects([circle(mareCore,210)],"소용돌이 붕괴 범위");
       if(key==="x")return effects(marked(zombies.filter(z=>z.mareWet>0)),"침수된 적 폭발");
       break;
+    case "nullZero":
+      if(key==="x")return status(player.nullZeroForkTime>0?"코드 복제 실행 중":"복제 패킷 활성화");
+      break;
   }
   if(["suncall","luminous"].includes(selectedCharacter))return status("재장전");
   if(selectedCharacter==="void"&&key==="e")return status("공허 질량 필요");
@@ -138,6 +146,7 @@ function getMobileAttackTargetSpec(){
     case "moira":return line(330+(player.moiraThreadLevel||0)*16,24);
     case "echo":return line(215+(player.echoAfterimageLevel||0)*18,48);
     case "mare":return {type:"rect",range:player.mareUltimateTime>0?340:285,width:player.mareUltimateTime>0?216:172,startWidth:player.mareUltimateTime>0?75.6:60.2};
+    case "nullZero":return line(840,28);
     case "arc":return line(504,22);
     case "yupiter":
       if(player.yupiterWeapon===1)return cone((player.trackerLevel>0?220:145)*(player.severingUltimateTime>0?3.5:1),player.trackerLevel>0?Math.PI*2:Math.PI*(.42+player.swordAuraLevel/12)*2);

@@ -205,6 +205,9 @@ const mareSprite=new Image();setGameImageSource(mareSprite, "assets/mare.webp");
 const mareSkillIconAtlas=new Image();setGameImageSource(mareSkillIconAtlas, "assets/mare-skill-icons.webp");
 const mareAugmentIconAtlas=new Image();setGameImageSource(mareAugmentIconAtlas, "assets/mare-augment-icons.webp");
 const mareLeviathanSprite=new Image();setGameImageSource(mareLeviathanSprite, "assets/mare-leviathan.webp");let mareLeviathanLoaded=false;mareLeviathanSprite.onload=()=>mareLeviathanLoaded=true;
+const nullZeroSprite=new Image();setGameImageSource(nullZeroSprite, "assets/characters-original-v2/null-zero.webp");let nullZeroSpriteLoaded=false;nullZeroSprite.onload=()=>nullZeroSpriteLoaded=true;
+const nullZeroSkillIconAtlas=new Image();setGameImageSource(nullZeroSkillIconAtlas, "assets/null-zero-skill-icons.webp");
+const nullZeroAugmentIconAtlas=new Image();setGameImageSource(nullZeroAugmentIconAtlas, "assets/null-zero-augment-icons.webp");
 
 const renHudPortrait = new Image();
 setGameImageSource(renHudPortrait, renSprite.assetSource);

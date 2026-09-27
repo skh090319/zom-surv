@@ -50,7 +50,7 @@ function game() {
   const load=file=>vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
   load('03-input.js');
   // Load the real entry-point order, including overrides of the original casts.
-  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
+  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','04-null-zero.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
   return {context,draws,storage,run:code=>vm.runInContext(code,context),touch(type,id,x,y){context.canvas.dispatchEvent({type,preventDefault(){},changedTouches:[{identifier:id,clientX:x,clientY:y}]});}};
 }
 
@@ -119,7 +119,7 @@ test('geometry matches cast dimensions and empowered states',()=>{
 
 test('every mobile skill has a finite drag preview, and no hold preview',()=>{
   const g=game();
-  for(const character of ['ren','nightLord','zero','paladin','arc','terra','void','vargas','echo','aria','moira','mare','carmilla','yupiter']){
+  for(const character of ['ren','nightLord','zero','paladin','arc','terra','void','vargas','echo','aria','moira','mare','nullZero','carmilla','yupiter']){
     g.context.selectedCharacter=character;g.context.player.voidMass=100;
     for(const key of g.run('MOBILE_SKILL_KEYS[selectedCharacter]')){
       assert.ok(g.run(`getMobileSkillTargetSpec('${key}')`),character+' '+key);

@@ -55,7 +55,9 @@ function drawHUD() {
 
   // HP는 화면 상단 체력바로 표시
 
-  const weaponText = selectedCharacter === "mare"
+  const weaponText = selectedCharacter === "nullZero"
+    ? "NULL-ZERO · 감염된 관리자"
+    : selectedCharacter === "mare"
     ? "마레 · 심해의 지휘자"
     : selectedCharacter === "moira"
     ? "모이라 · 저주의 인형사"
@@ -958,9 +960,10 @@ const characterSkillGuide = {
   aria:{name:"아리아",color:"#ff83bd",passive:"공격한 자리에 몽환 토양을 남깁니다. 반복 공격하면 꽃이 성장하고 가까운 토양들은 화원으로 연결됩니다.",skills:[["기본 공격 · 개화","커서 위치에 꽃을 피워 원형 피해를 주고 토양을 최대 3단계까지 성장시킵니다."],["Q · 가시 성장","모든 토양에서 가시를 솟구쳐 주변 적을 공격하고 둔화시킵니다."],["E · 만개","커서와 가까운 연결 화원 전체를 거대한 꽃으로 피워 광역 피해를 줍니다."],["X · 정원 이동","가까운 화원에서 커서 방향의 화원으로 꽃잎이 되어 순간이동합니다."],["R · 영원한 봄","10레벨부터 토양이 사라지지 않고 평타가 여러 토양에서 동시에 피어납니다."]]},
   moira:{name:"모이라",color:"#ff315b",passive:"바늘에 맞은 적을 붉은 실로 연결하고, 한 적이 받은 고통의 일부를 다른 연결 대상에게 공유합니다.",skills:[["기본 공격 · 바늘땀","전방의 적에게 저주 바늘을 꽂고 붉은 실로 연결합니다."],["Q · 조종","연결된 적들을 커서 지점으로 강하게 끌어당깁니다."],["E · 대리 인형","커서 위치에 인형을 설치해 연결된 적이 받는 피해 일부를 저장합니다."],["X · 고통 전이","인형이 저장한 고통을 연결된 모든 적에게 동시에 폭발시킵니다."],["R · 꼭두각시 극장","10레벨부터 다수의 적을 연결하고 서로 충돌할 때마다 폭발시킵니다."]]},
   mare:{name:"마레",color:"#45dff0",passive:"물 공격을 반복 적중시키면 침수가 중첩됩니다. 교차한 해류는 합류 폭발을 일으킵니다.",skills:[["기본 공격 · 물길 가르기","전방에 지속되는 해류를 남겨 적을 운반합니다. 해류가 교차하면 광역 피해가 발생합니다."],["Q · 밀물","실제로 전진하는 거대한 파도가 닿은 적을 밀어내고 침수를 중첩합니다."],["E · 소용돌이 핵","물의 핵을 설치해 적을 끌어당깁니다. 다시 사용하면 핵이 폭발합니다."],["X · 수압","침수된 모든 적을 압축해 중첩에 비례한 피해를 줍니다."],["R · 세계를 삼킨 바다","10레벨부터 영체 고래를 직접 조종하며 강화 해류를 남깁니다. 종료 시 모든 해류가 모여 폭발합니다."]]},
+  nullZero:{name:"NULL-ZERO",color:"#52efff",passive:"공격이 감염 코드를 쌓습니다. 최대 중첩에서 적이 오류 상태로 폭발하고 주변 적에게 감염을 전파합니다.",skills:[["기본 공격 · 악성 패킷","청록 데이터 탄환 안에 붉은 악성 코드를 실어 감염을 누적합니다."],["Q · 데이터 절단","직선상의 적을 관통하는 고속 코드 칼날로 감염을 빠르게 쌓습니다."],["E · 격리 구역","지정 위치에 방화벽 구역을 설치해 적을 둔화하고 반복 감염시킵니다."],["X · 코드 복제","두 개의 지연 잔상이 기본 공격을 복제해 추가 악성 패킷을 발사합니다."],["R · 커널 패닉","10레벨부터 넓은 범위의 적을 강제로 감염 폭발시키고 연쇄 전염을 일으킵니다."]]},
 };
 
-function getCharacterPreviewSprite(id, thumbnail = false){if(thumbnail)return getCharacterThumbnail(id);const image = id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:id==="echo"?echoSprite:id==="aria"?ariaSprite:id==="moira"?moiraSprite:id==="mare"?mareSprite:id==="vargas"?vargasSprite:yupiterSprite;return ensureGameImage(image, "high");}
+function getCharacterPreviewSprite(id, thumbnail = false){if(thumbnail)return getCharacterThumbnail(id);const image = id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:id==="echo"?echoSprite:id==="aria"?ariaSprite:id==="moira"?moiraSprite:id==="mare"?mareSprite:id==="nullZero"?nullZeroSprite:id==="vargas"?vargasSprite:yupiterSprite;return ensureGameImage(image, "high");}
 
 const characterSkillVideoKeys = {
   suncall:["attack","reload"], luminous:["attack"],
@@ -1043,7 +1046,7 @@ function drawCharacterSelectScreen() {
 
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
   const maxCardsPerRow = 4;
-  const characterIds = ["suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare"];
+  const characterIds = ["suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare","nullZero"];
   const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
@@ -1075,7 +1078,7 @@ function drawCharacterSelectScreen() {
     paladin: { color: "#ffe48b", color2: "#315a94", role: "COMBO KNIGHT", number: "07" },
     arc: { color: "#ff8b32", color2: "#7d1e12", role: "SOLAR MAGE", number: "08" },
     terra: { color: "#c5d965", color2: "#526b2d", role: "EARTH BREAKER", number: "09" },
-    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "10" },carmilla:{color:"#ff315d",color2:"#5c071d",role:"TRUE VAMPIRE",number:"11"},vargas:{color:"#58f39a",color2:"#4b1321",role:"ABYSSAL COLOSSUS",number:"12"},echo:{color:"#65e8ff",color2:"#6044a8",role:"DIMENSION TAILOR",number:"13"},aria:{color:"#ff83bd",color2:"#3d817d",role:"DREAM GARDENER",number:"14"},moira:{color:"#ff315b",color2:"#4d071d",role:"CURSED PUPPETEER",number:"15"},mare:{color:"#45dff0",color2:"#075772",role:"ABYSS CONDUCTOR",number:"16"}
+    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "10" },carmilla:{color:"#ff315d",color2:"#5c071d",role:"TRUE VAMPIRE",number:"11"},vargas:{color:"#58f39a",color2:"#4b1321",role:"ABYSSAL COLOSSUS",number:"12"},echo:{color:"#65e8ff",color2:"#6044a8",role:"DIMENSION TAILOR",number:"13"},aria:{color:"#ff83bd",color2:"#3d817d",role:"DREAM GARDENER",number:"14"},moira:{color:"#ff315b",color2:"#4d071d",role:"CURSED PUPPETEER",number:"15"},mare:{color:"#45dff0",color2:"#075772",role:"ABYSS CONDUCTOR",number:"16"},nullZero:{color:"#52efff",color2:"#8b123e",role:"MALWARE HOST",number:"17"}
   };
 
   ctx.save();
@@ -1087,7 +1090,7 @@ function drawCharacterSelectScreen() {
     const cardScale = 1;
     if (card.y + card.h < y - 8 || card.y > canvas.height) continue;
     const isSelected = selectedCharacter === card.id;
-    const unlocked = card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas"||card.id==="echo"||card.id==="aria"||card.id==="moira"||card.id==="mare" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
+    const unlocked = card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas"||card.id==="echo"||card.id==="aria"||card.id==="moira"||card.id==="mare"||card.id==="nullZero" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
     const hover = pointInRect(mouse.x, mouse.y, card);
     const theme = themes[card.id];
     const displayY = card.y + (hover && unlocked ? -7 : 0);
@@ -1648,6 +1651,7 @@ function drawAugmentIcon(id, x, y, size, transcendent = false) {
     return;
   }
   if(id==="mareDepth"||id==="mareCurrent"||id==="mareFoam"){if(mareAugmentIconAtlas.complete&&mareAugmentIconAtlas.naturalWidth){const col={mareDepth:0,mareCurrent:1,mareFoam:2}[id],row=transcendent?1:0,sw=mareAugmentIconAtlas.naturalWidth/3,sh=mareAugmentIconAtlas.naturalHeight/2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(mareAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
+  if(id==="nullZeroPacket"||id==="nullZeroQuarantine"||id==="nullZeroFork"){if(nullZeroAugmentIconAtlas.complete&&nullZeroAugmentIconAtlas.naturalWidth){const col={nullZeroPacket:0,nullZeroQuarantine:1,nullZeroFork:2}[id],row=transcendent?1:0,sw=nullZeroAugmentIconAtlas.naturalWidth/3,sh=nullZeroAugmentIconAtlas.naturalHeight/2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(nullZeroAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
   if(id==="moiraThread"||id==="moiraNeedle"||id==="moiraDoll"){if(moiraAugmentIconAtlas.complete&&moiraAugmentIconAtlas.naturalWidth){const col={moiraThread:0,moiraNeedle:1,moiraDoll:2}[id],row=transcendent?1:0,sw=moiraAugmentIconAtlas.naturalWidth/3,sh=moiraAugmentIconAtlas.naturalHeight/2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(moiraAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
   if(id==="ariaSoil"||id==="ariaThorn"||id==="ariaNight"){if(ariaAugmentIconAtlas.complete&&ariaAugmentIconAtlas.naturalWidth){const col={ariaSoil:0,ariaThorn:1,ariaNight:2}[id],row=transcendent?1:0,sw=ariaAugmentIconAtlas.naturalWidth/3,sh=ariaAugmentIconAtlas.naturalHeight/2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(ariaAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}
   if(id==="echoAfterimage"||id==="echoPitch"||id==="echoArchive"){if(echoAugmentIconAtlas.complete&&echoAugmentIconAtlas.naturalWidth){const col={echoAfterimage:0,echoPitch:1,echoArchive:2}[id],row=transcendent?1:0,sw=echoAugmentIconAtlas.naturalWidth/3,sh=echoAugmentIconAtlas.naturalHeight/2;ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(echoAugmentIconAtlas,col*sw,row*sh,sw,sh,x,y,size,size);ctx.restore();return;}}

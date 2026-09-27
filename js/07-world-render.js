@@ -137,7 +137,9 @@ function drawPlayer() {
     : null;
   const nightLordAttackHeld = selectedCharacter === "nightLord" && mouse.down && player.nightLordFrenzyTime <= 0;
   const nightLordIsAttacking = Boolean((nightLordSlash || nightLordAttackHeld) && nightLordAttackSpriteLoaded);
-  const activeSprite = selectedCharacter === "mare"
+  const activeSprite = selectedCharacter === "nullZero"
+    ? nullZeroSprite
+    : selectedCharacter === "mare"
     ? mareSprite
     : selectedCharacter === "moira"
     ? moiraSprite
@@ -172,7 +174,9 @@ function drawPlayer() {
             ? yupiterSeveringSprite
             : (player.yupiterWeapon === 2 && yupiterFlameSpriteLoaded ? yupiterFlameSprite : yupiterSprite)))
         : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSprite : renSprite) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSprite : nightLordSprite) : yupiterSprite))));
-  const activeLoaded = selectedCharacter === "mare"
+  const activeLoaded = selectedCharacter === "nullZero"
+    ? nullZeroSpriteLoaded
+    : selectedCharacter === "mare"
     ? mareSpriteLoaded
     : selectedCharacter === "moira"
     ? moiraSpriteLoaded
@@ -201,7 +205,7 @@ function drawPlayer() {
       : (selectedCharacter === "yupiter" ? yupiterSpriteLoaded : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSpriteLoaded : renSpriteLoaded) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSpriteLoaded : nightLordSpriteLoaded) : yupiterSpriteLoaded))));
 
   if (activeLoaded) {
-    const size = selectedCharacter === "vargas" ? (player.vargasUltimateTime>0?142:122) : ((selectedCharacter === "luminous" || selectedCharacter === "ren" || selectedCharacter === "nightLord" || selectedCharacter === "zero" || selectedCharacter === "paladin" || selectedCharacter === "arc" || selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "echo" || selectedCharacter === "aria" || selectedCharacter === "moira" || selectedCharacter === "mare") ? 112 : ((selectedCharacter === "suncall" || selectedCharacter === "yupiter") ? 104 : 96));
+    const size = selectedCharacter === "vargas" ? (player.vargasUltimateTime>0?142:122) : ((selectedCharacter === "luminous" || selectedCharacter === "ren" || selectedCharacter === "nightLord" || selectedCharacter === "zero" || selectedCharacter === "paladin" || selectedCharacter === "arc" || selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "echo" || selectedCharacter === "aria" || selectedCharacter === "moira" || selectedCharacter === "mare" || selectedCharacter === "nullZero") ? 112 : ((selectedCharacter === "suncall" || selectedCharacter === "yupiter") ? 104 : 96));
 
     ctx.save();
     const castLunge = luminousIsAttacking ? 4 * Math.min(1, player.luminousAttackTime / 4) : 0;
@@ -222,6 +226,7 @@ function drawPlayer() {
     if (selectedCharacter === "aria" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "moira" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "mare" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
+    if (selectedCharacter === "nullZero" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     ctx.drawImage(activeSprite, -size / 2, -size / 2 - 18, size, size);
     ctx.restore();
   } else {
@@ -231,7 +236,7 @@ function drawPlayer() {
     ctx.fill();
   }
 
-  if (gunSpriteLoaded && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare") {
+  if (gunSpriteLoaded && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero") {
     const gunW = 68;
     const gunH = 30;
 

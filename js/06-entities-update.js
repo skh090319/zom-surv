@@ -581,6 +581,7 @@ function update() {
   updateAria();
   updateMoira();
   updateMare();
+  updateNullZero();
   updateZombies();
   updateDaggers();
   updateItems();

@@ -25,10 +25,11 @@ const exclusiveAugmentOwners = {
   echoAfterimage:"echo", echoPitch:"echo", echoArchive:"echo",
   ariaSoil:"aria", ariaThorn:"aria", ariaNight:"aria",
   moiraThread:"moira", moiraNeedle:"moira", moiraDoll:"moira",
-  mareDepth:"mare", mareCurrent:"mare", mareFoam:"mare"
+  mareDepth:"mare", mareCurrent:"mare", mareFoam:"mare",
+  nullZeroPacket:"nullZero", nullZeroQuarantine:"nullZero", nullZeroFork:"nullZero"
 };
 
-const guideCharacterOrder = ["yupiter","ren","nightLord","zero","paladin","arc","terra","void","carmilla","vargas","echo","aria","moira","mare"];
+const guideCharacterOrder = ["yupiter","ren","nightLord","zero","paladin","arc","terra","void","carmilla","vargas","echo","aria","moira","mare","nullZero"];
 
 const basicGuideSections = [
   { icon:"⌨", title:"조작법", color:"#62ddff", lines:["WASD · 캐릭터 이동","마우스 · 조준 / 좌클릭 · 기본 공격","Q · E · X · 캐릭터 스킬","R · 궁극기 또는 재장전","우측 상단 Ⅱ 버튼 · 일시정지"] },
