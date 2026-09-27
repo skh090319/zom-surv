@@ -34,7 +34,8 @@ function getCharacterThumbnail(id) {
   const fileId = id === "nightLord" ? "night-lord" : id;
   if (!characterThumbnailImages.has(fileId)) {
     const redesigned = ["suncall", "luminous", "yupiter", "ren", "night-lord", "zero", "paladin", "arc"].includes(fileId);
-    const source = redesigned ? `assets/characters-original-v2/${fileId}-thumb.webp` : `assets/character-thumbs-v1/${fileId}.webp`;
+    const swappedPortraitRevision = fileId === "zero" || fileId === "paladin" ? "?v=20260928-swap1" : "";
+    const source = redesigned ? `assets/characters-original-v2/${fileId}-thumb.webp${swappedPortraitRevision}` : `assets/character-thumbs-v1/${fileId}.webp`;
     characterThumbnailImages.set(fileId, setGameImageSource(new Image(), source));
   }
   return ensureGameImage(characterThumbnailImages.get(fileId));

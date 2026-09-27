@@ -119,7 +119,7 @@ for (const [id, source] of Object.entries({
 }
 
 const zeroSprite = new Image();
-setGameImageSource(zeroSprite, "assets/characters-original-v2/zero.webp");
+setGameImageSource(zeroSprite, "assets/characters-original-v2/zero.webp?v=20260928-swap1");
 let zeroSpriteLoaded = false;
 zeroSprite.onload = () => { zeroSpriteLoaded = true; };
 
@@ -144,7 +144,7 @@ for (const [id, source] of Object.entries({
 }
 
 const paladinSprite = new Image();
-setGameImageSource(paladinSprite, "assets/characters-original-v2/paladin.webp");
+setGameImageSource(paladinSprite, "assets/characters-original-v2/paladin.webp?v=20260928-swap1");
 let paladinSpriteLoaded = false;
 paladinSprite.onload = () => { paladinSpriteLoaded = true; };
 
