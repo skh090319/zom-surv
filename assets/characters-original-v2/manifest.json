@@ -7,8 +7,8 @@
     "thumbnailWebpSize": 192,
     "webpQuality": 78,
     "alphaQuality": 100,
-    "sourcePngBytes": 35680196,
-    "runtimeWebpBytes": 2413854,
+    "sourcePngBytes": 35705072,
+    "runtimeWebpBytes": 2396262,
     "loading": "On demand by screen and character; thumbnails in selection and guide navigation."
   },
   "styleReferences": [
@@ -22,7 +22,7 @@
       "id": "suncall",
       "source": "suncall.png",
       "runtime": "suncall.webp",
-      "prompt": "Identity-preserve revision: keep Suncall's fair face, cyan eyes, glacier-blue hair and ice-lightning identity, but replace the heavy layered dress and huge staff with a slim short sapphire-white mage tunic, airy frost sleeves, fitted stockings, small boots and a forearm-length crystal wand. Reduce hair volume, jewelry and effects; use only a graceful ice arc and fine lightning ribbons. Relaxed floating SD caster pose, clean transparent silhouette, no bulky armor, huge weapon, massive dress or giant halo."
+      "prompt": "Identity-preserve modest outfit revision: preserve Suncall's face, cyan eyes, glacier-blue hair and braid, ice ornaments, wand, floating pose, proportions and ice-lightning effects. Replace only the clothing with a high closed collar, opaque inner shirt covering chest and shoulders, long layered sapphire-white winter coat to mid-thigh, broad opaque frost sleeves, full opaque leggings and practical blue-silver boots. Remove cleavage, exposed shoulders or midriff, visible thighs, garters and translucent torso fabric. Transparent background."
     },
     {
       "id": "luminous",
