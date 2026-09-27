@@ -116,7 +116,7 @@ function getMobileSkillTargetSpec(key){
       if(key==="x")return effects(marked(zombies.filter(z=>z.mareWet>0)),"침수된 적 폭발");
       break;
   }
-  if(["default","suncall","luminous"].includes(selectedCharacter))return status("재장전");
+  if(["suncall","luminous"].includes(selectedCharacter))return status("재장전");
   if(selectedCharacter==="void"&&key==="e")return status("공허 질량 필요");
   return status(selectedCharacter==="paladin"&&key==="q"?"반격 준비":"자신 강화");
 }

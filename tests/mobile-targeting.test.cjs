@@ -36,7 +36,7 @@ function game() {
     getWorldViewScale:()=>.78, WORLD:{width:4000,height:4000},
     pointInRect:(x,y,r)=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h,
     screenToWorld(){context.mouse.worldX=context.mouse.x/.78+context.camera.x;context.mouse.worldY=context.mouse.y/.78+context.camera.y;},
-    characterSkillGuide:{default:{name:'기본 캐릭터',color:'#bb66ff'}}, getCharacterPreviewSprite:()=>null,
+    characterSkillGuide:{yupiter:{name:'유피테르',color:'#64ef91'}}, getCharacterPreviewSprite:()=>null,
     drawMenuBackdrop(){}, drawLobbyBackdrop(){}, drawLobbyPanel(){}, drawBloodiedLobbyTitle(){}, drawRoundedRect(){},
     difficultyLabel:()=> 'MEDIUM', drawHomeDifficultyPicker(){},
     homeStartRect:{},homeCharacterRect:{},homeAugmentGuideRect:{},homeGameGuideRect:{},homeMonsterGuideRect:{},
@@ -80,7 +80,7 @@ test('marker and released Mare core use the same position, even while moving and
 
 test('buffs, recall and automatic casts show effects without changing aim',()=>{
   const g=game();
-  const noAim={default:['r'],suncall:['r'],luminous:['r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','r'],moira:['x','r'],mare:['x']};
+  const noAim={suncall:['r'],luminous:['r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','r'],moira:['x','r'],mare:['x']};
   for(const [character,keys] of Object.entries(noAim))for(const key of keys){
     g.context.selectedCharacter=character;
     assert.equal(g.run(`getMobileSkillTargetSpec('${key}').aim`),false,character+' '+key);
@@ -156,7 +156,7 @@ test('dragging Mare ultimate sets the actual whale summon angle on release',()=>
 
 test('settings stay below controls and on screen on small phones and tablets, and open via touch',()=>{
   for(const [width,height] of [[568,280],[667,320],[844,390],[1024,768],[1366,1024]]){
-    const g=game();Object.assign(g.context.canvas,{width,height});g.context.screenMode='home';g.context.selectedCharacter='default';
+    const g=game();Object.assign(g.context.canvas,{width,height});g.context.screenMode='home';g.context.selectedCharacter='yupiter';
     g.run('drawMobileHomeScreen()');const button=g.run('mobileSettingsHomeRect'),guide=g.context.homeGameGuideRect;
     assert.ok(button.y>=guide.y+guide.h);assert.ok(button.y+button.h<=height-5);
     g.touch('touchstart',3,button.x+button.w/2,button.y+button.h/2);g.touch('touchend',3,button.x+button.w/2,button.y+button.h/2);

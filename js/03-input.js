@@ -186,10 +186,6 @@ canvas.addEventListener("mousedown", event => {
     for (const card of characterCards) {
       if (!pointInRect(mouse.x, mouse.y, card)) continue;
 
-      if (card.id === "default") {
-        selectedCharacter = "default";
-      }
-
       if (card.id === "suncall") {
         selectedCharacter = "suncall";
       }

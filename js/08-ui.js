@@ -876,7 +876,7 @@ function drawHomeScreen() {
   if(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&canvas.height<520){drawMobileHomeScreen();return;}
   drawLobbyBackdrop();
   const t=performance.now()*.001,wide=canvas.width>=900,margin=Math.max(28,canvas.width*.045);
-  const info=characterSkillGuide[selectedCharacter]||characterSkillGuide.default;
+  const info=characterSkillGuide[selectedCharacter]||characterSkillGuide.yupiter;
   const accent=info.color||"#57ddff",sprite=getCharacterPreviewSprite(selectedCharacter);
   ctx.save();
 
@@ -942,7 +942,6 @@ function drawHomeScreen() {
 }
 
 const characterSkillGuide = {
-  default:{name:"기본 캐릭터",color:"#b05cff",passive:"안정적인 능력치로 총기와 공용 증강을 자유롭게 조합합니다.",skills:[["기본 공격","마우스 방향으로 총알을 발사합니다."],["R 재장전","탄창을 다시 채웁니다."]]},
   suncall:{name:"썬콜",color:"#48d8ff",passive:"이동속도가 15% 증가하며 공격 시 10% 확률로 둔화 얼음 지대를 만듭니다.",skills:[["기본 공격","빠른 총격으로 적을 공격하고 얼음 지대를 생성합니다."],["R 재장전","탄창을 다시 채웁니다."]]},
   luminous:{name:"루미너스",color:"#59e9ff",passive:"8개의 마력탄이 발사 순간 지정한 적을 자동 추적합니다.",skills:[["유도 마력탄","손끝에서 발사한 마력탄이 궤도를 휘어 적을 끝까지 추적합니다."]]},
   yupiter:{name:"유피테르",color:"#64ef91",passive:"Q로 반월검·절단검·화염포를 전환하며 각 무기마다 E와 R이 달라집니다.",skills:[["Q 무기 전환","반월검·절단검·화염포를 교체하며 각 무기의 기본 공격을 확인합니다."],["E 반월검 증식","반월검을 4개로 늘려 한 번의 공격으로 더 큰 피해를 줍니다."],["E 절단검 가속","공격속도를 폭발적으로 높여 연속 참격을 가합니다."],["E 화염포 폭파","화염포 표식이 묻은 적들을 한꺼번에 폭발시킵니다."],["R 반월검 궁극기","10레벨부터 10개의 반월검이 점점 넓게 공전하며 적을 공격합니다."],["R 절단검 궁극기","10레벨부터 이동속도·공격 범위가 증가하고 낮은 체력의 적을 처형합니다."],["R 화염포 궁극기","10레벨부터 에너지 구체 적중 지점에서 모든 적에게 화염탄을 퍼뜨립니다."]]},
@@ -961,10 +960,10 @@ const characterSkillGuide = {
   mare:{name:"마레",color:"#45dff0",passive:"물 공격을 반복 적중시키면 침수가 중첩됩니다. 교차한 해류는 합류 폭발을 일으킵니다.",skills:[["기본 공격 · 물길 가르기","전방에 지속되는 해류를 남겨 적을 운반합니다. 해류가 교차하면 광역 피해가 발생합니다."],["Q · 밀물","실제로 전진하는 거대한 파도가 닿은 적을 밀어내고 침수를 중첩합니다."],["E · 소용돌이 핵","물의 핵을 설치해 적을 끌어당깁니다. 다시 사용하면 핵이 폭발합니다."],["X · 수압","침수된 모든 적을 압축해 중첩에 비례한 피해를 줍니다."],["R · 세계를 삼킨 바다","10레벨부터 영체 고래를 직접 조종하며 강화 해류를 남깁니다. 종료 시 모든 해류가 모여 폭발합니다."]]},
 };
 
-function getCharacterPreviewSprite(id, thumbnail = false){if(thumbnail)return getCharacterThumbnail(id);const image = id==="default"?playerSprite:id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:id==="echo"?echoSprite:id==="aria"?ariaSprite:id==="moira"?moiraSprite:id==="mare"?mareSprite:vargasSprite;return ensureGameImage(image, "high");}
+function getCharacterPreviewSprite(id, thumbnail = false){if(thumbnail)return getCharacterThumbnail(id);const image = id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:id==="echo"?echoSprite:id==="aria"?ariaSprite:id==="moira"?moiraSprite:id==="mare"?mareSprite:id==="vargas"?vargasSprite:yupiterSprite;return ensureGameImage(image, "high");}
 
 const characterSkillVideoKeys = {
-  default:["attack","reload"], suncall:["attack","reload"], luminous:["attack"],
+  suncall:["attack","reload"], luminous:["attack"],
   yupiter:["q","e-crescent","e-severing","e-flame","r-crescent","r-severing","r-flame"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
   zero:["q","e","x","r"], paladin:["q","e","x","r"], arc:["q","e","x","r"],
   terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"],vargas:["attack","q","e","x","r"],echo:["attack","close","phase","r"],aria:["attack","q","e","x","r"],moira:["attack","q","e","x","r"],mare:["attack","q","e","x","r"]
@@ -1003,7 +1002,7 @@ function drawCharacterGameplayPreview(id,skillIndex,skillName,x,y,w,h,color){
 }
 
 function drawCharacterDetailOverlay(){
-  if(!characterDetailId)return;const info=characterSkillGuide[characterDetailId]||characterSkillGuide.default;
+  if(!characterDetailId)return;const info=characterSkillGuide[characterDetailId]||characterSkillGuide.yupiter;
   ctx.save();ctx.fillStyle="rgba(2,4,10,.88)";ctx.fillRect(0,0,canvas.width,canvas.height);
   const w=Math.min(1040,canvas.width-36),h=Math.min(650,canvas.height-40),x=(canvas.width-w)/2,y=(canvas.height-h)/2;const panel=ctx.createLinearGradient(x,y,x+w,y+h);panel.addColorStop(0,"rgba(15,21,36,.99)");panel.addColorStop(1,"rgba(7,9,18,.99)");drawRoundedRect(x,y,w,h,24,panel,info.color,2);
   characterDetailCloseRect={x:x+w-58,y:y+14,w:42,h:42};drawRoundedRect(characterDetailCloseRect.x,characterDetailCloseRect.y,42,42,12,"rgba(255,255,255,.06)","rgba(255,255,255,.18)",1);ctx.fillStyle="#fff";ctx.font="bold 24px Arial";ctx.textAlign="center";ctx.fillText("×",characterDetailCloseRect.x+21,characterDetailCloseRect.y+29);
@@ -1044,7 +1043,7 @@ function drawCharacterSelectScreen() {
 
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
   const maxCardsPerRow = 4;
-  const characterIds = ["default", "suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare"];
+  const characterIds = ["suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare"];
   const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
@@ -1067,17 +1066,16 @@ function drawCharacterSelectScreen() {
   });
 
   const themes = {
-    default: { color: "#b05cff", color2: "#6237b9", role: "BALANCED", number: "01" },
-    suncall: { color: "#48d8ff", color2: "#2469c7", role: "MOBILITY", number: "02" },
-    luminous: { color: "#f0c65a", color2: "#3ecdf3", role: "HOMING MAGE", number: "03" },
-    yupiter: { color: "#64ef91", color2: "#148b69", role: "WEAPON MASTER", number: "04" },
-    ren: { color: "#ff496f", color2: "#6e36c8", role: "SHADOW ASSASSIN", number: "05" },
-    nightLord: { color: "#a855f7", color2: "#3b1769", role: "DARK SLAYER", number: "06" },
-    zero: { color: "#ffd85a", color2: "#bf342f", role: "SWORD DANCER", number: "07" },
-    paladin: { color: "#ffe48b", color2: "#315a94", role: "COMBO KNIGHT", number: "08" },
-    arc: { color: "#ff8b32", color2: "#7d1e12", role: "SOLAR MAGE", number: "09" },
-    terra: { color: "#c5d965", color2: "#526b2d", role: "EARTH BREAKER", number: "10" },
-    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "11" },carmilla:{color:"#ff315d",color2:"#5c071d",role:"TRUE VAMPIRE",number:"12"},vargas:{color:"#58f39a",color2:"#4b1321",role:"ABYSSAL COLOSSUS",number:"13"},echo:{color:"#65e8ff",color2:"#6044a8",role:"DIMENSION TAILOR",number:"14"},aria:{color:"#ff83bd",color2:"#3d817d",role:"DREAM GARDENER",number:"15"},moira:{color:"#ff315b",color2:"#4d071d",role:"CURSED PUPPETEER",number:"16"},mare:{color:"#45dff0",color2:"#075772",role:"ABYSS CONDUCTOR",number:"17"}
+    suncall: { color: "#48d8ff", color2: "#2469c7", role: "MOBILITY", number: "01" },
+    luminous: { color: "#f0c65a", color2: "#3ecdf3", role: "HOMING MAGE", number: "02" },
+    yupiter: { color: "#64ef91", color2: "#148b69", role: "WEAPON MASTER", number: "03" },
+    ren: { color: "#ff496f", color2: "#6e36c8", role: "SHADOW ASSASSIN", number: "04" },
+    nightLord: { color: "#a855f7", color2: "#3b1769", role: "DARK SLAYER", number: "05" },
+    zero: { color: "#ffd85a", color2: "#bf342f", role: "SWORD DANCER", number: "06" },
+    paladin: { color: "#ffe48b", color2: "#315a94", role: "COMBO KNIGHT", number: "07" },
+    arc: { color: "#ff8b32", color2: "#7d1e12", role: "SOLAR MAGE", number: "08" },
+    terra: { color: "#c5d965", color2: "#526b2d", role: "EARTH BREAKER", number: "09" },
+    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "10" },carmilla:{color:"#ff315d",color2:"#5c071d",role:"TRUE VAMPIRE",number:"11"},vargas:{color:"#58f39a",color2:"#4b1321",role:"ABYSSAL COLOSSUS",number:"12"},echo:{color:"#65e8ff",color2:"#6044a8",role:"DIMENSION TAILOR",number:"13"},aria:{color:"#ff83bd",color2:"#3d817d",role:"DREAM GARDENER",number:"14"},moira:{color:"#ff315b",color2:"#4d071d",role:"CURSED PUPPETEER",number:"15"},mare:{color:"#45dff0",color2:"#075772",role:"ABYSS CONDUCTOR",number:"16"}
   };
 
   ctx.save();
@@ -1089,7 +1087,7 @@ function drawCharacterSelectScreen() {
     const cardScale = 1;
     if (card.y + card.h < y - 8 || card.y > canvas.height) continue;
     const isSelected = selectedCharacter === card.id;
-    const unlocked = card.id === "default" || card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas"||card.id==="echo"||card.id==="aria"||card.id==="moira"||card.id==="mare" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
+    const unlocked = card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas"||card.id==="echo"||card.id==="aria"||card.id==="moira"||card.id==="mare" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
     const hover = pointInRect(mouse.x, mouse.y, card);
     const theme = themes[card.id];
     const displayY = card.y + (hover && unlocked ? -7 : 0);
@@ -1140,7 +1138,7 @@ function drawCharacterSelectScreen() {
       ctx.restore();
     }
 
-    const name = characterSkillGuide[card.id]?.name||"기본 캐릭터";
+    const name = characterSkillGuide[card.id]?.name||"유피테르";
     const passive = `패시브: ${characterSkillGuide[card.id]?.passive||"기본 능력치"}`;
     ctx.fillStyle = unlocked ? "#f4f7ff" : "#777d88";
     ctx.font = `bold ${Math.max(12, (card.w < 145 ? 16 : 23) * Math.min(1, cardScale + .12))}px Arial`;

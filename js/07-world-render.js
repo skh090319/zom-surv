@@ -171,7 +171,7 @@ function drawPlayer() {
           : (player.yupiterWeapon === 1 && yupiterSlashes.length > 0 && yupiterSeveringSpriteLoaded
             ? yupiterSeveringSprite
             : (player.yupiterWeapon === 2 && yupiterFlameSpriteLoaded ? yupiterFlameSprite : yupiterSprite)))
-        : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSprite : renSprite) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSprite : nightLordSprite) : playerSprite))));
+        : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSprite : renSprite) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSprite : nightLordSprite) : yupiterSprite))));
   const activeLoaded = selectedCharacter === "mare"
     ? mareSpriteLoaded
     : selectedCharacter === "moira"
@@ -198,7 +198,7 @@ function drawPlayer() {
     ? suncallSpriteLoaded
     : (selectedCharacter === "luminous"
       ? luminousSpriteLoaded
-      : (selectedCharacter === "yupiter" ? yupiterSpriteLoaded : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSpriteLoaded : renSpriteLoaded) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSpriteLoaded : nightLordSpriteLoaded) : playerSpriteLoaded))));
+      : (selectedCharacter === "yupiter" ? yupiterSpriteLoaded : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSpriteLoaded : renSpriteLoaded) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSpriteLoaded : nightLordSpriteLoaded) : yupiterSpriteLoaded))));
 
   if (activeLoaded) {
     const size = selectedCharacter === "vargas" ? (player.vargasUltimateTime>0?142:122) : ((selectedCharacter === "luminous" || selectedCharacter === "ren" || selectedCharacter === "nightLord" || selectedCharacter === "zero" || selectedCharacter === "paladin" || selectedCharacter === "arc" || selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "echo" || selectedCharacter === "aria" || selectedCharacter === "moira" || selectedCharacter === "mare") ? 112 : ((selectedCharacter === "suncall" || selectedCharacter === "yupiter") ? 104 : 96));

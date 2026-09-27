@@ -8,7 +8,7 @@ const folder = path.join(root, 'assets/characters-original-v2');
 const manifest = JSON.parse(fs.readFileSync(path.join(folder, 'manifest.json')));
 
 test('all original sprites and attack variants have compact alpha WebP assets', () => {
-  assert.equal(manifest.assets.length, 15);
+  assert.equal(manifest.assets.length, 14);
   for (const asset of manifest.assets) {
     assert.ok(asset.prompt && fs.existsSync(path.join(folder, asset.source)), asset.id);
     const data = fs.readFileSync(path.join(folder, asset.runtime));
@@ -21,9 +21,9 @@ test('all original sprites and attack variants have compact alpha WebP assets', 
 });
 
 test('each selectable character has a small dedicated thumbnail', () => {
-  for (const asset of manifest.assets.slice(0, 9)) {
-    const file = path.join(folder, asset.id + '-thumb.webp');
-    assert.ok(fs.statSync(file).size < 48 * 1024, asset.id);
+  for (const id of ['suncall','luminous','yupiter','ren','night-lord','zero','paladin','arc']) {
+    const file = path.join(folder, id + '-thumb.webp');
+    assert.ok(fs.statSync(file).size < 48 * 1024, id);
   }
   for (const id of ['terra','void','carmilla','vargas','echo','aria','moira','mare']) {
     assert.ok(fs.statSync(path.join(root, 'assets/character-thumbs-v1', id + '.webp')).size < 48 * 1024);
@@ -31,7 +31,7 @@ test('each selectable character has a small dedicated thumbnail', () => {
 });
 
 function loader() {
-  const context = {Image: class {}, screenMode:'home', selectedCharacter:'default', guidePage:'augment', guideAugmentTab:'support', guideExclusiveCharacter:'yupiter', characterDetailId:null, mobileSettingsPage:'menu', choosingUpgrade:false};
+  const context = {Image: class {}, screenMode:'home', selectedCharacter:'yupiter', guidePage:'augment', guideAugmentTab:'support', guideExclusiveCharacter:'yupiter', characterDetailId:null, mobileSettingsPage:'menu', choosingUpgrade:false};
   vm.createContext(context);
   vm.runInContext(fs.readFileSync(path.join(root, 'js/00-assets.js'),'utf8'), context);
   return {context, run: code => vm.runInContext(code,context)};

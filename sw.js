@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v40";
+const CACHE_VERSION = "zombie-survival-v41";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -14,7 +14,7 @@ const CORE_ASSETS = [
   "./assets/fonts/BlackHanSans-OFL.txt",
   "./assets/fonts/DoHyeon-Regular.ttf",
   "./assets/fonts/DoHyeon-OFL.txt",
-  "./assets/characters-original-v2/default.webp",
+  "./assets/characters-original-v2/yupiter.webp",
   "./assets/pwa/icon-192.png",
   "./assets/pwa/icon-512.png",
   "./assets/pwa/icon-maskable-512.png",

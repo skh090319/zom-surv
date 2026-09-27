@@ -43,7 +43,7 @@ function getMobileViewZoom(){return clampMobileViewZoom(mobileControlSettings.vi
 function fitMobileControlCenter(value,r,min,max){const inset=Math.min(r,Math.max(0,(max-min)/2));return Math.max(min+inset,Math.min(max-inset,value));}
 
 const MOBILE_SKILL_KEYS = {
-  default:["r"],suncall:["r"],luminous:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
+  suncall:["r"],luminous:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
   nightLord:["q","e","x","r"],zero:["q","e","x","r"],paladin:["q","e","x","r"],arc:["q","e","x","r"],
   terra:["q","e","x","r"],void:["q","e","x","r"],carmilla:["q"],vargas:["q","e","x","r"],
   echo:["q","e","r"],aria:["q","e","x","r"],moira:["q","e","x","r"],mare:["q","e","x","r"]
@@ -256,7 +256,7 @@ function getMobileSkillIcon(key){
 
 function getMobileSkillName(key){
   const names={
-    default:{r:"재장전"},suncall:{r:"재장전"},luminous:{r:"재장전"},
+    suncall:{r:"재장전"},luminous:{r:"재장전"},
     ren:{q:"분신 배치",x:"그림자 이동",e:"분신 습격",r:"그림자 지대"},nightLord:{q:"그림자 추격",e:"광란",x:"처형",r:"불사의 밤"},
     zero:{q:"참격",e:"급소",x:"심판",r:"검의 왈츠"},paladin:{q:"성스러운 반격",e:"연속 절단",x:"콤보 전환",r:"한계 돌파"},
     arc:{q:"일륜",e:"홍염 파동",x:"태양 낙하",r:"초신성"},terra:{q:"단층 붕괴",e:"암벽 융기",x:"지각 압축",r:"대륙 분쇄"},
@@ -271,7 +271,7 @@ function getMobileSkillName(key){
 
 function getMobileSkillCooldown(key){
   const reloadInfo=()=>({value:player.reloadTime||0,max:90,label:"재장전"});
-  if(["default","suncall","luminous"].includes(selectedCharacter))return key==="r"?reloadInfo():null;
+  if(["suncall","luminous"].includes(selectedCharacter))return key==="r"?reloadInfo():null;
   const table={
     yupiter:{q:[0,1],e:[player.yupiterSkillCooldowns[player.yupiterWeapon],YUPITER_SKILL_COOLDOWNS[player.yupiterWeapon]],r:[player.yupiterUltimateCooldown,YUPITER_ULTIMATE_COOLDOWN]},
     ren:{q:[player.renDeployCooldown,REN_DEPLOY_COOLDOWN],x:[player.renSwapCooldown,REN_SWAP_COOLDOWN],e:[player.renSkillCooldown,REN_SKILL_COOLDOWN],r:[player.renUltimateCooldown,REN_ULTIMATE_COOLDOWN]},
@@ -292,7 +292,7 @@ function getMobileSkillCooldown(key){
 }
 
 function isMobileUltimateLocked(key){
-  return key==="r"&&player.level<10&&!["default","suncall","luminous","carmilla"].includes(selectedCharacter);
+  return key==="r"&&player.level<10&&!["suncall","luminous","carmilla"].includes(selectedCharacter);
 }
 
 function drawMobileIcon(icon,cx,cy,r){
@@ -317,7 +317,7 @@ function drawMobileLobbyEmblem(cx,cy,r,color,glyph){
 
 function drawMobileHomeScreen(){
   drawLobbyBackdrop();
-  const info=characterSkillGuide[selectedCharacter]||characterSkillGuide.default,accent=info.color||"#57ddff";
+  const info=characterSkillGuide[selectedCharacter]||characterSkillGuide.yupiter,accent=info.color||"#57ddff";
   const sprite=getCharacterPreviewSprite(selectedCharacter),short=canvas.height<390;
   const gap=short?6:9,titleH=short?28:38,startH=short?48:62;
   const usableH=Math.min(canvas.height-(short?24:48),420),cardH=Math.max(short?38:48,Math.min(68,(usableH-titleH-startH-gap*4)/3));

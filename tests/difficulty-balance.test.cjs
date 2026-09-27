@@ -11,7 +11,7 @@ function bossGame(difficulty = 'easy') {
     console, Math, Date,
     Image: class { set src(value) { this._src = value; } },
     selectedDifficulty: difficulty,
-    selectedCharacter: 'default',
+    selectedCharacter: 'yupiter',
     transcended: {},
     WORLD: { width: 4000, height: 4000 },
     player: { x: 2000, y: 2000, r: 20, hp: 1000, maxHp: 1000, score: 0, invincibleTime: 0, bossRootTime: 0, bossSlowTime: 0 },

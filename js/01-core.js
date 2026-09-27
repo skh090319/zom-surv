@@ -5,13 +5,6 @@ const canvas = document.getElementById("game");
 // 화면 깜빡임/티어링을 만들 수 있어 사용하지 않는다.
 const ctx = canvas.getContext("2d", { alpha: false });
 
-const playerSprite = new Image();
-setGameImageSource(playerSprite, "assets/characters-original-v2/default.webp");
-let playerSpriteLoaded = false;
-playerSprite.onload = () => {
-  playerSpriteLoaded = true;
-};
-
 const suncallSprite = new Image();
 setGameImageSource(suncallSprite, "assets/characters-original-v2/suncall.webp");
 let suncallSpriteLoaded = false;
@@ -533,7 +526,7 @@ let bloodDrops=[],bloodEffects=[];
 let wave = 1;
 let gameOver = false;
 let screenMode = "home";
-let selectedCharacter = "default";
+let selectedCharacter = "yupiter";
 let totalZombieKills = 0;
 try {
   totalZombieKills = Number(localStorage.getItem("zombieSurvivalTotalKills") || 0);

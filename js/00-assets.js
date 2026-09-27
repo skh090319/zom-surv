@@ -7,7 +7,7 @@ function gameImageGroup(source) {
   const file = source.split("/").pop();
   if (source.includes("/bosses/")) return "boss";
   if (file.startsWith("lobby-")) return "lobby";
-  const owner = file.match(/^(default|suncall|luminous|yupiter|ren|night-lord|zero|paladin|arc|terra|void|carmilla|vargas|echo|aria|moira|mare)(?:[-.]|$)/);
+  const owner = file.match(/^(suncall|luminous|yupiter|ren|night-lord|zero|paladin|arc|terra|void|carmilla|vargas|echo|aria|moira|mare)(?:[-.]|$)/);
   if (owner) return owner[1];
   if (/^(crescent-blade|severing-blade|flame-cannon|augment-sword-aura)/.test(file)) return "yupiter";
   if (/^(augment-|transcend-)/.test(file)) return "augment";
@@ -33,7 +33,7 @@ function ensureGameImage(image, priority = "auto") {
 function getCharacterThumbnail(id) {
   const fileId = id === "nightLord" ? "night-lord" : id;
   if (!characterThumbnailImages.has(fileId)) {
-    const redesigned = ["default", "suncall", "luminous", "yupiter", "ren", "night-lord", "zero", "paladin", "arc"].includes(fileId);
+    const redesigned = ["suncall", "luminous", "yupiter", "ren", "night-lord", "zero", "paladin", "arc"].includes(fileId);
     const source = redesigned ? `assets/characters-original-v2/${fileId}-thumb.webp` : `assets/character-thumbs-v1/${fileId}.webp`;
     characterThumbnailImages.set(fileId, setGameImageSource(new Image(), source));
   }
