@@ -7,8 +7,8 @@
     "thumbnailWebpSize": 192,
     "webpQuality": 78,
     "alphaQuality": 100,
-    "sourcePngBytes": 35705072,
-    "runtimeWebpBytes": 2396262,
+    "sourcePngBytes": 35024726,
+    "runtimeWebpBytes": 2559638,
     "loading": "On demand by screen and character; thumbnails in selection and guide navigation."
   },
   "styleReferences": [
@@ -52,7 +52,7 @@
       "id": "zero",
       "source": "zero.png",
       "runtime": "zero.webp",
-      "prompt": "Use case: stylized-concept. Asset type: finished original full-body fantasy SD game character cutout for Zombie Survival. Input images are STYLE REFERENCES ONLY, existing original members of our roster. Match their illustrated anime SD proportions, beautiful expressive large eyes, polished detailed painterly rendering, rich jewel colors, crisp silhouette and dramatic magical elements. Do NOT copy the reference characters' identities or costumes. Design a new original character with fair/light skin. NOT military, not realistic adult anatomy, not a generic gritty tactical outfit; a confident highly memorable high-fantasy hero. Full body including all feet, weapons and effects inside a square 1024x1024 composition with small clear margins. Head large, body short, about 2.6 heads tall. Pose reads at tiny gameplay size. GENUINELY TRANSPARENT background with clean alpha, no floor, no scenery, no panel, no printed text, no logo, no watermark.\nPrimary request: ZERO, an original SD male time-and-sword champion. Big rounded heroic chibi face and amber eyes, warm pale skin, windswept champagne-blond hair with a distinctive swept-back crest and short tied locks, NOT a copied franchise hairstyle. Red, ivory and radiant gold high-fantasy plate armor, sculpted clock-hand motif shoulder pieces, dramatic scarlet split cape, luminous cyan accents. Holds an oversized ornate red-gold greatsword with a translucent luminous core, and a smaller cyan-silver sword angled opposite it. A partial halo of broken golden clockwork arcs and thin luminous feather-like time blades behind shoulders, not a backdrop. Dynamic confident forward-ready pose, gleaming armor and fiery gold sparks, heroic detailed painterly fantasy matching our existing Terra. Memorable red/gold/cyan silhouette, no military uniform."
+      "prompt": "Premium identity-preserving Zero rerender. Preserve the silver-haired dual-sword warrior, lightweight red-black-gold costume, athletic diagonal torso opening, ornate clockwork weapon language and crisp SD fantasy finish. Give the red sword a natural one-handed hip-level downward-outward pose with the gloved hand and thumb visibly wrapped around the real grip behind the guard. Keep both blades straight and fully framed. Refine the red and cyan weapon light into sharp blade-bound cores, controlled edge bloom, thin centered elliptical energy rings, narrow lightning filaments and sparse sparks, with the hands, hilts and silhouettes remaining readable. Ultra-clean high-detail transparent cutout; no blurry glow, warped blade, fused anatomy, compression artifacts, text or scenery."
     },
     {
       "id": "paladin",
