@@ -45,6 +45,7 @@ function shoot() {
   if(selectedCharacter==="moira"){attackWithMoira();return;}
   if(selectedCharacter==="mare"){attackWithMare();return;}
   if(selectedCharacter==="nullZero"){attackWithNullZero();return;}
+  if(selectedCharacter==="astra"){attackWithAstra();return;}
 
   if (selectedCharacter === "yupiter") {
     attackWithYupiterWeapon();

@@ -61,6 +61,11 @@ function getMobileAimedSkillTargetSpec(key){
       if(key==="e")return target(430,185+level("nullZeroQuarantineLevel")*16);
       if(key==="r")return area(transcended.nullZeroQuarantine?880:720);
       return null;
+    case "astra":
+      if(key==="q")return line(900,54,{capsule:true});
+      if(key==="e")return target(520,170+level("astraHorizonLevel")*18);
+      if(key==="r")return area(620+level("astraRedLevel")*28);
+      return null;
     default:return null;
   }
 }
@@ -123,6 +128,9 @@ function getMobileSkillTargetSpec(key){
     case "nullZero":
       if(key==="x")return status(player.nullZeroForkTime>0?"코드 복제 실행 중":"복제 패킷 활성화");
       break;
+    case "astra":
+      if(key==="x")return status(player.astraOverdriveTime>0?"궤도 확장·가속 중":"공전 궤도 가속");
+      break;
   }
   if(["suncall","luminous"].includes(selectedCharacter))return status("재장전");
   if(selectedCharacter==="void"&&key==="e")return status("공허 질량 필요");
@@ -147,6 +155,7 @@ function getMobileAttackTargetSpec(){
     case "echo":return line(215+(player.echoAfterimageLevel||0)*18,48);
     case "mare":return {type:"rect",range:player.mareUltimateTime>0?340:285,width:player.mareUltimateTime>0?216:172,startWidth:player.mareUltimateTime>0?75.6:60.2};
     case "nullZero":return line(840,28);
+    case "astra":return line(930,24);
     case "arc":return line(504,22);
     case "yupiter":
       if(player.yupiterWeapon===1)return cone((player.trackerLevel>0?220:145)*(player.severingUltimateTime>0?3.5:1),player.trackerLevel>0?Math.PI*2:Math.PI*(.42+player.swordAuraLevel/12)*2);

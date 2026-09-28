@@ -46,7 +46,7 @@ const MOBILE_SKILL_KEYS = {
   suncall:["r"],luminous:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
   nightLord:["q","e","x","r"],zero:["q","e","x","r"],paladin:["q","e","x","r"],arc:["q","e","x","r"],
   terra:["q","e","x","r"],void:["q","e","x","r"],carmilla:["q"],vargas:["q","e","x","r"],
-  echo:["q","e","r"],aria:["q","e","x","r"],moira:["q","e","x","r"],mare:["q","e","x","r"],nullZero:["q","e","x","r"]
+  echo:["q","e","r"],aria:["q","e","x","r"],moira:["q","e","x","r"],mare:["q","e","x","r"],nullZero:["q","e","x","r"],astra:["q","e","x","r"]
 };
 
 function isMobileTouchDevice(){return (navigator.maxTouchPoints>0&&(matchMedia("(pointer: coarse)").matches||matchMedia("(any-pointer: coarse)").matches))||new URLSearchParams(location.search).has("mobile");}
@@ -250,7 +250,7 @@ function getMobileSkillIcon(key){
   if(selectedCharacter==="yupiter"){if(key==="q")return{image:[crescentBladeSprite,severingBladeSprite,flameCannonSprite][player.yupiterWeapon]};if(key==="e")return{image:yupiterESkillIcons[player.yupiterWeapon]};if(key==="r")return{image:yupiterUltimateIcon};}
   if(selectedCharacter==="ren")return{image:renSkillIcons[{q:0,x:1,e:2,r:3}[key]]};
   if(selectedCharacter==="nightLord")return{image:nightLordSkillIcons[index]};if(selectedCharacter==="zero")return{image:zeroSkillIcons[index]};if(selectedCharacter==="paladin")return{image:paladinSkillIcons[index]};
-  const atlases={arc:arcSkillIconAtlas,terra:terraSkillIconAtlas,void:voidSkillIconAtlas,carmilla:carmillaSkillIconAtlas,vargas:vargasSkillIconAtlas,echo:echoSkillIconAtlas,aria:ariaSkillIconAtlas,moira:moiraSkillIconAtlas,mare:mareSkillIconAtlas,nullZero:nullZeroSkillIconAtlas};
+  const atlases={arc:arcSkillIconAtlas,terra:terraSkillIconAtlas,void:voidSkillIconAtlas,carmilla:carmillaSkillIconAtlas,vargas:vargasSkillIconAtlas,echo:echoSkillIconAtlas,aria:ariaSkillIconAtlas,moira:moiraSkillIconAtlas,mare:mareSkillIconAtlas,nullZero:nullZeroSkillIconAtlas,astra:astraSkillIconAtlas};
   return atlases[selectedCharacter]?{atlas:atlases[selectedCharacter],index}:null;
 }
 
@@ -263,7 +263,7 @@ function getMobileSkillName(key){
     void:{q:"심층 포식",e:"대지 방출",x:"지반 붕괴",r:"제어 불능"},carmilla:{q:"피의 회수"},
     vargas:{q:"생명 포식",e:"혈육 갑주",x:"거신 강타",r:"불멸의 형상"},echo:{q:"절단",e:"위상 전환",r:"세계선 붕괴"},
     aria:{q:"가시 성장",e:"만개",x:"정원 이동",r:"영원한 봄"},moira:{q:"조종",e:"대리 인형",x:"고통 전이",r:"꼭두각시 극장"},
-    mare:{q:"밀물",e:"소용돌이 핵",x:"수압",r:"세계를 삼킨 바다"},nullZero:{q:"데이터 절단",e:"격리 구역",x:"코드 복제",r:"커널 패닉"}
+    mare:{q:"밀물",e:"소용돌이 핵",x:"수압",r:"세계를 삼킨 바다"},nullZero:{q:"데이터 절단",e:"격리 구역",x:"코드 복제",r:"커널 패닉"},astra:{q:"유성 궤도",e:"중력 붕괴",x:"궤도 가속",r:"초신성 장례식"}
   };
   if(selectedCharacter==="yupiter"){if(key==="q")return"무기 전환";const weapon=["반월검","절단검","화염포"][player.yupiterWeapon]||"무기";return key==="e"?`${weapon} 강화`:`${weapon} 궁극기`;}
   return names[selectedCharacter]?.[key]||"스킬";
@@ -287,7 +287,8 @@ function getMobileSkillCooldown(key){
     aria:{q:[player.ariaQCooldown,ARIA_Q_CD],e:[player.ariaECooldown,ARIA_E_CD],x:[player.ariaXCooldown,ARIA_X_CD],r:[player.ariaRCooldown,ARIA_R_CD]},
     moira:{q:[player.moiraQCooldown,MOIRA_Q_CD],e:[player.moiraECooldown,MOIRA_E_CD],x:[player.moiraXCooldown,MOIRA_X_CD],r:[player.moiraRCooldown,MOIRA_R_CD]},
     mare:{q:[player.mareQCooldown,MARE_Q_CD],e:[player.mareECooldown,MARE_E_CD],x:[player.mareXCooldown,MARE_X_CD],r:[player.mareRCooldown,MARE_R_CD]},
-    nullZero:{q:[player.nullZeroQCooldown,NULL_ZERO_Q_CD],e:[player.nullZeroECooldown,NULL_ZERO_E_CD],x:[player.nullZeroXCooldown,NULL_ZERO_X_CD],r:[player.nullZeroRCooldown,NULL_ZERO_R_CD]}
+    nullZero:{q:[player.nullZeroQCooldown,NULL_ZERO_Q_CD],e:[player.nullZeroECooldown,NULL_ZERO_E_CD],x:[player.nullZeroXCooldown,NULL_ZERO_X_CD],r:[player.nullZeroRCooldown,NULL_ZERO_R_CD]},
+    astra:{q:[player.astraQCooldown,ASTRA_Q_CD],e:[player.astraECooldown,ASTRA_E_CD],x:[player.astraXCooldown,ASTRA_X_CD],r:[player.astraRCooldown,ASTRA_R_CD]}
   };
   const data=table[selectedCharacter]?.[key];return data?{value:data[0]||0,max:data[1]||1}:null;
 }

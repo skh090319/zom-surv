@@ -8,7 +8,7 @@ const folder = path.join(root, 'assets/characters-original-v2');
 const manifest = JSON.parse(fs.readFileSync(path.join(folder, 'manifest.json')));
 
 test('all original sprites and attack variants have compact alpha WebP assets', () => {
-  assert.equal(manifest.assets.length, 15);
+  assert.equal(manifest.assets.length, 16);
   for (const asset of manifest.assets) {
     assert.ok(asset.prompt && fs.existsSync(path.join(folder, asset.source)), asset.id);
     const data = fs.readFileSync(path.join(folder, asset.runtime));
@@ -21,7 +21,7 @@ test('all original sprites and attack variants have compact alpha WebP assets', 
 });
 
 test('each selectable character has a small dedicated thumbnail', () => {
-  for (const id of ['suncall','luminous','yupiter','ren','night-lord','zero','paladin','arc','null-zero']) {
+  for (const id of ['suncall','luminous','yupiter','ren','night-lord','zero','paladin','arc','null-zero','astra']) {
     const file = path.join(folder, id + '-thumb.webp');
     assert.ok(fs.statSync(file).size < 48 * 1024, id);
   }

@@ -83,7 +83,11 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="nullZero"&&key==="e")activateNullZeroE();
     if(selectedCharacter==="nullZero"&&key==="x")activateNullZeroX();
     if(selectedCharacter==="nullZero"&&key==="r")activateNullZeroR();
-    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero") reload();
+    if(selectedCharacter==="astra"&&key==="q")activateAstraQ();
+    if(selectedCharacter==="astra"&&key==="e")activateAstraE();
+    if(selectedCharacter==="astra"&&key==="x")activateAstraX();
+    if(selectedCharacter==="astra"&&key==="r")activateAstraR();
+    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero" && selectedCharacter !== "astra") reload();
   }
   if ((gameOver || raidVictory) && key === "enter") {
     restart();
@@ -232,6 +236,7 @@ canvas.addEventListener("mousedown", event => {
       if(card.id==="moira")selectedCharacter="moira";
       if(card.id==="mare")selectedCharacter="mare";
       if(card.id==="nullZero")selectedCharacter="nullZero";
+      if(card.id==="astra")selectedCharacter="astra";
 
       return;
     }

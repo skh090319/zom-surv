@@ -7,8 +7,8 @@
     "thumbnailWebpSize": 192,
     "webpQuality": 78,
     "alphaQuality": 100,
-    "sourcePngBytes": 37524728,
-    "runtimeWebpBytes": 2865054,
+    "sourcePngBytes": 40108466,
+    "runtimeWebpBytes": 3235986,
     "loading": "On demand by screen and character; thumbnails in selection and guide navigation."
   },
   "styleReferences": [
@@ -101,6 +101,12 @@
       "source": "null-zero.png",
       "runtime": "null-zero.webp",
       "prompt": "Use case: stylized-concept. Final premium transparent full-body playable character for Zombie Survival: NULL-ZERO, an original pale-skinned male survivor consumed by a sentient computer virus. Compact heroic SD anime proportions, short layered black hair dissolving into intentional pixel fragments, one cyan eye and one fractured crimson-magenta error iris. Lightweight asymmetrical black and gunmetal high-collar coat with cyan healthy circuits and crimson corrupted fissures. One arm becomes a refined black-glass malware claw-blade while the other commands a cyan holographic ring. Controlled red/cyan code fragments, sharp transparent silhouette, crisp face and hands, no scenery or text."
+    },
+    {
+      "id": "astra",
+      "source": "astra.png",
+      "runtime": "astra.webp",
+      "prompt": "Use case: stylized-concept. Original female collapsed constellation sorceress named Astra. Long midnight-blue nebula hair, gold and cyan eyes, elegant navy celestial coat-dress, brass astrolabe halo and multiple blue-white star cores permanently orbiting on golden constellation paths. Full-body premium fantasy game cutout with genuine transparent background."
     },
     {
       "id": "yupiter-flame",

@@ -46,7 +46,7 @@ const upgradeCount = {
   ,ariaSoil:0,ariaThorn:0,ariaNight:0
   ,moiraThread:0,moiraNeedle:0,moiraDoll:0
   ,mareDepth:0,mareCurrent:0,mareFoam:0
-  ,nullZeroPacket:0,nullZeroQuarantine:0,nullZeroFork:0
+  ,nullZeroPacket:0,nullZeroQuarantine:0,nullZeroFork:0,astraRed:0,astraBlue:0,astraHorizon:0
 
 
 };
@@ -97,7 +97,7 @@ const transcended = {
   ,ariaSoil:false,ariaThorn:false,ariaNight:false
   ,moiraThread:false,moiraNeedle:false,moiraDoll:false
   ,mareDepth:false,mareCurrent:false,mareFoam:false
-  ,nullZeroPacket:false,nullZeroQuarantine:false,nullZeroFork:false
+  ,nullZeroPacket:false,nullZeroQuarantine:false,nullZeroFork:false,astraRed:false,astraBlue:false,astraHorizon:false
 
 
 };
@@ -214,6 +214,9 @@ const upgrades = [
   {id:"nullZeroPacket",category:"support",name:"패킷 감염",desc:"감염 최대 중첩·폭발 범위·데이터 절단 피해가 증가합니다",transcendName:"초월: 웜 바이러스",transcendDesc:"감염 폭발이 더 많은 중첩을 주변 적에게 전파합니다",requires(){return selectedCharacter==="nullZero";},apply(){upgradeCount.nullZeroPacket++;if(upgradeCount.nullZeroPacket<4)player.nullZeroPacketLevel++;else transcended.nullZeroPacket=true;}},
   {id:"nullZeroQuarantine",category:"support",name:"격리 프로토콜",desc:"격리 구역의 범위와 지속 피해가 증가합니다",transcendName:"초월: 제로 트러스트",transcendDesc:"격리 구역의 감염 주기가 빨라지고 커널 패닉 범위가 확장됩니다",requires(){return selectedCharacter==="nullZero";},apply(){upgradeCount.nullZeroQuarantine++;if(upgradeCount.nullZeroQuarantine<4)player.nullZeroQuarantineLevel++;else transcended.nullZeroQuarantine=true;}},
   {id:"nullZeroFork",category:"support",name:"포크 폭탄",desc:"코드 복제의 지속시간과 복제 패킷 피해가 증가합니다",transcendName:"초월: 무한 분기",transcendDesc:"커널 패닉이 보스에게 주는 최대 체력 피해가 증가합니다",requires(){return selectedCharacter==="nullZero";},apply(){upgradeCount.nullZeroFork++;if(upgradeCount.nullZeroFork<4)player.nullZeroForkLevel++;else transcended.nullZeroFork=true;}},
+  {id:"astraRed",category:"support",name:"적색거성",desc:"유성과 초신성의 피해·범위가 증가합니다",transcendName:"초월: 최후의 적색거성",transcendDesc:"초신성 폭발이 거대한 항성 잔해를 남깁니다",requires(){return selectedCharacter==="astra";},apply(){upgradeCount.astraRed++;if(upgradeCount.astraRed<4)player.astraRedLevel++;else transcended.astraRed=true;}},
+  {id:"astraBlue",category:"support",name:"청색왜성",desc:"공전성이 늘어나고 공전 속도와 접촉 피해가 증가합니다",transcendName:"초월: 백색 항성기관",transcendDesc:"두 개의 공전성이 추가되고 가속력이 강화됩니다",requires(){return selectedCharacter==="astra";},apply(){upgradeCount.astraBlue++;if(upgradeCount.astraBlue<4)player.astraBlueLevel++;else transcended.astraBlue=true;}},
+  {id:"astraHorizon",category:"support",name:"사건의 지평선",desc:"중력 붕괴의 범위·흡인력·피해가 증가합니다",transcendName:"초월: 절대 지평선",transcendDesc:"중력 붕괴의 공격 주기가 빨라집니다",requires(){return selectedCharacter==="astra";},apply(){upgradeCount.astraHorizon++;if(upgradeCount.astraHorizon<4)player.astraHorizonLevel++;else transcended.astraHorizon=true;}},
   { id: "greed", category: "support", name: "탐욕", desc: "다음 선택 시 경험치 획득량 +10%", transcendName: "초월: 흡혈 군주", transcendDesc: "적 처치 시 최대 체력의 1% 회복",
     getDesc() {
       const next = Math.min(3, (upgradeCount.greed || 0) + 1);
@@ -313,7 +316,7 @@ function openUpgradeMenu() {
       if (selectedCharacter === "zero" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "paladin" && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (selectedCharacter === "arc" && (u.id === "ammo" || u.id === "fireRate")) return false;
-      if ((selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "carmilla" || selectedCharacter === "vargas" || selectedCharacter === "echo" || selectedCharacter === "aria" || selectedCharacter === "moira" || selectedCharacter === "mare" || selectedCharacter === "nullZero") && (u.id === "ammo" || u.id === "fireRate")) return false;
+      if ((selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "carmilla" || selectedCharacter === "vargas" || selectedCharacter === "echo" || selectedCharacter === "aria" || selectedCharacter === "moira" || selectedCharacter === "mare" || selectedCharacter === "nullZero" || selectedCharacter === "astra") && (u.id === "ammo" || u.id === "fireRate")) return false;
       if (typeof u.requires === "function" && !u.requires()) return false;
       if (transcended[u.id]) return false;
       return true;

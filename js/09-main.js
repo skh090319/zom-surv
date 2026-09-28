@@ -49,6 +49,7 @@ function draw() {
   drawMoiraEffects();
   drawMareEffects();
   drawNullZeroEffects();
+  drawAstraEffects();
   drawItems();
   drawExpOrbs();
   drawBullets();
@@ -85,6 +86,7 @@ function draw() {
     drawMoiraInterface();
     drawMareInterface();
     drawNullZeroInterface();
+    drawAstraInterface();
     drawReloadingOverlay();
     drawExpBar();
     drawMiniMap();
@@ -256,6 +258,7 @@ function restart() {
   player.moiraQCooldown=0;player.moiraECooldown=0;player.moiraXCooldown=0;player.moiraRCooldown=0;player.moiraUltimateTime=0;player.moiraStoredPain=0;player.moiraThreadLevel=0;player.moiraNeedleLevel=0;player.moiraDollLevel=0;moiraLinks=[];moiraLinkSet=new Set();moiraEffects=[];moiraDoll=null;
   player.mareQCooldown=0;player.mareECooldown=0;player.mareXCooldown=0;player.mareRCooldown=0;player.mareUltimateTime=0;player.mareUltimateTick=0;player.mareUltimateAngle=0;player.mareWhaleTrailTick=0;player.mareDepthLevel=0;player.mareCurrentLevel=0;player.mareFoamLevel=0;player.mareChargeTime=0;player.mareChargeAngle=0;player.mareChargeStartX=0;player.mareChargeStartY=0;player.mareChargeHitIds=new Set();mareEffects=[];mareCore=null;mareCurrents=[];
   player.nullZeroQCooldown=0;player.nullZeroECooldown=0;player.nullZeroXCooldown=0;player.nullZeroRCooldown=0;player.nullZeroForkTime=0;player.nullZeroKernelTime=0;player.nullZeroPacketLevel=0;player.nullZeroQuarantineLevel=0;player.nullZeroForkLevel=0;nullZeroProjectiles=[];nullZeroZones=[];nullZeroEffects=[];
+  player.astraQCooldown=0;player.astraECooldown=0;player.astraXCooldown=0;player.astraRCooldown=0;player.astraOverdriveTime=0;player.astraSupernovaTime=0;player.astraOrbitBlend=0;player.astraOrbitAngle=0;player.astraOrbitTick=0;player.astraRedLevel=0;player.astraBlueLevel=0;player.astraHorizonLevel=0;astraMeteors=[];astraWells=[];astraEffects=[];
 
   player.dodgeLevel = 0;
   player.crownLevel = 0;

@@ -208,6 +208,9 @@ const mareLeviathanSprite=new Image();setGameImageSource(mareLeviathanSprite, "a
 const nullZeroSprite=new Image();setGameImageSource(nullZeroSprite, "assets/characters-original-v2/null-zero.webp");let nullZeroSpriteLoaded=false;nullZeroSprite.onload=()=>nullZeroSpriteLoaded=true;
 const nullZeroSkillIconAtlas=new Image();setGameImageSource(nullZeroSkillIconAtlas, "assets/null-zero-skill-icons.webp");
 const nullZeroAugmentIconAtlas=new Image();setGameImageSource(nullZeroAugmentIconAtlas, "assets/null-zero-augment-icons.webp");
+const astraSprite=new Image();setGameImageSource(astraSprite,"assets/characters-original-v2/astra.webp");let astraSpriteLoaded=false;astraSprite.onload=()=>astraSpriteLoaded=true;
+const astraSkillIconAtlas=new Image();setGameImageSource(astraSkillIconAtlas,"assets/astra-skill-icons.webp");
+const astraAugmentIconAtlas=new Image();setGameImageSource(astraAugmentIconAtlas,"assets/astra-augment-icons.webp");
 
 const renHudPortrait = new Image();
 setGameImageSource(renHudPortrait, renSprite.assetSource);
