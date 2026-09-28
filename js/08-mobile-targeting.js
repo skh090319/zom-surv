@@ -62,9 +62,9 @@ function getMobileAimedSkillTargetSpec(key){
       if(key==="r")return area(transcended.nullZeroQuarantine?880:720);
       return null;
     case "astra":
-      if(key==="q")return line(900,54,{capsule:true});
-      if(key==="e")return target(520,170+level("astraHorizonLevel")*18);
-      if(key==="r")return area(620+level("astraRedLevel")*28);
+      if(key==="q")return {type:"astraVolley",...astraQGeometry(),label:astraQFlights().length?"공전성 회수 경로":"모든 공전성 발사"};
+      if(key==="e")return target(520,astraERadius(),{clampWorld:true});
+      if(key==="r")return {type:"astraGravity",range:850,minRange:320,variable:true,radius:astraGravity?0:astraRRadius(),label:astraGravity?"지속시간 종료 시 이 방향으로 발사":"포획 범위 · 종료 시 조준 방향으로 발사"};
       return null;
     default:return null;
   }
@@ -155,7 +155,7 @@ function getMobileAttackTargetSpec(){
     case "echo":return line(215+(player.echoAfterimageLevel||0)*18,48);
     case "mare":return {type:"rect",range:player.mareUltimateTime>0?340:285,width:player.mareUltimateTime>0?216:172,startWidth:player.mareUltimateTime>0?75.6:60.2};
     case "nullZero":return line(840,28);
-    case "astra":return line(930,24);
+    case "astra":return line(936,20);
     case "arc":return line(504,22);
     case "yupiter":
       if(player.yupiterWeapon===1)return cone((player.trackerLevel>0?220:145)*(player.severingUltimateTime>0?3.5:1),player.trackerLevel>0?Math.PI*2:Math.PI*(.42+player.swordAuraLevel/12)*2);
@@ -165,8 +165,9 @@ function getMobileAttackTargetSpec(){
 }
 
 function getMobileAimPoint(state,spec){
-  const distance=spec.range*(spec.variable?state.strength:1),angle=state.angle||0;
-  return {x:player.x+Math.cos(angle)*distance,y:player.y+Math.sin(angle)*distance};
+  const distance=Math.max(spec.minRange||0,spec.range*(spec.variable?state.strength:1)),angle=state.angle||0;
+  const point={x:player.x+Math.cos(angle)*distance,y:player.y+Math.sin(angle)*distance};
+  return spec.clampWorld?astraClampPosition(point.x,point.y):point;
 }
 
 function resolveMobilePreviewTarget(spec,point){
@@ -305,7 +306,24 @@ function drawMobileTargetingIndicator(){
   const scale=getWorldViewScale(),point=getMobileAimPoint(state,spec),px=(player.x-camera.x)*scale,py=(player.y-camera.y)*scale;
   const range=spec.range*scale;
   ctx.save();ctx.translate(px,py);ctx.lineCap="round";ctx.lineJoin="round";
-  if(spec.type==="effects")drawMobileEffectPreview(spec,scale);
+  if(spec.type==="astraVolley"){
+    const flights=astraQFlights(),paths=flights.length?flights.map(m=>({...m,endX:astraOrbitSlot(m.slot,m.count).x,endY:astraOrbitSlot(m.slot,m.count).y})):astraQPaths(state.angle||0);
+    drawMobileEffectPreview({label:spec.label,shapes:paths.map(p=>({type:"segment",x1:p.x,y1:p.y,x2:p.endX,y2:p.endY,width:(p.r||spec.radius)*2}))},scale);
+  }else if(spec.type==="astraGravity"){
+    if(spec.radius)drawMobileAimRing(0,0,spec.radius*scale,{simple:true});
+    const bodies=astraGravity?.state==="orbit"?astraGravity.bodies.filter(b=>b.state!=="done"):[];
+    if(bodies.length){
+      // Same convergence point and per-body trajectory used by the final launch.
+      for(const b of bodies.filter((_,i)=>i%Math.max(1,Math.ceil(bodies.length/8))===0)){
+        const a=Math.atan2(point.y-b.y,point.x-b.x);
+        ctx.save();ctx.translate((b.x-player.x)*scale,(b.y-player.y)*scale);ctx.rotate(a);
+        drawMobileAimLane(ASTRA_R_FLIGHT*scale,b.r*2*scale,{arrow:true,capsule:true});ctx.restore();
+      }
+    }else{
+      ctx.save();ctx.rotate(state.angle||0);drawMobileAimDirection({range:Math.hypot(point.x-player.x,point.y-player.y),width:36},scale);ctx.restore();
+    }
+    drawMobileAimReticle((point.x-player.x)*scale,(point.y-player.y)*scale);drawMobileAimLabel(spec.label);
+  }else if(spec.type==="effects")drawMobileEffectPreview(spec,scale);
   else if(spec.type==="status"){
     drawMobileAimRing(0,0,(player.r+12)*scale,{simple:true});drawMobileAimLabel(spec.label);
   }else if(spec.type==="target"){

@@ -800,6 +800,7 @@ function drawZombies() {
   worldStart();
   for (const z of zombies) {
     if (z.isRaidBoss) continue;
+    if (typeof astraControlled === "function" && astraControlled(z)) continue;
     if (z.x < camera.x - 90 || z.x > camera.x + getCameraViewWidth() + 90 || z.y < camera.y - 90 || z.y > camera.y + getCameraViewHeight() + 90) continue;
     const spriteSize = z.r * (z.isBossMinion ? 4.3 : (z.boss ? 2.75 : 3.05));
     const spriteTop = z.y - spriteSize * 0.57;

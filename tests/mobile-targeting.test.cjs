@@ -50,7 +50,7 @@ function game() {
   const load=file=>vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
   load('03-input.js');
   // Load the real entry-point order, including overrides of the original casts.
-  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','04-null-zero.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
+  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','04-null-zero.js','04-astra.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
   return {context,draws,storage,run:code=>vm.runInContext(code,context),touch(type,id,x,y){context.canvas.dispatchEvent({type,preventDefault(){},changedTouches:[{identifier:id,clientX:x,clientY:y}]});}};
 }
 
@@ -59,6 +59,31 @@ test('holding is silent; dragging shows a preview; recentering hides it',()=>{
   g.touch('touchstart',7,button.x,button.y);g.run('drawMobileTargetingIndicator()');assert.equal(g.draws.length,0);
   g.touch('touchmove',7,button.x-45,button.y-5);g.run('drawMobileTargetingIndicator()');assert.ok(g.draws.length>0);
   g.draws.length=0;g.touch('touchmove',7,button.x+2,button.y);g.run('drawMobileTargetingIndicator()');assert.equal(g.draws.length,0);
+});
+
+test('Astra drag previews use real Q slots, recall, E radius and R capture/launch geometry',()=>{
+  const g=game();g.context.selectedCharacter='astra';
+  g.run('mobileSkillAim={key:"q",dragged:false,angle:.4,strength:.5};drawMobileTargetingIndicator()');assert.equal(g.draws.length,0);
+  g.run('mobileSkillAim.dragged=true;drawMobileTargetingIndicator()');assert.ok(g.draws.length>0);
+  const q=g.run('getMobileSkillTargetSpec("q")');assert.equal(q.range,g.run('astraQGeometry().range'));assert.equal(q.radius,g.run('astraQGeometry().radius'));
+  g.run('applyMobileDragAim(mobileSkillAim,getMobileSkillTargetSpec("q"));activateAstraQ();drawMobileTargetingIndicator()');
+  assert.equal(g.run('astraQFlights().length'),3);assert.equal(g.run('getMobileSkillName("q")'),'공전성 회수');
+  assert.equal(g.run('getMobileSkillCooldown("q").value'),0);
+  assert.ok(g.run('getMobileSkillTargetSpec("q").label.includes("회수")'));
+  assert.equal(g.run('getMobileSkillTargetSpec("e").radius'),g.run('astraERadius()'));
+  g.context.player.astraHorizonLevel=3;assert.equal(g.run('getMobileSkillTargetSpec("e").radius'),224);
+  g.run('mobileSkillAim={key:"r",dragged:true,angle:1,strength:.1};drawMobileTargetingIndicator()');
+  assert.equal(g.run('getMobileSkillTargetSpec("r").radius'),620);
+  assert.ok(Math.abs(g.run('Math.hypot(getMobileAimPoint(mobileSkillAim,getMobileSkillTargetSpec("r")).x-player.x,getMobileAimPoint(mobileSkillAim,getMobileSkillTargetSpec("r")).y-player.y)')-320)<1e-9);
+  g.run('activateAstraR();drawMobileTargetingIndicator()');assert.equal(g.run('getMobileSkillTargetSpec("r").radius'),0);
+  g.draws.length=0;g.run('mobileSkillAim.dragged=false;drawMobileTargetingIndicator()');assert.equal(g.draws.length,0);
+});
+
+test('Astra mobile auto-aim ignores its own captured celestial bodies',()=>{
+  const g=game();g.context.selectedCharacter='astra';
+  g.context.zombies.push({x:1020,y:1000,r:15,hp:100}, {x:1500,y:1200,r:60,hp:10000,isRaidBoss:true});
+  g.run('activateAstraR();updateMobileAttackAim(true)');
+  assert.ok(Math.abs(g.context.mouse.worldX-1500)<1e-9);assert.ok(Math.abs(g.context.mouse.worldY-1200)<1e-9);
 });
 
 test('marker and released Mare core use the same position, even while moving and holding attack',()=>{

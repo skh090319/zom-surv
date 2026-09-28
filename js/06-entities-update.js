@@ -345,6 +345,8 @@ function updateZombies() {
     }
 
     if (z.isRaidBoss) continue;
+    // Captured bodies belong to Astra's orbital simulation, not ground AI/contact.
+    if (typeof astraControlled === "function" && astraControlled(z)) continue;
 
     if (!movementImmune && z.stunTime > 0) {
       z.stunTime--;

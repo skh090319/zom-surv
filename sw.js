@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v47";
+const CACHE_VERSION = "zombie-survival-v48";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -43,6 +43,7 @@ const CORE_ASSETS = [
   "./js/04-mare.js",
   "./js/04-null-zero.js",
   "./js/04-astra.js",
+  "./js/04-astra-vfx.js",
   "./js/04-mare-polish.js",
   "./js/04-mare-skills-polish.js",
   "./js/04-mare-flow.js",

@@ -89,7 +89,7 @@ function updateMobileAttackAim(force=false){
   if(mobileAttackTouchId===null&&!force)return;
   if(mobileAttackAim?.dragged&&!force){applyMobileDragAim(mobileAttackAim,getMobileAttackTargetSpec());return;}
   let target=null,best=Infinity;
-  for(const enemy of zombies){if(!enemy||enemy.hp<=0)continue;const d=(enemy.x-player.x)**2+(enemy.y-player.y)**2;if(d<best){best=d;target=enemy;}}
+  for(const enemy of zombies){if(!enemy||enemy.hp<=0||enemy.astraControl)continue;const d=(enemy.x-player.x)**2+(enemy.y-player.y)**2;if(d<best){best=d;target=enemy;}}
   const viewScale=getWorldViewScale();mouse.x=target?(target.x-camera.x)*viewScale:(player.x-camera.x)*viewScale+180;mouse.y=target?(target.y-camera.y)*viewScale:(player.y-camera.y)*viewScale;screenToWorld();
 }
 
@@ -263,13 +263,14 @@ function getMobileSkillName(key){
     void:{q:"심층 포식",e:"대지 방출",x:"지반 붕괴",r:"제어 불능"},carmilla:{q:"피의 회수"},
     vargas:{q:"생명 포식",e:"혈육 갑주",x:"거신 강타",r:"불멸의 형상"},echo:{q:"절단",e:"위상 전환",r:"세계선 붕괴"},
     aria:{q:"가시 성장",e:"만개",x:"정원 이동",r:"영원한 봄"},moira:{q:"조종",e:"대리 인형",x:"고통 전이",r:"꼭두각시 극장"},
-    mare:{q:"밀물",e:"소용돌이 핵",x:"수압",r:"세계를 삼킨 바다"},nullZero:{q:"데이터 절단",e:"격리 구역",x:"코드 복제",r:"커널 패닉"},astra:{q:"유성 궤도",e:"중력 붕괴",x:"궤도 가속",r:"초신성 장례식"}
+    mare:{q:"밀물",e:"소용돌이 핵",x:"수압",r:"세계를 삼킨 바다"},nullZero:{q:"데이터 절단",e:"격리 구역",x:"코드 복제",r:"커널 패닉"},astra:{q:astraQFlights().length?"공전성 회수":"성궤 투사",e:"중력 붕괴",x:"궤도 가속",r:"만유인력 역전"}
   };
   if(selectedCharacter==="yupiter"){if(key==="q")return"무기 전환";const weapon=["반월검","절단검","화염포"][player.yupiterWeapon]||"무기";return key==="e"?`${weapon} 강화`:`${weapon} 궁극기`;}
   return names[selectedCharacter]?.[key]||"스킬";
 }
 
 function getMobileSkillCooldown(key){
+  if(selectedCharacter==="astra"&&key==="q"&&astraQFlights().length)return {value:0,max:ASTRA_Q_CD};
   const reloadInfo=()=>({value:player.reloadTime||0,max:90,label:"재장전"});
   if(["suncall","luminous"].includes(selectedCharacter))return key==="r"?reloadInfo():null;
   const table={
@@ -374,7 +375,22 @@ function drawMobileControls(){
   ctx.globalAlpha=.86;ctx.fillStyle="rgba(8,16,29,.68)";ctx.strokeStyle="rgba(123,220,255,.58)";ctx.lineWidth=2;ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle="rgba(123,220,255,.16)";ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r*.68,0,Math.PI*2);ctx.stroke();
   const knobR=joystick.r*.37,kx=joystick.x+mobileStickX,ky=joystick.y+mobileStickY;ctx.fillStyle="rgba(103,218,255,.45)";ctx.shadowColor="#53d9ff";ctx.shadowBlur=mobileJoystickTouchId===null?8:18;ctx.beginPath();ctx.arc(kx,ky,knobR,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#b6f2ff";ctx.stroke();ctx.shadowBlur=0;
   const attackGlow=mobileAttackTouchId!==null;const ag=ctx.createRadialGradient(attack.x-10,attack.y-12,4,attack.x,attack.y,attack.r);ag.addColorStop(0,attackGlow?"#247ba2":"#183d56");ag.addColorStop(1,"#07131f");ctx.fillStyle=ag;ctx.strokeStyle=attackGlow?"#8cf3ff":"#46cce9";ctx.lineWidth=3;ctx.shadowColor="#33dfff";ctx.shadowBlur=attackGlow?24:12;ctx.beginPath();ctx.arc(attack.x,attack.y,attack.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;drawCommonAttackIcon(attack.x,attack.y,attack.r*.72);
-  for(const skill of skills){const skillName=getMobileSkillName(skill.key);ctx.fillStyle="rgba(9,12,24,.88)";ctx.strokeStyle="#c8d5ed";ctx.lineWidth=2;ctx.shadowColor="#7b8fff";ctx.shadowBlur=10;ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;if(!drawMobileIcon(getMobileSkillIcon(skill.key),skill.x,skill.y,skill.r)){ctx.fillStyle="#fff";ctx.font=`900 ${Math.max(8,skill.r*.28)}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(skillName,skill.x,skill.y+1);}const cooldown=getMobileSkillCooldown(skill.key),locked=isMobileUltimateLocked(skill.key);if(cooldown?.value>0)drawCooldownCover(skill.x,skill.y,skill.r,cooldown.value/cooldown.max,cooldown.value);if(locked){ctx.fillStyle="rgba(5,7,13,.72)";ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r,0,Math.PI*2);ctx.fill();ctx.fillStyle="#fff";ctx.font=`900 ${Math.max(13,skill.r*.58)}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("10",skill.x,skill.y);}ctx.fillStyle="#fff";ctx.font="900 9px Arial";ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillText(skillName,skill.x,skill.y+skill.r+12);}
+  for(const skill of skills){
+    const skillName=getMobileSkillName(skill.key);
+    ctx.fillStyle="rgba(9,12,24,.88)";ctx.strokeStyle="#c8d5ed";ctx.lineWidth=2;ctx.shadowColor="#7b8fff";ctx.shadowBlur=10;
+    ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;
+    if(!drawMobileIcon(getMobileSkillIcon(skill.key),skill.x,skill.y,skill.r)){
+      ctx.fillStyle="#fff";ctx.font=`900 ${Math.max(8,skill.r*.28)}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(skillName,skill.x,skill.y+1);
+    }
+    const cooldown=getMobileSkillCooldown(skill.key),locked=isMobileUltimateLocked(skill.key);
+    if(cooldown?.value>0)drawCooldownCover(skill.x,skill.y,skill.r,cooldown.value/cooldown.max,cooldown.value);
+    if(locked){ctx.fillStyle="rgba(5,7,13,.72)";ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r,0,Math.PI*2);ctx.fill();ctx.fillStyle="#fff";ctx.font=`900 ${Math.max(13,skill.r*.58)}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("10",skill.x,skill.y);}
+    ctx.fillStyle="#fff";ctx.font="900 9px Arial";ctx.textAlign="center";ctx.textBaseline="alphabetic";
+    if(selectedCharacter==="astra"){
+      const lines=skill.key==="r"?["만유인력","역전"]:[skillName];
+      lines.forEach((label,i)=>ctx.fillText(label,skill.x,skill.y+skill.r+12+i*10,skill.r*2+8));
+    }else ctx.fillText(skillName,skill.x,skill.y+skill.r+12);
+  }
   ctx.restore();
 }
 
