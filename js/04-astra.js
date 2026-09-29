@@ -21,7 +21,7 @@ function astraDamage(z, amount) {
 }
 function astraOrbitCount() { return 3 + (player.astraBlueLevel || 0) + (transcended.astraBlue ? 2 : 0); }
 function astraOrbitTarget() { return player.astraOverdriveTime > 0 ? 1 : 0; }
-function astraOrbitRadius() { return 72 + (player.astraRedLevel || 0) * 6 + (player.astraOrbitBlend || 0) * (82 + (player.astraHorizonLevel || 0) * 8); }
+function astraOrbitRadius() { return 90 + (player.astraRedLevel || 0) * 6 + (player.astraOrbitBlend || 0) * (82 + (player.astraHorizonLevel || 0) * 8); }
 function astraOrbitSpeed() { return .026 + (player.astraBlueLevel || 0) * .003 + (player.astraOrbitBlend || 0) * .052; }
 function astraQGeometry() {
   const boosted = player.astraOverdriveTime > 0;

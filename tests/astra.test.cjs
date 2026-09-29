@@ -117,7 +117,7 @@ test('basic attack is exactly doubled without changing the shared damage stat or
 
 test('orbit contact and both Q legs scale by six, including upgrades, independently of basic attacks',()=>{
   for(const level of [0,3]){
-    const g=game(),z=enemy(72+level*6,0,{r:2});g.context.player.astraBlueLevel=level;g.context.player.astraRedLevel=level;
+    const g=game(),z=enemy(90+level*6,0,{r:2});g.context.player.astraBlueLevel=level;g.context.player.astraRedLevel=level;
     g.context.scaledDamage=n=>n*1.8;g.context.zombies.push(z);tick(g,1);
     assert.ok(Math.abs(10000-z.hp-10*(.26+level*.035)*1.8*6)<1e-8);
     g.run('activateAstraQ()');const flights=g.run('astraQFlights()');
@@ -166,7 +166,7 @@ test('Q sweeps targets and damages at most once on each leg, then restores its s
 });
 
 test('deployed orbit slots cannot also deal passive contact damage',()=>{
-  const g=game(),z=enemy(72,0,{r:2});g.context.zombies.push(z);g.run('activateAstraQ();astraMeteors.forEach(m=>{m.x=400;m.y=400;});updateAstra()');
+  const g=game(),z=enemy(90,0,{r:2});g.context.zombies.push(z);g.run('activateAstraQ();astraMeteors.forEach(m=>{m.x=400;m.y=400;});updateAstra()');
   assert.equal(z.hp,10000);
 });
 
@@ -261,6 +261,16 @@ test('captured bodies bypass normal zombie movement and contact damage',()=>{
   vm.runInContext(source.slice(start,end<0?undefined:end),g.context);
   const z=enemy(0,0);g.context.zombies.push(z);g.run('activateAstraR();updateZombies()');
   assert.equal(z.x,0);assert.equal(z.y,0);assert.equal(z.hp,10000);
+});
+
+test('Astra base orbit is 25% wider, with unchanged upgrade and X expansion increments',()=>{
+  const g=game();assert.equal(g.run('astraOrbitRadius()'),90);
+  for(const point of g.run('astraQPaths(0)'))assert.ok(Math.abs(Math.hypot(point.x,point.y)-90)<1e-8);
+  g.context.player.astraOrbitBlend=1;assert.equal(g.run('astraOrbitRadius()'),172);
+  g.context.player.astraRedLevel=3;g.context.player.astraHorizonLevel=3;
+  assert.equal(g.run('astraOrbitRadius()'),214);
+  g.context.player.astraOrbitBlend=0;assert.equal(g.run('astraOrbitRadius()'),108);
+  assert.equal(g.run('astraOrbitSpeed()'),.026);
 });
 
 test('Astra orbit expansion eases outward and back instead of snapping',()=>{
