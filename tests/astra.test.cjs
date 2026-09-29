@@ -53,6 +53,13 @@ test('ultimate portrait is rendered above every canvas UI layer',()=>{
   assert.ok(portrait>drawBody.lastIndexOf('drawMobileControls()'));
 });
 
+test('Astra lobby 3D is temporarily disabled without removing its implementation',()=>{
+  const source=fs.readFileSync(path.join(root,'js/08-astra-lobby.js'),'utf8');
+  assert.match(source,/const ASTRA_LOBBY_3D_ENABLED=false/);
+  assert.match(source,/function drawAstraLobbyModel\(rect\)\{\s*if\(!ASTRA_LOBBY_3D_ENABLED\)return false/);
+  assert.match(source,/import\('\.\/astra-model\.mjs/);
+});
+
 test('optimized ribbon has the same six outlines as the original trigonometric construction',()=>{
   const g=game(),vertices=[];g.context.ctx=new Proxy({globalAlpha:1,createLinearGradient:()=>({addColorStop(){}}),moveTo:(x,y)=>vertices.push([x,y]),lineTo:(x,y)=>vertices.push([x,y])},{get:(o,k)=>o[k]||(()=>{})});
   vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);

@@ -1,7 +1,10 @@
 // The 3D viewer is a lazy, lobby-only layer. It never owns a second game loop.
+// Temporary release switch: keep the implementation intact while showing 2D art only.
+const ASTRA_LOBBY_3D_ENABLED=false;
 let astraLobbyViewer=null,astraLobbyLoad=null,astraLobbyHost=null,astraLobbyBounds=null;
 let astraLobbyMode='art',astraLobbyLastFrame=-Infinity,astraLobbyFailure=false;
 function ensureAstraLobbyViewer(){
+  if(!ASTRA_LOBBY_3D_ENABLED)return;
   if(astraLobbyLoad||astraLobbyViewer||astraLobbyFailure)return;
   astraLobbyLoad=import('./astra-model.mjs?v=20260929-astra3d1').then(module=>{
     if(screenMode!=='home'||selectedCharacter!=='astra'||astraLobbyMode!=='3d')return;
@@ -25,11 +28,13 @@ function astraLobbyElement(){
   document.body.append(host);astraLobbyHost=host;return host;
 }
 function syncAstraLobbyVisibility(){
+  if(!ASTRA_LOBBY_3D_ENABLED){if(astraLobbyHost)astraLobbyHost.hidden=true;astraLobbyBounds=null;return;}
   const visible=screenMode==='home'&&selectedCharacter==='astra'&&!(typeof isMobilePortraitMode==='function'&&isMobilePortraitMode())&&!(typeof homeDifficultyOpen!=='undefined'&&homeDifficultyOpen);
   if(astraLobbyHost)astraLobbyHost.hidden=!visible;
   if(!visible)astraLobbyBounds=null;
 }
 function drawAstraLobbyModel(rect){
+  if(!ASTRA_LOBBY_3D_ENABLED)return false;
   if(selectedCharacter!=='astra')return false;
   const host=astraLobbyElement(),bounds=canvas.getBoundingClientRect(),sx=bounds.width/canvas.width,sy=bounds.height/canvas.height;
   astraLobbyBounds=rect;host.hidden=typeof homeDifficultyOpen!=='undefined'&&homeDifficultyOpen;
