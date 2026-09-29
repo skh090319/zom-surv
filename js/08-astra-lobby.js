@@ -5,7 +5,7 @@ let astraLobbyMode='3d',astraLobbyLastFrame=-Infinity,astraLobbyFailure=false;
 function ensureAstraLobbyViewer(){
   if(!ASTRA_LOBBY_3D_ENABLED)return;
   if(astraLobbyLoad||astraLobbyViewer||astraLobbyFailure)return;
-  astraLobbyLoad=import('./astra-model.mjs?v=20260929-user-model1').then(module=>{
+  astraLobbyLoad=import('./astra-model.mjs?v=20260929-user-model2').then(module=>{
     if(screenMode!=='home'||selectedCharacter!=='astra'||astraLobbyMode!=='3d')return;
     astraLobbyViewer=module.createAstraModel(astraLobbyHost.querySelector('.astra-model-stage'));
     return astraLobbyViewer.ready.then(()=>{if(astraLobbyViewer)astraLobbyHost.querySelector('.astra-model-status').textContent='드래그하여 360° 회전 · 두 번 눌러 초기화';});

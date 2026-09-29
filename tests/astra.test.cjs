@@ -61,6 +61,7 @@ test('Astra lobby 3D uses the supplied GLB model and starts active',()=>{
   assert.match(source,/import\('\.\/astra-model\.mjs/);
   assert.match(model,/assets\/models\/astra\.glb/);
   assert.match(model,/new GLTFLoader\(\)\.loadAsync/);
+  assert.match(model,/root\.position\.y=-\.82\+Math\.sin/);
   assert.ok(fs.statSync(path.join(root,'assets/models/astra.glb')).size>1_000_000);
 });
 
