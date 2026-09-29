@@ -19,10 +19,10 @@ function game(){
 function enemy(x,y,extra={}){return {x,y,r:18,hp:10000,maxHp:10000,speed:1,...extra};}
 function tick(g,n){g.run(`for(let t=0;t<${n};t++)updateAstra()`);}
 
-test('R realm smoothly fades in, holds, and returns completely before capture expires',()=>{
-  const g=game();assert.equal(g.run('astraBackdropOpacity()'),0);g.run('activateAstraR()');
-  const alphas=[g.run('astraBackdropOpacity()')];
-  for(let i=0;i<420;i++){tick(g,1);alphas.push(g.run('astraBackdropOpacity()'));}
+test('R realm smoothly expands, holds, and retracts completely before capture expires',()=>{
+  const g=game();assert.equal(g.run('astraBackdropProgress()'),0);g.run('activateAstraR()');
+  const alphas=[g.run('astraBackdropProgress()')];
+  for(let i=0;i<420;i++){tick(g,1);alphas.push(g.run('astraBackdropProgress()'));}
   assert.equal(alphas[0],0);assert.equal(alphas[27],.5);assert.equal(alphas[54],1);
   assert.equal(alphas[299],1);assert.equal(alphas[330],.5);assert.equal(alphas[360],0);assert.equal(alphas[420],0);
   for(let i=1;i<alphas.length;i++){
@@ -33,19 +33,19 @@ test('R realm smoothly fades in, holds, and returns completely before capture ex
 
 test('late-loading backdrop eases in, and missing or failed assets preserve the normal map',()=>{
   const g=game();g.context.astraUltimateBackdrop.complete=false;g.context.astraUltimateBackdrop.naturalWidth=0;
-  g.run('activateAstraR()');tick(g,100);assert.equal(g.run('astraBackdropOpacity()'),0);
-  g.context.astraUltimateBackdrop.complete=true;tick(g,20);assert.equal(g.run('astraBackdropOpacity()'),0);
-  g.context.astraUltimateBackdrop.naturalWidth=1672;tick(g,1);assert.ok(g.run('astraBackdropOpacity()')<.002);
-  tick(g,53);assert.equal(g.run('astraBackdropOpacity()'),1);tick(g,240);assert.equal(g.run('astraBackdropOpacity()'),0);
+  g.run('activateAstraR()');tick(g,100);assert.equal(g.run('astraBackdropProgress()'),0);
+  g.context.astraUltimateBackdrop.complete=true;tick(g,20);assert.equal(g.run('astraBackdropProgress()'),0);
+  g.context.astraUltimateBackdrop.naturalWidth=1672;tick(g,1);assert.ok(g.run('astraBackdropProgress()')<.002);
+  tick(g,53);assert.equal(g.run('astraBackdropProgress()'),1);tick(g,240);assert.equal(g.run('astraBackdropProgress()'),0);
 });
 
 test('realm does not affect other skills, other heroes, menus, or the next run',()=>{
-  const g=game();g.run('activateAstraQ();activateAstraE();activateAstraX()');tick(g,60);assert.equal(g.run('astraBackdropOpacity()'),0);
-  g.run('activateAstraR()');tick(g,100);assert.equal(g.run('astraBackdropOpacity()'),1);
-  g.context.selectedCharacter='mare';assert.equal(g.run('astraBackdropOpacity()'),0);g.context.selectedCharacter='astra';
-  for(const mode of ['home','guide','character','mobileSettings']){g.context.screenMode=mode;assert.equal(g.run('astraBackdropOpacity()'),0);}
-  g.context.screenMode='game';g.run('resetAstra()');assert.equal(g.run('astraBackdropOpacity()'),0);
-  g.run('activateAstraR()');assert.equal(g.run('astraBackdropOpacity()'),0);
+  const g=game();g.run('activateAstraQ();activateAstraE();activateAstraX()');tick(g,60);assert.equal(g.run('astraBackdropProgress()'),0);
+  g.run('activateAstraR()');tick(g,100);assert.equal(g.run('astraBackdropProgress()'),1);
+  g.context.selectedCharacter='mare';assert.equal(g.run('astraBackdropProgress()'),0);g.context.selectedCharacter='astra';
+  for(const mode of ['home','guide','character','mobileSettings']){g.context.screenMode=mode;assert.equal(g.run('astraBackdropProgress()'),0);}
+  g.context.screenMode='game';g.run('resetAstra()');assert.equal(g.run('astraBackdropProgress()'),0);
+  g.run('activateAstraR()');assert.equal(g.run('astraBackdropProgress()'),0);
 });
 
 test('production pause, upgrade and portrait gates freeze the realm with the ultimate',()=>{
@@ -55,7 +55,7 @@ test('production pause, upgrade and portrait gates freeze the realm with the ult
   g.run('activateAstraR()');tick(g,27);
   for(const key of ['paused','gameOver','raidVictory','choosingUpgrade']){
     g.context[key]=true;g.run('for(let i=0;i<120;i++)update()');g.context[key]=false;
-    assert.equal(g.run('astraGravity.age'),27);assert.equal(g.run('astraBackdropOpacity()'),.5);
+    assert.equal(g.run('astraGravity.age'),27);assert.equal(g.run('astraBackdropProgress()'),.5);
   }
   g.context.isMobilePortraitMode=()=>true;g.run('update()');assert.equal(g.run('astraGravity.age'),27);
 });
@@ -65,16 +65,77 @@ test('realm covers desktop/tablet/phone without stretching and restores canvas s
   g.context.ctx={globalAlpha:.8,globalCompositeOperation:'lighter',save(){stack.push([this.globalAlpha,this.globalCompositeOperation]);},restore(){[this.globalAlpha,this.globalCompositeOperation]=stack.pop();},drawImage(...args){calls.push({args,alpha:this.globalAlpha,blend:this.globalCompositeOperation});}};
   vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);
   g.run('drawAstraUltimateBackdrop()');assert.equal(calls.length,0);
-  g.run('activateAstraR()');tick(g,27);
+  g.run('activateAstraR()');tick(g,54);
   for(const [width,height] of [[1920,1080],[1180,820],[844,390]]){
     Object.assign(g.context.canvas,{width,height});g.run('drawAstraUltimateBackdrop()');
     const {args:[image,x,y,w,h],alpha,blend}=calls.at(-1);
     assert.equal(image,g.context.astraUltimateBackdrop);assert.ok(Math.abs(w/h-1672/941)<1e-12);
     assert.ok(w>=width&&h>=height);assert.equal(x,(width-w)/2);assert.equal(y,(height-h)/2);
-    assert.equal(alpha,.5);assert.equal(blend,'source-over');assert.equal(stack.length,0);
+    assert.equal(alpha,1);assert.equal(blend,'source-over');assert.equal(stack.length,0);
     assert.equal(g.context.ctx.globalAlpha,.8);assert.equal(g.context.ctx.globalCompositeOperation,'lighter');
   }
   tick(g,333);g.run('drawAstraUltimateBackdrop()');assert.equal(calls.length,3);
+});
+
+test('radial reveal originates at the actual player position at every zoom and map edge',()=>{
+  const g=game();g.context.camera={x:100,y:200};g.context.player.x=220;g.context.player.y=280;
+  vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);
+  for(const [width,height,zoom] of [[1920,1080,1],[1180,820,.78],[844,390,.62],[844,390,1.24]]){
+    Object.assign(g.context.canvas,{width,height});g.context.getWorldViewScale=()=>zoom;
+    const first=g.run('astraRealmRevealGeometry(.15)'),middle=g.run('astraRealmRevealGeometry(.5)'),full=g.run('astraRealmRevealGeometry(1)');
+    assert.equal(first.x,120*zoom);assert.equal(first.y,80*zoom);
+    assert.ok(first.outer<middle.outer&&middle.outer<full.outer);
+    assert.ok(middle.inner>=0&&middle.inner<middle.outer);
+    for(const [x,y] of [[0,0],[width,0],[0,height],[width,height]])assert.ok(Math.hypot(x-full.x,y-full.y)<=full.inner+1e-8);
+    g.context.player.x+=40;const moved=g.run('astraRealmRevealGeometry(.5)');assert.equal(moved.x,160*zoom);g.context.player.x-=40;
+  }
+});
+
+test('radial mask is feathered, isolated to a reused backdrop surface, and skipped when complete',()=>{
+  const g=game(),draws=[],masks=[],fills=[],stack=[];let allocations=0;
+  const layerContext={globalCompositeOperation:'source-over',clearRect(){},drawImage(){assert.equal(this.globalCompositeOperation,'source-over');},save(){stack.push(this.globalCompositeOperation);},restore(){this.globalCompositeOperation=stack.pop();},createRadialGradient(...geometry){const mask={geometry,stops:[],addColorStop(...stop){this.stops.push(stop);}};masks.push(mask);return mask;},fillRect(){fills.push(this.globalCompositeOperation);}};
+  const layer={width:0,height:0,getContext:()=>layerContext};
+  Object.assign(g.context,{camera:{x:-400,y:-200},getWorldViewScale:()=>.62,document:{createElement(){allocations++;return layer;}},ctx:{save(){},restore(){},drawImage(...args){draws.push(args);}}});
+  vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);
+  g.run('activateAstraR()');tick(g,10);g.run('drawAstraUltimateBackdrop()');tick(g,17);g.run('drawAstraUltimateBackdrop()');
+  assert.equal(allocations,1);assert.equal(draws[0][0],layer);assert.equal(draws[1][0],layer);
+  assert.equal(masks[1].geometry[0],248);assert.equal(masks[1].geometry[1],124);assert.ok(masks[1].geometry[5]>masks[0].geometry[5]);
+  assert.deepEqual(masks[1].stops.map(s=>s[0]),[0,.3,.7,1]);assert.ok(masks[1].stops.at(-1)[1].endsWith(',0)'));
+  assert.deepEqual(fills,['destination-in','destination-in']);assert.equal(layer.width,1000);assert.equal(layer.height,700);assert.equal(stack.length,0);
+  g.context.canvas.width=844;g.context.canvas.height=390;g.run('drawAstraUltimateBackdrop()');assert.equal(layer.width,844);assert.equal(layer.height,390);assert.equal(allocations,1);
+  tick(g,27);g.run('drawAstraUltimateBackdrop()');assert.equal(draws.at(-1)[0],g.context.astraUltimateBackdrop);assert.equal(masks.length,3);
+  tick(g,276);g.run('drawAstraUltimateBackdrop()');assert.equal(draws.at(-1)[0],layer);assert.equal(allocations,1);
+  tick(g,30);const count=draws.length;g.run('drawAstraUltimateBackdrop()');assert.equal(draws.length,count);
+});
+
+test('basic attack is exactly doubled without changing the shared damage stat or fire rate',()=>{
+  const g=game();g.context.scaledDamage=n=>n*1.8;g.run('attackWithAstra()');
+  assert.ok(Math.abs(g.run('astraMeteors[0].damage')-10*1.02*1.8*2)<1e-8);
+  assert.equal(g.context.player.damage,10);assert.equal(g.context.player.fireCooldown,24);
+  g.run('attackWithAstra()');assert.equal(g.run('astraMeteors.length'),1);
+});
+
+test('orbit contact and both Q legs scale by six, including upgrades, independently of basic attacks',()=>{
+  for(const level of [0,3]){
+    const g=game(),z=enemy(72+level*6,0,{r:2});g.context.player.astraBlueLevel=level;g.context.player.astraRedLevel=level;
+    g.context.scaledDamage=n=>n*1.8;g.context.zombies.push(z);tick(g,1);
+    assert.ok(Math.abs(10000-z.hp-10*(.26+level*.035)*1.8*6)<1e-8);
+    g.run('activateAstraQ()');const flights=g.run('astraQFlights()');
+    assert.ok(flights.every(m=>Math.abs(m.damage-10*(1.05+level*.12)*1.8*6)<1e-8));
+  }
+});
+
+test('black hole pull triples at the same distance while its damage, radius and immunity remain unchanged',()=>{
+  for(const level of [0,3]){
+    const g=game(),z=enemy(400,0),boss=enemy(400,0,{isRaidBoss:true}),minion=enemy(400,0,{isBossMinion:true}),captured=enemy(400,0,{astraControl:{}});
+    g.context.player.astraHorizonLevel=level;g.context.zombies.push(z,boss,minion,captured);
+    g.run('activateAstraE();astraWells[0].life=247;updateAstraWells()');
+    const radius=170+level*18,oldPull=(.45+level*.09)*(1-100/(radius*2));
+    assert.equal(g.run('astraWells[0].r'),radius);assert.ok(Math.abs(z.x-400-oldPull*3)<1e-8);
+    assert.equal(boss.x,400);assert.equal(minion.x,400);assert.equal(captured.x,400);
+    assert.ok(Math.abs(10000-z.hp-10*(.22+level*.035))<1e-8);
+    const near=enemy(487.99,0);g.context.zombies.push(near);g.run('updateAstraWells()');assert.ok(near.x<=488&&near.x>487.99);
+  }
 });
 
 test('cosmic art is placed below all combat hazards, characters and HUD',()=>{
@@ -101,7 +162,7 @@ test('Q sweeps targets and damages at most once on each leg, then restores its s
   const flight=g.run('astraQFlights().slice()');tick(g,150);
   assert.equal(g.run('astraQFlights().length'),0);
   for(const star of flight){assert.ok(star.outwardHits.has(target));assert.ok(star.returnHits.has(target));}
-  assert.ok(Math.abs(target.hp-(10000-6*10.5))<1e-7);
+  assert.ok(Math.abs(target.hp-(10000-6*10.5*6))<1e-7);
 });
 
 test('deployed orbit slots cannot also deal passive contact damage',()=>{
@@ -168,8 +229,8 @@ test('all VFX phases render finite geometry with balanced canvas state and cache
   vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);
   for(let i=0;i<24;i++)g.context.zombies.push(enemy(Math.cos(i)*200,Math.sin(i)*200,{hp:100}));
   g.run('activateAstraQ();activateAstraE();activateAstraR();activateAstraX()');
-  for(let i=0;i<470;i++){tick(g,1);if(i%7===0){g.run('drawAstraEffects();drawAstraForeground();drawAstraInterface()');assert.equal(main.stack.length,0);}}
-  assert.ok(allocated>=3&&allocated<=4);const before=allocated;g.run('for(let i=0;i<10;i++){drawAstraEffects();drawAstraForeground();}');assert.equal(allocated,before);
+  for(let i=0;i<470;i++){tick(g,1);if(i%7===0){g.run('drawAstraUltimateBackdrop();drawAstraEffects();drawAstraForeground();drawAstraInterface()');assert.equal(main.stack.length,0);}}
+  assert.ok(allocated>=4&&allocated<=5);const before=allocated;g.run('for(let i=0;i<10;i++){drawAstraUltimateBackdrop();drawAstraEffects();drawAstraForeground();}');assert.equal(allocated,before);
 });
 
 test('encounter purge becomes virtual payloads, and reset releases surviving enemies',()=>{

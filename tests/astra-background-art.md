@@ -18,14 +18,21 @@ Constraints: environment ONLY, no characters, no user interface, no circles/ring
 
 ## Integration
 
-- Crossfade uses game ticks: 54-frame smooth entrance; 60-frame smooth exit inside the 360-frame capture duration.
-- Drawn behind combat, warnings, skills and HUD; no changes to skill damage or targeting.
+- Feathered radial reveal grows from the player's actual screen position in 54 game ticks and retracts over the final 60 ticks of the 360-tick capture duration. Camera-edge positions and mobile zoom use the same world-to-screen transform as the character.
+- Drawn behind combat, warnings, skills and HUD. One reused offscreen surface isolates the reveal mask from combat; the fully revealed realm skips the mask pass.
 - Aspect-ratio-preserving screen cover for desktop, tablet and phone.
 - Demand-loaded for Astra, preloaded when Astra is selected in the lobby, runtime-cached by the PWA.
 - Delayed image load eases in rather than appearing abruptly; failed load leaves the ordinary map visible.
 
 ## Verification
 
-- 109 automated tests pass, including fade endpoints, bounded opacity steps, late/failed image loading, pause/portrait/upgrade gates, reset, demand-loading and non-stretched cover geometry.
-- Production renderer checked in `tests/astra-preview.html` at 1280 × 760 and 844 × 390: 50% entrance, full realm, 50% exit and restored map. Boss arena tint and health bars remain above the background.
+- 114 automated tests pass. Coverage includes reveal endpoints, bounded expansion steps, late/failed image loading, pause/portrait/upgrade gates, reset, demand-loading, non-stretched cover geometry, moving/off-center origins, radial mask feathering, surface reuse and independent damage/pull multipliers.
+- Production renderer checked in `tests/astra-preview.html` at 1280 × 760 and 844 × 390: player-centered ripple entrance, full realm, 50% retraction and restored map. Boss arena tint and health bars remain above the background.
 - No browser console errors in the refreshed review page.
+
+## Balance follow-up
+
+- Basic attack projectiles: previous damage × 2.
+- Passive orbit-star contact and Q outward/return damage: previous damage × 6, including their existing upgrade coefficients.
+- E black-hole pull: previous pull strength × 3, with a center-distance clamp to prevent overshoot. Range, tick damage, collapse damage and boss/summon control immunity are unchanged.
+- Shared `player.damage` is unchanged so the independent requested multipliers do not stack into × 12 or buff E/R damage unintentionally.

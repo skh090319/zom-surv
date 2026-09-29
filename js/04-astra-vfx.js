@@ -2,17 +2,48 @@
 const astraVfxTextures = new Map();
 const ASTRA_TAU = Math.PI * 2;
 let astraVfxWarmupScheduled = false;
+let astraRealmSurface = null;
+function astraRealmRevealGeometry(progress) {
+  const scale = getWorldViewScale(), x = (player.x - camera.x) * scale, y = (player.y - camera.y) * scale;
+  const farthest = Math.hypot(Math.max(x, canvas.width - x), Math.max(y, canvas.height - y));
+  const feather = Math.max(32, Math.min(100, Math.min(canvas.width, canvas.height) * .14));
+  const outer = progress * (farthest + feather);
+  return { x, y, inner: Math.max(0, outer - feather), outer };
+}
 function drawAstraUltimateBackdrop() {
-  const alpha = astraBackdropOpacity();
-  if (alpha <= 0 || !astraUltimateBackdrop.complete || !astraUltimateBackdrop.naturalWidth || !astraUltimateBackdrop.naturalHeight) return;
+  const progress = astraBackdropProgress();
+  if (progress <= 0 || !astraUltimateBackdrop.complete || !astraUltimateBackdrop.naturalWidth || !astraUltimateBackdrop.naturalHeight) return;
   // Screen-space cover preserves the panorama's aspect ratio on phones/tablets.
   // Draw only in the background pass: hazards, enemies and HUD stay on top.
   const scale = Math.max(canvas.width / astraUltimateBackdrop.naturalWidth, canvas.height / astraUltimateBackdrop.naturalHeight);
   const w = astraUltimateBackdrop.naturalWidth * scale, h = astraUltimateBackdrop.naturalHeight * scale;
   ctx.save();
   ctx.globalCompositeOperation = "source-over";
-  ctx.globalAlpha = alpha;
-  ctx.drawImage(astraUltimateBackdrop, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+  ctx.globalAlpha = 1;
+  if (progress >= 1) {
+    // No extra compositing cost while the whole realm is visible.
+    ctx.drawImage(astraUltimateBackdrop, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+  } else {
+    // Mask only the backdrop, never the normal map, enemies or UI. Reuse this
+    // surface across frames/casts; its dimensions change only with the viewport.
+    if (!astraRealmSurface) astraRealmSurface = document.createElement("canvas");
+    if (astraRealmSurface.width !== canvas.width || astraRealmSurface.height !== canvas.height) {
+      astraRealmSurface.width = canvas.width; astraRealmSurface.height = canvas.height;
+    }
+    const surface = astraRealmSurface.getContext("2d"), reveal = astraRealmRevealGeometry(progress);
+    surface.clearRect(0, 0, canvas.width, canvas.height);
+    surface.drawImage(astraUltimateBackdrop, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+    surface.save();
+    surface.globalCompositeOperation = "destination-in";
+    const mask = surface.createRadialGradient(reveal.x, reveal.y, reveal.inner, reveal.x, reveal.y, reveal.outer);
+    mask.addColorStop(0, "rgba(255,255,255,1)");
+    mask.addColorStop(.3, "rgba(255,255,255,.86)");
+    mask.addColorStop(.7, "rgba(255,255,255,.22)");
+    mask.addColorStop(1, "rgba(255,255,255,0)");
+    surface.fillStyle = mask; surface.fillRect(0, 0, canvas.width, canvas.height);
+    surface.restore();
+    ctx.drawImage(astraRealmSurface, 0, 0);
+  }
   ctx.restore();
 }
 function prepareAstraVfx() {

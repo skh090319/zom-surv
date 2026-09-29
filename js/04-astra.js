@@ -4,6 +4,8 @@ let astraGravity = null, astraFrame = 0, astraFxBudget = 0;
 const ASTRA_Q_CD = 300, ASTRA_E_CD = 510, ASTRA_X_CD = 780, ASTRA_R_CD = 1680;
 const ASTRA_R_DURATION = 360, ASTRA_R_LIFT = 42, ASTRA_R_FLIGHT = 980;
 const ASTRA_REALM_FADE_IN = 54, ASTRA_REALM_FADE_OUT = 60;
+// Independent balance knobs: do not multiply the shared player.damage stat.
+const ASTRA_BASIC_DAMAGE_MULTIPLIER = 2, ASTRA_ORBIT_DAMAGE_MULTIPLIER = 6, ASTRA_WELL_PULL_MULTIPLIER = 3;
 
 function resetAstra() {
   if (astraGravity) for (const b of astraGravity.bodies) astraReleaseBody(b);
@@ -42,11 +44,11 @@ function astraOrbitSlot(slot, count = astraOrbitCount()) {
 function astraCanCapture(z) { return z.hp > 0 && !z.isRaidBoss && !z.isBossMinion && !z.astraControl; }
 function astraControlled(z) { return selectedCharacter === "astra" && Boolean(z.astraControl); }
 function astraEase(t) { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
-function astraBackdropOpacity() {
+function astraBackdropProgress() {
   const g = astraGravity;
   if (selectedCharacter !== "astra" || screenMode !== "game" || !g || g.state !== "orbit") return 0;
-  // Both fades fit inside R's six-second capture phase. Game ticks, rather than
-  // wall time, freeze the transition during pause and upgrade selection.
+  // Radial expansion/retraction fits inside R's six-second capture phase.
+  // Game ticks freeze the transition during pause and upgrade selection.
   const fadeIn = astraEase(Math.min(g.age, g.backdropReadyAge) / ASTRA_REALM_FADE_IN);
   return fadeIn * astraEase((ASTRA_R_DURATION - g.age) / ASTRA_REALM_FADE_OUT);
 }
@@ -82,7 +84,7 @@ function astraImpact(type, x, y, r = 60) {
 function attackWithAstra() {
   if (player.fireCooldown > 0) return;
   const a = Math.atan2(mouse.worldY - player.y, mouse.worldX - player.x);
-  astraMeteors.push({ x: player.x, y: player.y, a, speed: 13, curve: (Math.random() - .5) * .014, life: 72, damage: scaledDamage(player.damage * 1.02), r: 10, kind: "shot", trail: [] });
+  astraMeteors.push({ x: player.x, y: player.y, a, speed: 13, curve: (Math.random() - .5) * .014, life: 72, damage: scaledDamage(player.damage * 1.02 * ASTRA_BASIC_DAMAGE_MULTIPLIER), r: 10, kind: "shot", trail: [] });
   player.fireCooldown = Math.max(11, 24 - (player.fireRateBonus || 0) * 2);
 }
 function activateAstraQ() {
@@ -92,7 +94,7 @@ function activateAstraQ() {
   const aim = Math.atan2(mouse.worldY - player.y, mouse.worldX - player.x), shape = astraQGeometry();
   for (const start of astraQPaths(aim)) {
     astraMeteors.push({ ...start,
-      speed: shape.speed, r: shape.radius, damage: scaledDamage(player.damage * (1.05 + (player.astraRedLevel || 0) * .12)),
+      speed: shape.speed, r: shape.radius, damage: scaledDamage(player.damage * (1.05 + (player.astraRedLevel || 0) * .12) * ASTRA_ORBIT_DAMAGE_MULTIPLIER),
       kind: "orbit", returning: false, age: 0, trail: [], outwardHits: new Set(), returnHits: new Set() });
     astraImpact("launch", start.x, start.y, 34);
   }
@@ -254,7 +256,7 @@ function updateAstraWells() {
       if (z.hp <= 0 || z.isRaidBoss || z.isBossMinion || z.astraControl) continue;
       const dx = w.x - z.x, dy = w.y - z.y, d = Math.hypot(dx, dy);
       if (d > 12 && d < w.r + z.r) {
-        const pull = (.45 + (player.astraHorizonLevel || 0) * .09) * (1 - d / (w.r * 2));
+        const pull = Math.min(d - 12, (.45 + (player.astraHorizonLevel || 0) * .09) * (1 - d / (w.r * 2)) * ASTRA_WELL_PULL_MULTIPLIER);
         z.x += dx / d * pull; z.y += dy / d * pull; z.slowTime = Math.max(z.slowTime || 0, 4);
       }
     }
@@ -286,7 +288,7 @@ function updateAstra() {
       const star = astraOrbitSlot(n);
       for (const z of [...zombies]) {
         if (z.hp <= 0 || z.astraOrbitHit > 0 || Math.hypot(z.x - star.x, z.y - star.y) > z.r + 16) continue;
-        z.astraOrbitHit = 16; astraDamage(z, scaledDamage(player.damage * (.26 + (player.astraBlueLevel || 0) * .035))); astraImpact("starHit", star.x, star.y, 27);
+        z.astraOrbitHit = 16; astraDamage(z, scaledDamage(player.damage * (.26 + (player.astraBlueLevel || 0) * .035) * ASTRA_ORBIT_DAMAGE_MULTIPLIER)); astraImpact("starHit", star.x, star.y, 27);
       }
     }
   }
