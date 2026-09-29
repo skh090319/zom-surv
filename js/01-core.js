@@ -211,6 +211,7 @@ const nullZeroAugmentIconAtlas=new Image();setGameImageSource(nullZeroAugmentIco
 const astraSprite=new Image();setGameImageSource(astraSprite,"assets/characters-original-v2/astra.webp");let astraSpriteLoaded=false;astraSprite.onload=()=>astraSpriteLoaded=true;
 const astraSkillIconAtlas=new Image();setGameImageSource(astraSkillIconAtlas,"assets/astra-skill-icons.webp");
 const astraAugmentIconAtlas=new Image();setGameImageSource(astraAugmentIconAtlas,"assets/astra-augment-icons.webp");
+const astraUltimateBackdrop = setGameImageSource(new Image(), "assets/astra-ultimate-nebula-v1.webp");
 
 const renHudPortrait = new Image();
 setGameImageSource(renHudPortrait, renSprite.assetSource);

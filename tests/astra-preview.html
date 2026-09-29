@@ -3,19 +3,20 @@
 <style>body{margin:0;background:#070c16;color:#d6e6f9;font:14px system-ui}header{padding:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}button{background:#182638;color:#e5edff;border:1px solid #46607e;border-radius:5px;padding:8px 12px;cursor:pointer}canvas{display:block;max-width:100%;height:auto;margin:auto}output{display:block;padding:8px 16px;white-space:pre-wrap;font:12px monospace}#errors{color:#ff9595}</style></head><body>
 <header><strong>ASTRA · LOCAL VFX REVIEW</strong><button onclick="scene('q')">Q · Volley</button><button onclick="scene('e')">E · Gravity well</button><button onclick="scene('r')">R · Capture</button><button onclick="scene('fallback')">R · Boss only</button><button onclick="scene('stress')">250 enemies</button><button onclick="step(20)">+20 frames</button><button onclick="step(120)">+120 frames</button><button onclick="launchReview()">Release R</button><button onclick="togglePlay()">Play / Stop</button><button onclick="resizeReview(false)">Desktop</button><button onclick="resizeReview(true)">Phone</button><button onclick="benchmark()">Profile 180 frames</button><button onclick="fullGameReview()">Full game + movement</button></header>
 <canvas id="game" width="1280" height="760"></canvas><output id="status">Loading production scripts…</output><output id="errors"></output><button onclick="saveReviewFrame()">Export review PNG</button><a id="download" hidden>Download review PNG</a>
+<header><strong>REALM TRANSITION</strong><button onclick="scene('r',0)">R · Start</button><button onclick="scene('r',27)">R · Fade in</button><button onclick="scene('r',180)">R · Realm</button><button onclick="scene('r',330)">R · Fade out</button><button onclick="scene('r',420)">R · Restored</button></header>
 <script>
 // Isolated test entry point: same production scripts and renderer, no PWA or saved progress writes.
 const nativeRAF=window.requestAnimationFrame.bind(window);window.requestAnimationFrame=()=>0;
 let reviewReady=false,reviewPhone=false,reviewPlay=false,reviewKind='q';
 window.addEventListener('error',e=>document.getElementById('errors').textContent+=e.message+'\n');
 window.addEventListener('unhandledrejection',e=>document.getElementById('errors').textContent+=String(e.reason)+'\n');
-function report(extra=''){document.getElementById('status').textContent=JSON.stringify({scene:reviewKind,frame:astraFrame,stars:astraQFlights().length,gravity:astraGravity?.state,bodies:astraGravity?.bodies.length,enemies:zombies.length,particles:astraDust.length,bursts:astraEffects.length,mobile:reviewPhone,viewport:[canvas.width,canvas.height],bossHP:activeRaidBoss?.hp,playerHP:player.hp})+' '+extra;}
+function report(extra=''){document.getElementById('status').textContent=JSON.stringify({scene:reviewKind,frame:astraFrame,realmOpacity:astraBackdropOpacity(),stars:astraQFlights().length,gravity:astraGravity?.state,bodies:astraGravity?.bodies.length,enemies:zombies.length,particles:astraDust.length,bursts:astraEffects.length,mobile:reviewPhone,viewport:[canvas.width,canvas.height],bossHP:activeRaidBoss?.hp,playerHP:player.hp})+' '+extra;}
 function paint(){draw();report();}
 function step(n){reviewPlay=false;for(let i=0;i<n;i++)updateAstra();paint();}
 function launchReview(){launchAstraGravity();step(12);}
 function resizeReview(phone){reviewPhone=phone;canvas.width=phone?844:1280;canvas.height=phone?390:760;isMobileTouchDevice=()=>phone;updateCamera();paint();}
 function fakeEnemy(x,y,i){return {x,y,r:i%5===0?27:18,hp:450,maxHp:450,speed:.9,boss:i%5===0,expValue:1,scoreValue:10};}
-function scene(kind){
+function scene(kind,age=100){
   if(!reviewReady)return;reviewPlay=false;reviewKind=kind;selectedCharacter='astra';restart();screenMode='game';player.level=10;player.damage=35;player.astraBlueLevel=2;player.astraRedLevel=1;player.exp=1;player.expNeed=12;
   player.x=1700;player.y=1150;updateCamera();mouse.worldX=player.x+410;mouse.worldY=player.y-75;mouse.x=(mouse.worldX-camera.x)*getWorldViewScale();mouse.y=(mouse.worldY-camera.y)*getWorldViewScale();
   for(let i=0;i<(kind==='stress'?250:kind==='fallback'?0:20);i++){
@@ -28,7 +29,7 @@ function scene(kind){
       startRaidBoss(0);activeRaidBoss.x=activeRaidBoss.anchorX=player.x+410;activeRaidBoss.y=activeRaidBoss.anchorY=player.y-75;raidIntroTime=0;raidBossEffects=[];particles=[];
       updateCamera();mouse.worldX=activeRaidBoss.x;mouse.worldY=activeRaidBoss.y;mouse.x=(mouse.worldX-camera.x)*getWorldViewScale();mouse.y=(mouse.worldY-camera.y)*getWorldViewScale();
     }
-    activateAstraR();if(kind==='stress'){activateAstraE();activateAstraQ();activateAstraX();}for(let i=0;i<100;i++)updateAstra();
+    activateAstraR();if(kind==='stress'){activateAstraE();activateAstraQ();activateAstraX();}for(let i=0;i<age;i++)updateAstra();
   }
   paint();
 }

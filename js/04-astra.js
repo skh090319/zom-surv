@@ -3,6 +3,7 @@ let astraMeteors = [], astraWells = [], astraEffects = [], astraDust = [];
 let astraGravity = null, astraFrame = 0, astraFxBudget = 0;
 const ASTRA_Q_CD = 300, ASTRA_E_CD = 510, ASTRA_X_CD = 780, ASTRA_R_CD = 1680;
 const ASTRA_R_DURATION = 360, ASTRA_R_LIFT = 42, ASTRA_R_FLIGHT = 980;
+const ASTRA_REALM_FADE_IN = 54, ASTRA_REALM_FADE_OUT = 60;
 
 function resetAstra() {
   if (astraGravity) for (const b of astraGravity.bodies) astraReleaseBody(b);
@@ -41,6 +42,14 @@ function astraOrbitSlot(slot, count = astraOrbitCount()) {
 function astraCanCapture(z) { return z.hp > 0 && !z.isRaidBoss && !z.isBossMinion && !z.astraControl; }
 function astraControlled(z) { return selectedCharacter === "astra" && Boolean(z.astraControl); }
 function astraEase(t) { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
+function astraBackdropOpacity() {
+  const g = astraGravity;
+  if (selectedCharacter !== "astra" || screenMode !== "game" || !g || g.state !== "orbit") return 0;
+  // Both fades fit inside R's six-second capture phase. Game ticks, rather than
+  // wall time, freeze the transition during pause and upgrade selection.
+  const fadeIn = astraEase(Math.min(g.age, g.backdropReadyAge) / ASTRA_REALM_FADE_IN);
+  return fadeIn * astraEase((ASTRA_R_DURATION - g.age) / ASTRA_REALM_FADE_OUT);
+}
 function astraClampPosition(x, y, r = 12) {
   if (typeof WORLD === "undefined") return { x, y };
   return { x: Math.max(r, Math.min(WORLD.width - r, x)), y: Math.max(r, Math.min(WORLD.height - r, y)) };
@@ -105,7 +114,7 @@ function activateAstraR() {
   if (player.level < 10 || player.astraRCooldown > 0 || astraGravity) return;
   const targets = zombies.filter(z => astraCanCapture(z) && Math.hypot(z.x - player.x, z.y - player.y) <= astraRRadius() + z.r);
   const count = targets.length || Math.max(5, astraOrbitCount());
-  astraGravity = { age: 0, state: "orbit", x: player.x, y: player.y, launchAge: 0, radius: astraRRadius(), bossSpent: new Map(), bodies: [] };
+  astraGravity = { age: 0, backdropReadyAge: 0, state: "orbit", x: player.x, y: player.y, launchAge: 0, radius: astraRRadius(), bossSpent: new Map(), bodies: [] };
   for (let i = 0; i < count; i++) {
     const z = targets[i] || null, ring = i % 3;
     const b = { zombie: z, virtual: !z, ring, index: i, a: i * 2.399963, x: z ? z.x : player.x, y: z ? z.y : player.y,
@@ -165,6 +174,8 @@ function updateAstraGravity() {
   const g = astraGravity;
   if (!g) return;
   g.age++; g.x += (player.x - g.x) * .18; g.y += (player.y - g.y) * .18;
+  // A slow first download must fade in too, never pop in at full opacity.
+  if (typeof astraUltimateBackdrop !== "undefined" && astraUltimateBackdrop.complete && astraUltimateBackdrop.naturalWidth > 0) g.backdropReadyAge++;
   const living = new Set(zombies);
   for (const b of g.bodies) astraDetachDeadBody(b, living);
   if (g.state === "orbit" && g.age >= ASTRA_R_DURATION) launchAstraGravity();

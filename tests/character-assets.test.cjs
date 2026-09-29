@@ -63,6 +63,17 @@ test('thumbnail requests are memoized and never request a full hero image', () =
   assert.equal(g.run('gameImageRegistry.length'),1);
 });
 
+test('Astra realm is compact and demand-loaded only for its character', () => {
+  const file='assets/astra-ultimate-nebula-v1.webp',data=fs.readFileSync(path.join(root,file));
+  assert.equal(data.toString('ascii',8,12),'WEBP');assert.ok(data.length<250*1024);
+  const g=loader();g.run(`var realm=setGameImageSource(new Image(),'${file}');prepareGameImages()`);
+  assert.equal(g.run('realm.src'),undefined);
+  g.run(`screenMode='game';prepareGameImages()`);assert.equal(g.run('realm.src'),undefined);
+  g.run(`screenMode='home';selectedCharacter='astra';prepareGameImages()`);assert.equal(g.run('realm.src'),file);
+  const direct=loader();direct.run(`var realm=setGameImageSource(new Image(),'${file}');selectedCharacter='astra';screenMode='game';prepareGameImages()`);
+  assert.equal(direct.run('realm.src'),file);
+});
+
 test('exclusive augment and monster guides preload their actual images', () => {
   const g=loader();
   g.run(`var skill=setGameImageSource(new Image(),'assets/ren-augment-afterimage.webp');var boss=setGameImageSource(new Image(),'assets/bosses/venom-bloom.webp');screenMode='guide';guideAugmentTab='exclusive';guideExclusiveCharacter='ren';prepareGameImages();`);

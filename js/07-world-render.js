@@ -47,6 +47,7 @@ function drawBackground() {
   // 배경 밝기 보정
   ctx.fillStyle = "rgba(255, 255, 255, 0.10)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawAstraUltimateBackdrop();
 }
 
 function drawFireTrails() {

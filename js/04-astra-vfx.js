@@ -2,6 +2,19 @@
 const astraVfxTextures = new Map();
 const ASTRA_TAU = Math.PI * 2;
 let astraVfxWarmupScheduled = false;
+function drawAstraUltimateBackdrop() {
+  const alpha = astraBackdropOpacity();
+  if (alpha <= 0 || !astraUltimateBackdrop.complete || !astraUltimateBackdrop.naturalWidth || !astraUltimateBackdrop.naturalHeight) return;
+  // Screen-space cover preserves the panorama's aspect ratio on phones/tablets.
+  // Draw only in the background pass: hazards, enemies and HUD stay on top.
+  const scale = Math.max(canvas.width / astraUltimateBackdrop.naturalWidth, canvas.height / astraUltimateBackdrop.naturalHeight);
+  const w = astraUltimateBackdrop.naturalWidth * scale, h = astraUltimateBackdrop.naturalHeight * scale;
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(astraUltimateBackdrop, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+  ctx.restore();
+}
 function prepareAstraVfx() {
   if (astraVfxWarmupScheduled) return;
   astraVfxWarmupScheduled = true;

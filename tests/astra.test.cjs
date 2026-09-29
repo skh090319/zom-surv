@@ -11,12 +11,79 @@ function game(){
     transcended:{astraRed:false,astraBlue:false,astraHorizon:false},scaledDamage:n=>n,enemyMaxHpDamage:(z,r)=>z.maxHp*r,
     killed:[],killZombie(i,z){context.killed.push(z);context.zombies.splice(i,1);},
     worldStart(){},worldEnd(){},drawRoundedRect(){},drawCooldownCover(){},drawSkillHudLabel(){},astraSpriteLoaded:false,
+    astraUltimateBackdrop:{complete:true,naturalWidth:1672,naturalHeight:941},
     astraSkillIconAtlas:{complete:false,naturalWidth:0},canvas:{width:1000,height:700},ctx:new Proxy({createRadialGradient:()=>({addColorStop(){}}),createLinearGradient:()=>({addColorStop(){}})}, {get:(o,k)=>o[k]||(()=>{})})};
   vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra.js'),'utf8'),context);return{context,run:c=>vm.runInContext(c,context)};
 }
 
 function enemy(x,y,extra={}){return {x,y,r:18,hp:10000,maxHp:10000,speed:1,...extra};}
 function tick(g,n){g.run(`for(let t=0;t<${n};t++)updateAstra()`);}
+
+test('R realm smoothly fades in, holds, and returns completely before capture expires',()=>{
+  const g=game();assert.equal(g.run('astraBackdropOpacity()'),0);g.run('activateAstraR()');
+  const alphas=[g.run('astraBackdropOpacity()')];
+  for(let i=0;i<420;i++){tick(g,1);alphas.push(g.run('astraBackdropOpacity()'));}
+  assert.equal(alphas[0],0);assert.equal(alphas[27],.5);assert.equal(alphas[54],1);
+  assert.equal(alphas[299],1);assert.equal(alphas[330],.5);assert.equal(alphas[360],0);assert.equal(alphas[420],0);
+  for(let i=1;i<alphas.length;i++){
+    assert.ok(alphas[i]>=0&&alphas[i]<=1);assert.ok(Math.abs(alphas[i]-alphas[i-1])<.029);
+    if(i<=54)assert.ok(alphas[i]>=alphas[i-1]);if(i>=300)assert.ok(alphas[i]<=alphas[i-1]);
+  }
+});
+
+test('late-loading backdrop eases in, and missing or failed assets preserve the normal map',()=>{
+  const g=game();g.context.astraUltimateBackdrop.complete=false;g.context.astraUltimateBackdrop.naturalWidth=0;
+  g.run('activateAstraR()');tick(g,100);assert.equal(g.run('astraBackdropOpacity()'),0);
+  g.context.astraUltimateBackdrop.complete=true;tick(g,20);assert.equal(g.run('astraBackdropOpacity()'),0);
+  g.context.astraUltimateBackdrop.naturalWidth=1672;tick(g,1);assert.ok(g.run('astraBackdropOpacity()')<.002);
+  tick(g,53);assert.equal(g.run('astraBackdropOpacity()'),1);tick(g,240);assert.equal(g.run('astraBackdropOpacity()'),0);
+});
+
+test('realm does not affect other skills, other heroes, menus, or the next run',()=>{
+  const g=game();g.run('activateAstraQ();activateAstraE();activateAstraX()');tick(g,60);assert.equal(g.run('astraBackdropOpacity()'),0);
+  g.run('activateAstraR()');tick(g,100);assert.equal(g.run('astraBackdropOpacity()'),1);
+  g.context.selectedCharacter='mare';assert.equal(g.run('astraBackdropOpacity()'),0);g.context.selectedCharacter='astra';
+  for(const mode of ['home','guide','character','mobileSettings']){g.context.screenMode=mode;assert.equal(g.run('astraBackdropOpacity()'),0);}
+  g.context.screenMode='game';g.run('resetAstra()');assert.equal(g.run('astraBackdropOpacity()'),0);
+  g.run('activateAstraR()');assert.equal(g.run('astraBackdropOpacity()'),0);
+});
+
+test('production pause, upgrade and portrait gates freeze the realm with the ultimate',()=>{
+  const g=game();Object.assign(g.context,{paused:false,gameOver:false,raidVictory:false,choosingUpgrade:false});
+  const source=fs.readFileSync(path.join(root,'js/06-entities-update.js'),'utf8');
+  vm.runInContext(source.slice(source.indexOf('function update()')),g.context);
+  g.run('activateAstraR()');tick(g,27);
+  for(const key of ['paused','gameOver','raidVictory','choosingUpgrade']){
+    g.context[key]=true;g.run('for(let i=0;i<120;i++)update()');g.context[key]=false;
+    assert.equal(g.run('astraGravity.age'),27);assert.equal(g.run('astraBackdropOpacity()'),.5);
+  }
+  g.context.isMobilePortraitMode=()=>true;g.run('update()');assert.equal(g.run('astraGravity.age'),27);
+});
+
+test('realm covers desktop/tablet/phone without stretching and restores canvas state',()=>{
+  const g=game(),calls=[],stack=[];
+  g.context.ctx={globalAlpha:.8,globalCompositeOperation:'lighter',save(){stack.push([this.globalAlpha,this.globalCompositeOperation]);},restore(){[this.globalAlpha,this.globalCompositeOperation]=stack.pop();},drawImage(...args){calls.push({args,alpha:this.globalAlpha,blend:this.globalCompositeOperation});}};
+  vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);
+  g.run('drawAstraUltimateBackdrop()');assert.equal(calls.length,0);
+  g.run('activateAstraR()');tick(g,27);
+  for(const [width,height] of [[1920,1080],[1180,820],[844,390]]){
+    Object.assign(g.context.canvas,{width,height});g.run('drawAstraUltimateBackdrop()');
+    const {args:[image,x,y,w,h],alpha,blend}=calls.at(-1);
+    assert.equal(image,g.context.astraUltimateBackdrop);assert.ok(Math.abs(w/h-1672/941)<1e-12);
+    assert.ok(w>=width&&h>=height);assert.equal(x,(width-w)/2);assert.equal(y,(height-h)/2);
+    assert.equal(alpha,.5);assert.equal(blend,'source-over');assert.equal(stack.length,0);
+    assert.equal(g.context.ctx.globalAlpha,.8);assert.equal(g.context.ctx.globalCompositeOperation,'lighter');
+  }
+  tick(g,333);g.run('drawAstraUltimateBackdrop()');assert.equal(calls.length,3);
+});
+
+test('cosmic art is placed below all combat hazards, characters and HUD',()=>{
+  const render=fs.readFileSync(path.join(root,'js/07-world-render.js'),'utf8');
+  const background=render.slice(render.indexOf('function drawBackground()'),render.indexOf('function drawFireTrails()'));
+  assert.ok(background.indexOf('drawAstraUltimateBackdrop()')>background.indexOf('drawImage(backgroundImage'));
+  const main=fs.readFileSync(path.join(root,'js/09-main.js'),'utf8');
+  for(const call of ['drawRaidArena()','drawRaidBossZones()','drawZombies()','drawPlayer()','drawHUD()'])assert.ok(main.indexOf('drawBackground()')<main.indexOf(call));
+});
 
 test('Q deploys every actual orbit slot including all augmented stars',()=>{
   for(const enhanced of [false,true]){

@@ -60,6 +60,8 @@ function prepareGameImages() {
     const group = image.assetGroup;
     let needed = image.assetSource === "background.webp";
     if (screenMode === "home" || screenMode === "mobileSettings") needed ||= group === "lobby";
+    // Prepare Astra's realm before a run without adding it to every hero's load.
+    if (screenMode === "home" && selected === "astra") needed ||= image.assetSource === "assets/astra-ultimate-nebula-v1.webp";
     if (screenMode === "mobileSettings" && settings === "controls") needed ||= group === selected;
     if (playing) needed ||= group === "world" || group === "boss" || group === selected || group === "augment";
     if (screenMode === "character" && modal) needed ||= group === modal;
