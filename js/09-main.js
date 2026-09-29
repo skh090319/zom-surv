@@ -2,6 +2,7 @@
 
 function draw() {
   prepareGameImages();
+  if(typeof syncAstraLobbyVisibility==='function')syncAstraLobbyVisibility();
   if (typeof isMobilePortraitMode === "function" && isMobilePortraitMode()) {
     drawMobilePortraitLock();
     return;
@@ -68,6 +69,7 @@ function draw() {
   drawRaidBossEffects();
   drawRenAttackOverlay();
   drawYupiterWeapons();
+  drawAstraUltimatePortrait();
   const mobileTouch = typeof isMobileTouchDevice === "function" && isMobileTouchDevice();
   if (!mobileTouch) {
     drawHealthBar();

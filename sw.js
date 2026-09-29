@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v52";
+const CACHE_VERSION = "zombie-survival-v53";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -54,6 +54,7 @@ const CORE_ASSETS = [
   "./js/07-world-render.js",
   "./js/07-fire-trail-polish.js",
   "./js/08-ui.js",
+  "./js/08-astra-lobby.js",
   "./js/08-guide.js",
   "./js/08-mobile.js",
   "./js/08-mobile-settings.js",
@@ -85,7 +86,7 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  const networkFirst = /\.(?:js|css|webmanifest)$/i.test(url.pathname);
+  const networkFirst = /\.(?:m?js|css|webmanifest)$/i.test(url.pathname);
   if (networkFirst) {
     event.respondWith(fetch(request).then(response => {
       if (response.ok) caches.open(RUNTIME_CACHE).then(cache => cache.put(request, response.clone()));

@@ -53,6 +53,7 @@ function prepareGameImages() {
   preparedImageScreen = key;
   const assetOwner = id => id === "nightLord" ? "night-lord" : (id === "nullZero" ? "null-zero" : id);
   const selected = assetOwner(selectedCharacter);
+  if(screenMode==="home"&&selected==="astra"&&typeof prepareAstraVfx==="function")prepareAstraVfx();
   const exclusive = assetOwner(owner);
   const modal = assetOwner(detail);
   const playing = screenMode === "game" || (screenMode === "mobileSettings" && settings === "view");
@@ -61,7 +62,7 @@ function prepareGameImages() {
     let needed = image.assetSource === "background.webp";
     if (screenMode === "home" || screenMode === "mobileSettings") needed ||= group === "lobby";
     // Prepare Astra's realm before a run without adding it to every hero's load.
-    if (screenMode === "home" && selected === "astra") needed ||= image.assetSource === "assets/astra-ultimate-nebula-v1.webp";
+    if (screenMode === "home" && selected === "astra") needed ||= image.assetSource === "assets/astra-ultimate-nebula-v1.webp" || image.assetSource === "assets/astra-ultimate-portrait-v1.webp";
     if (screenMode === "mobileSettings" && settings === "controls") needed ||= group === selected;
     if (playing) needed ||= group === "world" || group === "boss" || group === selected || group === "augment";
     if (screenMode === "character" && modal) needed ||= group === modal;

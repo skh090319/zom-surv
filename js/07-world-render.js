@@ -12,6 +12,11 @@ function worldEnd() {
 }
 
 function drawBackground() {
+  // The fully opaque realm already covers the map: skip the invisible map
+  // draw and brightness pass. During either fade the original layers remain.
+  if(astraBackdropProgress()>=1&&astraUltimateBackdrop.complete&&astraUltimateBackdrop.naturalWidth&&astraUltimateBackdrop.naturalHeight){
+    drawAstraUltimateBackdrop();return;
+  }
   ctx.fillStyle = "#101010";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 

@@ -91,7 +91,7 @@ function astraImpact(type, x, y, r = 60) {
 function attackWithAstra() {
   if (player.fireCooldown > 0) return;
   const a = Math.atan2(mouse.worldY - player.y, mouse.worldX - player.x);
-  astraMeteors.push({ x: player.x, y: player.y, a, speed: 13, curve: (Math.random() - .5) * .014, life: 72, damage: scaledDamage(player.damage * 1.02 * ASTRA_BASIC_DAMAGE_MULTIPLIER), r: 10, kind: "shot", trail: [] });
+  astraMeteors.push({ x: player.x, y: player.y, a, speed: 13, curve: (Math.random() - .5) * .014, life: 72, damage: scaledDamage(player.damage * 1.02 * ASTRA_BASIC_DAMAGE_MULTIPLIER), r: 10, kind: "shot", trail: [], hits: new Set() });
   player.fireCooldown = Math.max(11, 24 - (player.fireRateBonus || 0) * 2);
 }
 function activateAstraQ() {
@@ -242,11 +242,12 @@ function updateAstraMeteors() {
     } else { m.a += m.curve; m.x += Math.cos(m.a) * m.speed; m.y += Math.sin(m.a) * m.speed; m.life--; }
     astraTrail(m);
     let remove = m.kind === "shot" && m.life <= 0;
-    const hits = m.kind === "orbit" ? (m.returning ? m.returnHits : m.outwardHits) : null;
+    // A basic bolt pierces the entire line, but each enemy is hit only once.
+    // Q retains independent outward/return hit sets and has no knockback.
+    const hits = m.kind === "orbit" ? (m.returning ? m.returnHits : m.outwardHits) : (m.hits ||= new Set());
     for (const z of [...zombies]) {
-      if (remove || z.hp <= 0 || hits?.has(z) || astraSegmentDistance(z.x, z.y, px, py, m.x, m.y) > z.r + m.r) continue;
-      hits?.add(z); astraDamage(z, m.damage); astraImpact("starHit", z.x, z.y, m.kind === "orbit" ? 58 : 27);
-      if (!hits) remove = true;
+      if (remove || z.hp <= 0 || hits.has(z) || astraSegmentDistance(z.x, z.y, px, py, m.x, m.y) > z.r + m.r) continue;
+      hits.add(z); astraDamage(z, m.damage); astraImpact("starHit", z.x, z.y, m.kind === "orbit" ? 58 : 27);
     }
     if (m.kind === "orbit" && arrived) {
       if (m.returning) { astraImpact("catch", m.x, m.y, 34); remove = true; }
