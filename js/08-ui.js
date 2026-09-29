@@ -898,8 +898,7 @@ function drawHomeScreen() {
   ctx.save();ctx.translate(heroX,canvas.height*.735);ctx.scale(1,.25);ctx.strokeStyle=`${accent}92`;ctx.shadowColor=accent;ctx.shadowBlur=24;ctx.lineWidth=3;
   for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(0,0,88+i*31+Math.sin(t*2+i)*5,0,Math.PI*2);ctx.stroke();}ctx.restore();
   for(let i=0;i<16;i++){const a=i*2.399+t*(i%2?.14:-.1),r=105+(i%5)*38,x=heroX+Math.cos(a)*r,y=heroY+Math.sin(a)*r*.65;ctx.fillStyle=i%3===0?accent:"rgba(205,225,255,.42)";ctx.fillRect(x,y,2+(i%2),2+(i%2));}
-  const modelReady=typeof drawAstraLobbyModel==='function'&&drawAstraLobbyModel({x:heroX-Math.min(570,canvas.width*.43)/2,y:canvas.height*.12,w:Math.min(570,canvas.width*.43),h:canvas.height*.685});
-  if(!modelReady&&sprite&&sprite.complete&&sprite.naturalWidth){
+  if(sprite&&sprite.complete&&sprite.naturalWidth){
     const maxW=wide?Math.min(510,canvas.width*.38):Math.min(280,canvas.width*.4),maxH=canvas.height*.63;
     const scale=Math.min(maxW/sprite.naturalWidth,maxH/sprite.naturalHeight),dw=sprite.naturalWidth*scale,dh=sprite.naturalHeight*scale;
     ctx.save();ctx.globalAlpha=.25;ctx.filter="blur(18px)";ctx.drawImage(sprite,heroX-dw*.53,heroY-dh*.48+10,dw*1.06,dh*1.06);ctx.restore();

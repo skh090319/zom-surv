@@ -338,8 +338,7 @@ function drawMobileHomeScreen(){
   const glow=ctx.createRadialGradient(heroX,heroCenterY,10,heroX,heroCenterY,glowRadius);
   glow.addColorStop(0,accent+"45");glow.addColorStop(1,accent+"00");ctx.fillStyle=glow;ctx.fillRect(heroLeft,outerY,heroRight-heroLeft,frameH);
   ctx.strokeStyle="rgba(151,178,214,.12)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(heroLeft-gap*.5,outerY+titleH);ctx.lineTo(heroLeft-gap*.5,outerY+frameH);ctx.stroke();
-  const modelReady=typeof drawAstraLobbyModel==='function'&&drawAstraLobbyModel({x:heroLeft,y:outerY,w:heroRight-heroLeft,h:frameH-(short?18:30)});
-  if(!modelReady&&sprite?.complete&&sprite.naturalWidth){
+  if(sprite?.complete&&sprite.naturalWidth){
     const heroW=heroRight-heroLeft,availableH=frameH-(short?42:62);
     const scale=Math.min(heroW*.74/sprite.naturalWidth,availableH*.82/sprite.naturalHeight),dw=sprite.naturalWidth*scale,dh=sprite.naturalHeight*scale;
     ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=24;ctx.drawImage(sprite,heroX-dw/2,heroCenterY-dh/2,dw,dh);ctx.restore();

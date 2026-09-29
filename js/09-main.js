@@ -2,7 +2,6 @@
 
 function draw() {
   prepareGameImages();
-  if(typeof syncAstraLobbyVisibility==='function')syncAstraLobbyVisibility();
   if (typeof isMobilePortraitMode === "function" && isMobilePortraitMode()) {
     drawMobilePortraitLock();
     return;
