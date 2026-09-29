@@ -69,7 +69,6 @@ function draw() {
   drawRaidBossEffects();
   drawRenAttackOverlay();
   drawYupiterWeapons();
-  drawAstraUltimatePortrait();
   const mobileTouch = typeof isMobileTouchDevice === "function" && isMobileTouchDevice();
   if (!mobileTouch) {
     drawHealthBar();
@@ -108,6 +107,8 @@ function draw() {
   drawPauseOverlay();
   drawPauseButton();
   if (typeof drawMobileControls === "function") drawMobileControls();
+  // Keep Astra's triangular ultimate cut-in above every desktop and mobile UI.
+  drawAstraUltimatePortrait();
 }
 
 function restart() {

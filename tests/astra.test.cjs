@@ -41,6 +41,18 @@ test('ultimate portrait is a short, smooth, corner-only cut-in and resets with t
   g.run('resetAstra()');assert.equal(g.run('astraPortraitCutInState()'),null);
 });
 
+test('ultimate portrait is rendered above every canvas UI layer',()=>{
+  const source=fs.readFileSync(path.join(root,'js/09-main.js'),'utf8');
+  const drawBody=source.slice(source.indexOf('function draw()'),source.indexOf('function restart()'));
+  const portrait=drawBody.lastIndexOf('drawAstraUltimatePortrait()');
+  assert.ok(portrait>drawBody.lastIndexOf('drawRaidBossUI()'));
+  assert.ok(portrait>drawBody.lastIndexOf('drawUpgradeMenu()'));
+  assert.ok(portrait>drawBody.lastIndexOf('drawGameOver()'));
+  assert.ok(portrait>drawBody.lastIndexOf('drawPauseOverlay()'));
+  assert.ok(portrait>drawBody.lastIndexOf('drawPauseButton()'));
+  assert.ok(portrait>drawBody.lastIndexOf('drawMobileControls()'));
+});
+
 test('optimized ribbon has the same six outlines as the original trigonometric construction',()=>{
   const g=game(),vertices=[];g.context.ctx=new Proxy({globalAlpha:1,createLinearGradient:()=>({addColorStop(){}}),moveTo:(x,y)=>vertices.push([x,y]),lineTo:(x,y)=>vertices.push([x,y])},{get:(o,k)=>o[k]||(()=>{})});
   vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);
