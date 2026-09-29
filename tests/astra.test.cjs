@@ -117,7 +117,7 @@ test('basic attack is exactly doubled without changing the shared damage stat or
 
 test('orbit contact and both Q legs scale by six, including upgrades, independently of basic attacks',()=>{
   for(const level of [0,3]){
-    const g=game(),z=enemy(90+level*6,0,{r:2});g.context.player.astraBlueLevel=level;g.context.player.astraRedLevel=level;
+    const g=game(),z=enemy(120+level*6,0,{r:2});g.context.player.astraBlueLevel=level;g.context.player.astraRedLevel=level;
     g.context.scaledDamage=n=>n*1.8;g.context.zombies.push(z);tick(g,1);
     assert.ok(Math.abs(10000-z.hp-10*(.26+level*.035)*1.8*6)<1e-8);
     g.run('activateAstraQ()');const flights=g.run('astraQFlights()');
@@ -125,13 +125,13 @@ test('orbit contact and both Q legs scale by six, including upgrades, independen
   }
 });
 
-test('black hole pull triples at the same distance while its damage, radius and immunity remain unchanged',()=>{
+test('black hole pull is twice its previous strength while damage, radius and immunity remain unchanged',()=>{
   for(const level of [0,3]){
     const g=game(),z=enemy(400,0),boss=enemy(400,0,{isRaidBoss:true}),minion=enemy(400,0,{isBossMinion:true}),captured=enemy(400,0,{astraControl:{}});
     g.context.player.astraHorizonLevel=level;g.context.zombies.push(z,boss,minion,captured);
     g.run('activateAstraE();astraWells[0].life=247;updateAstraWells()');
     const radius=170+level*18,oldPull=(.45+level*.09)*(1-100/(radius*2));
-    assert.equal(g.run('astraWells[0].r'),radius);assert.ok(Math.abs(z.x-400-oldPull*3)<1e-8);
+    assert.equal(g.run('astraWells[0].r'),radius);assert.ok(Math.abs(z.x-400-oldPull*6)<1e-8);
     assert.equal(boss.x,400);assert.equal(minion.x,400);assert.equal(captured.x,400);
     assert.ok(Math.abs(10000-z.hp-10*(.22+level*.035))<1e-8);
     const near=enemy(487.99,0);g.context.zombies.push(near);g.run('updateAstraWells()');assert.ok(near.x<=488&&near.x>487.99);
@@ -153,21 +153,30 @@ test('Q deploys every actual orbit slot including all augmented stars',()=>{
     assert.equal(flights.length,enhanced?8:3);
     for(let i=0;i<flights.length;i++)for(const k of ['x','y','slot','count','endX','endY'])assert.equal(flights[i][k],expected[i][k]);
     assert.equal(new Set(flights.map(m=>m.slot)).size,flights.length);
-    assert.equal(g.context.player.astraQCooldown,300);
+    assert.equal(g.context.player.astraQCooldown,240);
   }
 });
 
 test('Q sweeps targets and damages at most once on each leg, then restores its slots',()=>{
-  const g=game(),target=enemy(300,0,{r:65});g.context.zombies.push(target);g.run('activateAstraQ()');
+  const g=game(),target=enemy(300,0,{r:65}),start={x:target.x,y:target.y};g.context.zombies.push(target);g.run('activateAstraQ()');
   const flight=g.run('astraQFlights().slice()');tick(g,150);
   assert.equal(g.run('astraQFlights().length'),0);
   for(const star of flight){assert.ok(star.outwardHits.has(target));assert.ok(star.returnHits.has(target));}
   assert.ok(Math.abs(target.hp-(10000-6*10.5*6))<1e-7);
+  assert.deepEqual({x:target.x,y:target.y},start,'Q outward and return hits must not knock enemies back');
 });
 
 test('deployed orbit slots cannot also deal passive contact damage',()=>{
-  const g=game(),z=enemy(90,0,{r:2});g.context.zombies.push(z);g.run('activateAstraQ();astraMeteors.forEach(m=>{m.x=400;m.y=400;});updateAstra()');
+  const g=game(),z=enemy(120,0,{r:2});g.context.zombies.push(z);g.run('activateAstraQ();astraMeteors.forEach(m=>{m.x=400;m.y=400;});updateAstra()');
   assert.equal(z.hp,10000);
+});
+
+test('only passive orbit contact applies the default outward knockback',()=>{
+  const g=game(),normal=enemy(120,0,{r:2}),boss=enemy(-60,104,{r:2,isRaidBoss:true}),minion=enemy(-60,-104,{r:2,isBossMinion:true});
+  g.context.zombies.push(normal,boss,minion);tick(g,1);
+  assert.ok(Math.abs(normal.x-138)<1e-8);assert.equal(normal.y,0);
+  assert.equal(boss.x,-60);assert.equal(boss.y,104);assert.equal(minion.x,-60);assert.equal(minion.y,-104);
+  assert.ok(normal.hp<10000&&boss.hp<10000&&minion.hp<10000,'control-immune targets still take orbit damage');
 });
 
 test('Q recast recalls without creating stars or resetting its cooldown, even while moving',()=>{
@@ -263,19 +272,24 @@ test('captured bodies bypass normal zombie movement and contact damage',()=>{
   assert.equal(z.x,0);assert.equal(z.y,0);assert.equal(z.hp,10000);
 });
 
-test('Astra base orbit is 25% wider, with unchanged upgrade and X expansion increments',()=>{
-  const g=game();assert.equal(g.run('astraOrbitRadius()'),90);
-  for(const point of g.run('astraQPaths(0)'))assert.ok(Math.abs(Math.hypot(point.x,point.y)-90)<1e-8);
-  g.context.player.astraOrbitBlend=1;assert.equal(g.run('astraOrbitRadius()'),172);
+test('Astra base orbit is 120, with unchanged upgrade and X expansion increments',()=>{
+  const g=game();assert.equal(g.run('astraOrbitRadius()'),120);
+  for(const point of g.run('astraQPaths(0)'))assert.ok(Math.abs(Math.hypot(point.x,point.y)-120)<1e-8);
+  g.context.player.astraOrbitBlend=1;assert.equal(g.run('astraOrbitRadius()'),202);
   g.context.player.astraRedLevel=3;g.context.player.astraHorizonLevel=3;
-  assert.equal(g.run('astraOrbitRadius()'),214);
-  g.context.player.astraOrbitBlend=0;assert.equal(g.run('astraOrbitRadius()'),108);
+  assert.equal(g.run('astraOrbitRadius()'),244);
+  g.context.player.astraOrbitBlend=0;assert.equal(g.run('astraOrbitRadius()'),138);
   assert.equal(g.run('astraOrbitSpeed()'),.026);
 });
 
 test('Astra orbit expansion eases outward and back instead of snapping',()=>{
   const g=game();g.run('activateAstraX()');g.run('updateAstra()');const first=g.context.player.astraOrbitBlend;
   assert.ok(first>0&&first<1);g.context.player.astraOverdriveTime=0;g.run('updateAstra()');assert.ok(g.context.player.astraOrbitBlend<first);
+});
+
+test('Astra Q cooldown is reduced by exactly one second at 60 fps',()=>{
+  const g=game();g.run('activateAstraQ()');assert.equal(g.context.player.astraQCooldown,240);
+  tick(g,239);assert.equal(g.context.player.astraQCooldown,1);tick(g,1);assert.equal(g.context.player.astraQCooldown,0);
 });
 
 test('Astra keeps permanent orbit stars and blue upgrades add more',()=>{

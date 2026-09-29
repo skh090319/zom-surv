@@ -34,5 +34,7 @@ Constraints: environment ONLY, no characters, no user interface, no circles/ring
 
 - Basic attack projectiles: previous damage × 2.
 - Passive orbit-star contact and Q outward/return damage: previous damage × 6, including their existing upgrade coefficients.
-- E black-hole pull: previous pull strength × 3, with a center-distance clamp to prevent overshoot. Range, tick damage, collapse damage and boss/summon control immunity are unchanged.
+- E black-hole pull: original pull strength × 6 (twice the previously deployed ×3 value), with a center-distance clamp to prevent overshoot. Range, tick damage, collapse damage and boss/summon control immunity are unchanged.
 - Shared `player.damage` is unchanged so the independent requested multipliers do not stack into × 12 or buff E/R damage unintentionally.
+- Base orbit radius: 120. Q cooldown: 240 frames (4 seconds at 60 fps).
+- Passive orbit contact applies 18 units of outward knockback to ordinary enemies. Q outward/return hits never apply knockback, and boss/control-immune targets still take passive orbit damage without displacement.

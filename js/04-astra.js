@@ -1,11 +1,12 @@
 // Astra: real orbit slots, returning constellation volleys and gravity capture.
 let astraMeteors = [], astraWells = [], astraEffects = [], astraDust = [];
 let astraGravity = null, astraFrame = 0, astraFxBudget = 0;
-const ASTRA_Q_CD = 300, ASTRA_E_CD = 510, ASTRA_X_CD = 780, ASTRA_R_CD = 1680;
+const ASTRA_Q_CD = 240, ASTRA_E_CD = 510, ASTRA_X_CD = 780, ASTRA_R_CD = 1680;
 const ASTRA_R_DURATION = 360, ASTRA_R_LIFT = 42, ASTRA_R_FLIGHT = 980;
 const ASTRA_REALM_FADE_IN = 54, ASTRA_REALM_FADE_OUT = 60;
 // Independent balance knobs: do not multiply the shared player.damage stat.
-const ASTRA_BASIC_DAMAGE_MULTIPLIER = 2, ASTRA_ORBIT_DAMAGE_MULTIPLIER = 6, ASTRA_WELL_PULL_MULTIPLIER = 3;
+const ASTRA_BASIC_DAMAGE_MULTIPLIER = 2, ASTRA_ORBIT_DAMAGE_MULTIPLIER = 6, ASTRA_WELL_PULL_MULTIPLIER = 6;
+const ASTRA_PASSIVE_ORBIT_KNOCKBACK = 18;
 
 function resetAstra() {
   if (astraGravity) for (const b of astraGravity.bodies) astraReleaseBody(b);
@@ -21,7 +22,7 @@ function astraDamage(z, amount) {
 }
 function astraOrbitCount() { return 3 + (player.astraBlueLevel || 0) + (transcended.astraBlue ? 2 : 0); }
 function astraOrbitTarget() { return player.astraOverdriveTime > 0 ? 1 : 0; }
-function astraOrbitRadius() { return 90 + (player.astraRedLevel || 0) * 6 + (player.astraOrbitBlend || 0) * (82 + (player.astraHorizonLevel || 0) * 8); }
+function astraOrbitRadius() { return 120 + (player.astraRedLevel || 0) * 6 + (player.astraOrbitBlend || 0) * (82 + (player.astraHorizonLevel || 0) * 8); }
 function astraOrbitSpeed() { return .026 + (player.astraBlueLevel || 0) * .003 + (player.astraOrbitBlend || 0) * .052; }
 function astraQGeometry() {
   const boosted = player.astraOverdriveTime > 0;
@@ -55,6 +56,12 @@ function astraBackdropProgress() {
 function astraClampPosition(x, y, r = 12) {
   if (typeof WORLD === "undefined") return { x, y };
   return { x: Math.max(r, Math.min(WORLD.width - r, x)), y: Math.max(r, Math.min(WORLD.height - r, y)) };
+}
+function astraPassiveOrbitKnockback(z, star) {
+  if (!z || z.hp <= 0 || z.isRaidBoss || z.isBossMinion || z.astraControl) return;
+  const dx = z.x - player.x, dy = z.y - player.y, d = Math.hypot(dx, dy);
+  const fallback = star?.a || 0, nx = d > .001 ? dx / d : Math.cos(fallback), ny = d > .001 ? dy / d : Math.sin(fallback);
+  Object.assign(z, astraClampPosition(z.x + nx * ASTRA_PASSIVE_ORBIT_KNOCKBACK, z.y + ny * ASTRA_PASSIVE_ORBIT_KNOCKBACK, z.r));
 }
 function astraSegmentDistance(x, y, ax, ay, bx, by) {
   const dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy || 1)));
@@ -288,7 +295,7 @@ function updateAstra() {
       const star = astraOrbitSlot(n);
       for (const z of [...zombies]) {
         if (z.hp <= 0 || z.astraOrbitHit > 0 || Math.hypot(z.x - star.x, z.y - star.y) > z.r + 16) continue;
-        z.astraOrbitHit = 16; astraDamage(z, scaledDamage(player.damage * (.26 + (player.astraBlueLevel || 0) * .035) * ASTRA_ORBIT_DAMAGE_MULTIPLIER)); astraImpact("starHit", star.x, star.y, 27);
+        z.astraOrbitHit = 16; astraDamage(z, scaledDamage(player.damage * (.26 + (player.astraBlueLevel || 0) * .035) * ASTRA_ORBIT_DAMAGE_MULTIPLIER)); astraPassiveOrbitKnockback(z, star); astraImpact("starHit", star.x, star.y, 27);
       }
     }
   }
