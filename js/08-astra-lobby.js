@@ -1,15 +1,14 @@
 // The 3D viewer is a lazy, lobby-only layer. It never owns a second game loop.
-// Temporary release switch: keep the implementation intact while showing 2D art only.
-const ASTRA_LOBBY_3D_ENABLED=false;
+const ASTRA_LOBBY_3D_ENABLED=true;
 let astraLobbyViewer=null,astraLobbyLoad=null,astraLobbyHost=null,astraLobbyBounds=null;
-let astraLobbyMode='art',astraLobbyLastFrame=-Infinity,astraLobbyFailure=false;
+let astraLobbyMode='3d',astraLobbyLastFrame=-Infinity,astraLobbyFailure=false;
 function ensureAstraLobbyViewer(){
   if(!ASTRA_LOBBY_3D_ENABLED)return;
   if(astraLobbyLoad||astraLobbyViewer||astraLobbyFailure)return;
-  astraLobbyLoad=import('./astra-model.mjs?v=20260929-astra3d1').then(module=>{
+  astraLobbyLoad=import('./astra-model.mjs?v=20260929-user-model1').then(module=>{
     if(screenMode!=='home'||selectedCharacter!=='astra'||astraLobbyMode!=='3d')return;
     astraLobbyViewer=module.createAstraModel(astraLobbyHost.querySelector('.astra-model-stage'));
-    astraLobbyHost.querySelector('.astra-model-status').textContent='드래그하여 360° 회전 · 두 번 눌러 초기화';
+    return astraLobbyViewer.ready.then(()=>{if(astraLobbyViewer)astraLobbyHost.querySelector('.astra-model-status').textContent='드래그하여 360° 회전 · 두 번 눌러 초기화';});
   }).catch(error=>{
     astraLobbyFailure=true;astraLobbyMode='art';
     astraLobbyHost.querySelector('.astra-model-status').textContent='3D를 불러올 수 없어 원화를 표시합니다';
