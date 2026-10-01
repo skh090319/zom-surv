@@ -200,6 +200,7 @@ function drawMobileControlEditor(){
     else if(!drawMobileIcon(getMobileSkillIcon(id),x,y,r)){
       ctx.textAlign="center";ctx.fillStyle="#eaf4ff";ctx.font="bold 10px Arial";ctx.fillText(name,x,y+4,r*1.7);
     }
+    if(selectedCharacter==='astra'&&id!=='joystick'&&id!=='attack')drawAstraSkillFrame(x,y,r);
     if(selected){ctx.strokeStyle="#e8f7c1";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+5,0,Math.PI*2);ctx.stroke();}
     ctx.textAlign="center";ctx.fillStyle="#f0f7fd";ctx.font="bold 10px Arial";
     if(id==="joystick"||id==="attack")ctx.fillText(name,x,Math.min(canvas.height-5,y+r+13));

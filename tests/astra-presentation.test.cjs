@@ -27,6 +27,30 @@ function presentation() {
   return {context, calls, run: source=>vm.runInContext(source,context)};
 }
 
+test('image HUD skin preserves its corners and covers desktop and compact mobile panels exactly', () => {
+  const g=presentation();
+  g.context.astraUiPanelImage={complete:true,naturalWidth:1536,naturalHeight:339};
+  for(const [w,h] of [[760,120],[370,34],[240,34]]){
+    g.calls.length=0;g.run(`drawAstraCelestialPanel(12,20,${w},${h})`);
+    const slices=g.calls.filter(c=>c[0]==='drawImage');
+    assert.equal(slices.length,9);
+    assert.ok(Math.abs(slices.reduce((sum,c)=>sum+c[8]*c[9],0)-w*h)<1e-7);
+    for(const c of slices){assert.ok(c[6]>=12&&c[7]>=20);assert.ok(c[6]+c[8]<=12+w&&c[7]+c[9]<=20+h);}
+    assert.equal(g.context.ctx.globalAlpha,.8);
+  }
+});
+
+test('skill ornament uses one reusable image at every configured button size', () => {
+  const g=presentation();
+  g.context.astraSkillFrameImage={complete:true,naturalWidth:640,naturalHeight:640};
+  for(const r of [20,26,100,500]){
+    g.calls.length=0;g.run(`drawAstraSkillFrame(200,150,${r})`);
+    const calls=g.calls.filter(c=>c[0]==='drawImage');assert.equal(calls.length,1);
+    const c=calls[0];assert.equal(c[2]+c[4]/2,200);assert.equal(c[3]+c[5]/2,150);
+    assert.equal(c[4],c[5]);assert.equal(c[4],r*2.6);
+  }
+});
+
 test('E aim preview matches stardust growth for both damage and the larger suction area', () => {
   const g = presentation();
   const initial = g.run('getMobileAimedSkillTargetSpec("e")');

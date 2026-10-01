@@ -458,6 +458,17 @@ function drawAstraPortraitMedallion(cx, cy, r) {
   ctx.restore();
 }
 function drawAstraCelestialPanel(x,y,w,h) {
+  if(typeof astraUiPanelImage!=="undefined"&&astraUiPanelImage.complete&&astraUiPanelImage.naturalWidth){
+    // Nine-slice preserves the sculpted corners on both the HUD and the compact mobile strip.
+    const image=astraUiPanelImage,sw=image.naturalWidth,sh=image.naturalHeight;
+    const inset=Math.floor(sh*.28),edge=Math.min(h*.28,w*.18);
+    const sx=[0,inset,sw-inset,sw],sy=[0,inset,sh-inset,sh];
+    const dx=[x,x+edge,x+w-edge,x+w],dy=[y,y+edge,y+h-edge,y+h];
+    ctx.save();ctx.imageSmoothingEnabled=true;
+    for(let row=0;row<3;row++)for(let col=0;col<3;col++)
+      ctx.drawImage(image,sx[col],sy[row],sx[col+1]-sx[col],sy[row+1]-sy[row],dx[col],dy[row],dx[col+1]-dx[col],dy[row+1]-dy[row]);
+    ctx.restore();return;
+  }
   ctx.save();ctx.beginPath();
   const cut=Math.min(18,h*.3);
   ctx.moveTo(x+cut,y);ctx.lineTo(x+w-cut,y);ctx.lineTo(x+w,y+cut);ctx.lineTo(x+w,y+h-cut);
@@ -476,6 +487,13 @@ function drawAstraCelestialPanel(x,y,w,h) {
   }
   ctx.strokeStyle="rgba(127,215,246,.65)";ctx.beginPath();ctx.moveTo(x+cut+5,y+4);ctx.lineTo(x+w*.35,y+4);ctx.moveTo(x+w*.65,y+h-4);ctx.lineTo(x+w-cut-5,y+h-4);ctx.stroke();
   ctx.restore();
+}
+function drawAstraSkillFrame(cx,cy,r){
+  if(typeof astraSkillFrameImage==="undefined"||!astraSkillFrameImage.complete||!astraSkillFrameImage.naturalWidth)return;
+  // The transparent aperture fits the existing icon; decoration never changes its touch target.
+  const size=r*2.6;
+  ctx.save();ctx.shadowBlur=0;ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(astraSkillFrameImage,cx-size/2,cy-size/2,size,size);ctx.restore();
 }
 function drawAstraInterface() {
   if (selectedCharacter !== "astra" || screenMode !== "game") return;
@@ -496,6 +514,7 @@ function drawAstraInterface() {
     ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
     if (astraSkillIconAtlas.complete && astraSkillIconAtlas.naturalWidth) { const sw = astraSkillIconAtlas.naturalWidth / 2, sh = astraSkillIconAtlas.naturalHeight / 2; ctx.drawImage(astraSkillIconAtlas, (i % 2) * sw, Math.floor(i / 2) * sh, sw, sh, cx - r, cy - r, r * 2, r * 2); }
     ctx.restore(); ctx.strokeStyle = i === 2 ? "#f3c86e" : "#77dcff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
-    if (s[2] > 0) drawCooldownCover(cx, cy, r, s[2] / s[3], s[2]); drawSkillHudLabel(cx, y + 99, s[1], s[0], "#fff5d5");
+    if (s[2] > 0) drawCooldownCover(cx, cy, r, s[2] / s[3], s[2]);
+    drawAstraSkillFrame(cx,cy,r);drawSkillHudLabel(cx, y + 99, s[1], s[0], "#fff5d5");
   }); ctx.restore();
 }

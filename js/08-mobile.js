@@ -479,6 +479,7 @@ function drawMobileControls(){
     if(locked){ctx.fillStyle="rgba(5,7,13,.72)";ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r,0,Math.PI*2);ctx.fill();ctx.fillStyle="#fff";ctx.font=`900 ${Math.max(13,skill.r*.58)}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("10",skill.x,skill.y);}
     ctx.fillStyle="#fff";ctx.font="900 9px Arial";ctx.textAlign="center";ctx.textBaseline="alphabetic";
     if(selectedCharacter==="astra"){
+      drawAstraSkillFrame(skill.x,skill.y,skill.r);
       const lines=skill.key==="r"?["만유인력","역전"]:[skillName];
       lines.forEach((label,i)=>ctx.fillText(label,skill.x,skill.y+skill.r+12+i*10,skill.r*2+8));
     }else ctx.fillText(skillName,skill.x,skill.y+skill.r+12);
