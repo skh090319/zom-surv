@@ -1,6 +1,7 @@
 // Astra: real orbit slots, returning constellation volleys and gravity capture.
 let astraMeteors = [], astraWells = [], astraEffects = [], astraDust = [];
 let astraGravity = null, astraFrame = 0, astraFxBudget = 0;
+let astraWake = [];
 let astraRewardedKills = new WeakSet(), astraOrbitPrevious = new Map(), astraEnemyPrevious = new WeakMap();
 const ASTRA_Q_CD = 240, ASTRA_E_CD = 510, ASTRA_X_CD = 780, ASTRA_R_CD = 1680;
 const ASTRA_R_DURATION = 360, ASTRA_R_LIFT = 42, ASTRA_R_FLIGHT = 980;
@@ -14,6 +15,7 @@ function resetAstra() {
   if (astraGravity) for (const b of astraGravity.bodies) astraReleaseBody(b);
   astraMeteors = []; astraWells = []; astraEffects = []; astraDust = [];
   astraGravity = null; astraFrame = 0; astraFxBudget = 0;
+  astraWake = [];
   astraRewardedKills = new WeakSet(); astraOrbitPrevious = new Map(); astraEnemyPrevious = new WeakMap();
   player.astraStardust = 0; player.astraUltimateCasts = 0;
   for (const k of ["QCooldown", "ECooldown", "XCooldown", "RCooldown", "OverdriveTime", "OrbitBlend", "OrbitAngle", "OrbitTick", "RedLevel", "BlueLevel", "HorizonLevel"]) player[`astra${k}`] = 0;
@@ -204,6 +206,15 @@ function launchAstraGravity() {
   for (const b of g.bodies) b.delay = b.index / Math.max(1, g.bodies.length - 1) * 24;
   astraImpact("release", player.x, player.y - 38, 205);
 }
+function astraFindMeteorTarget(b, targets) {
+  let closest = null, distance = ASTRA_R_FLIGHT * 1.2;
+  for (const z of targets) {
+    if (z.hp <= 0 || z.astraControl) continue;
+    const d = Math.hypot(z.x - b.x, z.y - b.y);
+    if (d < distance) { distance = d; closest = z; }
+  }
+  return closest;
+}
 function astraDetonateBody(b, g) {
   if (b.state === "done") return;
   b.state = "done";
@@ -231,6 +242,7 @@ function updateAstraGravity() {
   // A slow first download must fade in too, never pop in at full opacity.
   if (typeof astraUltimateBackdrop !== "undefined" && astraUltimateBackdrop.complete && astraUltimateBackdrop.naturalWidth > 0) g.backdropReadyAge++;
   const living = new Set(zombies);
+  const targets = zombies.filter(z => z.hp > 0 && !z.astraControl);
   for (const b of g.bodies) astraDetachDeadBody(b, living);
   if (g.state === "orbit" && g.age >= ASTRA_R_DURATION) launchAstraGravity();
   if (g.state === "launch") g.launchAge++;
@@ -238,7 +250,8 @@ function updateAstraGravity() {
     if (b.state === "done") continue;
     if (b.collisionCooldown > 0) b.collisionCooldown--;
     if (g.state === "launch" && b.state === "orbit" && g.launchAge >= b.delay) {
-      b.state = "flight"; b.a = Math.atan2(g.targetY - b.y, g.targetX - b.x); b.speed = 12;
+      b.state = "flight"; b.target = astraFindMeteorTarget(b, targets);
+      b.a = Math.atan2((b.target?.y ?? g.targetY) - b.y, (b.target?.x ?? g.targetX) - b.x); b.speed = 12;
     }
     if (b.state === "orbit") {
       b.a += (.028 + b.ring * .009) * (b.ring === 1 ? -1 : 1) * (1 + (player.astraOrbitBlend || 0) * .9);
@@ -246,6 +259,13 @@ function updateAstraGravity() {
       b.x = b.startX + (p.x - b.startX) * t; b.y = b.startY + (p.y - b.startY) * t; b.lift = 38 * t;
     } else {
       const px = b.x, py = b.y; b.speed = Math.min(25, b.speed + .9);
+      if (b.target && (!living.has(b.target) || b.target.hp <= 0 || b.target.astraControl)) b.target = null;
+      if (!b.target && g.launchAge % 6 === 0) b.target = astraFindMeteorTarget(b, targets);
+      if (b.target) {
+        const wanted = Math.atan2(b.target.y - b.y, b.target.x - b.x);
+        const turn = Math.atan2(Math.sin(wanted - b.a), Math.cos(wanted - b.a));
+        b.a += Math.max(-.18, Math.min(.18, turn));
+      }
       b.x += Math.cos(b.a) * b.speed; b.y += Math.sin(b.a) * b.speed; b.travel += b.speed;
       if (b.zombie) { b.zombie.x = b.x; b.zombie.y = b.y; }
       const hit = zombies.find(z => z.hp > 0 && !z.astraControl && astraSegmentDistance(z.x, z.y, px, py, b.x, b.y) <= z.r + b.r);
@@ -328,6 +348,13 @@ function updateAstraWells() {
 function updateAstra() {
   if (selectedCharacter !== "astra") return;
   astraFrame++; astraFxBudget = 0;
+  if ((player.astraStardust || 0) >= 50 && astraFrame % 2 === 0) {
+    const last = astraWake[astraWake.length - 1];
+    if (last && Math.hypot(player.x - last.x, player.y - last.y) > 160) astraWake = [];
+    astraWake.push({ x: player.x, y: player.y + 13, born: astraFrame });
+    if (astraWake.length > 24) astraWake.shift();
+  }
+  while (astraWake.length && astraFrame - astraWake[0].born > 48) astraWake.shift();
   for (const k of ["astraQCooldown", "astraECooldown", "astraXCooldown", "astraRCooldown", "astraOverdriveTime"]) if (player[k] > 0) player[k]--;
   const target = astraOrbitTarget(), blend = player.astraOrbitBlend || 0;
   player.astraOrbitBlend = blend + (target - blend) * (target > .5 ? .035 : .018);
@@ -365,20 +392,58 @@ function updateAstra() {
     if (--p.life <= 0) astraDust.splice(i, 1);
   }
 }
+function drawAstraPortraitMedallion(cx, cy, r) {
+  ctx.save();
+  const halo = ctx.createRadialGradient(cx, cy, r * .3, cx, cy, r + 6);
+  halo.addColorStop(0,"#375682");halo.addColorStop(.75,"#182140");halo.addColorStop(1,"rgba(142,192,255,0)");
+  ctx.fillStyle=halo;ctx.beginPath();ctx.arc(cx,cy,r+6,0,Math.PI*2);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,r-2,0,Math.PI*2);ctx.clip();
+  if(typeof astraSprite!=="undefined"&&astraSprite.complete&&astraSprite.naturalWidth){
+    const sw=astraSprite.naturalWidth,sh=astraSprite.naturalHeight,side=sw*.4;
+    ctx.drawImage(astraSprite,sw*.30,sh*.055,side,side,cx-r,cy-r,r*2,r*2);
+  }
+  ctx.restore();ctx.strokeStyle="#d8bf84";ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle="rgba(161,225,255,.7)";ctx.beginPath();ctx.arc(cx,cy,r+4,-.8,1.8);ctx.stroke();
+  for(const a of [-Math.PI/2,Math.PI/2]){
+    const px=cx+Math.cos(a)*(r+4),py=cy+Math.sin(a)*(r+4);
+    ctx.fillStyle="#f4deb0";ctx.beginPath();ctx.moveTo(px,py-4);ctx.lineTo(px+3,py);ctx.lineTo(px,py+4);ctx.lineTo(px-3,py);ctx.closePath();ctx.fill();
+  }
+  ctx.restore();
+}
+function drawAstraCelestialPanel(x,y,w,h) {
+  ctx.save();ctx.beginPath();
+  const cut=Math.min(18,h*.3);
+  ctx.moveTo(x+cut,y);ctx.lineTo(x+w-cut,y);ctx.lineTo(x+w,y+cut);ctx.lineTo(x+w,y+h-cut);
+  ctx.lineTo(x+w-cut,y+h);ctx.lineTo(x+cut,y+h);ctx.lineTo(x,y+h-cut);ctx.lineTo(x,y+cut);ctx.closePath();
+  const field=ctx.createLinearGradient(x,y,x+w,y+h);
+  field.addColorStop(0,"rgba(8,19,43,.96)");field.addColorStop(.48,"rgba(39,25,76,.96)");field.addColorStop(1,"rgba(8,24,45,.97)");
+  ctx.fillStyle=field;ctx.fill();ctx.strokeStyle="#b9a576";ctx.lineWidth=1.2;ctx.stroke();ctx.clip();
+  const cloud=ctx.createRadialGradient(x+w*.38,y+h*.8,0,x+w*.38,y+h*.8,w*.48);
+  cloud.addColorStop(0,"rgba(139,100,222,.17)");cloud.addColorStop(.5,"rgba(64,133,184,.08)");cloud.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=cloud;ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle="rgba(171,205,243,.12)";ctx.lineWidth=.7;
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(x+w*.32,y+h*1.2,w*(.25+i*.12),h*.8,-.24,0,Math.PI*2);ctx.stroke();}
+  for(let i=0;i<24;i++){
+    const px=x+w*((i*.618)%1),py=y+h*((i*.379)%1);
+    ctx.fillStyle=i%4?"rgba(166,216,255,.28)":"rgba(255,232,179,.6)";ctx.fillRect(px,py,i%4?1:2,1);
+  }
+  ctx.strokeStyle="rgba(127,215,246,.65)";ctx.beginPath();ctx.moveTo(x+cut+5,y+4);ctx.lineTo(x+w*.35,y+4);ctx.moveTo(x+w*.65,y+h-4);ctx.lineTo(x+w-cut-5,y+h-4);ctx.stroke();
+  ctx.restore();
+}
 function drawAstraInterface() {
   if (selectedCharacter !== "astra" || screenMode !== "game") return;
   const w = Math.min(760, canvas.width - 28), x = (canvas.width - w) / 2, y = canvas.height - 178;
-  ctx.save(); const bg = ctx.createLinearGradient(x, y, x + w, y + 120);
-  bg.addColorStop(0, "rgba(4,12,30,.97)"); bg.addColorStop(.52, "rgba(22,16,58,.97)"); bg.addColorStop(1, "rgba(6,9,24,.97)");
-  drawRoundedRect(x, y, w, 120, 24, bg, "#e6bd62", 2);
-  ctx.textAlign = "left"; ctx.fillStyle = "#fff8df"; ctx.font = "bold 20px Arial"; ctx.fillText("아스트라", x + 22, y + 30);
+  ctx.save();drawAstraCelestialPanel(x,y,w,120);drawAstraPortraitMedallion(x+57,y+59,41);
+  const textX=x+114,textW=Math.max(80,w-438);
+  ctx.textAlign = "left"; ctx.fillStyle = "#fff8df"; ctx.font = "22px DoHyeon, Arial"; ctx.fillText("아스트라", textX, y + 30);
   ctx.fillStyle = "#80ddff"; ctx.font = "bold 12px Arial";
-  ctx.fillText(astraGravity ? `만유인력 역전 · ${astraGravity.bodies.filter(b => b.state !== "done").length}개 천체` : `공전성 ${astraOrbitCount() - astraQFlights().length}/${astraOrbitCount()} · 궤도 ${Math.round(astraOrbitRadius())}`, x + 22, y + 55);
+  ctx.fillText(astraGravity ? `만유인력 역전 · ${astraGravity.bodies.filter(b => b.state !== "done").length}개 천체` : `공전성 ${astraOrbitCount() - astraQFlights().length}/${astraOrbitCount()} · 궤도 ${Math.round(astraOrbitRadius())}`, textX, y + 55,textW);
   ctx.fillStyle = "#cabfe6"; ctx.font = "11px Arial";
-  const hint = astraGravity ? (astraGravity.state === "orbit" ? `${Math.ceil((ASTRA_R_DURATION - astraGravity.age) / 60)}초 후 조준 방향으로 발사` : "천체 충돌 · 성운 폭발") : (astraQFlights().length ? "Q 재사용: 모든 공전성 즉시 회수" : "공전성 왕복 공격 · 적을 포획하는 천구");
-  ctx.fillText(hint, x + 22, y + 78);
+  const hint = astraGravity ? (astraGravity.state === "orbit" ? `${Math.ceil((ASTRA_R_DURATION - astraGravity.age) / 60)}초 후 적을 추적해 발사` : "유도 천체 · 성운 폭발") : (astraQFlights().length ? "Q 재사용: 모든 공전성 즉시 회수" : "별빛 잔상 50 · 천문 고리 150 · 왕관 300");
+  ctx.fillText(hint, textX, y + 78,textW);
   ctx.fillStyle = "#f4d58e"; ctx.font = "bold 11px Arial";
-  ctx.fillText(`별가루 ${player.astraStardust || 0} · 피해 +${player.astraStardust || 0}% · 경험치 +${(player.astraUltimateCasts || 0) * 20}%`, x + 22, y + 99);
+  ctx.fillText(`별가루 ${player.astraStardust || 0} · 피해 +${player.astraStardust || 0}% · 경험치 +${(player.astraUltimateCasts || 0) * 20}%`, textX, y + 99,textW);
   const skills = [["Q", astraQFlights().length ? "공전성 회수" : "성궤 투사", astraQFlights().length ? 0 : player.astraQCooldown, ASTRA_Q_CD], ["E", "중력 붕괴", player.astraECooldown, ASTRA_E_CD], ["X", "궤도 가속", player.astraXCooldown, ASTRA_X_CD], ["R", player.level < 10 ? "10레벨" : "만유인력 역전", player.astraRCooldown, ASTRA_R_CD]];
   skills.forEach((s, i) => {
     const cx = x + w - 286 + i * 70, cy = y + 48, r = 26;

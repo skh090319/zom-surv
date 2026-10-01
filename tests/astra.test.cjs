@@ -287,7 +287,7 @@ test('all VFX phases render finite geometry with balanced canvas state and cache
   const main=drawing();Object.assign(g.context,{ctx:main.proxy,camera:{x:-800,y:-600},getCameraViewWidth:()=>1600,getCameraViewHeight:()=>1200,getWorldViewScale:()=>1,zombieSpriteAtlas:{complete:true,naturalWidth:512,naturalHeight:256},document:{createElement(){allocated++;return{width:0,height:0,getContext:()=>drawing().proxy};}}});
   vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);
   for(let i=0;i<24;i++)g.context.zombies.push(enemy(Math.cos(i)*200,Math.sin(i)*200,{hp:100}));
-  g.run('activateAstraQ();activateAstraE();activateAstraR();activateAstraX()');
+  g.run('player.astraStardust=300;activateAstraQ();activateAstraE();activateAstraR();activateAstraX()');
   for(let i=0;i<470;i++){tick(g,1);if(i%7===0){g.run('drawAstraUltimateBackdrop();drawAstraEffects();drawAstraForeground();drawAstraInterface()');assert.equal(main.stack.length,0);}}
   // Four existing textures, up to six exact-size star faces and one realm surface.
   assert.ok(allocated>=4&&allocated<=11);const before=allocated;g.run('for(let i=0;i<10;i++){drawAstraUltimateBackdrop();drawAstraEffects();drawAstraForeground();}');assert.equal(allocated,before);
@@ -350,4 +350,38 @@ test('Astra keeps permanent orbit stars and blue upgrades add more',()=>{
 test('Astra ultimate is locked until level ten',()=>{
   const g=game();g.context.player.level=9;g.run('activateAstraR()');assert.equal(g.context.player.astraRCooldown||0,0);
   g.context.player.level=10;g.run('activateAstraR()');assert.equal(g.context.player.astraRCooldown,g.run('ASTRA_R_CD'));
+});
+
+test('R homes toward a boss behind the aim direction and follows a moving target',()=>{
+  for(const moving of [false,true]){
+    const g=game(),boss=enemy(-700,0,{isRaidBoss:true,r:50,hp:100000,maxHp:100000});g.context.zombies.push(boss);
+    g.run('activateAstraR()');tick(g,360);
+    const body=g.run('astraGravity.bodies[0]');assert.equal(body.target,boss);
+    for(let i=0;i<120;i++){if(moving)boss.y+=1.7;tick(g,1);}
+    assert.ok(boss.hp<100000,'the volley hits without aiming at the boss');assert.equal(g.run('astraGravity'),null);
+  }
+});
+
+test('R retargets after target death and ignores captured bodies',()=>{
+  const g=game(),first=enemy(700,0,{isRaidBoss:true}),next=enemy(760,170,{isRaidBoss:true}),captured=enemy(30,0);
+  g.context.zombies.push(first,next,captured);g.run('activateAstraR()');tick(g,360);
+  const body=g.run('astraGravity.bodies[0]');assert.equal(body.target,first);first.hp=0;g.context.zombies.splice(0,1);
+  tick(g,6);assert.equal(body.target,next);assert.notEqual(body.target,captured);
+  next.hp=0;g.context.zombies.splice(g.context.zombies.indexOf(next),1);tick(g,150);assert.equal(g.run('astraGravity'),null);
+});
+
+test('growth tiers and movement wake stay bounded and reset between runs',()=>{
+  const g=game();vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);
+  for(const [dust,stage] of [[0,0],[49,0],[50,1],[149,1],[150,2],[299,2],[300,3],[10000,3]]){
+    g.context.player.astraStardust=dust;assert.equal(g.run('astraGrowthStage()'),stage);
+  }
+  g.run('for(let i=0;i<200;i++){player.x+=2;updateAstra()}');assert.ok(g.run('astraWake.length<=24'));
+  g.run('resetAstra()');assert.equal(g.run('astraWake.length'),0);assert.equal(g.run('astraGrowthStage()'),0);
+});
+
+test('Astra HUD draws a real portrait crop and restores canvas state',()=>{
+  const g=game(),images=[];g.context.astraSprite={complete:true,naturalWidth:760,naturalHeight:1144};
+  g.context.ctx.drawImage=(...args)=>images.push(args);g.run('drawAstraInterface()');
+  assert.equal(images.length,1);assert.equal(images[0][0],g.context.astraSprite);
+  const [,sx,sy,sw,sh,,,dw,dh]=images[0];assert.ok(sx>=0&&sy>=0&&sx+sw<=760&&sy+sh<=1144);assert.equal(dw,dh);
 });

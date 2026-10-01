@@ -328,6 +328,12 @@ function drawAstraWell(w) {
   ctx.beginPath(); ctx.arc(0, 0, r * .16, 0, ASTRA_TAU); ctx.fill();
   ctx.globalCompositeOperation = "lighter";
   ctx.strokeStyle = "rgba(201,197,255,.93)"; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(0, 0, r * .17, 0, ASTRA_TAU); ctx.stroke();
+  // Split cyan/violet arcs suggest light bending around the event horizon.
+  for(let i=0;i<3;i++){
+    const a=w.phase*.4+i*ASTRA_TAU/3;
+    ctx.strokeStyle=i===1?"rgba(200,158,255,.62)":"rgba(163,241,255,.68)";ctx.lineWidth=.8;
+    ctx.beginPath();ctx.ellipse(0,-r*.008,r*(.205+i*.006),r*.185,-.28,a,a+1.35);ctx.stroke();
+  }
   ctx.strokeStyle = "rgba(255,218,163,.92)"; ctx.lineWidth = 2.2;
   ctx.beginPath(); ctx.ellipse(0, 0, r * .56, r * .17, -.28, 0, Math.PI); ctx.stroke();
   // Short, tapered accretion fragments move faster near the singularity.
@@ -345,6 +351,62 @@ function drawAstraWell(w) {
   ctx.restore();
 }
 
+function astraGrowthStage() {
+  const dust = player.astraStardust || 0;
+  return dust >= 300 ? 3 : dust >= 150 ? 2 : dust >= 50 ? 1 : 0;
+}
+function drawAstraGrowth(front = false) {
+  const stage = astraGrowthStage(); if (!stage) return;
+  const t = astraFrame * .025, x = player.x, y = player.y;
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  if (!front) {
+    // One bounded wake, not an ever-growing particle emitter.
+    if (astraWake.length > 1) astraRibbon(astraWake, 18 + stage * 5, false, .38);
+    if (stage >= 2) {
+      ctx.save(); ctx.translate(x, y - 16); ctx.rotate(-.18);
+      astraRuneRing(0, 0, 55, t * .16, .45);
+      ctx.strokeStyle = "rgba(151,218,255,.4)"; ctx.lineWidth = .8;
+      ctx.beginPath(); ctx.ellipse(0, 0, 66, 22, t * .07, 0, ASTRA_TAU); ctx.stroke(); ctx.restore();
+    }
+    if (stage >= 3) astraNebula(x, y + 18, 65, t * .1, .24, .58);
+  } else {
+    for (let i = 0; i < 6 + stage * 2; i++) {
+      const a = i * 2.399 + t * .35, r = 24 + i % 4 * 8;
+      const alpha = .22 + .38 * Math.sin(t + i) ** 2;
+      ctx.globalAlpha = alpha;
+      astraDiamond(x + Math.cos(a) * r, y - 25 + Math.sin(a) * r * .6, 1.6 + i % 3, a, i % 3 ? "#b3eaff" : "#ffe5ac");
+    }
+    ctx.globalAlpha = 1;
+    if (stage >= 3) {
+      const cy = y - 67 + Math.sin(t) * 2;
+      astraGlow(x, cy, 29, .34, "gold");
+      ctx.strokeStyle = "rgba(248,225,175,.85)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x - 18, cy + 5); ctx.lineTo(x - 21, cy - 6);
+      ctx.lineTo(x - 9, cy); ctx.lineTo(x, cy - 12); ctx.lineTo(x + 9, cy); ctx.lineTo(x + 21, cy - 6); ctx.lineTo(x + 18, cy + 5); ctx.closePath(); ctx.stroke();
+      for (const dx of [-21, 0, 21]) astraDiamond(x + dx, cy - (dx ? 6 : 12), dx ? 3 : 5, Math.PI / 2, "#edfbff");
+    }
+  }
+  ctx.restore();
+}
+function drawAstraConstellation(g) {
+  const bodies = g.bodies.filter(b => b.state === "orbit");
+  if (bodies.length < 2) return;
+  const stride = Math.max(1, Math.ceil(bodies.length / 24));
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = astraEase(g.age / 42) * (g.state === "launch" ? Math.max(0, 1 - g.launchAge / 24) : 1);
+  ctx.strokeStyle = "rgba(148,209,255,.3)"; ctx.lineWidth = .8;
+  ctx.beginPath();
+  for (let i = 0; i < bodies.length; i += stride) {
+    const b = bodies[i], next = bodies[(i + stride) % bodies.length];
+    ctx.moveTo(b.x, b.y); ctx.lineTo(next.x, next.y);
+    if (i % (stride * 3) === 0) { ctx.moveTo(g.x, g.y - 38); ctx.lineTo(b.x, b.y); }
+  }
+  ctx.stroke();
+  for (let i = 0; i < bodies.length; i += stride) {
+    const b = bodies[i]; astraDiamond(b.x, b.y, 4, astraFrame * .01, "#fff0c2");
+  }
+  ctx.restore();
+}
 function drawAstraGravityField(g) {
   const appear = astraEase(g.age / ASTRA_R_LIFT), fade = g.state === "launch" ? Math.max(0, 1 - g.launchAge / 30) : 1;
   if (fade <= 0) return;
@@ -376,12 +438,19 @@ function drawAstraEffects() {
   if (selectedCharacter !== "astra") return;
   prepareAstraVfx();
   worldStart(); ctx.save(); ctx.lineCap = "round";
+  drawAstraGrowth(false);
   for (const w of astraWells) if (astraVisible(w.x, w.y, Math.max(w.r * 1.3, w.pullR || 0))) drawAstraWell(w);
   ctx.globalCompositeOperation = "lighter";
   const radius = astraOrbitRadius();
+  const launchStars=astraQFlights().filter(m=>m.age<14&&!m.returning);
+  if(launchStars.length>1){
+    ctx.save();ctx.globalAlpha=(1-launchStars[0].age/14)*.55;ctx.strokeStyle="#c6ebff";ctx.lineWidth=.9;ctx.beginPath();
+    launchStars.forEach((m,i)=>i?ctx.lineTo(m.x,m.y):ctx.moveTo(m.x,m.y));ctx.closePath();ctx.stroke();ctx.restore();
+  }
   astraRuneRing(player.x, player.y, radius, (player.astraOrbitAngle || 0) * .18, .2 + (player.astraOrbitBlend || 0) * .22);
   if (astraGravity) {
     drawAstraGravityField(astraGravity);
+    drawAstraConstellation(astraGravity);
     ctx.globalCompositeOperation = "source-over";
     for (const b of astraGravity.bodies) if (b.state !== "done" && b.zombie) {
       ctx.fillStyle = "rgba(2,5,15,.24)"; ctx.beginPath(); ctx.ellipse(b.x, b.y + b.lift + 13, b.r * .9, b.r * .25, 0, 0, ASTRA_TAU); ctx.fill();
@@ -416,10 +485,20 @@ function drawAstraBurst(e) {
   if (e.type === "wellBorn") return;
   if (e.type === "capture") {
     const r = e.r * astraEase(p); ctx.strokeStyle = `rgba(149,191,255,${fade * .32})`; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(e.x, e.y, r, 0, ASTRA_TAU); ctx.stroke(); return;
+    ctx.beginPath(); ctx.arc(e.x, e.y, r, 0, ASTRA_TAU); ctx.stroke();
+    if (r > 12) {
+      astraRuneRing(e.x, e.y, r, p * .2, fade * .4);
+      ctx.save();ctx.translate(e.x,e.y);ctx.rotate(-.35);ctx.scale(1,.42);
+      astraRuneRing(0,0,r*.92,-p*.3,fade*.32);ctx.restore();
+    }
+    return;
   }
   const big = e.type === "impact" || e.type === "collapse", r = e.r * (1 - (1 - p) ** 3);
   ctx.save(); ctx.translate(e.x, e.y);
+  if(e.type==="catch"){
+    ctx.strokeStyle=`rgba(160,225,255,${fade*.6})`;ctx.lineWidth=.8;
+    for(let i=0;i<2;i++){ctx.beginPath();ctx.arc(0,0,r*(1+i*.28),0,ASTRA_TAU);ctx.stroke();}
+  }
   astraGlow(0, 0, e.r * (big ? 1.15 : .9), Math.max(0, 1 - p * 3), "blue");
   astraGlow(0, 0, e.r * .42, Math.max(0, 1 - p * 4), "gold");
   if (big) {
@@ -443,9 +522,18 @@ function drawAstraBurst(e) {
 function drawAstraForeground() {
   if (selectedCharacter !== "astra") return;
   worldStart(); ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round";
+  drawAstraGrowth(true);
   const deployed = new Set(astraQFlights().map(m => m.slot));
   for (let n = 0; n < astraOrbitCount(); n++) if (!deployed.has(n)) {
     const p = astraOrbitSlot(n); astraStar(p.x, p.y, 12 + (player.astraOrbitBlend || 0) * 4, p.a * .4);
+    if (astraGrowthStage() >= 2) {
+      ctx.strokeStyle = "rgba(141,208,255,.32)"; ctx.lineWidth = 1.2;
+      ctx.beginPath();ctx.arc(player.x,player.y,astraOrbitRadius(),p.a-.36,p.a-.05);ctx.stroke();
+      const next = astraOrbitSlot((n + 1) % astraOrbitCount());
+      if (!deployed.has((n + 1) % astraOrbitCount())) {
+        ctx.strokeStyle="rgba(188,195,255,.14)";ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(next.x,next.y);ctx.stroke();
+      }
+    }
   }
   for (const m of astraMeteors) if (astraVisible(m.x, m.y, 350)) {
     astraRibbon(m.trail, m.kind === "orbit" ? m.r * 1.75 : 12, m.returning);

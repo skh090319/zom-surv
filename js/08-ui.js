@@ -16,10 +16,21 @@ function drawHealthBar() {
   ctx.fillStyle = "#2b2b2b";
   ctx.fillRect(x, y, barW, barH);
 
-  ctx.fillStyle = "#ff3b3b";
+  const astralHealth = selectedCharacter === "astra";
+  if (astralHealth) {
+    const galaxy=ctx.createLinearGradient(x,y,x+barW,y+barH);
+    galaxy.addColorStop(0,"#324dba");galaxy.addColorStop(.35,"#8555cd");galaxy.addColorStop(.65,"#647fd3");galaxy.addColorStop(1,"#65d8e1");ctx.fillStyle=galaxy;
+  } else ctx.fillStyle = "#ff3b3b";
   ctx.fillRect(x, y, barW * hpRatio, barH);
+  if(astralHealth){
+    ctx.save();ctx.beginPath();ctx.rect(x,y,barW*hpRatio,barH);ctx.clip();
+    ctx.strokeStyle="rgba(202,222,255,.28)";ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(x,y+barH*.85);ctx.bezierCurveTo(x+barW*.35,y-8,x+barW*.62,y+barH*1.5,x+barW,y+3);ctx.stroke();
+    for(let i=0;i<29;i++){ctx.fillStyle=i%4?"rgba(226,243,255,.48)":"#fff5d8";ctx.fillRect(x+barW*((i*.618)%1),y+3+(i*7%18),i%4?1:2,1);}
+    ctx.restore();
+  }
 
-  ctx.strokeStyle = "white";
+  ctx.strokeStyle = astralHealth ? "#c4c9f4" : "white";
   ctx.lineWidth = 2;
   ctx.strokeRect(x, y, barW, barH);
 
@@ -622,12 +633,11 @@ function drawMobileCharacterResource(){
   if(!(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()))return;
   if(selectedCharacter==="astra"){
     const dust=Math.max(0,Math.floor(player.astraStardust||0)),xp=(player.astraUltimateCasts||0)*20;
-    const w=Math.min(370,canvas.width*.44),h=26,x=(canvas.width-w)/2,y=canvas.height-99;
+    const w=Math.min(370,canvas.width*.44),h=34,x=(canvas.width-w)/2,y=canvas.height-108;
     ctx.save();
-    const fill=ctx.createLinearGradient(x,y,x+w,y+h);fill.addColorStop(0,"rgba(12,22,44,.92)");fill.addColorStop(1,"rgba(31,21,46,.92)");
-    drawRoundedRect(x,y,w,h,9,fill,"rgba(155,220,245,.56)",1);
+    drawAstraCelestialPanel(x,y,w,h);drawAstraPortraitMedallion(x+22,y+h/2,13);
     ctx.font="bold 11px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#f2e3b8";
-    ctx.fillText(`별가루 ${dust.toLocaleString()} · 피해 +${dust}% · 경험치 +${xp}%`,canvas.width/2,y+h/2,w-14);
+    ctx.fillText(`별가루 ${dust.toLocaleString()} · 피해 +${dust}% · 경험치 +${xp}%`,x+44+(w-52)/2,y+h/2,w-52);
     ctx.restore();return;
   }
   const resource=getMobileCharacterResource();if(!resource)return;
@@ -973,7 +983,7 @@ const characterSkillGuide = {
   moira:{name:"모이라",color:"#ff315b",passive:"바늘에 맞은 적을 붉은 실로 연결하고, 한 적이 받은 고통의 일부를 다른 연결 대상에게 공유합니다.",skills:[["기본 공격 · 바늘땀","전방의 적에게 저주 바늘을 꽂고 붉은 실로 연결합니다."],["Q · 조종","연결된 적들을 커서 지점으로 강하게 끌어당깁니다."],["E · 대리 인형","커서 위치에 인형을 설치해 연결된 적이 받는 피해 일부를 저장합니다."],["X · 고통 전이","인형이 저장한 고통을 연결된 모든 적에게 동시에 폭발시킵니다."],["R · 꼭두각시 극장","10레벨부터 다수의 적을 연결하고 서로 충돌할 때마다 폭발시킵니다."]]},
   mare:{name:"마레",color:"#45dff0",passive:"물 공격을 반복 적중시키면 침수가 중첩됩니다. 교차한 해류는 합류 폭발을 일으킵니다.",skills:[["기본 공격 · 물길 가르기","전방에 지속되는 해류를 남겨 적을 운반합니다. 해류가 교차하면 광역 피해가 발생합니다."],["Q · 밀물","실제로 전진하는 거대한 파도가 닿은 적을 밀어내고 침수를 중첩합니다."],["E · 소용돌이 핵","물의 핵을 설치해 적을 끌어당깁니다. 다시 사용하면 핵이 폭발합니다."],["X · 수압","침수된 모든 적을 압축해 중첩에 비례한 피해를 줍니다."],["R · 세계를 삼킨 바다","10레벨부터 영체 고래를 직접 조종하며 강화 해류를 남깁니다. 종료 시 모든 해류가 모여 폭발합니다."]]},
   nullZero:{name:"NULL-ZERO",color:"#52efff",passive:"공격이 감염 코드를 쌓습니다. 최대 중첩에서 적이 오류 상태로 폭발하고 주변 적에게 감염을 전파합니다.",skills:[["기본 공격 · 악성 패킷","청록 데이터 탄환 안에 붉은 악성 코드를 실어 감염을 누적합니다."],["Q · 데이터 절단","직선상의 적을 관통하는 고속 코드 칼날로 감염을 빠르게 쌓습니다."],["E · 격리 구역","지정 위치에 방화벽 구역을 설치해 적을 둔화하고 반복 감염시킵니다."],["X · 코드 복제","두 개의 지연 잔상이 기본 공격을 복제해 추가 악성 패킷을 발사합니다."],["R · 커널 패닉","10레벨부터 넓은 범위의 적을 강제로 감염 폭발시키고 연쇄 전염을 일으킵니다."]]},
-  astra:{name:"아스트라",color:"#e6bd62",passive:"비전과 중력장을 보유하고 시작합니다. 적을 처치할 때마다 별가루를 1개 얻으며, 별가루마다 평타·스킬 피해와 중력 붕괴의 피해·흡입 범위가 1%씩 증가합니다. 증강 자체의 피해에는 적용되지 않습니다. 청백색 공전성이 몸 주위를 돌며 닿은 적을 공격하고 밀어냅니다. Q로 발사한 별은 회수될 때까지 공전 궤도를 비웁니다.",skills:[["기본 공격 · 별빛 파편","조준 방향으로 휘어지는 관통 성광탄을 발사합니다. 경로의 모든 적을 관통하며 적마다 한 번씩 피해를 줍니다."],["Q · 성궤 투사","모든 공전성을 동시에 발사합니다. 별은 적을 관통한 뒤 돌아오면서 다시 피해를 주며, Q를 다시 누르면 즉시 회수합니다. 발사 중에는 넉백이 적용되지 않습니다."],["E · 중력 붕괴","지정 위치에 중력정을 엽니다. 흡입 범위는 피해 반경보다 60% 넓어 적과 보스의 이동을 끌어당깁니다. 별가루마다 피해 반경과 흡입 반경이 모두 1%씩 증가합니다. 아마란스의 독탄·덩굴, 모르스의 낫, 녹스의 어둠 구체도 흡수해 1초 뒤 소멸시킵니다."],["X · 궤도 가속","공전 속도와 궤도 반경이 스르르 커지고, 종료 시 자연스럽게 원래 크기로 돌아옵니다."],["R · 만유인력 역전","10레벨부터 사용 가능. 일반 적을 여러 궤도로 포획하며, 궁극기가 지속되는 동안 포획되지 않은 모든 적과 보스를 90% 둔화시킵니다. 포획한 적은 아스트라와 함께 이동하고 서로 충돌하며, 6초 뒤 조준 방향으로 날아가 대폭발을 일으킵니다. 보스와 분신은 포획되지 않으며 적이 없으면 가상 천체가 생성됩니다. 보스 충돌에는 최대 체력 비례 피해가 추가됩니다. 사용할 때마다 이번 게임의 경험치 획득량이 영구적으로 20%씩 증가합니다."]]},
+  astra:{name:"아스트라",color:"#e6bd62",passive:"비전과 중력장을 보유하고 시작합니다. 적을 처치할 때마다 별가루를 1개 얻으며, 별가루마다 평타·스킬 피해와 중력 붕괴의 피해·흡입 범위가 1%씩 증가합니다. 증강 자체의 피해에는 적용되지 않습니다. 별가루 50개에서 별빛 잔상, 150개에서 천문 고리, 300개에서 별빛 왕관이 나타납니다. 청백색 공전성이 몸 주위를 돌며 닿은 적을 공격하고 밀어냅니다. Q로 발사한 별은 회수될 때까지 공전 궤도를 비웁니다.",skills:[["기본 공격 · 별빛 파편","조준 방향으로 휘어지는 관통 성광탄을 발사합니다. 경로의 모든 적을 관통하며 적마다 한 번씩 피해를 줍니다."],["Q · 성궤 투사","모든 공전성을 동시에 발사합니다. 별은 적을 관통한 뒤 돌아오면서 다시 피해를 주며, Q를 다시 누르면 즉시 회수합니다. 발사 중에는 넉백이 적용되지 않습니다."],["E · 중력 붕괴","지정 위치에 중력정을 엽니다. 흡입 범위는 피해 반경보다 60% 넓어 적과 보스의 이동을 끌어당깁니다. 별가루마다 피해 반경과 흡입 반경이 모두 1%씩 증가합니다. 아마란스의 독탄·덩굴, 모르스의 낫, 녹스의 어둠 구체도 흡수해 1초 뒤 소멸시킵니다."],["X · 궤도 가속","공전 속도와 궤도 반경이 스르르 커지고, 종료 시 자연스럽게 원래 크기로 돌아옵니다."],["R · 만유인력 역전","10레벨부터 사용 가능. 일반 적을 여러 궤도로 포획하며, 궁극기가 지속되는 동안 포획되지 않은 모든 적과 보스를 90% 둔화시킵니다. 포획한 적은 아스트라와 함께 이동하고 서로 충돌하며, 6초 뒤 주변의 적을 자동 추적해 날아가 대폭발을 일으킵니다. 목표가 쓰러지면 다른 적을 탐색하고, 대상이 없으면 조준 방향으로 날아갑니다. 보스와 분신은 포획되지 않으며 적이 없으면 가상 천체가 생성됩니다. 보스 충돌에는 최대 체력 비례 피해가 추가됩니다. 사용할 때마다 이번 게임의 경험치 획득량이 영구적으로 20%씩 증가합니다."]]},
 };
 
 function getCharacterPreviewSprite(id, thumbnail = false){if(thumbnail)return getCharacterThumbnail(id);const image = id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:id==="echo"?echoSprite:id==="aria"?ariaSprite:id==="moira"?moiraSprite:id==="mare"?mareSprite:id==="nullZero"?nullZeroSprite:id==="astra"?astraSprite:id==="vargas"?vargasSprite:yupiterSprite;return ensureGameImage(image, "high");}

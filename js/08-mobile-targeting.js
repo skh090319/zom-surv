@@ -64,7 +64,7 @@ function getMobileAimedSkillTargetSpec(key){
     case "astra":
       if(key==="q")return {type:"astraVolley",...astraQGeometry(),label:astraQFlights().length?"공전성 회수 경로":"모든 공전성 발사"};
       if(key==="e")return target(520,astraERadius(),{clampWorld:true,pullRadius:astraEPullRadius(),label:"안쪽: 피해 · 바깥쪽: 중력 흡입"});
-      if(key==="r")return {type:"astraGravity",range:850,minRange:320,variable:true,radius:astraGravity?0:astraRRadius(),label:astraGravity?"지속시간 종료 시 이 방향으로 발사":"포획 범위 · 종료 시 조준 방향으로 발사"};
+      if(key==="r")return {type:"astraGravity",range:850,minRange:320,variable:true,radius:astraGravity?0:astraRRadius(),label:astraGravity?"종료 시 적 자동 추적 · 적 없으면 조준 방향":"포획 범위 · 종료 시 적 자동 추적"};
       return null;
     default:return null;
   }
