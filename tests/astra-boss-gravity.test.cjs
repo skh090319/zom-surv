@@ -89,17 +89,17 @@ test('E captures every raid missile type before hits, poison splitting and scyth
   }
 });
 
-test('stardust applies once to percentage-based damage for normal enemies and the fixed raid conversion', () => {
+test('stardust does not amplify augment percentage damage or the fixed raid conversion', () => {
   const g = game();
   g.context.player.astraStardust = 50;
-  near(g.run('enemyMaxHpDamage({maxHp:1000}, .1)'), 150);
-  near(g.run('enemyMaxHpDamage({isRaidBoss:true,raidIndex:1,maxHp:150000}, .01)'), 75);
+  near(g.run('enemyMaxHpDamage({maxHp:1000}, .1)'), 100);
+  near(g.run('enemyMaxHpDamage({isRaidBoss:true,raidIndex:1,maxHp:150000}, .01)'), 50);
   g.context.selectedCharacter = 'mare';
   near(g.run('enemyMaxHpDamage({maxHp:1000}, .1)'), 100);
   near(g.run('enemyMaxHpDamage({isRaidBoss:true,raidIndex:1,maxHp:150000}, .01)'), 50);
 });
 
-test('existing dagger augments use current Astra damage growth without changing other characters', () => {
+test('dagger augment damage ignores stardust for Astra and stays unchanged for other characters', () => {
   const g = game();
   g.context.player.daggerLevel = 1;
   g.context.player.astraStardust = 100;
@@ -107,7 +107,7 @@ test('existing dagger augments use current Astra damage growth without changing 
   g.context.daggers = [{ angle: -.065, radius: 100, cooldown: 0, damage: 35 }];
   g.context.zombies.push({ x: 2100, y: 2000, r: 18, hp: 1000 });
   g.run('updateDaggers()');
-  near(g.context.zombies[0].hp, 930);
+  near(g.context.zombies[0].hp, 965);
   g.run('selectedCharacter="mare";daggers[0].angle=-.065;daggers[0].cooldown=0;updateDaggers()');
-  near(g.context.zombies[0].hp, 895);
+  near(g.context.zombies[0].hp, 930);
 });

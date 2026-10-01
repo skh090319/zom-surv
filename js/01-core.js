@@ -599,7 +599,7 @@ function getAstraStardustMultiplier() {
 }
 
 function getDamageMultiplier() {
-  return (player.globalDamageMultiplier || 1) * getAstraStardustMultiplier();
+  return player.globalDamageMultiplier || 1;
 }
 
 function scaledDamage(baseDamage) {

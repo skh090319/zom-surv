@@ -10,7 +10,7 @@ function updateFireTrails() {
       const dist = Math.hypot(z.x - fire.x, z.y - fire.y);
 
       if (dist < z.r + fire.r) {
-        z.hp -= fire.damagePerFrame * (selectedCharacter === "astra" ? getAstraStardustMultiplier() / (fire.astraStardustMultiplier || 1) : 1);
+        z.hp -= fire.damagePerFrame;
 
         if (z.hp <= 0) {
           killZombie(j, z);

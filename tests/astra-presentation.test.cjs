@@ -30,15 +30,15 @@ function presentation() {
 test('E aim preview matches stardust growth for both damage and the larger suction area', () => {
   const g = presentation();
   const initial = g.run('getMobileAimedSkillTargetSpec("e")');
-  assert.equal(initial.range,520); assert.equal(initial.radius,170); assert.equal(initial.pullRadius,272);
+  assert.equal(initial.range,520); assert.equal(initial.radius,85); assert.equal(initial.pullRadius,136);
   g.context.player.astraStardust=100;
   const grown = g.run('getMobileAimedSkillTargetSpec("e")');
-  assert.equal(grown.radius,340); assert.equal(grown.range,520); assert.equal(grown.pullRadius,544);
+  assert.equal(grown.radius,170); assert.equal(grown.range,520); assert.equal(grown.pullRadius,272);
   g.context.player.astraHorizonLevel=3;
   const upgraded = g.run('getMobileAimedSkillTargetSpec("e")');
-  assert.equal(upgraded.radius,448); assert.equal(upgraded.pullRadius,224*1.6*2);
+  assert.equal(upgraded.radius,278); assert.equal(upgraded.pullRadius,139*1.6*2);
   g.run('resetAstra()');
-  assert.equal(g.run('getMobileAimedSkillTargetSpec("e").pullRadius'),272);
+  assert.equal(g.run('getMobileAimedSkillTargetSpec("e").pullRadius'),136);
 });
 
 test('large stardust suction fields retain the same bounded draw workload and restore canvas state', () => {

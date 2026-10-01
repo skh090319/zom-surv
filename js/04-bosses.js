@@ -82,7 +82,7 @@ function enemyMaxHpDamage(enemy, ratio) {
   const damage = enemy?.isRaidBoss
     ? RAID_BOSS_PERCENT_FLAT_PER_POINT[enemy.raidIndex] * ratio * 100
     : (enemy?.maxHp || 0) * ratio;
-  return damage * (typeof getAstraStardustMultiplier === "function" ? getAstraStardustMultiplier() : 1);
+  return damage;
 }
 
 function startRaidBoss(index) {

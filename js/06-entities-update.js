@@ -449,7 +449,7 @@ function updateDaggers() {
         const z = zombies[i];
 
         if (Math.hypot(z.x - x, z.y - y) < z.r + 9) {
-          z.hp -= selectedCharacter === "astra" ? scaledDamage(25 + player.daggerLevel * 10) : dagger.damage;
+          z.hp -= dagger.damage;
           dagger.cooldown = 20;
 
           if (z.hp <= 0) {

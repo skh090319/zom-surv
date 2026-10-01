@@ -429,7 +429,6 @@ function createFireTrail() {
     life: 180,
     maxLife: 180,
     damagePerFrame: scaledDamage(0.45),
-    astraStardustMultiplier: getAstraStardustMultiplier(),
     slow: 0.65
   });
 

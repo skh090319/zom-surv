@@ -71,7 +71,7 @@ test('Astra drag previews use real Q slots, recall, E radius and R capture/launc
   assert.equal(g.run('getMobileSkillCooldown("q").value'),0);
   assert.ok(g.run('getMobileSkillTargetSpec("q").label.includes("회수")'));
   assert.equal(g.run('getMobileSkillTargetSpec("e").radius'),g.run('astraERadius()'));
-  g.context.player.astraHorizonLevel=3;assert.equal(g.run('getMobileSkillTargetSpec("e").radius'),224);
+  g.context.player.astraHorizonLevel=3;assert.equal(g.run('getMobileSkillTargetSpec("e").radius'),139);
   g.run('mobileSkillAim={key:"r",dragged:true,angle:1,strength:.1};drawMobileTargetingIndicator()');
   assert.equal(g.run('getMobileSkillTargetSpec("r").radius'),620);
   assert.ok(Math.abs(g.run('Math.hypot(getMobileAimPoint(mobileSkillAim,getMobileSkillTargetSpec("r")).x-player.x,getMobileAimPoint(mobileSkillAim,getMobileSkillTargetSpec("r")).y-player.y)')-320)<1e-9);

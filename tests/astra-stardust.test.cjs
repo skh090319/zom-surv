@@ -23,6 +23,18 @@ function game() {
 function enemy(x,y,extra={}) {return {x,y,r:10,hp:10000,maxHp:10000,speed:1,...extra};}
 function near(actual,expected) {assert.ok(Math.abs(actual-expected)<1e-8,`${actual} != ${expected}`);}
 
+test('fire augment damage stays constant before and after stardust gains, including newly created trails',()=>{
+  const g=game();
+  vm.runInContext(fs.readFileSync(path.join(root,'js/05-skills.js'),'utf8'),g.context);
+  Object.assign(g.context.player,{globalDamageMultiplier:1.5,crownLevel:1});
+  const target=enemy(0,0);g.context.zombies.push(target);
+  g.run('fireTrails=[{x:0,y:0,r:30,life:100,damagePerFrame:scaledDamage(.45)}];updateFireTrails()');
+  near(10000-target.hp,1.35);
+  g.context.player.astraStardust=500;g.run('updateFireTrails()');near(10000-target.hp,2.7);
+  g.run('fireTrails=[{x:0,y:0,r:30,life:100,damagePerFrame:scaledDamage(.45)}];updateFireTrails()');
+  near(10000-target.hp,4.05);near(g.run('astraScaledDamage(10)'),180);
+});
+
 test('every unique defeated enemy awards one stardust only to Astra, and a new run clears deduplication',()=>{
   const g=game(),dead=enemy(0,0,{hp:0}),living=enemy(0,0),boss=enemy(0,0,{hp:-10,isRaidBoss:true}),minion=enemy(0,0,{hp:0,isBossMinion:true});
   Object.assign(g.context,{dead,living,boss,minion});
@@ -34,23 +46,23 @@ test('every unique defeated enemy awards one stardust only to Astra, and a new r
 });
 
 test('stardust expands both E radii on an already-active well and exposes new enemies to pull and damage',()=>{
-  const g=game(),target=enemy(800,0);g.context.zombies.push(target);
+  const g=game(),target=enemy(650,0);g.context.zombies.push(target);
   g.run('activateAstraE();for(let i=0;i<24;i++)updateAstraWells()');
   const well=g.run('astraWells[0]');
-  assert.equal(well.r,170);assert.equal(well.pullR,272);assert.equal(target.x,800);assert.equal(target.hp,10000);
+  assert.equal(well.r,85);assert.equal(well.pullR,136);assert.equal(target.x,650);assert.equal(target.hp,10000);
   g.context.player.astraStardust=100;
   g.run('updateAstraWells()');
-  assert.equal(g.run('astraWells[0]'),well);assert.equal(well.r,340);assert.equal(well.pullR,544);assert.ok(target.x<800);
+  assert.equal(g.run('astraWells[0]'),well);assert.equal(well.r,170);assert.equal(well.pullR,272);assert.ok(target.x<650);
   g.run('for(let i=0;i<17;i++)updateAstraWells()');near(target.hp,10000-4.4);
   g.context.player.astraHorizonLevel=2;g.context.player.astraStardust=50;g.run('updateAstraWells()');
-  near(well.r,206*1.5);near(well.pullR,206*1.5*1.6);
+  near(well.r,121*1.5);near(well.pullR,121*1.5*1.6);
   g.run('resetAstra()');assert.equal(g.context.player.astraStardust,0);assert.equal(g.run('astraWells.length'),0);
-  assert.equal(g.run('astraERadius()'),170);assert.equal(g.run('astraEPullRadius()'),272);
+  assert.equal(g.run('astraERadius()'),85);assert.equal(g.run('astraEPullRadius()'),136);
 });
 
-test('shared damage scaling applies stardust once with global and crown augments, including actual basic projectile impact',()=>{
+test('only Astra attacks receive stardust; shared augment damage keeps global and crown bonuses',()=>{
   const g=game();Object.assign(g.context.player,{globalDamageMultiplier:1.5,crownLevel:1,astraStardust:100});
-  near(g.run('getDamageMultiplier()'),3);near(g.run('scaledDamage(10)'),60);
+  near(g.run('getDamageMultiplier()'),1.5);near(g.run('scaledDamage(10)'),30);near(g.run('astraScaledDamage(10)'),60);
   const target=enemy(40,0);g.context.zombies.push(target);
   g.run('attackWithAstra();astraMeteors[0].curve=0;for(let i=0;i<8;i++)updateAstraMeteors()');
   near(target.hp,10000-20.4*6);assert.equal(g.context.player.damage,10);
