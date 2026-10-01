@@ -192,7 +192,9 @@ function drawMobileControlEditor(){
     const {x,y,r,id,name}=control,selected=id===mobileSettingsTarget;
     ctx.fillStyle="rgba(9,21,31,.92)";ctx.strokeStyle=selected?"#e8f7c1":id==="joystick"?"#6bcfe7":"#a99ed3";ctx.lineWidth=selected?3:1.5;
     ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
-    if(id==="joystick"){
+    if(selectedCharacter==='astra'&&(id==='joystick'||id==='attack')){
+      drawAstraControlIcon(x,y,r,id,selected);
+    }else if(id==="joystick"){
       ctx.fillStyle="#47778b";ctx.beginPath();ctx.arc(x,y,r*.35,0,Math.PI*2);ctx.fill();
     }else if(id==="attack")drawCommonAttackIcon(x,y,r*.7);
     else if(!drawMobileIcon(getMobileSkillIcon(id),x,y,r)){

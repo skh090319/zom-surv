@@ -19,6 +19,19 @@ function game(){
 function enemy(x,y,extra={}){return {x,y,r:18,hp:10000,maxHp:10000,speed:1,...extra};}
 function tick(g,n){g.run(`for(let t=0;t<${n};t++)updateAstra()`);}
 
+test('dedicated touch icons keep drawing state balanced at custom sizes without changing gameplay',()=>{
+  const g=game(),source=fs.readFileSync(path.join(root,'js/08-mobile.js'),'utf8');
+  vm.runInContext(source.slice(source.indexOf('function drawAstraControlIcon('),source.indexOf('function drawMobileControls(')),g.context);
+  let depth=0,arcs=0;g.context.ctx.save=()=>depth++;g.context.ctx.restore=()=>depth--;
+  g.context.ctx.arc=(...values)=>{assert.ok(values.every(Number.isFinite));arcs++;};
+  const before=JSON.stringify(g.context.player);
+  for(const r of [12,48,160,500])for(const active of [false,true]){
+    g.run(`drawAstraControlIcon(120,200,${r},'joystick',${active},${r*.5},${r*.2});drawAstraControlIcon(720,200,${r},'attack',${active})`);
+    assert.equal(depth,0);
+  }
+  assert.ok(arcs>0);assert.equal(JSON.stringify(g.context.player),before);
+});
+
 test('suction wakes are bounded, ignore captured/dead targets, and never change combat state',()=>{
   const g=game();vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);
   g.context.raidBossProjectiles=Array.from({length:100},()=>({x:50,y:0,r:8,life:10,astraAbsorb:{age:20,wellX:0,wellY:0}}));

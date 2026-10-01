@@ -370,11 +370,54 @@ function drawMobileHomeScreen(){
 }
 
 
+function drawAstraControlIcon(x,y,r,kind,active=false,dx=0,dy=0){
+  ctx.save();ctx.translate(x,y);ctx.scale(r,r);ctx.globalAlpha=1;
+  const phase=typeof astraFrame==='number'?astraFrame*.012:0;
+  const bg=ctx.createRadialGradient(-.24,-.3,.03,0,0,1);
+  bg.addColorStop(0,active?'#416692':'#293559');bg.addColorStop(.55,'#191730');bg.addColorStop(1,'#080e20');
+  ctx.fillStyle=bg;ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);ctx.fill();
+  ctx.lineWidth=.025;ctx.strokeStyle='#c5ac79';ctx.stroke();
+  ctx.strokeStyle=active?'#d7faff':'#709cbb';ctx.lineWidth=.012;
+  ctx.beginPath();ctx.arc(0,0,.87,0,Math.PI*2);ctx.stroke();
+  for(let i=0;i<12;i++){
+    const a=i*Math.PI/6,c=Math.cos(a),s=Math.sin(a);
+    ctx.strokeStyle=i%3?'#667aa5':'#ebd6a2';ctx.beginPath();ctx.moveTo(c*.89,s*.89);ctx.lineTo(c*(i%3?.94:1),s*(i%3?.94:1));ctx.stroke();
+  }
+  for(let i=0;i<6;i++){
+    const a=phase*(active?2:1)+i*Math.PI/3;
+    ctx.fillStyle=i%2?'#a8eaff':'#eed3a0';ctx.globalAlpha=active?.9:.48;
+    ctx.beginPath();ctx.arc(Math.cos(a)*.78,Math.sin(a)*.78,.016+(i%2)*.008,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;ctx.strokeStyle='#bba0e5';ctx.lineWidth=.02;
+  ctx.beginPath();ctx.ellipse(0,0,.68,.27,-.6,0,Math.PI*2);ctx.stroke();
+  if(kind==='joystick'){
+    for(let i=0;i<4;i++){
+      ctx.save();ctx.rotate(i*Math.PI/2);ctx.fillStyle='#93bfd9';ctx.beginPath();ctx.moveTo(0,-.65);ctx.lineTo(.065,-.5);ctx.lineTo(0,-.54);ctx.lineTo(-.065,-.5);ctx.closePath();ctx.fill();ctx.restore();
+    }
+    ctx.translate(dx/r,dy/r);ctx.fillStyle='#202945';ctx.strokeStyle=active?'#e1faff':'#a7bfdf';
+    ctx.beginPath();ctx.arc(0,0,.34,0,Math.PI*2);ctx.fill();ctx.stroke();
+  }else{
+    for(let i=0;i<3;i++){
+      ctx.strokeStyle=i===1?'#d5faff':'#648dd6';ctx.lineWidth=i===1?.045:.018;
+      ctx.beginPath();ctx.moveTo(-.61+i*.04,.57);ctx.bezierCurveTo(-.42,.26,-.48,-.18,.12,-.14+i*.07);ctx.stroke();
+    }
+    ctx.translate(.12,-.1);ctx.scale(1.35,1.35);
+  }
+  const face=ctx.createLinearGradient(-.24,-.3,.24,.3);face.addColorStop(0,'#fff4cf');face.addColorStop(.4,'#d5fcff');face.addColorStop(1,'#579ee4');ctx.fillStyle=face;
+  ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4-Math.PI/2,length=i%2?.075:.29;const px=Math.cos(a)*length,py=Math.sin(a)*length;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.closePath();ctx.fill();
+  ctx.restore();
+}
 function drawMobileControls(){
   if(!isMobileTouchDevice()||isMobilePortraitMode()||screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory)return;const {joystick,attack,skills}=getMobileControlLayout();ctx.save();
+  const attackGlow=mobileAttackTouchId!==null;
+  if(selectedCharacter!=='astra'){
   ctx.globalAlpha=.86;ctx.fillStyle="rgba(8,16,29,.68)";ctx.strokeStyle="rgba(123,220,255,.58)";ctx.lineWidth=2;ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle="rgba(123,220,255,.16)";ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r*.68,0,Math.PI*2);ctx.stroke();
   const knobR=joystick.r*.37,kx=joystick.x+mobileStickX,ky=joystick.y+mobileStickY;ctx.fillStyle="rgba(103,218,255,.45)";ctx.shadowColor="#53d9ff";ctx.shadowBlur=mobileJoystickTouchId===null?8:18;ctx.beginPath();ctx.arc(kx,ky,knobR,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#b6f2ff";ctx.stroke();ctx.shadowBlur=0;
   const attackGlow=mobileAttackTouchId!==null;const ag=ctx.createRadialGradient(attack.x-10,attack.y-12,4,attack.x,attack.y,attack.r);ag.addColorStop(0,attackGlow?"#247ba2":"#183d56");ag.addColorStop(1,"#07131f");ctx.fillStyle=ag;ctx.strokeStyle=attackGlow?"#8cf3ff":"#46cce9";ctx.lineWidth=3;ctx.shadowColor="#33dfff";ctx.shadowBlur=attackGlow?24:12;ctx.beginPath();ctx.arc(attack.x,attack.y,attack.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;drawCommonAttackIcon(attack.x,attack.y,attack.r*.72);
+  }else{
+    drawAstraControlIcon(joystick.x,joystick.y,joystick.r,'joystick',mobileJoystickTouchId!==null,mobileStickX,mobileStickY);
+    drawAstraControlIcon(attack.x,attack.y,attack.r,'attack',attackGlow);
+  }
   for(const skill of skills){
     const skillName=getMobileSkillName(skill.key);
     ctx.fillStyle="rgba(9,12,24,.88)";ctx.strokeStyle="#c8d5ed";ctx.lineWidth=2;ctx.shadowColor="#7b8fff";ctx.shadowBlur=10;
