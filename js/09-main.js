@@ -95,16 +95,20 @@ function draw() {
   } else {
     // 모바일에서는 복잡한 캐릭터 HUD는 숨기되 전투에 꼭 필요한
     // 생존/진행 정보는 항상 표시한다.
-    drawHealthBar();
-    drawExpBar();
-    drawMobileCharacterResource();
-    drawRaidBossUI();
+    drawMobileEditableHud('health',drawHealthBar);
+    drawMobileEditableHud('exp',drawExpBar);
+    drawMobileEditableHud('resource',drawMobileCharacterResource);
+    if(raidVictory)drawRaidBossUI();else drawMobileEditableHud(activeRaidBoss?'boss':'timer',drawRaidBossUI);
   }
   drawVisionEffect();
   drawUpgradeMenu();
   drawGameOver();
   drawPauseOverlay();
-  drawPauseButton();
+  if(mobileTouch&&!paused){
+    drawMobileEditableHud('pause',drawPauseButton);
+    const pauseLayout=getMobileHudLayout('pause');
+    pauseButtonRect={x:pauseLayout.x-pauseLayout.w/2,y:pauseLayout.y-pauseLayout.h/2,w:pauseLayout.w,h:pauseLayout.h};
+  }else drawPauseButton();
   if (typeof drawMobileControls === "function") drawMobileControls();
   // Keep Astra's triangular ultimate cut-in above every desktop and mobile UI.
   drawAstraUltimatePortrait();

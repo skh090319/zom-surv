@@ -54,6 +54,67 @@ function game() {
   return {context,draws,storage,run:code=>vm.runInContext(code,context),touch(type,id,x,y){context.canvas.dispatchEvent({type,preventDefault(){},changedTouches:[{identifier:id,clientX:x,clientY:y}]});}};
 }
 
+test('every HUD element moves and scales independently, round-trips through storage and remains uncapped',()=>{
+  const g=game();g.run("openMobileSettings();mobileSettingsPage='controls';mobileSettingsEditGroup='hud'");
+  for(const id of ['health','exp','boss','timer','resource','pause']){
+    g.run(`mobileSettingsTarget='${id}';setMobileSettingScale(4);`);
+    const item=g.run(`getMobileSettingControls().find(c=>c.id==='${id}')`);
+    // Drag in the fitted editor: the normalized game position is recovered, not the preview offset.
+    g.run(`moveMobileSettingControl({controlTarget:'${id}',offsetX:0,offsetY:0},{x:${item.editorOffsetX+844*.7*item.editorScale},y:${124+390*.6*item.editorScale}});saveMobileControlSettings()`);
+    const saved=g.run(`loadMobileControlSettings().hud['${id}']`);
+    assert.ok(Math.abs(saved.x-.7)<1e-9);assert.ok(Math.abs(saved.y-.6)<1e-9);assert.equal(saved.scale,4);
+  }
+  assert.equal(g.run('mobileControlSettings.actionScale'),1);
+  assert.equal(g.run('mobileControlSettings.joystickScale'),1);
+});
+
+test('touch drag is one undo step and redo restores all HUD data; a new edit clears redo',()=>{
+  const g=game();g.run("openMobileSettings();mobileSettingsPage='controls';mobileSettingsEditGroup='hud';mobileSettingsTarget='health'");
+  const item=g.run("getMobileSettingControls().find(c=>c.id==='health')");
+  g.touch('touchstart',77,item.x,item.y);
+  g.touch('touchmove',77,item.x+10,item.y+10);
+  g.touch('touchmove',77,item.x+20,item.y+20);
+  g.touch('touchend',77,item.x+20,item.y+20);
+  assert.equal(g.run('mobileSettingsUndo.length'),1);
+  const edited=g.run('JSON.stringify(mobileControlSettings)');
+  g.run('replayMobileSettingsHistory()');assert.equal(g.run('mobileControlSettings.hud.health.x'),null);
+  g.run('replayMobileSettingsHistory(true)');assert.equal(g.run('JSON.stringify(mobileControlSettings)'),edited);
+  g.run('replayMobileSettingsHistory();setMobileSettingScale(1.5)');assert.equal(g.run('mobileSettingsRedo.length'),0);
+});
+
+test('HUD and control resets are isolated and both are reversible',()=>{
+  const g=game();g.run("openMobileSettings();mobileSettingsPage='controls';mobileSettingsTarget='attack';setMobileSettingScale(2);mobileSettingsTarget='exp';setMobileSettingScale(3);mobileSettingsEditGroup='hud';resetMobileSettingsPage()");
+  assert.equal(g.run('mobileControlSettings.hud.exp.scale'),1);assert.equal(g.run('mobileControlSettings.actionScale'),2);
+  g.run('replayMobileSettingsHistory()');assert.equal(g.run('mobileControlSettings.hud.exp.scale'),3);
+  g.run("mobileSettingsEditGroup='buttons';resetMobileSettingsPage()");
+  assert.equal(g.run('mobileControlSettings.hud.exp.scale'),3);assert.equal(g.run('mobileControlSettings.actionScale'),1);
+  g.run('replayMobileSettingsHistory()');assert.equal(g.run('mobileControlSettings.actionScale'),2);
+});
+
+test('HUD rendering transforms geometry only on mobile and restores canvas after exceptions',()=>{
+  const g=game();g.run("mobileControlSettings.hud.health={x:.3,y:.4,scale:2};drawMobileEditableHud('health',()=>ctx.fillRect(1,2,3,4))");
+  assert.ok(g.draws.some(c=>c[0]==='scale'&&c[1]===2));assert.equal(g.draws.at(-1)[0],'restore');
+  g.draws.length=0;assert.throws(()=>g.run("drawMobileEditableHud('health',()=>{throw Error('draw')})"));assert.equal(g.draws.at(-1)[0],'restore');
+  g.draws.length=0;g.run("isMobileTouchDevice=()=>false;drawMobileEditableHud('health',()=>ctx.fillRect(1,2,3,4))");
+  assert.equal(g.draws.length,1);assert.equal(g.draws[0][0],'fillRect');
+});
+
+test('the UI tab and undo/redo controls are tappable on phone and tablet toolbar widths',()=>{
+  for(const width of [568,844,1180]){
+    const g=game();g.context.canvas.width=width;
+    g.run("getMobileSkillIcon=()=>null;openMobileSettings();mobileSettingsPage='controls';drawMobileControlEditor()");
+    const ui=g.run("mobileSettingsGroupRects.find(r=>r.id==='hud')");
+    g.run(`handleMobileSettingsTap({x:${ui.x+ui.w/2},y:${ui.y+ui.h/2}});drawMobileControlEditor()`);
+    assert.equal(g.run('mobileSettingsEditGroup'),'hud');assert.equal(g.run('mobileSettingsTarget'),'health');
+    for(const c of g.run('mobileSettingsTargetRects'))assert.ok(c.w>0&&c.x+c.w<=width);
+    g.run('setMobileSettingScale(2)');
+    const undo=g.run('mobileSettingsUndoRect');g.run(`handleMobileSettingsTap({x:${undo.x+10},y:${undo.y+10}})`);
+    assert.equal(g.run('mobileControlSettings.hud.health.scale'),1);
+    const redo=g.run('mobileSettingsRedoRect');g.run(`handleMobileSettingsTap({x:${redo.x+10},y:${redo.y+10}})`);
+    assert.equal(g.run('mobileControlSettings.hud.health.scale'),2);
+  }
+});
+
 test('holding is silent; dragging shows a preview; recentering hides it',()=>{
   const g=game(),button=g.run('getMobileControlLayout().skills.find(s=>s.key==="e")');
   g.touch('touchstart',7,button.x,button.y);g.run('drawMobileTargetingIndicator()');assert.equal(g.draws.length,0);

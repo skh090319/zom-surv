@@ -21,7 +21,7 @@ let mobileControlSettings=loadMobileControlSettings();
 function loadMobileControlSettings(){
   let saved={};
   try{saved=JSON.parse(localStorage.getItem("zombieSurvivalMobileControls")||"null")||{};}catch(error){}
-  const settings={...MOBILE_CONTROL_DEFAULTS,skills:{},version:2};
+  const settings={...MOBILE_CONTROL_DEFAULTS,skills:{},hud:{},version:2};
   const position=value=>Number.isFinite(value)?Math.max(0,Math.min(1,value)):null;
   for(const key of ["joystickX","joystickY","attackX","attackY"])settings[key]=position(saved[key]);
   for(const key of ["joystickScale","actionScale"])settings[key]=clampMobileControlScale(saved[key]);
@@ -34,9 +34,13 @@ function loadMobileControlSettings(){
     const skill=saved.skills?.[key]||{};
     settings.skills[key]={x:position(skill.x),y:position(skill.y),scale:clampMobileControlScale(skill.scale??settings.skillAnchorScale)};
   }
+  for(const key of ["health","exp","boss","timer","resource","pause"]){
+    const item=saved.hud?.[key]||{};
+    settings.hud[key]={x:position(item.x),y:position(item.y),scale:Math.max(.2,Number.isFinite(item.scale)?item.scale:1)};
+  }
   return settings;
 }
-function saveMobileControlSettings(){try{localStorage.setItem("zombieSurvivalMobileControls",JSON.stringify(mobileControlSettings));}catch(error){}}
+function saveMobileControlSettings(){if(typeof recordMobileSettingsHistory==='function')recordMobileSettingsHistory();try{localStorage.setItem("zombieSurvivalMobileControls",JSON.stringify(mobileControlSettings));}catch(error){}}
 function clampMobileControlScale(value){return Math.max(.72,Number.isFinite(value)?value:1);}
 function clampMobileViewZoom(value){return Math.max(.5,Math.min(2,Number.isFinite(value)?value:1));}
 function getMobileViewZoom(){return clampMobileViewZoom(mobileControlSettings.viewZoom);}
@@ -210,6 +214,7 @@ canvas.addEventListener("touchstart",event=>{
   }
   const layout=getMobileControlLayout();
   for(const touch of event.changedTouches){const p=canvasTouchPoint(touch);
+    if(pointInRect(p.x,p.y,pauseButtonRect)){dispatchMobileCanvasClick(p);continue;}
     // Also allow a second finger to tap X while the skill finger stays held.
     if(mobileSkillOverCancel(p)){cancelMobileSkillAim();continue;}
     const skill=layout.skills.find(button=>pointInCircle(p,{...button,r:button.r*1.48}));if(skill&&mobileSkillAim===null){mobileSkillAim={touchId:touch.identifier,key:skill.key,startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};updateMobileAttackAim(true);continue;}

@@ -1,6 +1,42 @@
 // Mobile preferences: navigation, camera zoom and independently editable controls.
 let mobileSettingsPage = "menu";
 let mobileSettingsTarget = "joystick";
+let mobileSettingsEditGroup="buttons";
+let mobileSettingsGroupRects=[];
+let mobileSettingsUndoRect={x:0,y:0,w:0,h:0},mobileSettingsRedoRect={x:0,y:0,w:0,h:0};
+let mobileSettingsUndo=[],mobileSettingsRedo=[],mobileSettingsHistoryCurrent=null;
+function recordMobileSettingsHistory(){
+  const current=JSON.stringify(mobileControlSettings);
+  if(screenMode==='mobileSettings'&&mobileSettingsHistoryCurrent!==null&&current!==mobileSettingsHistoryCurrent){
+    mobileSettingsUndo.push(mobileSettingsHistoryCurrent);if(mobileSettingsUndo.length>100)mobileSettingsUndo.shift();mobileSettingsRedo=[];
+  }
+  mobileSettingsHistoryCurrent=current;
+}
+function replayMobileSettingsHistory(redo=false){
+  const source=redo?mobileSettingsRedo:mobileSettingsUndo,dest=redo?mobileSettingsUndo:mobileSettingsRedo;
+  if(!source.length)return;
+  dest.push(JSON.stringify(mobileControlSettings));mobileControlSettings=JSON.parse(source.pop());
+  mobileSettingsHistoryCurrent=JSON.stringify(mobileControlSettings);saveMobileControlSettings();
+}
+function getMobileHudBounds(id){
+  const cw=canvas.width,ch=canvas.height,margin=Math.max(120,cw*.29);
+  const layouts={health:{x:cw/2,y:30,w:Math.min(520,cw-80)+8,h:32},exp:{x:cw/2,y:ch-52,w:Math.max(150,cw-margin*2),h:38},
+    boss:{x:cw/2,y:73,w:Math.min(400,cw*.62)+6,h:60},timer:{x:cw/2,y:73,w:Math.min(400,cw*.62),h:48},
+    resource:{x:cw/2,y:ch-(selectedCharacter==='astra'?91:85),w:selectedCharacter==='astra'?Math.min(370,cw*.44):Math.min(330,Math.max(180,cw*.36))+8,h:selectedCharacter==='astra'?34:36},
+    pause:{x:cw-47,y:45,w:54,h:54}};
+  return layouts[id];
+}
+function getMobileHudLayout(id){
+  const base=getMobileHudBounds(id),saved=mobileControlSettings.hud?.[id]||{},scale=Math.max(.2,saved.scale||1);
+  return {...base,id,name:{health:'내 체력',exp:'경험치',boss:'보스 체력',timer:'타이머·주의',resource:'스택·게이지',pause:'일시정지'}[id],hud:true,scale,
+    x:saved.x===null||saved.x===undefined?base.x:saved.x*canvas.width,y:saved.y===null||saved.y===undefined?base.y:saved.y*canvas.height,w:base.w*scale,h:base.h*scale,r:Math.max(base.w,base.h)*scale/2};
+}
+function drawMobileEditableHud(id,draw){
+  if(!isMobileTouchDevice())return draw();
+  const base=getMobileHudBounds(id),layout=getMobileHudLayout(id);
+  ctx.save();ctx.translate(layout.x,layout.y);ctx.scale(layout.scale,layout.scale);ctx.translate(-base.x,-base.y);
+  try{return draw();}finally{ctx.restore();}
+}
 let mobileSettingsCategoryRects = [];
 let mobileSettingsTargetRects = [];
 let mobileSettingsMinusRect = {x:0,y:0,w:0,h:0};
@@ -18,6 +54,8 @@ function openMobileSettings(){
   stopMobileScrollInertia();releaseMobileJoystick();mobileAttackTouchId=null;
   mobileAttackAim=null;mobileSkillAim=null;mobileUiGesture=null;mouse.down=false;
   resetMobileSettingsGestures();mobileSettingsCategoryRects=[];mobileSettingsPage="menu";screenMode="mobileSettings";
+  mobileSettingsUndo=[];mobileSettingsRedo=[];mobileSettingsHistoryCurrent=JSON.stringify(mobileControlSettings);
+  mobileSettingsEditGroup='buttons';
 }
 
 function leaveMobileSettingsPage(){
@@ -27,18 +65,28 @@ function leaveMobileSettingsPage(){
 }
 
 function getMobileSettingControls(){
+  if(mobileSettingsEditGroup==='hud'){
+    // Fit the entire game HUD below the toolbar, including bars normally at the very top.
+    const factor=Math.max(.1,(canvas.height-138)/canvas.height),offsetX=canvas.width*(1-factor)/2;
+    return ['health','exp','boss','timer','resource','pause'].map(id=>{
+      const layout=getMobileHudLayout(id);
+      return {...layout,x:offsetX+layout.x*factor,y:124+layout.y*factor,w:layout.w*factor,h:layout.h*factor,r:layout.r*factor,editorScale:factor,editorOffsetX:offsetX};
+    });
+  }
   const layout=getMobileControlLayout();
   return [{...layout.joystick,id:"joystick",name:"이동"},{...layout.attack,id:"attack",name:"평타"},
     ...layout.skills.map(skill=>({...skill,id:skill.key,name:getMobileSkillName(skill.key)}))];
 }
 
 function getMobileSettingScale(){
+  if(mobileControlSettings.hud?.[mobileSettingsTarget])return mobileControlSettings.hud[mobileSettingsTarget].scale;
   if(mobileSettingsTarget==="joystick")return mobileControlSettings.joystickScale;
   if(mobileSettingsTarget==="attack")return mobileControlSettings.actionScale;
   return mobileControlSettings.skills[mobileSettingsTarget].scale;
 }
 
 function setMobileSettingScale(value){
+  if(mobileControlSettings.hud?.[mobileSettingsTarget]){mobileControlSettings.hud[mobileSettingsTarget].scale=Math.max(.2,value);saveMobileControlSettings();return;}
   const scale=clampMobileControlScale(value);
   if(mobileSettingsTarget==="joystick")mobileControlSettings.joystickScale=scale;
   else if(mobileSettingsTarget==="attack")mobileControlSettings.actionScale=scale;
@@ -53,8 +101,8 @@ function setMobileViewZoom(value){
 
 function beginMobileSettingDrag(p){
   if(mobileSettingsPage!=="controls"||p.y<116)return null;
-  const control=getMobileSettingControls().filter(c=>pointInCircle(p,{...c,r:c.r*1.15}))
-    .sort((a,b)=>Math.hypot(p.x-a.x,p.y-a.y)/a.r-Math.hypot(p.x-b.x,p.y-b.y)/b.r)[0];
+  const control=getMobileSettingControls().filter(c=>c.hud?pointInRect(p.x,p.y,{x:c.x-c.w/2,y:c.y-c.h/2,w:c.w,h:c.h}):pointInCircle(p,{...c,r:c.r*1.15}))
+    .sort((a,b)=>a.id===mobileSettingsTarget?-1:b.id===mobileSettingsTarget?1:Math.hypot(p.x-a.x,p.y-a.y)/a.r-Math.hypot(p.x-b.x,p.y-b.y)/b.r)[0];
   if(!control)return null;
   mobileSettingsTarget=control.id;
   return {controlTarget:control.id,offsetX:p.x-control.x,offsetY:p.y-control.y};
@@ -63,6 +111,9 @@ function beginMobileSettingDrag(p){
 function moveMobileSettingControl(gesture,p){
   const target=gesture.controlTarget,control=getMobileSettingControls().find(c=>c.id===target);
   if(!control)return;
+  if(control.hud){Object.assign(mobileControlSettings.hud[target],{
+    x:Math.max(0,Math.min(1,(p.x-gesture.offsetX-control.editorOffsetX)/control.editorScale/canvas.width)),
+    y:Math.max(0,Math.min(1,(p.y-gesture.offsetY-124)/control.editorScale/canvas.height))});return;}
   const minX=target==="attack"?canvas.width*.5:12,maxX=target==="joystick"?canvas.width*.45:canvas.width-12;
   const x=fitMobileControlCenter(p.x-gesture.offsetX,control.r,minX,maxX)/canvas.width;
   const y=fitMobileControlCenter(p.y-gesture.offsetY,control.r,118,canvas.height-14)/canvas.height;
@@ -74,8 +125,13 @@ function moveMobileSettingControl(gesture,p){
 function resetMobileSettingsPage(){
   if(mobileSettingsPage==="view")setMobileViewZoom(1);
   else if(mobileSettingsPage==="controls"){
+    const hud=mobileSettingsEditGroup==='hud'?null:mobileControlSettings.hud;
+    if(mobileSettingsEditGroup==='hud'){
+      for(const key of Object.keys(mobileControlSettings.hud))mobileControlSettings.hud[key]={x:null,y:null,scale:1};
+      saveMobileControlSettings();return;
+    }
     const zoom=getMobileViewZoom();
-    mobileControlSettings={...MOBILE_CONTROL_DEFAULTS,version:2,viewZoom:zoom,skills:{}};
+    mobileControlSettings={...MOBILE_CONTROL_DEFAULTS,version:2,viewZoom:zoom,skills:{},hud};
     for(const key of ["q","e","x","r"])mobileControlSettings.skills[key]={x:null,y:null,scale:1};
   }
   saveMobileControlSettings();
@@ -96,6 +152,10 @@ function handleMobileSettingsTap(p){
     return true;
   }
   if(mobileSettingsPage==="controls"){
+    if(pointInRect(p.x,p.y,mobileSettingsUndoRect)){replayMobileSettingsHistory();return true;}
+    if(pointInRect(p.x,p.y,mobileSettingsRedoRect)){replayMobileSettingsHistory(true);return true;}
+    const group=mobileSettingsGroupRects.find(rect=>pointInRect(p.x,p.y,rect));
+    if(group){mobileSettingsEditGroup=group.id;mobileSettingsTarget=group.id==='hud'?'health':'joystick';return true;}
     const target=mobileSettingsTargetRects.find(rect=>pointInRect(p.x,p.y,rect));
     if(target){mobileSettingsTarget=target.id;return true;}
   }
@@ -155,7 +215,7 @@ function drawMobileSettingsMenu(){
   drawMobileSettingsHeader("모바일 설정","조절할 항목을 선택하세요 · 변경사항은 자동 저장됩니다");
   const gap=18,w=Math.min(320,(canvas.width-54)/2),h=Math.min(170,canvas.height-112),y=80+(canvas.height-80-h)/2;
   const entries=[{page:"view",title:"화면 크기",icon:"−  /  +",subtitle:"두 손가락 또는 ±로 확대·축소",detail:`현재 배율 ${Math.round(getMobileViewZoom()*100)}%`,color:"#75c9df"},
-    {page:"controls",title:"조이스틱 편집",icon:"⊕",subtitle:"이동 · 평타 · 스킬을 각각 편집",detail:"버튼별 위치와 크기 저장",color:"#b99ada"}];
+    {page:"controls",title:"버튼·UI 편집",icon:"⊕",subtitle:"조작 버튼 · 체력 · 경험치 · 스택",detail:"각각 이동·크기 조절 · 실행 취소",color:"#b99ada"}];
   mobileSettingsCategoryRects=entries.map((entry,i)=>({...entry,x:(canvas.width-w*2-gap)/2+i*(w+gap),y,w,h}));
   for(const rect of mobileSettingsCategoryRects){
     drawRoundedRect(rect.x,rect.y,w,h,10,"rgba(12,24,34,.95)",rect.color,1.4);
@@ -186,10 +246,20 @@ function drawMobileViewSettings(){
 
 function drawMobileControlEditor(){
   const controls=getMobileSettingControls();
-  if(!controls.some(c=>c.id===mobileSettingsTarget))mobileSettingsTarget="joystick";
+  if(!controls.some(c=>c.id===mobileSettingsTarget))mobileSettingsTarget=controls[0].id;
   ctx.setLineDash([5,8]);ctx.strokeStyle="rgba(128,182,210,.16)";ctx.strokeRect(12,120,canvas.width-24,canvas.height-134);ctx.setLineDash([]);
-  for(const control of controls){
+  // Timer and boss health occupy the same default slot in different combat states.
+  // Draw the selected element last so either can be edited without being hidden.
+  for(const control of [...controls].sort((a,b)=>Number(a.id===mobileSettingsTarget)-Number(b.id===mobileSettingsTarget))){
     const {x,y,r,id,name}=control,selected=id===mobileSettingsTarget;
+    if(control.hud){
+      const rect={x:x-control.w/2,y:y-control.h/2,w:control.w,h:control.h};
+      drawRoundedRect(rect.x,rect.y,rect.w,rect.h,5,'rgba(16,38,56,.9)',selected?'#e8f7c1':'#7fa7c5',selected?3:1);
+      ctx.fillStyle={health:'#e7617e',exp:'#b84dff',boss:'#cc487f',resource:'#64b9db'}[id]||'#819eb5';
+      ctx.fillRect(rect.x+3,rect.y+rect.h*.6,Math.max(1,rect.w-6)*.65,Math.max(2,rect.h*.23));
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(9,12*control.scale)}px Arial`;
+      ctx.fillText(name,x,y,Math.max(1,control.w-8));ctx.textBaseline='alphabetic';continue;
+    }
     ctx.fillStyle="rgba(9,21,31,.92)";ctx.strokeStyle=selected?"#e8f7c1":id==="joystick"?"#6bcfe7":"#a99ed3";ctx.lineWidth=selected?3:1.5;
     ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
     if(selectedCharacter==='astra'&&(id==='joystick'||id==='attack')){
@@ -206,8 +276,13 @@ function drawMobileControlEditor(){
     if(id==="joystick"||id==="attack")ctx.fillText(name,x,Math.min(canvas.height-5,y+r+13));
   }
   // Draw the editor toolbar last so oversized controls cannot cover it.
-  drawMobileSettingsHeader("조이스틱 편집","버튼을 선택해 크기 조절 · 직접 끌어 위치 변경 · 각각 따로 저장");
-  const gap=5,left=16,sizeW=154,available=canvas.width-left*2-sizeW-10,tabW=(available-gap*(controls.length-1))/controls.length;
+  drawMobileSettingsHeader("버튼·UI 편집","항목 선택 → 끌어서 이동 · ± 크기 조절 · 변경 자동 저장");
+  mobileSettingsUndoRect={x:canvas.width-376,y:14,w:90,h:40};mobileSettingsRedoRect={x:canvas.width-282,y:14,w:94,h:40};
+  ctx.globalAlpha=mobileSettingsUndo.length?1:.4;drawMobileSettingsButton(mobileSettingsUndoRect,'실행 취소');
+  ctx.globalAlpha=mobileSettingsRedo.length?1:.4;drawMobileSettingsButton(mobileSettingsRedoRect,'다시 실행');ctx.globalAlpha=1;
+  mobileSettingsGroupRects=[{id:'buttons',x:16,y:72,w:58,h:36},{id:'hud',x:79,y:72,w:58,h:36}];
+  for(const rect of mobileSettingsGroupRects)drawMobileSettingsButton(rect,rect.id==='hud'?'UI':'버튼',rect.id===mobileSettingsEditGroup);
+  const gap=5,left=146,sizeW=154,available=canvas.width-left-16-sizeW-10,tabW=(available-gap*(controls.length-1))/controls.length;
   mobileSettingsTargetRects=controls.map((control,i)=>({...control,x:left+i*(tabW+gap),y:72,w:tabW,h:36}));
   for(const rect of mobileSettingsTargetRects)drawMobileSettingsButton(rect,rect.name,rect.id===mobileSettingsTarget);
   mobileSettingsMinusRect={x:canvas.width-16-sizeW,y:72,w:38,h:36};mobileSettingsPlusRect={x:canvas.width-54,y:72,w:38,h:36};
