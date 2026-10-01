@@ -176,8 +176,8 @@ test('black hole pull is twice its previous strength while damage, radius and im
     const g=game(),z=enemy(400,0),boss=enemy(400,0,{isRaidBoss:true}),minion=enemy(400,0,{isBossMinion:true}),captured=enemy(400,0,{astraControl:{}});
     g.context.player.astraHorizonLevel=level;g.context.zombies.push(z,boss,minion,captured);
     g.run('activateAstraE();astraWells[0].life=247;updateAstraWells()');
-    const radius=170+level*18,oldPull=(.45+level*.09)*(1-100/(radius*2));
-    assert.equal(g.run('astraWells[0].r'),radius);assert.ok(Math.abs(z.x-400-oldPull*6)<1e-8);
+    const radius=170+level*18,previousPull=(.45+level*.09)*(1-100/(radius*2))*6;
+    assert.equal(g.run('astraWells[0].r'),radius);assert.ok(Math.abs(z.x-400-previousPull*2)<1e-8);
     assert.equal(boss.x,400);assert.equal(minion.x,400);assert.equal(captured.x,400);
     assert.ok(Math.abs(10000-z.hp-10*(.22+level*.035))<1e-8);
     const near=enemy(487.99,0);g.context.zombies.push(near);g.run('updateAstraWells()');assert.ok(near.x<=488&&near.x>487.99);
