@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v65";
+const CACHE_VERSION = "zombie-survival-v66";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -42,6 +42,7 @@ const CORE_ASSETS = [
   "./js/04-moira.js",
   "./js/04-mare.js",
   "./js/04-null-zero.js",
+  "./js/04-astra-constellations.js",
   "./js/04-astra.js",
   "./js/04-astra-vfx.js",
   "./js/04-mare-polish.js",
@@ -53,6 +54,7 @@ const CORE_ASSETS = [
   "./js/06-entities-update.js",
   "./js/07-world-render.js",
   "./js/07-fire-trail-polish.js",
+  "./js/08-astra-healthbar.js",
   "./js/08-ui.js",
   "./js/08-guide.js",
   "./js/08-mobile.js",

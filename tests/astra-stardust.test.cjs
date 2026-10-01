@@ -16,7 +16,7 @@ function game() {
   // Use the production shared scaling path, including its existing damage augments.
   const core = fs.readFileSync(path.join(root,'js/01-core.js'),'utf8');
   vm.runInContext(core.slice(core.indexOf('function getAstraStardustMultiplier()'),core.indexOf('function screenToWorld()')),context);
-  vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra.js'),'utf8'),context);
+  for(const file of ['04-astra-constellations.js','04-astra.js'])vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
   return {context,run:code=>vm.runInContext(code,context)};
 }
 

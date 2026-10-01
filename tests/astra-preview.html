@@ -4,6 +4,8 @@
 <header><strong>ASTRA · LOCAL VFX REVIEW</strong><button onclick="scene('q')">Q · Volley</button><button onclick="scene('e')">E · Gravity well</button><button onclick="scene('r')">R · Capture</button><button onclick="scene('fallback')">R · Boss only</button><button onclick="scene('stress')">250 enemies</button><button onclick="step(20)">+20 frames</button><button onclick="step(120)">+120 frames</button><button onclick="launchReview()">Release R</button><button onclick="togglePlay()">Play / Stop</button><button onclick="resizeReview(false)">Desktop</button><button onclick="resizeReview(true)">Phone</button><button onclick="benchmark()">Profile 180 frames</button><button onclick="fullGameReview()">Full game + movement</button></header>
 <header><button onclick="scene('starter')">Starting augments</button><button onclick="scene('dust')">E · 100 stardust</button><button onclick="scene('growth')">Growth · 300 stardust</button><button onclick="scene('x',60)">X · Aurora</button><button onclick="scene('x',570)">X · Fold</button><button onclick="scene('r',350)">R · Constellation</button><button onclick="fullBenchmark()">Full loop profile</button></header>
 <canvas id="game" width="1280" height="760"></canvas><output id="status">Loading production scripts…</output><output id="errors"></output><button onclick="saveReviewFrame()">Export review PNG</button><a id="download" hidden>Download review PNG</a>
+<header id="constellations"><strong>REAL CONSTELLATIONS · FIXED PREVIEW</strong></header>
+<header><button onclick="cancelReview('start')">Skill drag</button><button onclick="cancelReview('hover')">Hover cancel X</button><button onclick="cancelReview('end')">Release cancel X</button><button onclick="scene('dust',26)">E · Intake</button></header>
 <header><strong>REALM TRANSITION</strong><button onclick="scene('r',0)">R · Start</button><button onclick="scene('r',18)">R · Ripple</button><button onclick="scene('r',27)">R · Fade in</button><button onclick="scene('r',180)">R · Realm</button><button onclick="scene('r',330)">R · Fade out</button><button onclick="scene('r',420)">R · Restored</button></header>
 <script>
 // Isolated test entry point: same production scripts and renderer, no PWA or saved progress writes.
@@ -11,11 +13,18 @@ const nativeRAF=window.requestAnimationFrame.bind(window);window.requestAnimatio
 let reviewReady=false,reviewPhone=false,reviewPlay=false,reviewKind='q';
 window.addEventListener('error',e=>document.getElementById('errors').textContent+=e.message+'\n');
 window.addEventListener('unhandledrejection',e=>document.getElementById('errors').textContent+=String(e.reason)+'\n');
-function report(extra=''){document.getElementById('status').textContent=JSON.stringify({scene:reviewKind,frame:astraFrame,realmProgress:astraBackdropProgress(),stars:astraQFlights().length,gravity:astraGravity?.state,bodies:astraGravity?.bodies.length,enemies:zombies.length,particles:astraDust.length,bursts:astraEffects.length,mobile:reviewPhone,viewport:[canvas.width,canvas.height],bossHP:activeRaidBoss?.hp,playerHP:player.hp})+' '+extra;}
+function report(extra=''){document.getElementById('status').textContent=JSON.stringify({scene:reviewKind,frame:astraFrame,realmProgress:astraBackdropProgress(),stars:astraQFlights().length,gravity:astraGravity?.state,constellation:astraGravity?.constellation?.name,bodies:astraGravity?.bodies.length,enemies:zombies.length,particles:astraDust.length,bursts:astraEffects.length,mobile:reviewPhone,viewport:[canvas.width,canvas.height],bossHP:activeRaidBoss?.hp,playerHP:player.hp})+' '+extra;}
 function paint(){draw();report();}
 function reviewTick(){updateAstra();updateGravityFields();updateParticles();}
 function step(n){reviewPlay=false;for(let i=0;i<n;i++)reviewTick();paint();}
 function launchReview(){launchAstraGravity();step(12);}
+function constellationReview(index){scene('r',0);astraGravity.constellation=ASTRA_CONSTELLATIONS[index];step(350);}
+function reviewTouch(type,x,y){const rect=canvas.getBoundingClientRect(),touch=new Touch({identifier:91,target:canvas,clientX:rect.left+x*rect.width/canvas.width,clientY:rect.top+y*rect.height/canvas.height});canvas.dispatchEvent(new TouchEvent(type,{bubbles:true,cancelable:true,changedTouches:[touch],touches:type==='touchend'?[]:[touch],targetTouches:type==='touchend'?[]:[touch]}));}
+function cancelReview(phase){
+  if(phase==='start'){resizeReview(true);scene('controls',0);const s=getMobileControlLayout().skills.find(s=>s.key==='e');reviewTouch('touchstart',s.x,s.y);reviewTouch('touchmove',s.x-40,s.y-10);}
+  else{const c=getMobileSkillCancelButton();reviewTouch(phase==='end'?'touchend':'touchmove',c.x,c.y);}
+  paint();report(`Skill drag=${Boolean(mobileSkillAim)}; cancel hover=${Boolean(mobileSkillAim?.cancelHover)}; E wells=${astraWells.length}; E cooldown=${player.astraECooldown}`);
+}
 function resizeReview(phone){reviewPhone=phone;canvas.width=phone?844:1280;canvas.height=phone?390:760;isMobileTouchDevice=()=>phone;updateCamera();paint();}
 function fakeEnemy(x,y,i){return {x,y,r:i%5===0?27:18,hp:450,maxHp:450,speed:.9,boss:i%5===0,expValue:1,scoreValue:10};}
 function scene(kind,age=100){
@@ -26,8 +35,8 @@ function scene(kind,age=100){
   }
   if(kind==='q'){activateAstraQ();for(let i=0;i<20;i++)reviewTick();}
   else if(kind==='x'){activateAstraX();for(let i=0;i<age;i++)reviewTick();}
-  else if(kind==='e'||kind==='dust'||kind==='growth'){player.astraStardust=kind==='growth'?300:kind==='dust'?100:0;if(kind!=='growth')activateAstraE();for(let i=0;i<100;i++){if(kind==='growth')player.x+=1;reviewTick();}}
-  else{
+  else if(kind==='e'||kind==='dust'||kind==='growth'){player.astraStardust=kind==='growth'?300:kind==='dust'?100:0;if(kind!=='growth')activateAstraE();for(let i=0;i<age;i++){if(kind==='growth')player.x+=1;reviewTick();}}
+  else if(kind!=='controls'){
     if(kind==='fallback'){
       startRaidBoss(0);activeRaidBoss.x=activeRaidBoss.anchorX=player.x+410;activeRaidBoss.y=activeRaidBoss.anchorY=player.y-75;raidIntroTime=0;raidBossEffects=[];particles=[];
       updateCamera();mouse.worldX=activeRaidBoss.x;mouse.worldY=activeRaidBoss.y;mouse.x=(mouse.worldX-camera.x)*getWorldViewScale();mouse.y=(mouse.worldY-camera.y)*getWorldViewScale();
@@ -57,6 +66,7 @@ async function fullBenchmark(){
   for(const original of doc.querySelectorAll('script[src]')){if(original.getAttribute('src').includes('pwa.js'))continue;await new Promise((resolve,reject)=>{const s=document.createElement('script'),src=original.getAttribute('src');s.src=src+(src.includes('?')?'&':'?')+'review='+Date.now();s.onload=resolve;s.onerror=reject;document.head.append(s);});}
   saveTotalKills=()=>{};isMobileTouchDevice=()=>reviewPhone;selectedCharacter='astra';screenMode='game';prepareGameImages();
   await Promise.all(gameImageRegistry.filter(img=>img.assetRequested).map(img=>img.decode().catch(()=>{})));
+  for(const [i,shape] of ASTRA_CONSTELLATIONS.entries()){const button=document.createElement('button');button.textContent=shape.name;button.onclick=()=>constellationReview(i);document.getElementById('constellations').append(button);}
   reviewReady=true;resizeReview(false);scene('q');
 })();
 </script></body></html>

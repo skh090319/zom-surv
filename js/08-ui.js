@@ -17,17 +17,10 @@ function drawHealthBar() {
   ctx.fillRect(x, y, barW, barH);
 
   const astralHealth = selectedCharacter === "astra";
-  if (astralHealth) {
-    const galaxy=ctx.createLinearGradient(x,y,x+barW,y+barH);
-    galaxy.addColorStop(0,"#324dba");galaxy.addColorStop(.35,"#8555cd");galaxy.addColorStop(.65,"#647fd3");galaxy.addColorStop(1,"#65d8e1");ctx.fillStyle=galaxy;
-  } else ctx.fillStyle = "#ff3b3b";
-  ctx.fillRect(x, y, barW * hpRatio, barH);
-  if(astralHealth){
-    ctx.save();ctx.beginPath();ctx.rect(x,y,barW*hpRatio,barH);ctx.clip();
-    ctx.strokeStyle="rgba(202,222,255,.28)";ctx.lineWidth=3;
-    ctx.beginPath();ctx.moveTo(x,y+barH*.85);ctx.bezierCurveTo(x+barW*.35,y-8,x+barW*.62,y+barH*1.5,x+barW,y+3);ctx.stroke();
-    for(let i=0;i<29;i++){ctx.fillStyle=i%4?"rgba(226,243,255,.48)":"#fff5d8";ctx.fillRect(x+barW*((i*.618)%1),y+3+(i*7%18),i%4?1:2,1);}
-    ctx.restore();
+  if (astralHealth && typeof drawAstraHealthFlow === 'function') drawAstraHealthFlow(x, y, barW, barH, hpRatio);
+  else {
+    ctx.fillStyle = astralHealth ? '#647fd3' : '#ff3b3b';
+    ctx.fillRect(x, y, barW * hpRatio, barH);
   }
 
   ctx.strokeStyle = astralHealth ? "#c4c9f4" : "white";
@@ -35,10 +28,14 @@ function drawHealthBar() {
   ctx.strokeRect(x, y, barW, barH);
 
   ctx.fillStyle = "white";
-  ctx.font = "15px Arial";
+  ctx.font = astralHealth ? "bold 15px Arial" : "15px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const healthText=selectedCharacter==="vargas"?`${Math.max(0,player.hp).toFixed(1)} / ${player.maxHp.toFixed(1)}`:`${Math.max(0,Math.floor(player.hp))} / ${Math.floor(player.maxHp)}`;
+  if (astralHealth) {
+    ctx.strokeStyle = 'rgba(5,10,27,.94)'; ctx.lineWidth = 3;
+    ctx.strokeText(healthText, canvas.width / 2, y + barH / 2);
+  }
   ctx.fillText(
     healthText,
     canvas.width / 2,

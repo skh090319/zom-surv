@@ -50,7 +50,7 @@ function game() {
   const load=file=>vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
   load('03-input.js');
   // Load the real entry-point order, including overrides of the original casts.
-  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','04-null-zero.js','04-astra.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
+  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','04-null-zero.js','04-astra-constellations.js','04-astra.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
   return {context,draws,storage,run:code=>vm.runInContext(code,context),touch(type,id,x,y){context.canvas.dispatchEvent({type,preventDefault(){},changedTouches:[{identifier:id,clientX:x,clientY:y}]});}};
 }
 
@@ -126,6 +126,79 @@ test('cancelled or interrupted touches cannot cast a skill',()=>{
     g.touch(interrupt==='cancel'?'touchcancel':'touchend',2,button.x-50,button.y);
     assert.equal(g.run('mareCore'),null);assert.equal(g.run('mobileSkillAim'),null);
   }
+});
+
+test('dragging a skill onto neon cancel and releasing spends no cooldown or cast',()=>{
+  const g=game(),skill=g.run('getMobileControlLayout().skills.find(s=>s.key==="e")');
+  g.touch('touchstart',9,skill.x,skill.y);g.run('drawMobileSkillCancelButton()');assert.equal(g.draws.length,0);
+  g.touch('touchmove',9,skill.x-40,skill.y);g.run('drawMobileSkillCancelButton()');assert.ok(g.draws.some(d=>d[0]==='arc'));
+  const cancel=g.run('getMobileSkillCancelButton()');g.touch('touchmove',9,cancel.x,cancel.y);
+  assert.equal(g.run('mobileSkillAim.cancelHover'),true);g.draws.length=0;g.run('drawMobileTargetingIndicator()');assert.equal(g.draws.length,0);
+  g.touch('touchend',9,cancel.x,cancel.y);assert.equal(g.run('mareCore'),null);assert.equal(g.context.player.mareECooldown,0);assert.equal(g.run('mobileSkillAim'),null);
+});
+
+test('leaving the cancel circle restores aim and releasing casts normally',()=>{
+  const g=game(),skill=g.run('getMobileControlLayout().skills.find(s=>s.key==="e")');
+  g.touch('touchstart',9,skill.x,skill.y);g.touch('touchmove',9,skill.x-40,skill.y);
+  const cancel=g.run('getMobileSkillCancelButton()');g.touch('touchmove',9,cancel.x,cancel.y);
+  g.touch('touchmove',9,skill.x-40,skill.y);assert.equal(g.run('mobileSkillAim.cancelHover'),false);
+  g.touch('touchend',9,skill.x-40,skill.y);assert.ok(g.run('mareCore'));
+});
+
+test('second-finger cancel preserves movement and basic attack, and cannot cast on later release',()=>{
+  const g=game(),layout=g.run('getMobileControlLayout()'),skill=layout.skills.find(s=>s.key==='e');
+  g.touch('touchstart',1,layout.joystick.x,layout.joystick.y);g.touch('touchstart',2,layout.attack.x,layout.attack.y);
+  g.touch('touchstart',3,skill.x,skill.y);g.touch('touchmove',3,skill.x-45,skill.y);
+  const cancel=g.run('getMobileSkillCancelButton()');g.touch('touchstart',4,cancel.x,cancel.y);
+  assert.equal(g.run('mobileSkillAim'),null);assert.equal(g.run('mobileJoystickTouchId'),1);assert.equal(g.run('mobileAttackTouchId'),2);assert.equal(g.context.mouse.down,true);
+  g.touch('touchend',4,cancel.x,cancel.y);g.touch('touchend',3,skill.x-45,skill.y);assert.equal(g.run('mareCore'),null);
+});
+
+test('cancel checks final release coordinates and works for non-targeted buff skills too',()=>{
+  for(const key of ['e','x']){
+    const g=game(),skill=g.run(`getMobileControlLayout().skills.find(s=>s.key==='${key}')`);
+    g.touch('touchstart',3,skill.x,skill.y);g.touch('touchmove',3,skill.x-35,skill.y);
+    const cancel=g.run('getMobileSkillCancelButton()');g.touch('touchend',3,cancel.x,cancel.y);
+    assert.equal(g.run('mareCore'),null);assert.equal(g.context.player.mareFlowTime,0);assert.equal(g.context.player.mareXCooldown,0);
+  }
+});
+
+test('cancel target remains above default skills on phone and tablet, and follows custom positions',()=>{
+  const g=game();
+  for(const [w,h] of [[667,320],[844,390],[1024,768],[1366,1024]]){
+    g.context.canvas.width=w;g.context.canvas.height=h;
+    const layout=g.run('getMobileControlLayout()'),button=g.run('getMobileSkillCancelButton()');
+    assert.ok(button.y+button.r<Math.min(...layout.skills.map(s=>s.y-s.r)));
+    assert.ok(button.x-button.r>=0&&button.x+button.r<=w&&button.y-button.r>=0&&button.y+button.r<=h);
+  }
+  g.run('mobileControlSettings.skills.e.x=.3;mobileControlSettings.skills.e.y=.3');
+  const custom=g.run('getMobileSkillCancelButton()');assert.ok(custom.x<1000);
+});
+
+test('cancel target cannot overlap custom skills placed at the upper editor limit',()=>{
+  const g=game();
+  for(const [w,h] of [[667,320],[844,390],[1366,1024]]){
+    g.context.canvas.width=w;g.context.canvas.height=h;
+    g.run('for(const key of ["q","e","x","r"]){mobileControlSettings.skills[key].y=0;mobileControlSettings.skills[key].x=.5;}');
+    const layout=g.run('getMobileControlLayout()'),cancel=g.run('getMobileSkillCancelButton()');
+    for(const skill of layout.skills)assert.ok(Math.hypot(cancel.x-skill.x,cancel.y-skill.y)>cancel.r+9+skill.r);
+    assert.ok(cancel.y+cancel.r<Math.min(...layout.skills.map(s=>s.y-s.r)));
+  }
+});
+
+test('neon cancel is available to every character skill and hidden for basic-attack dragging',()=>{
+  const g=game();g.context.reviewCasts=[];g.run('triggerMobileSkill=key=>reviewCasts.push(key)');
+  const characters=g.run('Object.keys(MOBILE_SKILL_KEYS)');
+  for(const character of characters){
+    g.context.selectedCharacter=character;
+    for(const skill of g.run('getMobileControlLayout().skills')){
+      g.touch('touchstart',3,skill.x,skill.y);g.touch('touchmove',3,skill.x-35,skill.y);
+      const cancel=g.run('getMobileSkillCancelButton()');g.touch('touchend',3,cancel.x,cancel.y);
+      assert.equal(g.run('mobileSkillAim'),null);
+    }
+  }
+  assert.equal(g.context.reviewCasts.length,0);
+  g.run('mobileAttackAim={dragged:true,angle:0,strength:1};drawMobileSkillCancelButton()');assert.equal(g.draws.length,0);
 });
 
 test('geometry matches cast dimensions and empowered states',()=>{

@@ -191,7 +191,8 @@ function finishRaidPattern(boss, cooldown = 90) {
   boss.anim = 0;
 }
 
-function raidPlayerDamage(ratio, lethal = false) {
+function raidPlayerDamage(ratio, lethal = false, source = null) {
+  if (typeof astraWellSuppressesEnemy === "function" && astraWellSuppressesEnemy(source)) return;
   if (lethal) {
     player.hp = 0;
     gameOver = !tryRevive();
@@ -221,14 +222,14 @@ function firePoisonVolley(boss) {
   const count = selectedDifficulty === "hard" ? 5 : 3;
   for (let i = 0; i < count; i++) {
     const a = base + (i - (count - 1) / 2) * 0.18;
-    addRaidProjectile({ type: "venom", x: boss.x, y: boss.y, vx: Math.cos(a) * 7.2, vy: Math.sin(a) * 7.2, r: 15, damage: getRaidBossDamageRatio("venom") });
+    addRaidProjectile({ type: "venom", owner: boss, x: boss.x, y: boss.y, vx: Math.cos(a) * 7.2, vy: Math.sin(a) * 7.2, r: 15, damage: getRaidBossDamageRatio("venom") });
   }
 }
 
 function splitVenomProjectile(p) {
   for (let i = 0; i < 5; i++) {
     const a = Math.atan2(player.y - p.y, player.x - p.x) + (i - 2) * 0.34;
-    addRaidProjectile({ type: "venomSmall", x: p.x, y: p.y, vx: Math.cos(a) * 6.3, vy: Math.sin(a) * 6.3, r: 7, damage: getRaidBossDamageRatio("venomSmall"), life: 150 });
+    addRaidProjectile({ type: "venomSmall", owner: p.owner, x: p.x, y: p.y, vx: Math.cos(a) * 6.3, vy: Math.sin(a) * 6.3, r: 7, damage: getRaidBossDamageRatio("venomSmall"), life: 150 });
   }
   raidBossEffects.push({ type: "poisonBurst", x: p.x, y: p.y, life: 30, maxLife: 30 });
 }
@@ -242,7 +243,7 @@ function updateBloomBoss(boss) {
       for (let i = 0; i < 8; i++) {
         const a = i * Math.PI / 4 + 0.18;
         const d = 105 + (i % 2) * 115;
-        raidBossZones.push({ type: "poison", x: poisonCenterX + Math.cos(a) * d, y: poisonCenterY + Math.sin(a) * d, r: 72, delay: 48 + i * 3, life: 260, tick: 0 });
+        raidBossZones.push({ type: "poison", owner: boss, x: poisonCenterX + Math.cos(a) * d, y: poisonCenterY + Math.sin(a) * d, r: 72, delay: 48 + i * 3, life: 260, tick: 0 });
       }
     }
     if (boss.patternTime > 72) finishRaidPattern(boss, 95);
@@ -255,7 +256,7 @@ function updateBloomBoss(boss) {
       const count = selectedDifficulty === "hard" ? 2 : 1;
       for (let i = 0; i < count; i++) {
         const shotAngle = a + (i - (count - 1) / 2) * 0.2;
-        addRaidProjectile({ type: "vine", x: boss.x, y: boss.y, vx: Math.cos(shotAngle) * 10, vy: Math.sin(shotAngle) * 10, r: 13, damage: getRaidBossDamageRatio("vine"), life: 95 });
+        addRaidProjectile({ type: "vine", owner: boss, x: boss.x, y: boss.y, vx: Math.cos(shotAngle) * 10, vy: Math.sin(shotAngle) * 10, r: 13, damage: getRaidBossDamageRatio("vine"), life: 95 });
       }
     }
     if (boss.patternTime > 58) finishRaidPattern(boss, 75);
@@ -287,7 +288,7 @@ function updateReaperBoss(boss) {
     if (boss.patternTime >= 36 && boss.patternTime <= 58) {
       const gravityScale = typeof astraEnemyMoveScale === "function" ? astraEnemyMoveScale(boss) : 1;
       boss.x += boss.dashVx * gravityScale; boss.y += boss.dashVy * gravityScale;
-      if (Math.hypot(player.x - boss.x, player.y - boss.y) < boss.r + player.r + 15) raidPlayerDamage(getRaidBossDamageRatio("charge"));
+      if (Math.hypot(player.x - boss.x, player.y - boss.y) < boss.r + player.r + 15) raidPlayerDamage(getRaidBossDamageRatio("charge"), false, boss);
     }
     if (boss.patternTime > 65) finishRaidPattern(boss, 90);
   } else if (boss.pattern === 1) {
@@ -305,14 +306,14 @@ function updateReaperBoss(boss) {
 
 function fireAbyssOrb(boss) {
   const a = Math.atan2(player.y - boss.y, player.x - boss.x);
-  addRaidProjectile({ type: "abyssOrb", x: boss.x, y: boss.y, vx: Math.cos(a) * 8.2, vy: Math.sin(a) * 8.2, r: 16, damage: getRaidBossDamageRatio("abyssOrb"), life: 180 });
+  addRaidProjectile({ type: "abyssOrb", owner: boss, x: boss.x, y: boss.y, vx: Math.cos(a) * 8.2, vy: Math.sin(a) * 8.2, r: 16, damage: getRaidBossDamageRatio("abyssOrb"), life: 180 });
 }
 
 function fireAbyssOrbRing(boss) {
   const count = 12;
   for (let i = 0; i < count; i++) {
     const a = i * Math.PI * 2 / count;
-    addRaidProjectile({ type: "abyssOrb", x: boss.x, y: boss.y, vx: Math.cos(a) * 8.2, vy: Math.sin(a) * 8.2, r: 16, damage: getRaidBossDamageRatio("abyssOrb"), life: 180 });
+    addRaidProjectile({ type: "abyssOrb", owner: boss, x: boss.x, y: boss.y, vx: Math.cos(a) * 8.2, vy: Math.sin(a) * 8.2, r: 16, damage: getRaidBossDamageRatio("abyssOrb"), life: 180 });
   }
 }
 
@@ -334,7 +335,7 @@ function updateAbyssBoss(boss) {
   } else if (boss.pattern === 1) {
     const lightningTimes = selectedDifficulty === "hard" ? [1, 23, 45, 67, 89, 111, 133, 155] : [1, 38, 75, 112];
     if (lightningTimes.includes(boss.patternTime)) {
-      raidBossZones.push({ type: "lightning", x: player.x, y: player.y, r: 92, delay: 42, life: 62, struck: false });
+      raidBossZones.push({ type: "lightning", owner: boss, x: player.x, y: player.y, r: 92, delay: 42, life: 62, struck: false });
     }
     if (boss.patternTime > 176) finishRaidPattern(boss, 105);
   } else if (boss.pattern === 2) {
@@ -346,7 +347,7 @@ function updateAbyssBoss(boss) {
       boss.x += boss.dashVx * gravityScale; boss.y += boss.dashVy * gravityScale;
       if (!boss.dashHit && Math.hypot(player.x - boss.x, player.y - boss.y) < boss.r + player.r + 22) {
         boss.dashHit = true;
-        raidPlayerDamage(1, true);
+        raidPlayerDamage(1, true, boss);
       }
     }
     if (boss.patternTime > (selectedDifficulty === "hard" ? 310 : 186)) finishRaidPattern(boss, 125);
@@ -376,8 +377,9 @@ function updateRaidBossProjectiles() {
     if (p.type === "venom" && raidArena && Math.hypot(p.x - raidArena.x, p.y - raidArena.y) > raidArena.r - 18) {
       splitVenomProjectile(p); raidBossProjectiles.splice(i, 1); continue;
     }
-    if (!p.hit && Math.hypot(player.x - p.x, player.y - p.y) < player.r + p.r) {
-      raidPlayerDamage(p.damage || 0.1);
+    if (!p.hit && Math.hypot(player.x - p.x, player.y - p.y) < player.r + p.r &&
+        !(typeof astraWellSuppressesEnemy === "function" && astraWellSuppressesEnemy(p.owner))) {
+      raidPlayerDamage(p.damage || 0.1, false, p.owner);
       p.hit = true;
       if (p.type === "vine") {
         player.bossRootTime = 120;
@@ -401,11 +403,11 @@ function updateRaidBossZones() {
     z.life--; if (z.delay > 0) z.delay--;
     if (z.type === "poison" && z.delay <= 0) {
       z.tick = (z.tick || 0) - 1;
-      if (z.tick <= 0 && Math.hypot(player.x - z.x, player.y - z.y) < z.r + player.r) { raidPlayerDamage(getRaidBossDamageRatio("poison")); z.tick = 28; }
+      if (z.tick <= 0 && Math.hypot(player.x - z.x, player.y - z.y) < z.r + player.r) { raidPlayerDamage(getRaidBossDamageRatio("poison"), false, z.owner); z.tick = 28; }
     }
     if (z.type === "lightning" && z.delay <= 0 && !z.struck) {
       z.struck = true;
-      if (Math.hypot(player.x - z.x, player.y - z.y) < z.r + player.r) raidPlayerDamage(getRaidBossDamageRatio("lightning"));
+      if (Math.hypot(player.x - z.x, player.y - z.y) < z.r + player.r) raidPlayerDamage(getRaidBossDamageRatio("lightning"), false, z.owner);
       raidBossEffects.push({ type: "lightning", x: z.x, y: z.y, r: z.r, seed: Math.random() * 1000, life: 36, maxLife: 36 });
     }
     if (z.life <= 0) raidBossZones.splice(i, 1);
@@ -452,7 +454,7 @@ function updateRaidBossSystem() {
   boss.facing = player.x < boss.x ? -1 : 1;
   const contactDistance = boss.r + player.r + (boss.raidIndex === 0 ? 8 : 14);
   if (Math.hypot(player.x - boss.x, player.y - boss.y) < contactDistance) {
-    raidPlayerDamage(getRaidBossDamageRatio("contact", boss.raidIndex));
+    raidPlayerDamage(getRaidBossDamageRatio("contact", boss.raidIndex), false, boss);
     const pushAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
     player.x += Math.cos(pushAngle) * 18;
     player.y += Math.sin(pushAngle) * 18;

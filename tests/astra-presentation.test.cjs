@@ -23,7 +23,7 @@ function presentation() {
   const context = {ctx, Math, selectedCharacter: 'astra', screenMode: 'game', player: {x:0,y:0,astraHorizonLevel:0,astraStardust:0},
     transcended: {}, WORLD: {width:4000,height:4000}, camera:{x:0,y:0}, getCameraViewWidth:()=>844,getCameraViewHeight:()=>390};
   vm.createContext(context);
-  for (const file of ['04-astra.js', '04-astra-vfx.js', '08-mobile-targeting.js']) vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
+  for (const file of ['04-astra-constellations.js', '04-astra.js', '04-astra-vfx.js', '08-mobile-targeting.js']) vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
   return {context, calls, run: source=>vm.runInContext(source,context)};
 }
 

@@ -77,6 +77,41 @@ function getMobileControlLayout(){
 
 function getMobileMoveVector(){return {active:mobileJoystickTouchId!==null,x:mobileMoveX,y:mobileMoveY};}
 
+// This is a screen-space drop target, independent of skill range or camera zoom.
+function getMobileSkillCancelButton(layout=getMobileControlLayout()){
+  const skills=layout.skills;if(!skills.length)return null;
+  const r=Math.max(26,Math.min(34,Math.min(canvas.width,canvas.height)*.07)),margin=16;
+  const left=Math.min(...skills.map(s=>s.x-s.r)),right=Math.max(...skills.map(s=>s.x+s.r));
+  const top=Math.min(...skills.map(s=>s.y-s.r));
+  const fitX=x=>Math.max(r+margin,Math.min(canvas.width-r-margin,x));
+  const preferred=fitX((left+right)/2),y=Math.max(r+margin,Math.min(canvas.height-r-margin,top-r-24));
+  // Custom skills may sit near the top HUD. Stay above them, moving sideways
+  // into free space if needed instead of pushing the cancel target onto a skill.
+  const hpW=Math.min(520,canvas.width-80),blockers=[{x:(canvas.width-hpW)/2-5,y:13,w:hpW+10,h:34},
+    {x:canvas.width/2-52,y:48,w:104,h:32},pauseButtonRect];
+  let x=preferred,best=Infinity;
+  for(const candidate of [preferred,fitX(left-r-24),fitX(right+r+24),fitX(margin+r),fitX(canvas.width-margin-r)]){
+    let score=Math.abs(candidate-preferred);
+    for(const rect of blockers){
+      if(!rect?.w||!rect?.h)continue;
+      const dx=candidate-Math.max(rect.x,Math.min(rect.x+rect.w,candidate)),dy=y-Math.max(rect.y,Math.min(rect.y+rect.h,y));
+      if(Math.hypot(dx,dy)<r+10)score+=10000;
+    }
+    for(const skill of skills)if(Math.hypot(candidate-skill.x,y-skill.y)<r+skill.r+12)score+=10000;
+    if(score<best){best=score;x=candidate;}
+  }
+  return {x,y,r};
+}
+function mobileSkillOverCancel(p){
+  if(!mobileSkillAim?.dragged)return false;
+  const button=getMobileSkillCancelButton();
+  return Boolean(button&&pointInCircle(p,{...button,r:button.r+9}));
+}
+function cancelMobileSkillAim(){
+  mobileSkillAim=null;
+  if(mobileAttackTouchId!==null)updateMobileAttackAim();
+}
+
 function updateMobileJoystick(x,y){
   const joy=getMobileControlLayout().joystick,dx=x-joy.x,dy=y-joy.y,d=Math.hypot(dx,dy),limit=joy.r*.62,clamped=Math.min(d,limit),nx=d?dx/d:0,ny=d?dy/d:0;
   mobileStickX=nx*clamped;mobileStickY=ny*clamped;mobileMoveX=nx*Math.min(1,d/limit);mobileMoveY=ny*Math.min(1,d/limit);
@@ -85,7 +120,7 @@ function updateMobileJoystick(x,y){
 function releaseMobileJoystick(){mobileJoystickTouchId=null;mobileMoveX=0;mobileMoveY=0;mobileStickX=0;mobileStickY=0;mobileJoystickOrigin=null;}
 
 function updateMobileAttackAim(force=false){
-  if(!force&&mobileSkillAim?.dragged){applyMobileDragAim(mobileSkillAim,getMobileSkillTargetSpec(mobileSkillAim.key));return;}
+  if(!force&&mobileSkillAim?.dragged&&!mobileSkillAim.cancelHover){applyMobileDragAim(mobileSkillAim,getMobileSkillTargetSpec(mobileSkillAim.key));return;}
   if(mobileAttackTouchId===null&&!force)return;
   if(mobileAttackAim?.dragged&&!force){applyMobileDragAim(mobileAttackAim,getMobileAttackTargetSpec());return;}
   let target=null,best=Infinity;
@@ -96,6 +131,7 @@ function updateMobileAttackAim(force=false){
 function updateMobileDragAim(state,p,spec){
   const dx=p.x-state.startX,dy=p.y-state.startY,d=Math.hypot(dx,dy);
   state.currentX=p.x;state.currentY=p.y;state.dragged=d>=10;
+  if(state===mobileSkillAim){state.cancelHover=mobileSkillOverCancel(p);if(state.cancelHover)return;}
   if(!state.dragged)return;
   state.angle=Math.atan2(dy,dx);
   state.strength=Math.min(1,d/Math.max(62,Math.min(canvas.width,canvas.height)*.2));
@@ -103,7 +139,7 @@ function updateMobileDragAim(state,p,spec){
 }
 
 function applyMobileDragAim(state,spec){
-  if(!spec||spec.aim===false||!state.dragged)return;
+  if(!spec||spec.aim===false||!state.dragged||state.cancelHover)return;
   const target=getMobileAimPoint(state,spec),scale=getWorldViewScale();
   mouse.x=(target.x-camera.x)*scale;mouse.y=(target.y-camera.y)*scale;screenToWorld();
 }
@@ -174,6 +210,8 @@ canvas.addEventListener("touchstart",event=>{
   }
   const layout=getMobileControlLayout();
   for(const touch of event.changedTouches){const p=canvasTouchPoint(touch);
+    // Also allow a second finger to tap X while the skill finger stays held.
+    if(mobileSkillOverCancel(p)){cancelMobileSkillAim();continue;}
     const skill=layout.skills.find(button=>pointInCircle(p,{...button,r:button.r*1.48}));if(skill&&mobileSkillAim===null){mobileSkillAim={touchId:touch.identifier,key:skill.key,startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};updateMobileAttackAim(true);continue;}
     if(mobileAttackTouchId===null&&pointInCircle(p,{...layout.attack,r:layout.attack.r*1.42})){mobileAttackTouchId=touch.identifier;mobileAttackAim={startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};mouse.down=true;updateMobileAttackAim();continue;}
     const nearJoystick=pointInCircle(p,{...layout.joystick,r:layout.joystick.r*2.25})||(p.x<canvas.width*.38&&p.y>canvas.height*.42);
@@ -211,13 +249,14 @@ function endMobileTouches(event){
     if(touch.identifier===mobileJoystickTouchId)releaseMobileJoystick();
     if(touch.identifier===mobileAttackTouchId){mobileAttackTouchId=null;mobileAttackAim=null;mouse.down=false;}
     if(mobileSkillAim&&touch.identifier===mobileSkillAim.touchId){
-      if(!cancelled&&screenMode==="game"&&!paused&&!choosingUpgrade&&!gameOver&&!raidVictory){
+      if(!cancelled)updateMobileDragAim(mobileSkillAim,canvasTouchPoint(touch),getMobileSkillTargetSpec(mobileSkillAim.key));
+      if(!cancelled&&!mobileSkillAim.cancelHover&&screenMode==="game"&&!paused&&!choosingUpgrade&&!gameOver&&!raidVictory){
         const spec=getMobileSkillTargetSpec(mobileSkillAim.key);
         if(mobileSkillAim.dragged)applyMobileDragAim(mobileSkillAim,spec);
         else if(spec)updateMobileAttackAim(true);
         triggerMobileSkill(mobileSkillAim.key,true);
       }
-      mobileSkillAim=null;
+      cancelMobileSkillAim();
     }
     if(mobileUiGesture&&touch.identifier===mobileUiGesture.id){
       clearTimeout(mobileUiGesture.longTimer);
@@ -445,6 +484,24 @@ function drawMobileControls(){
     }else ctx.fillText(skillName,skill.x,skill.y+skill.r+12);
   }
   ctx.restore();
+  drawMobileSkillCancelButton();
+}
+
+function drawMobileSkillCancelButton(){
+  if(!mobileSkillAim?.dragged||!isMobileTouchDevice()||isMobilePortraitMode()||screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory)return;
+  const button=getMobileSkillCancelButton();if(!button)return;
+  const {x,y,r}=button,hover=mobileSkillAim.cancelHover;
+  ctx.save();ctx.translate(x,y);ctx.lineCap="round";ctx.lineJoin="round";
+  ctx.fillStyle=hover?"rgba(119,8,28,.68)":"rgba(40,4,17,.36)";
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
+  // Layered neon tubes: crisp hot core, red emission and soft outer halo.
+  for(const [width,color] of [[12,"rgba(255,31,68,.09)"],[7,"rgba(255,41,76,.19)"],[3,hover?"#ff3c60":"#ef3154"],[1.15,"#ffb7c5"]]){
+    ctx.lineWidth=width;ctx.strokeStyle=color;
+    ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();
+    const d=r*.34;ctx.beginPath();ctx.moveTo(-d,-d);ctx.lineTo(d,d);ctx.moveTo(d,-d);ctx.lineTo(-d,d);ctx.stroke();
+  }
+  ctx.fillStyle=hover?"#ffc2ce":"#ff718a";ctx.font="13px DoHyeon, Arial";ctx.textAlign="center";ctx.textBaseline="top";
+  ctx.fillText(hover?"놓아서 취소":"시전 취소",0,r+7);ctx.restore();
 }
 
 function drawMobilePortraitLock(){

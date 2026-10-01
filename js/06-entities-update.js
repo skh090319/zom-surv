@@ -389,7 +389,8 @@ function updateZombies() {
 
     if (Math.hypot(player.x - z.x, player.y - z.y) < player.r + z.r) {
       const countered = !isZombieInsideGravityField(z) && selectedCharacter === "paladin" && player.paladinGuardTime > 0 && triggerPaladinCounter(z);
-      if (!countered && !isZombieInsideGravityField(z) && player.invincibleTime <= 0) {
+      const astraSuppressed = typeof astraWellSuppressesEnemy === "function" && astraWellSuppressesEnemy(z);
+      if (!countered && !astraSuppressed && !isZombieInsideGravityField(z) && player.invincibleTime <= 0) {
         const dodged = tryDodgeAttack();
 
         if (!dodged) {

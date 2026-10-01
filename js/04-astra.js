@@ -6,10 +6,6 @@ let astraRewardedKills = new WeakSet(), astraOrbitPrevious = new Map(), astraEne
 const ASTRA_Q_CD = 240, ASTRA_E_CD = 510, ASTRA_X_CD = 780, ASTRA_R_CD = 1680;
 const ASTRA_R_DURATION = 360, ASTRA_R_LIFT = 42, ASTRA_R_FLIGHT = 980;
 const ASTRA_R_CONSTELLATION_FORM = 26, ASTRA_R_CONSTELLATION_HOLD = 10;
-const ASTRA_CONSTELLATION_VERTICES = Array.from({ length: 10 }, (_, i) => {
-  const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 99 : 220;
-  return { x: Math.cos(a) * r, y: Math.sin(a) * r };
-});
 const ASTRA_REALM_FADE_IN = 54, ASTRA_REALM_FADE_OUT = 60;
 // Independent balance knobs: do not multiply the shared player.damage stat.
 const ASTRA_BASIC_DAMAGE_MULTIPLIER = 2, ASTRA_ORBIT_DAMAGE_MULTIPLIER = 6, ASTRA_WELL_PULL_MULTIPLIER = 12;
@@ -51,10 +47,17 @@ function astraQGeometry() {
 function astraERadius() { return (85 + (player.astraHorizonLevel || 0) * 18) * (1 + Math.max(0, player.astraStardust || 0) * .01); }
 function astraEPullRadius() { return astraERadius() * ASTRA_WELL_PULL_RANGE_MULTIPLIER; }
 function astraWellPulling(w) { return w.maxLife - w.life >= 24 && w.life > 24; }
+function astraWellSuppressesEnemy(z) {
+  // Suppression belongs to the affected enemy, not to Astra's location. Keep
+  // immune summons dangerous, and do not carry immunity outside an active well.
+  if (selectedCharacter !== "astra" || !astraWells.length || !z || z.hp <= 0 || z.isBossMinion || z.astraControl) return false;
+  const radius = astraEPullRadius() + (z.r || 0);
+  return astraWells.some(w => astraWellPulling(w) && Math.hypot(z.x - w.x, z.y - w.y) <= radius);
+}
 function astraEnemyMoveScale(z) {
   if (selectedCharacter !== "astra" || !z || z.astraControl) return 1;
   if (astraGravity?.state === "orbit") return .1;
-  if (z.isRaidBoss && astraWells.some(w => astraWellPulling(w) && Math.hypot(z.x - w.x, z.y - w.y) <= astraEPullRadius() + z.r)) return .35;
+  if (z.isRaidBoss && astraWellSuppressesEnemy(z)) return .35;
   return 1;
 }
 // A captured hostile projectile becomes harmless immediately. Its spiral and
@@ -148,7 +151,7 @@ function attackWithAstra() {
   if (player.fireCooldown > 0) return;
   const a = Math.atan2(mouse.worldY - player.y, mouse.worldX - player.x);
   astraMeteors.push({ x: player.x, y: player.y, a, speed: 13, curve: (Math.random() - .5) * .014, life: 72, damage: astraScaledDamage(player.damage * 1.02 * ASTRA_BASIC_DAMAGE_MULTIPLIER), r: 10, kind: "shot", trail: [], hits: new Set() });
-  player.fireCooldown = Math.max(11, 24 - (player.fireRateBonus || 0) * 2);
+  player.fireCooldown = Math.max(11, 24 - (player.fireRateBonus || 0) * 2) * .7;
 }
 function activateAstraQ() {
   const flights = astraQFlights();
@@ -180,7 +183,9 @@ function activateAstraR() {
   player.astraUltimateCasts = (player.astraUltimateCasts || 0) + 1;
   const targets = zombies.filter(z => astraCanCapture(z) && Math.hypot(z.x - player.x, z.y - player.y) <= astraRRadius() + z.r);
   const count = targets.length || Math.max(5, astraOrbitCount());
-  astraGravity = { age: 0, backdropReadyAge: 0, constellationProgress: 0, state: "orbit", x: player.x, y: player.y, launchAge: 0, radius: astraRRadius(), bossSpent: new Map(), bodies: [] };
+  // Choose exactly once per successful cast, never per update or render.
+  const constellation = ASTRA_CONSTELLATIONS[Math.floor(Math.random() * ASTRA_CONSTELLATIONS.length)];
+  astraGravity = { age: 0, backdropReadyAge: 0, constellationProgress: 0, constellation, state: "orbit", x: player.x, y: player.y, launchAge: 0, radius: astraRRadius(), bossSpent: new Map(), bodies: [] };
   for (let i = 0; i < count; i++) {
     const z = targets[i] || null, ring = i % 3;
     const b = { zombie: z, virtual: !z, ring, index: i, a: i * 2.399963, x: z ? z.x : player.x, y: z ? z.y : player.y,
@@ -208,10 +213,18 @@ function astraGravityOrbitPoint(b, g) {
   return { x: g.x + ox * Math.cos(tilt) - oy * Math.sin(tilt), y: g.y + ox * Math.sin(tilt) + oy * Math.cos(tilt) - 38 };
 }
 function astraConstellationPoint(index, count, g) {
-  // Equal-length star edges keep dense captures evenly spaced. Five virtual
-  // bodies land on the five outer tips; the VFX uses this same cached outline.
-  const u = index / Math.max(1, count) * 10, edge = Math.floor(u), t = u - edge;
-  const a = ASTRA_CONSTELLATION_VERTICES[edge % 10], b = ASTRA_CONSTELLATION_VERTICES[(edge + 1) % 10];
+  const shape = g.constellation, nodes = shape.points.length;
+  // Small captures occupy real stars across the graph. Dense captures fill its
+  // real links, never synthetic closing edges between separate branches.
+  if (index < nodes) {
+    const p = shape.points[count < nodes ? Math.floor(index * nodes / Math.max(1, count)) : index];
+    return { x: g.x + p.x, y: g.y - 38 + p.y };
+  }
+  const distance = (index - nodes + .5) / Math.max(1, count - nodes) * shape.totalLength;
+  let edge = 0;
+  while (edge < shape.edges.length - 1 && distance > shape.edgeEnds[edge]) edge++;
+  const t = (distance - (edge ? shape.edgeEnds[edge - 1] : 0)) / shape.edgeLengths[edge];
+  const [from, to] = shape.edges[edge], a = shape.points[from], b = shape.points[to];
   return { x: g.x + a.x + (b.x - a.x) * t, y: g.y - 38 + a.y + (b.y - a.y) * t };
 }
 function launchAstraGravity() {

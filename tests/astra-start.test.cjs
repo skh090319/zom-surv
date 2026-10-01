@@ -19,7 +19,7 @@ function game(character = 'astra') {
     updateCamera() {}, screenToWorld() {}, addEventListener() {},
   };
   vm.createContext(context);
-  for (const file of ['02-upgrades.js', '04-astra.js']) {
+  for (const file of ['02-upgrades.js', '04-astra-constellations.js', '04-astra.js']) {
     vm.runInContext(fs.readFileSync(path.join(root, 'js', file), 'utf8'), context);
   }
   const main = fs.readFileSync(path.join(root, 'js/09-main.js'), 'utf8');

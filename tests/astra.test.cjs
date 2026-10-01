@@ -6,14 +6,17 @@ const vm=require('node:vm');
 const root=path.join(__dirname,'..');
 
 function game(){
-  const context={console,Math,performance:{now:()=>0},selectedCharacter:'astra',screenMode:'game',mouse:{worldX:500,worldY:0},zombies:[],
+  const context={console,Math:Object.create(Math),performance:{now:()=>0},selectedCharacter:'astra',screenMode:'game',mouse:{worldX:500,worldY:0},zombies:[],
     player:{x:0,y:0,damage:10,level:10,fireCooldown:0,fireRateBonus:0,astraOrbitBlend:0,astraOrbitAngle:0,astraOrbitTick:0,astraRedLevel:0,astraBlueLevel:0,astraHorizonLevel:0},
     transcended:{astraRed:false,astraBlue:false,astraHorizon:false},scaledDamage:n=>n,enemyMaxHpDamage:(z,r)=>z.maxHp*r,
     killed:[],killZombie(i,z){context.killed.push(z);context.zombies.splice(i,1);},
     worldStart(){},worldEnd(){},drawRoundedRect(){},drawCooldownCover(){},drawSkillHudLabel(){},astraSpriteLoaded:false,
     astraUltimateBackdrop:{complete:true,naturalWidth:1672,naturalHeight:941},
     astraSkillIconAtlas:{complete:false,naturalWidth:0},canvas:{width:1000,height:700},ctx:new Proxy({createRadialGradient:()=>({addColorStop(){}}),createLinearGradient:()=>({addColorStop(){}})}, {get:(o,k)=>o[k]||(()=>{})})};
-  vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra.js'),'utf8'),context);return{context,run:c=>vm.runInContext(c,context)};
+  context.Math.random=()=>.05;
+  vm.createContext(context);
+  for(const file of ['04-astra-constellations.js','04-astra.js'])vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
+  return{context,run:c=>vm.runInContext(c,context)};
 }
 
 function enemy(x,y,extra={}){return {x,y,r:18,hp:10000,maxHp:10000,speed:1,...extra};}
@@ -68,6 +71,20 @@ test('one basic bolt pierces multiple living and dying targets, hits each only o
   g.run('for(let i=0;i<12;i++)updateAstraMeteors()');assert.equal(g.run('astraMeteors.length'),0);
   g.run('player.fireCooldown=0;attackWithAstra();astraMeteors[0].curve=0;for(let i=0;i<15;i++)updateAstraMeteors()');
   assert.ok(Math.abs(targets[1].hp-(10000-40.8))<1e-9);
+});
+
+test('basic attack interval is exactly 70 percent of the prior formula, including its floor',()=>{
+  const g=game();
+  for(const bonus of [0,1,2.5,6,6.5,10,100]){
+    g.context.player.fireCooldown=0;g.context.player.fireRateBonus=bonus;
+    const before=g.run('astraMeteors.length');g.run('attackWithAstra()');
+    const interval=Math.max(11,24-bonus*2)*.7;
+    assert.equal(g.context.player.fireCooldown,interval);
+    assert.equal(g.run('astraMeteors.length'),before+1);
+    g.run('attackWithAstra()');assert.equal(g.run('astraMeteors.length'),before+1,'cooldown still blocks repeated shots');
+    g.context.player.fireCooldown=.01;g.run('attackWithAstra()');assert.equal(g.run('astraMeteors.length'),before+1);
+    g.context.player.fireCooldown=0;g.run('attackWithAstra()');assert.equal(g.run('astraMeteors.length'),before+2);
+  }
 });
 
 test('ultimate portrait is a short, smooth, corner-only cut-in and resets with the run',()=>{
@@ -192,10 +209,10 @@ test('radial mask is feathered, isolated to a reused backdrop surface, and skipp
   tick(g,30);const count=draws.length;g.run('drawAstraUltimateBackdrop()');assert.equal(draws.length,count);
 });
 
-test('basic attack is exactly doubled without changing the shared damage stat or fire rate',()=>{
+test('basic attack remains exactly doubled without changing the shared damage stat',()=>{
   const g=game();g.context.scaledDamage=n=>n*1.8;g.run('attackWithAstra()');
   assert.ok(Math.abs(g.run('astraMeteors[0].damage')-10*1.02*1.8*2)<1e-8);
-  assert.equal(g.context.player.damage,10);assert.equal(g.context.player.fireCooldown,24);
+  assert.equal(g.context.player.damage,10);assert.equal(g.context.player.fireCooldown,24*.7);
   g.run('attackWithAstra()');assert.equal(g.run('astraMeteors.length'),1);
 });
 
@@ -329,14 +346,59 @@ test('R completes a smooth constellation, holds ten ticks, and launches at the o
   }
 });
 
-test('completed constellation follows Astra and five virtual bodies occupy its outer tips',()=>{
+test('completed constellation follows Astra and virtual bodies occupy real stars',()=>{
   const g=game();g.run('activateAstraR()');tick(g,350);
-  for(const b of g.run('astraGravity.bodies'))assert.ok(Math.abs(Math.hypot(b.x,b.y+38)-220)<1e-8);
+  assert.ok(g.run('astraGravity.bodies.every(b=>astraGravity.constellation.points.some(p=>Math.hypot(b.x-p.x,b.y+38-p.y)<1e-8))'));
   g.context.player.x=150;g.context.player.y=80;tick(g,5);
   assert.ok(g.run('astraGravity.x>0&&astraGravity.y>0'));
   for(const b of g.run('astraGravity.bodies')){
-    const center=g.run('({x:astraGravity.x,y:astraGravity.y-38})');
-    assert.ok(Math.abs(Math.hypot(b.x-center.x,b.y-center.y)-220)<1e-8);
+    const p=g.run(`astraConstellationPoint(${b.index},astraGravity.bodies.length,astraGravity)`);
+    assert.ok(Math.hypot(b.x-p.x,b.y-p.y)<1e-8);
+  }
+});
+
+test('R selects each of ten real constellations with equal random intervals, once per cast',()=>{
+  const g=game(),ids=new Set();
+  for(let i=0;i<10;i++)for(const offset of [0,.999999]){
+    g.run('resetAstra()');g.context.player.level=10;
+    g.context.Math.random=()=>(i+offset)/10;
+    g.run('activateAstraR()');const shape=g.run('astraGravity.constellation');
+    assert.equal(shape,g.run(`ASTRA_CONSTELLATIONS[${i}]`));ids.add(shape.id);
+    g.context.Math.random=()=>.999999;
+    tick(g,359);assert.equal(g.run('astraGravity.constellation'),shape);
+    tick(g,1);assert.equal(g.run('astraGravity.constellation'),shape);
+    assert.equal(g.run('astraGravity.state'),'launch');
+  }
+  assert.equal(ids.size,10);assert.ok(ids.has('pisces'));
+});
+
+test('unavailable or duplicate R casts never reroll its constellation',()=>{
+  const g=game();let randomCalls=0;g.context.Math.random=()=>{randomCalls++;return .25;};
+  g.context.player.level=9;g.run('activateAstraR()');assert.equal(randomCalls,0);
+  g.context.player.level=10;g.context.player.astraRCooldown=5;
+  g.run('activateAstraR()');assert.equal(randomCalls,0);
+  g.context.player.astraRCooldown=0;g.run('activateAstraR()');
+  const shape=g.run('astraGravity.constellation'),calls=randomCalls;
+  g.run('activateAstraR()');g.context.player.astraRCooldown=0;g.run('activateAstraR()');
+  assert.equal(randomCalls,calls);assert.equal(g.run('astraGravity.constellation'),shape);
+});
+
+test('all constellation capture sizes occupy real vertices or sourced links without geometry allocation',()=>{
+  const g=game();
+  for(let s=0;s<10;s++)for(const count of [1,5,23,250]){
+    const shape=g.run(`ASTRA_CONSTELLATIONS[${s}]`);
+    g.context.reviewShape=shape;
+    for(let i=0;i<count;i++){
+      const p=g.run(`astraConstellationPoint(${i},${count},{x:150,y:80,constellation:reviewShape})`);
+      const x=p.x-150,y=p.y-42;
+      assert.ok(Number.isFinite(x)&&Number.isFinite(y));assert.ok(Math.hypot(x,y)<=220.00001);
+      const onStar=shape.points.some(a=>Math.hypot(a.x-x,a.y-y)<1e-7);
+      const onLink=shape.edges.some(([a,b])=>{
+        g.context.reviewPoint={x,y,a:shape.points[a],b:shape.points[b]};
+        return g.run('astraSegmentDistance(reviewPoint.x,reviewPoint.y,reviewPoint.a.x,reviewPoint.a.y,reviewPoint.b.x,reviewPoint.b.y)')<1e-7;
+      });
+      assert.ok(onStar||onLink,'capture never invents a connection between branches');
+    }
   }
 });
 

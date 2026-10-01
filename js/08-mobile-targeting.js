@@ -311,7 +311,7 @@ function drawMobileAimDirection(spec,scale){
 function drawMobileTargetingIndicator(){
   if(!isMobileTouchDevice()||screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory)return;
   const state=mobileSkillAim||mobileAttackAim;
-  if(!state?.dragged)return;
+  if(!state?.dragged||state.cancelHover)return;
   const spec=mobileSkillAim?getMobileSkillTargetSpec(state.key):getMobileAttackTargetSpec();
   if(!spec)return;
   const scale=getWorldViewScale(),point=getMobileAimPoint(state,spec),px=(player.x-camera.x)*scale,py=(player.y-camera.y)*scale;
