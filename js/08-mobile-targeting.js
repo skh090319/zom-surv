@@ -63,7 +63,7 @@ function getMobileAimedSkillTargetSpec(key){
       return null;
     case "astra":
       if(key==="q")return {type:"astraVolley",...astraQGeometry(),label:astraQFlights().length?"공전성 회수 경로":"모든 공전성 발사"};
-      if(key==="e")return target(520,astraERadius(),{clampWorld:true});
+      if(key==="e")return target(520,astraERadius(),{clampWorld:true,pullRadius:astraEPullRadius(),label:"안쪽: 피해 · 바깥쪽: 중력 흡입"});
       if(key==="r")return {type:"astraGravity",range:850,minRange:320,variable:true,radius:astraGravity?0:astraRRadius(),label:astraGravity?"지속시간 종료 시 이 방향으로 발사":"포획 범위 · 종료 시 조준 방향으로 발사"};
       return null;
     default:return null;
@@ -224,6 +224,17 @@ function drawMobileAimReticle(x,y){
   ctx.beginPath();ctx.moveTo(0,-10);ctx.lineTo(0,-7);ctx.moveTo(0,7);ctx.lineTo(0,10);ctx.moveTo(-10,0);ctx.lineTo(-7,0);ctx.moveTo(7,0);ctx.lineTo(10,0);ctx.stroke();ctx.restore();
 }
 
+function drawMobileGravityReach(x,y,radius){
+  ctx.save();ctx.translate(x,y);ctx.strokeStyle="rgba(192,174,255,.7)";ctx.lineWidth=1.15;
+  ctx.setLineDash([5,7]);ctx.beginPath();ctx.arc(0,0,radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle="rgba(199,181,255,.83)";ctx.lineWidth=1.4;
+  for(let i=0;i<8;i++){
+    const a=i*Math.PI/4;ctx.save();ctx.rotate(a);const r=radius-8;
+    ctx.beginPath();ctx.moveTo(r+5,-4);ctx.lineTo(r,0);ctx.lineTo(r+5,4);ctx.stroke();ctx.restore();
+  }
+  ctx.restore();
+}
+
 function drawMobileAimCone(range,arc,centerArrow){
   if(arc>=Math.PI*2-.01){drawMobileAimRing(0,0,range,{spokes:false});return;}
   const half=arc/2,band=Math.min(9,range*.075);
@@ -329,7 +340,12 @@ function drawMobileTargetingIndicator(){
   }else if(spec.type==="target"){
     if(!spec.hideRange)drawMobileAimRing(0,0,range,{simple:true});
     const hit=resolveMobilePreviewTarget(spec,point);
-    if(hit)drawMobileAimRing((hit.x-player.x)*scale,(hit.y-player.y)*scale,hit.radius*scale);
+    if(hit){
+      const x=(hit.x-player.x)*scale,y=(hit.y-player.y)*scale;
+      if(spec.pullRadius)drawMobileGravityReach(x,y,spec.pullRadius*scale);
+      drawMobileAimRing(x,y,hit.radius*scale);
+      if(spec.label)drawMobileAimLabel(spec.label);
+    }
   }else if(spec.type==="self")drawMobileAimRing(0,0,range,{spokes:false});
   else{
     let angle=state.angle||0,aimedRange=range*(spec.variable?state.strength:1);

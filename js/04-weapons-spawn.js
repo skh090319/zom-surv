@@ -243,6 +243,7 @@ function bombAllNearbyZombies() {
     if (Math.hypot(z.x - player.x, z.y - player.y) < radius) {
       if (z.isRaidBoss) {
         z.hp -= enemyMaxHpDamage(z, 0.05);
+        if (z.hp <= 0) killZombie(i, z);
         continue;
       } else if (wave <= 10) {
         z.hp = 0;
@@ -262,6 +263,7 @@ function bombAllNearbyZombies() {
   }
 
   for (const z of killedZombies) {
+    if (typeof onAstraEnemyKilled === "function") onAstraEnemyKilled(z);
     player.score += z.boss ? 100 : 20;
     player.kills++;
     totalZombieKills++;
@@ -294,6 +296,9 @@ function bombAllNearbyZombies() {
 }
 
 function killZombie(index, zombie, allowExplosion = true) {
+  // Reward only an enemy still in the encounter, even when chain attacks share it.
+  if (zombies[index] !== zombie) { index = zombies.indexOf(zombie); if (index < 0) return; }
+  if (typeof onAstraEnemyKilled === "function") onAstraEnemyKilled(zombie);
   if (zombie.isRaidBoss) {
     zombies.splice(index, 1);
     defeatRaidBoss(zombie);
@@ -424,6 +429,7 @@ function createFireTrail() {
     life: 180,
     maxLife: 180,
     damagePerFrame: scaledDamage(0.45),
+    astraStardustMultiplier: getAstraStardustMultiplier(),
     slow: 0.65
   });
 

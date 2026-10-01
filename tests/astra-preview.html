@@ -2,6 +2,7 @@
 <html lang="ko"><head><meta charset="utf-8"><base href="../"><title>Astra VFX review</title><link rel="stylesheet" href="style.css"><style>html,body{height:auto;overflow:auto}#game{background:transparent}</style>
 <style>body{margin:0;background:#070c16;color:#d6e6f9;font:14px system-ui}header{padding:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}button{background:#182638;color:#e5edff;border:1px solid #46607e;border-radius:5px;padding:8px 12px;cursor:pointer}canvas{display:block;max-width:100%;height:auto;margin:auto}output{display:block;padding:8px 16px;white-space:pre-wrap;font:12px monospace}#errors{color:#ff9595}</style></head><body>
 <header><strong>ASTRA · LOCAL VFX REVIEW</strong><button onclick="scene('q')">Q · Volley</button><button onclick="scene('e')">E · Gravity well</button><button onclick="scene('r')">R · Capture</button><button onclick="scene('fallback')">R · Boss only</button><button onclick="scene('stress')">250 enemies</button><button onclick="step(20)">+20 frames</button><button onclick="step(120)">+120 frames</button><button onclick="launchReview()">Release R</button><button onclick="togglePlay()">Play / Stop</button><button onclick="resizeReview(false)">Desktop</button><button onclick="resizeReview(true)">Phone</button><button onclick="benchmark()">Profile 180 frames</button><button onclick="fullGameReview()">Full game + movement</button></header>
+<header><button onclick="scene('starter')">Starting augments</button><button onclick="scene('dust')">E · 100 stardust</button></header>
 <canvas id="game" width="1280" height="760"></canvas><output id="status">Loading production scripts…</output><output id="errors"></output><button onclick="saveReviewFrame()">Export review PNG</button><a id="download" hidden>Download review PNG</a>
 <header><strong>REALM TRANSITION</strong><button onclick="scene('r',0)">R · Start</button><button onclick="scene('r',18)">R · Ripple</button><button onclick="scene('r',27)">R · Fade in</button><button onclick="scene('r',180)">R · Realm</button><button onclick="scene('r',330)">R · Fade out</button><button onclick="scene('r',420)">R · Restored</button></header>
 <script>
@@ -17,13 +18,13 @@ function launchReview(){launchAstraGravity();step(12);}
 function resizeReview(phone){reviewPhone=phone;canvas.width=phone?844:1280;canvas.height=phone?390:760;isMobileTouchDevice=()=>phone;updateCamera();paint();}
 function fakeEnemy(x,y,i){return {x,y,r:i%5===0?27:18,hp:450,maxHp:450,speed:.9,boss:i%5===0,expValue:1,scoreValue:10};}
 function scene(kind,age=100){
-  if(!reviewReady)return;reviewPlay=false;reviewKind=kind;selectedCharacter='astra';restart();screenMode='game';player.level=10;player.damage=35;player.astraBlueLevel=2;player.astraRedLevel=1;player.exp=1;player.expNeed=12;
+  if(!reviewReady)return;reviewPlay=false;reviewKind=kind;selectedCharacter='astra';restart();screenMode='game';if(kind==='starter'){upgradeAnimTime=90;paint();return;}finalizeUpgradeChoice(0);player.level=10;player.damage=35;player.astraBlueLevel=2;player.astraRedLevel=1;player.exp=1;player.expNeed=12;
   player.x=1700;player.y=1150;updateCamera();mouse.worldX=player.x+410;mouse.worldY=player.y-75;mouse.x=(mouse.worldX-camera.x)*getWorldViewScale();mouse.y=(mouse.worldY-camera.y)*getWorldViewScale();
   for(let i=0;i<(kind==='stress'?250:kind==='fallback'?0:20);i++){
     const a=i*2.39996,r=kind==='stress'?100+i%9*35:190+i%5*65;zombies.push(fakeEnemy(player.x+Math.cos(a)*r,player.y+Math.sin(a)*r,i));
   }
   if(kind==='q'){activateAstraQ();for(let i=0;i<20;i++)updateAstra();}
-  else if(kind==='e'){activateAstraE();for(let i=0;i<100;i++)updateAstra();}
+  else if(kind==='e'||kind==='dust'){player.astraStardust=kind==='dust'?100:0;activateAstraE();for(let i=0;i<100;i++)updateAstra();}
   else{
     if(kind==='fallback'){
       startRaidBoss(0);activeRaidBoss.x=activeRaidBoss.anchorX=player.x+410;activeRaidBoss.y=activeRaidBoss.anchorY=player.y-75;raidIntroTime=0;raidBossEffects=[];particles=[];

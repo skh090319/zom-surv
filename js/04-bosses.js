@@ -79,8 +79,10 @@ function purgeEnemiesForRaid() {
 // 일반 적에게는 기존 최대 체력 비례 피해를 유지하고, 보스에게는
 // 비율 1%마다 정해진 고정 피해로 바꿔 체력 규모가 공략 시간을 무너뜨리지 않게 한다.
 function enemyMaxHpDamage(enemy, ratio) {
-  if (!enemy || !enemy.isRaidBoss) return (enemy?.maxHp || 0) * ratio;
-  return RAID_BOSS_PERCENT_FLAT_PER_POINT[enemy.raidIndex] * ratio * 100;
+  const damage = enemy?.isRaidBoss
+    ? RAID_BOSS_PERCENT_FLAT_PER_POINT[enemy.raidIndex] * ratio * 100
+    : (enemy?.maxHp || 0) * ratio;
+  return damage * (typeof getAstraStardustMultiplier === "function" ? getAstraStardustMultiplier() : 1);
 }
 
 function startRaidBoss(index) {
@@ -283,7 +285,8 @@ function updateReaperBoss(boss) {
       raidBossZones.push({ type: "chargeTelegraph", boss, angle: a, x: boss.x, y: boss.y, length: 520, width: 92, delay: 35, life: 55 });
     }
     if (boss.patternTime >= 36 && boss.patternTime <= 58) {
-      boss.x += boss.dashVx; boss.y += boss.dashVy;
+      const gravityScale = typeof astraEnemyMoveScale === "function" ? astraEnemyMoveScale(boss) : 1;
+      boss.x += boss.dashVx * gravityScale; boss.y += boss.dashVy * gravityScale;
       if (Math.hypot(player.x - boss.x, player.y - boss.y) < boss.r + player.r + 15) raidPlayerDamage(getRaidBossDamageRatio("charge"));
     }
     if (boss.patternTime > 65) finishRaidPattern(boss, 90);
@@ -339,7 +342,8 @@ function updateAbyssBoss(boss) {
     const dashTimes = selectedDifficulty === "hard" ? [1, 63, 125, 187, 249] : [1, 63, 125];
     if (dashTimes.includes(boss.patternTime)) setupAbyssDash(boss);
     if (cycle >= 39 && cycle <= 51) {
-      boss.x += boss.dashVx; boss.y += boss.dashVy;
+      const gravityScale = typeof astraEnemyMoveScale === "function" ? astraEnemyMoveScale(boss) : 1;
+      boss.x += boss.dashVx * gravityScale; boss.y += boss.dashVy * gravityScale;
       if (!boss.dashHit && Math.hypot(player.x - boss.x, player.y - boss.y) < boss.r + player.r + 22) {
         boss.dashHit = true;
         raidPlayerDamage(1, true);
@@ -352,6 +356,12 @@ function updateAbyssBoss(boss) {
 function updateRaidBossProjectiles() {
   for (let i = raidBossProjectiles.length - 1; i >= 0; i--) {
     const p = raidBossProjectiles[i];
+    // Once captured, the well owns the projectile until it dissolves; it cannot
+    // damage the player, return to its owner, or split into more poison shots.
+    if (typeof astraAbsorbRaidProjectile === "function" && astraAbsorbRaidProjectile(p)) {
+      if (p.life <= 0) raidBossProjectiles.splice(i, 1);
+      continue;
+    }
     p.life--; p.spin += 0.22;
     if (p.type === "scythe") {
       p.travel++;
@@ -432,7 +442,8 @@ function updateRaidBossSystem() {
       if (boss.cooldown <= 0) pickRaidPattern(boss);
       else if (boss.raidIndex > 0) {
         const a = Math.atan2(player.y - boss.y, player.x - boss.x);
-        boss.x += Math.cos(a) * boss.speed * 0.48; boss.y += Math.sin(a) * boss.speed * 0.48;
+        const gravityScale = typeof astraEnemyMoveScale === "function" ? astraEnemyMoveScale(boss) : 1;
+        boss.x += Math.cos(a) * boss.speed * 0.48 * gravityScale; boss.y += Math.sin(a) * boss.speed * 0.48 * gravityScale;
       }
     } else if (boss.raidIndex === 0) updateBloomBoss(boss);
     else if (boss.raidIndex === 1) updateReaperBoss(boss);
@@ -517,18 +528,26 @@ function drawRaidBossProjectiles() {
   worldStart();
   for (const p of raidBossProjectiles) {
     ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.spin);
+    if (p.astraAbsorb) {
+      const progress = Math.min(1, p.astraAbsorb.age / 60);
+      ctx.globalAlpha *= 1 - .8 * progress * progress;
+      if (p.type === "vine" || p.type === "scythe") {
+        const shrink = p.r / p.astraAbsorb.baseR;
+        ctx.scale(shrink, shrink);
+      }
+    }
     if (p.type === "vine") {
       ctx.strokeStyle="#7eff45";ctx.shadowColor="#4eff28";ctx.shadowBlur=14;ctx.lineWidth=8;
       ctx.beginPath();ctx.moveTo(-28,0);ctx.quadraticCurveTo(-4,-16,22,0);ctx.stroke();
       for(let j=-1;j<=1;j+=2){ctx.beginPath();ctx.moveTo(j*5,0);ctx.lineTo(j*12,-13);ctx.stroke();}
     } else if (p.type === "scythe") {
       const accent=p.returning?"#ff4fa3":"#a94fff";
-      ctx.save();ctx.rotate(-p.spin*.42);ctx.lineCap="round";for(let trail=3;trail>=1;trail--){ctx.save();ctx.rotate(-trail*.22);ctx.globalAlpha=.05+trail*.035;ctx.strokeStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur=18;ctx.lineWidth=15-trail*2;ctx.beginPath();ctx.arc(0,0,63,-1.45,1.58);ctx.stroke();ctx.restore();}ctx.restore();
+      ctx.save();ctx.rotate(-p.spin*.42);ctx.lineCap="round";for(let trail=3;trail>=1;trail--){ctx.save();ctx.rotate(-trail*.22);ctx.globalAlpha*=.05+trail*.035;ctx.strokeStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur=18;ctx.lineWidth=15-trail*2;ctx.beginPath();ctx.arc(0,0,63,-1.45,1.58);ctx.stroke();ctx.restore();}ctx.restore();
       const blade=ctx.createLinearGradient(-78,-60,18,64);blade.addColorStop(0,"#ffffff");blade.addColorStop(.18,"#e9ddff");blade.addColorStop(.52,p.returning?"#d64d9d":"#8b39c8");blade.addColorStop(1,"#160925");ctx.shadowColor=accent;ctx.shadowBlur=32;traceMorsScytheBlade();ctx.fillStyle=blade;ctx.fill();ctx.strokeStyle="#f8f4ff";ctx.lineWidth=2.5;ctx.stroke();
       ctx.shadowBlur=14;ctx.strokeStyle="#160c21";ctx.lineWidth=11;ctx.beginPath();ctx.moveTo(-34,-29);ctx.lineTo(51,53);ctx.stroke();ctx.strokeStyle="#743ba0";ctx.lineWidth=7;ctx.stroke();ctx.strokeStyle="rgba(255,255,255,.68)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-31,-31);ctx.lineTo(53,50);ctx.stroke();
       ctx.fillStyle="#e8d7ff";ctx.shadowColor=accent;ctx.shadowBlur=18;ctx.beginPath();ctx.arc(-34,-30,8,0,Math.PI*2);ctx.fill();ctx.fillStyle=accent;ctx.beginPath();ctx.arc(-34,-30,4,0,Math.PI*2);ctx.fill();
       ctx.fillStyle="#7d3aaa";ctx.beginPath();ctx.moveTo(51,53);ctx.lineTo(34,47);ctx.lineTo(48,35);ctx.closePath();ctx.fill();ctx.strokeStyle="#f2eaff";ctx.lineWidth=1.5;ctx.stroke();
-      ctx.globalAlpha=.8;ctx.strokeStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur=20;ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,70,-1.36,1.5);ctx.stroke();
+      ctx.globalAlpha*=.8;ctx.strokeStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur=20;ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,70,-1.36,1.5);ctx.stroke();
     } else {
       const abyss=p.type==="abyssOrb";
       if(abyss){

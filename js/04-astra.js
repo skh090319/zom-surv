@@ -1,18 +1,27 @@
 // Astra: real orbit slots, returning constellation volleys and gravity capture.
 let astraMeteors = [], astraWells = [], astraEffects = [], astraDust = [];
 let astraGravity = null, astraFrame = 0, astraFxBudget = 0;
+let astraRewardedKills = new WeakSet(), astraOrbitPrevious = new Map(), astraEnemyPrevious = new WeakMap();
 const ASTRA_Q_CD = 240, ASTRA_E_CD = 510, ASTRA_X_CD = 780, ASTRA_R_CD = 1680;
 const ASTRA_R_DURATION = 360, ASTRA_R_LIFT = 42, ASTRA_R_FLIGHT = 980;
 const ASTRA_REALM_FADE_IN = 54, ASTRA_REALM_FADE_OUT = 60;
 // Independent balance knobs: do not multiply the shared player.damage stat.
 const ASTRA_BASIC_DAMAGE_MULTIPLIER = 2, ASTRA_ORBIT_DAMAGE_MULTIPLIER = 6, ASTRA_WELL_PULL_MULTIPLIER = 6;
 const ASTRA_PASSIVE_ORBIT_KNOCKBACK = 18;
+const ASTRA_WELL_PULL_RANGE_MULTIPLIER = 1.6, ASTRA_PROJECTILE_ABSORB_DURATION = 60;
 
 function resetAstra() {
   if (astraGravity) for (const b of astraGravity.bodies) astraReleaseBody(b);
   astraMeteors = []; astraWells = []; astraEffects = []; astraDust = [];
   astraGravity = null; astraFrame = 0; astraFxBudget = 0;
+  astraRewardedKills = new WeakSet(); astraOrbitPrevious = new Map(); astraEnemyPrevious = new WeakMap();
+  player.astraStardust = 0; player.astraUltimateCasts = 0;
   for (const k of ["QCooldown", "ECooldown", "XCooldown", "RCooldown", "OverdriveTime", "OrbitBlend", "OrbitAngle", "OrbitTick", "RedLevel", "BlueLevel", "HorizonLevel"]) player[`astra${k}`] = 0;
+}
+function onAstraEnemyKilled(z) {
+  if (selectedCharacter !== "astra" || !z || z.hp > 0 || astraRewardedKills.has(z)) return;
+  astraRewardedKills.add(z);
+  player.astraStardust = (player.astraStardust || 0) + 1;
 }
 function astraDamage(z, amount) {
   if (!z || z.hp <= 0 || !zombies.includes(z)) return false;
@@ -28,7 +37,38 @@ function astraQGeometry() {
   const boosted = player.astraOverdriveTime > 0;
   return { range: 590 + (player.astraRedLevel || 0) * 24, spread: boosted ? .30 : .21, radius: boosted ? 22 : 16, speed: boosted ? 18 : 14 };
 }
-function astraERadius() { return 170 + (player.astraHorizonLevel || 0) * 18; }
+function astraERadius() { return (170 + (player.astraHorizonLevel || 0) * 18) * (1 + Math.max(0, player.astraStardust || 0) * .01); }
+function astraEPullRadius() { return astraERadius() * ASTRA_WELL_PULL_RANGE_MULTIPLIER; }
+function astraWellPulling(w) { return w.maxLife - w.life >= 24 && w.life > 24; }
+function astraEnemyMoveScale(z) {
+  if (selectedCharacter !== "astra" || !z || z.astraControl) return 1;
+  if (astraGravity?.state === "orbit") return .1;
+  if (z.isRaidBoss && astraWells.some(w => astraWellPulling(w) && Math.hypot(z.x - w.x, z.y - w.y) <= astraEPullRadius() + z.r)) return .35;
+  return 1;
+}
+// A captured hostile projectile becomes harmless immediately. Its spiral and
+// one-second lifetime continue even if its source boss or well disappears.
+function astraAbsorbRaidProjectile(p) {
+  if (selectedCharacter !== "astra") return false;
+  if (!p.astraAbsorb) {
+    if (!["venom", "venomSmall", "vine", "scythe", "abyssOrb"].includes(p.type)) return false;
+    let nearest = null, best = Infinity;
+    for (const w of astraWells) {
+      if (!astraWellPulling(w)) continue;
+      const d = astraSegmentDistance(w.x, w.y, p.x, p.y, p.x + (p.vx || 0), p.y + (p.vy || 0));
+      if (d <= astraEPullRadius() + p.r && d < best) { nearest = w; best = d; }
+    }
+    if (!nearest) return false;
+    p.astraAbsorb = { age: 0, wellX: nearest.x, wellY: nearest.y, radius: Math.hypot(p.x - nearest.x, p.y - nearest.y), angle: Math.atan2(p.y - nearest.y, p.x - nearest.x), baseR: p.r };
+    p.hit = true;
+  }
+  const a = p.astraAbsorb, t = Math.min(1, ++a.age / ASTRA_PROJECTILE_ABSORB_DURATION), ease = astraEase(t);
+  const radius = a.radius * (1 - ease), angle = a.angle + t * Math.PI * 2;
+  p.x = a.wellX + Math.cos(angle) * radius; p.y = a.wellY + Math.sin(angle) * radius;
+  p.r = a.baseR * (1 - .8 * ease); p.spin = (p.spin || 0) + .22;
+  if (t >= 1) { p.life = 0; astraImpact("catch", a.wellX, a.wellY, 30); }
+  return true;
+}
 function astraRRadius() { return 620 + (player.astraRedLevel || 0) * 28; }
 function astraQFlights() { return astraMeteors.filter(m => m.kind === "orbit"); }
 function astraQPaths(aim) {
@@ -111,7 +151,7 @@ function activateAstraE() {
   if (player.astraECooldown > 0) return;
   const dx = mouse.worldX - player.x, dy = mouse.worldY - player.y, d = Math.hypot(dx, dy) || 1, range = Math.min(520, d);
   const p = astraClampPosition(player.x + dx / d * range, player.y + dy / d * range);
-  astraWells.push({ ...p, r: astraERadius(), life: 270, maxLife: 270, tick: 1, phase: 0 });
+  astraWells.push({ ...p, r: astraERadius(), pullR: astraEPullRadius(), life: 270, maxLife: 270, tick: 1, phase: 0 });
   astraImpact("wellBorn", p.x, p.y, astraERadius()); player.astraECooldown = ASTRA_E_CD;
 }
 function activateAstraX() {
@@ -121,6 +161,7 @@ function activateAstraX() {
 }
 function activateAstraR() {
   if (player.level < 10 || player.astraRCooldown > 0 || astraGravity) return;
+  player.astraUltimateCasts = (player.astraUltimateCasts || 0) + 1;
   const targets = zombies.filter(z => astraCanCapture(z) && Math.hypot(z.x - player.x, z.y - player.y) <= astraRRadius() + z.r);
   const count = targets.length || Math.max(5, astraOrbitCount());
   astraGravity = { age: 0, backdropReadyAge: 0, state: "orbit", x: player.x, y: player.y, launchAge: 0, radius: astraRRadius(), bossSpent: new Map(), bodies: [] };
@@ -173,7 +214,7 @@ function astraDetonateBody(b, g) {
       const ratio = Math.max(0, Math.min(total - spent, total / g.bodies.length));
       // R explicitly includes true boss max-health damage. Share one budget across
       // the entire volley so capturing a crowd cannot multiply it into a one-shot.
-      extra = Math.max(0, z.maxHp || 0) * ratio; g.bossSpent.set(z, spent + ratio);
+      extra = Math.max(0, z.maxHp || 0) * ratio * (typeof getAstraStardustMultiplier === "function" ? getAstraStardustMultiplier() : 1); g.bossSpent.set(z, spent + ratio);
     }
     astraDamage(z, scaledDamage(player.damage * (2.5 + (player.astraRedLevel || 0) * .2) * scale) + extra);
   }
@@ -259,12 +300,13 @@ function updateAstraMeteors() {
 function updateAstraWells() {
   for (let i = astraWells.length - 1; i >= 0; i--) {
     const w = astraWells[i]; w.life--; w.phase += .045;
-    const age = w.maxLife - w.life, pulling = age >= 24 && w.life > 24;
+    w.r = astraERadius(); w.pullR = astraEPullRadius();
+    const pulling = astraWellPulling(w);
     if (pulling) for (const z of zombies) {
       if (z.hp <= 0 || z.isRaidBoss || z.isBossMinion || z.astraControl) continue;
       const dx = w.x - z.x, dy = w.y - z.y, d = Math.hypot(dx, dy);
-      if (d > 12 && d < w.r + z.r) {
-        const pull = Math.min(d - 12, (.45 + (player.astraHorizonLevel || 0) * .09) * (1 - d / (w.r * 2)) * ASTRA_WELL_PULL_MULTIPLIER);
+      if (d > 12 && d < w.pullR + z.r) {
+        const pull = Math.min(d - 12, Math.max(0, (.45 + (player.astraHorizonLevel || 0) * .09) * (1 - d / (w.r * 2)) * ASTRA_WELL_PULL_MULTIPLIER));
         z.x += dx / d * pull; z.y += dy / d * pull; z.slowTime = Math.max(z.slowTime || 0, 4);
       }
     }
@@ -286,22 +328,33 @@ function updateAstra() {
   const target = astraOrbitTarget(), blend = player.astraOrbitBlend || 0;
   player.astraOrbitBlend = blend + (target - blend) * (target > .5 ? .035 : .018);
   if (Math.abs(player.astraOrbitBlend - target) < .002) player.astraOrbitBlend = target;
-  player.astraOrbitAngle = (player.astraOrbitAngle || 0) + astraOrbitSpeed();
+  const previousAngle = player.astraOrbitAngle || 0;
+  player.astraOrbitAngle = previousAngle + astraOrbitSpeed();
   const deployed = new Set(astraQFlights().map(m => m.slot));
-  player.astraOrbitTick = (player.astraOrbitTick || 0) - 1;
-  if (player.astraOrbitTick <= 0) {
-    player.astraOrbitTick = player.astraOverdriveTime > 0 ? 8 : 13;
-    for (let n = 0; n < astraOrbitCount(); n++) {
-      if (deployed.has(n)) continue;
-      const star = astraOrbitSlot(n);
-      for (const z of [...zombies]) {
-        if (z.hp <= 0 || z.astraOrbitHit > 0 || Math.hypot(z.x - star.x, z.y - star.y) > z.r + 16) continue;
-        z.astraOrbitHit = 16; astraDamage(z, scaledDamage(player.damage * (.26 + (player.astraBlueLevel || 0) * .035) * ASTRA_ORBIT_DAMAGE_MULTIPLIER)); astraPassiveOrbitKnockback(z, star); astraImpact("starHit", star.x, star.y, 27);
-      }
+  const count = astraOrbitCount(), nextOrbit = new Map();
+  for (const z of zombies) if (z.astraOrbitHit > 0) z.astraOrbitHit--;
+  for (let n = 0; n < count; n++) {
+    if (deployed.has(n)) continue;
+    const star = astraOrbitSlot(n), saved = astraOrbitPrevious.get(n);
+    const angle = previousAngle + n * Math.PI * 2 / count;
+    const previous = saved?.count === count ? saved : { x: player.x + Math.cos(angle) * astraOrbitRadius(), y: player.y + Math.sin(angle) * astraOrbitRadius() };
+    // Teleports/newly returned slots must not produce a sweep across the map.
+    const from = Math.hypot(star.x - previous.x, star.y - previous.y) < 160 ? previous : star;
+    nextOrbit.set(n, { ...star, count });
+    for (const z of [...zombies]) {
+      if (z.hp <= 0 || z.astraOrbitHit > 0) continue;
+      const oldZ = astraEnemyPrevious.get(z) || z;
+      const before = Math.hypot(oldZ.x - z.x, oldZ.y - z.y) < 160 ? oldZ : z;
+      const distance = astraSegmentDistance(0, 0, before.x - from.x, before.y - from.y, z.x - star.x, z.y - star.y);
+      if (distance > z.r + 18 + (player.astraOrbitBlend || 0) * 4) continue;
+      z.astraOrbitHit = 16;
+      astraDamage(z, scaledDamage(player.damage * (.26 + (player.astraBlueLevel || 0) * .035) * ASTRA_ORBIT_DAMAGE_MULTIPLIER));
+      astraPassiveOrbitKnockback(z, star); astraImpact("starHit", star.x, star.y, 27);
     }
   }
-  for (const z of zombies) if (z.astraOrbitHit > 0) z.astraOrbitHit--;
+  astraOrbitPrevious = nextOrbit;
   updateAstraMeteors(); updateAstraWells(); updateAstraGravity();
+  for (const z of zombies) astraEnemyPrevious.set(z, { x: z.x, y: z.y });
   for (let i = astraEffects.length - 1; i >= 0; i--) if (--astraEffects[i].life <= 0) astraEffects.splice(i, 1);
   for (let i = astraDust.length - 1; i >= 0; i--) {
     const p = astraDust[i]; p.px = p.x; p.py = p.y; p.x += p.vx; p.y += p.vy; p.vx *= .955; p.vy *= .955;
@@ -320,6 +373,8 @@ function drawAstraInterface() {
   ctx.fillStyle = "#cabfe6"; ctx.font = "11px Arial";
   const hint = astraGravity ? (astraGravity.state === "orbit" ? `${Math.ceil((ASTRA_R_DURATION - astraGravity.age) / 60)}초 후 조준 방향으로 발사` : "천체 충돌 · 성운 폭발") : (astraQFlights().length ? "Q 재사용: 모든 공전성 즉시 회수" : "공전성 왕복 공격 · 적을 포획하는 천구");
   ctx.fillText(hint, x + 22, y + 78);
+  ctx.fillStyle = "#f4d58e"; ctx.font = "bold 11px Arial";
+  ctx.fillText(`별가루 ${player.astraStardust || 0} · 피해 +${player.astraStardust || 0}% · 경험치 +${(player.astraUltimateCasts || 0) * 20}%`, x + 22, y + 99);
   const skills = [["Q", astraQFlights().length ? "공전성 회수" : "성궤 투사", astraQFlights().length ? 0 : player.astraQCooldown, ASTRA_Q_CD], ["E", "중력 붕괴", player.astraECooldown, ASTRA_E_CD], ["X", "궤도 가속", player.astraXCooldown, ASTRA_X_CD], ["R", player.level < 10 ? "10레벨" : "만유인력 역전", player.astraRCooldown, ASTRA_R_CD]];
   skills.forEach((s, i) => {
     const cx = x + w - 286 + i * 70, cy = y + 48, r = 26;

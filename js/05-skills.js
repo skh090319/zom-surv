@@ -10,7 +10,7 @@ function updateFireTrails() {
       const dist = Math.hypot(z.x - fire.x, z.y - fire.y);
 
       if (dist < z.r + fire.r) {
-        z.hp -= fire.damagePerFrame;
+        z.hp -= fire.damagePerFrame * (selectedCharacter === "astra" ? getAstraStardustMultiplier() / (fire.astraStardustMultiplier || 1) : 1);
 
         if (z.hp <= 0) {
           killZombie(j, z);
@@ -343,8 +343,10 @@ function updateGravityFields() {
         const pull = 3.5 + (1 - dist / g.r) * 9.5;
         const swirl = 2.4 + (1 - dist / g.r) * 2.2;
 
-        z.x += nx * pull + (-ny) * swirl;
-        z.y += ny * pull + nx * swirl;
+        if (!z.astraControl) {
+          z.x += nx * pull + (-ny) * swirl;
+          z.y += ny * pull + nx * swirl;
+        }
 
         z.x = Math.max(z.r, Math.min(WORLD.width - z.r, z.x));
         z.y = Math.max(z.r, Math.min(WORLD.height - z.r, z.y));

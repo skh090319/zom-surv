@@ -380,6 +380,9 @@ function updateZombies() {
       }
     }
 
+    // Astra's spacetime field also affects otherwise movement-immune summons.
+    if (typeof astraEnemyMoveScale === "function") slow = Math.min(slow, astraEnemyMoveScale(z));
+
     const angle = Math.atan2(player.y - z.y, player.x - z.x);
     z.x += Math.cos(angle) * z.speed * slow;
     z.y += Math.sin(angle) * z.speed * slow;
@@ -446,7 +449,7 @@ function updateDaggers() {
         const z = zombies[i];
 
         if (Math.hypot(z.x - x, z.y - y) < z.r + 9) {
-          z.hp -= dagger.damage;
+          z.hp -= selectedCharacter === "astra" ? scaledDamage(25 + player.daggerLevel * 10) : dagger.damage;
           dagger.cooldown = 20;
 
           if (z.hp <= 0) {

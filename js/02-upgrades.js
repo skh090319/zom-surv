@@ -1,5 +1,7 @@
 // 증강 정의, 레벨업, 증강 선택
 
+let astraStartingAugmentsIntro = false;
+
 const upgradeCount = {
   ammo: 0,
   damage: 0,
@@ -277,8 +279,9 @@ const upgrades = [
 function gainExp(value) {
   const greedBonus = player.greedLevel > 0 ? 1 + player.greedLevel * 0.1 : 1;
   const maliciousProfitBonus = player.maliciousProfitLevel > 0 ? 1.5 : 1;
+  const astraUltimateBonus = selectedCharacter === "astra" ? 1 + (player.astraUltimateCasts || 0) * 0.2 : 1;
 
-  player.exp += value * greedBonus * maliciousProfitBonus;
+  player.exp += value * greedBonus * maliciousProfitBonus * astraUltimateBonus;
 
   while (player.exp >= player.expNeed) {
     player.exp -= player.expNeed;
@@ -288,6 +291,27 @@ function gainExp(value) {
   }
 
   player.exp = Math.round(player.exp * 10) / 10;
+}
+
+function grantAstraStartingAugments() {
+  astraStartingAugmentsIntro = false;
+  if (selectedCharacter !== "astra") return;
+
+  const startingAugments = ["vision", "gravity"].map(id => upgrades.find(upgrade => upgrade.id === id));
+  for (const upgrade of startingAugments) {
+    if (transcended[upgrade.id]) continue;
+    upgrade.apply();
+    selectedAugments.push({ id: upgrade.id, name: upgrade.name, category: upgrade.category, count: 1 });
+  }
+
+  // Both powers are already owned; this screen acknowledges the starting kit.
+  astraStartingAugmentsIntro = true;
+  choosingUpgrade = true;
+  upgradeChoices = startingAugments;
+  upgradeCardRects = [];
+  upgradeAnimTime = 0;
+  upgradeSelectionEffect = null;
+  mouse.down = false;
 }
 
 function openUpgradeMenu() {
@@ -376,6 +400,16 @@ function chooseUpgrade(index) {
 function finalizeUpgradeChoice(index) {
   const upgrade = upgradeChoices[index];
   if (!upgrade) return;
+
+  if (astraStartingAugmentsIntro) {
+    astraStartingAugmentsIntro = false;
+    choosingUpgrade = false;
+    upgradeChoices = [];
+    upgradeCardRects = [];
+    upgradeSelectionEffect = null;
+    mouse.down = false;
+    return;
+  }
 
   let existing = selectedAugments.find(item => item.id === upgrade.id);
 

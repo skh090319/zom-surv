@@ -594,8 +594,12 @@ let upgradeAnimTime = 0;
 let upgradeSelectionEffect = null;
 let visionEffectTime = 0;
 
+function getAstraStardustMultiplier() {
+  return selectedCharacter === "astra" ? 1 + Math.max(0, player.astraStardust || 0) * .01 : 1;
+}
+
 function getDamageMultiplier() {
-  return player.globalDamageMultiplier || 1;
+  return (player.globalDamageMultiplier || 1) * getAstraStardustMultiplier();
 }
 
 function scaledDamage(baseDamage) {

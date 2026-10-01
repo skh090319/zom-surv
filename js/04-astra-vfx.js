@@ -255,10 +255,51 @@ function astraVisible(x, y, r) {
   return x + r >= camera.x && x - r <= camera.x + getCameraViewWidth() && y + r >= camera.y && y - r <= camera.y + getCameraViewHeight();
 }
 
+function drawAstraAccretionReach(w, alpha) {
+  const outer = w.pullR || w.r, inner = w.r;
+  if (alpha <= 0 || outer <= inner) return;
+  const age = w.maxLife - w.life;
+  ctx.save(); const opacity = ctx.globalAlpha * alpha; ctx.globalAlpha = opacity; ctx.globalCompositeOperation = "lighter";
+  // A thin atmospheric envelope marks suction, separately from the damaging core.
+  // Path/particle counts are fixed even after thousands of stardust stacks.
+  const haze = ctx.createRadialGradient(0, 0, inner * .7, 0, 0, outer);
+  haze.addColorStop(0, "rgba(99,125,229,0)"); haze.addColorStop(.28, "rgba(70,102,196,.018)");
+  haze.addColorStop(.82, "rgba(100,165,232,.027)"); haze.addColorStop(1, "rgba(80,144,230,0)");
+  ctx.fillStyle = haze; ctx.beginPath(); ctx.arc(0, 0, outer, 0, ASTRA_TAU); ctx.fill();
+  ctx.strokeStyle = "rgba(142,192,255,.2)"; ctx.lineWidth = .9;
+  ctx.beginPath(); ctx.arc(0, 0, outer, 0, ASTRA_TAU); ctx.stroke();
+  for (let arm = 0; arm < 8; arm++) {
+    const start = arm * ASTRA_TAU / 8 + w.phase * .12;
+    ctx.strokeStyle = arm % 3 ? "rgba(127,181,255,.12)" : "rgba(224,206,172,.14)";
+    ctx.lineWidth = .7; ctx.beginPath();
+    for (let step = 0; step <= 24; step++) {
+      const q = step / 24, rr = inner * .58 + (outer - inner * .58) * q, a = start + (1 - q) ** 1.5 * 2.15;
+      const x = Math.cos(a) * rr, y = Math.sin(a) * rr;
+      step ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.stroke();
+    // Small orbit fragments at the outer boundary make its shape readable.
+    ctx.strokeStyle = "rgba(160,208,255,.32)";
+    ctx.beginPath(); ctx.arc(0, 0, outer, start, start + .055); ctx.stroke();
+  }
+  for (let n = 0; n < 24; n++) {
+    const travel = (n * .6180339 + age * .005) % 1, q = 1 - travel;
+    const rr = inner * .58 + (outer - inner * .58) * q ** .78, a = n * 2.39996 + travel * travel * 2.15 + w.phase * .12;
+    const x = Math.cos(a) * rr, y = Math.sin(a) * rr, fade = Math.sin(travel * Math.PI);
+    ctx.globalAlpha = opacity * fade;
+    ctx.strokeStyle = n % 5 ? "rgba(150,205,255,.47)" : "rgba(255,224,168,.58)"; ctx.lineWidth = .85;
+    const tail = Math.min(11, 3 + travel * 8), tx = Math.cos(a - .24) * tail, ty = Math.sin(a - .24) * tail;
+    ctx.beginPath(); ctx.moveTo(x + tx, y + ty); ctx.lineTo(x, y); ctx.stroke();
+    astraDiamond(x, y, 1 + n % 3 * .45, a, n % 5 ? "#b2d9ff" : "#ffe8b8");
+  }
+  ctx.restore();
+}
+
 function drawAstraWell(w) {
   const age = w.maxLife - w.life, appear = astraEase(age / 24), close = astraEase(w.life / 28), scale = appear * (.15 + close * .85), r = w.r * scale;
   if (r < 1) return;
   ctx.save(); ctx.translate(w.x, w.y);
+  drawAstraAccretionReach(w, appear * close);
   ctx.globalCompositeOperation = "source-over";
   const shade = ctx.createRadialGradient(0, 0, r * .04, 0, 0, r);
   shade.addColorStop(0, "rgba(1,3,16,.92)"); shade.addColorStop(.25, "rgba(7,8,33,.8)"); shade.addColorStop(.64, "rgba(22,14,58,.22)"); shade.addColorStop(1, "rgba(0,0,0,0)");
@@ -335,7 +376,7 @@ function drawAstraEffects() {
   if (selectedCharacter !== "astra") return;
   prepareAstraVfx();
   worldStart(); ctx.save(); ctx.lineCap = "round";
-  for (const w of astraWells) if (astraVisible(w.x, w.y, w.r * 1.3)) drawAstraWell(w);
+  for (const w of astraWells) if (astraVisible(w.x, w.y, Math.max(w.r * 1.3, w.pullR || 0))) drawAstraWell(w);
   ctx.globalCompositeOperation = "lighter";
   const radius = astraOrbitRadius();
   astraRuneRing(player.x, player.y, radius, (player.astraOrbitAngle || 0) * .18, .2 + (player.astraOrbitBlend || 0) * .22);

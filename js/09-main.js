@@ -355,6 +355,7 @@ function restart() {
 
   updateCamera();
   screenToWorld();
+  grantAstraStartingAugments();
 }
 
 let lastLoopTime = performance.now();
