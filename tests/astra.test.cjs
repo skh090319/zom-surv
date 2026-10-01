@@ -19,6 +19,18 @@ function game(){
 function enemy(x,y,extra={}){return {x,y,r:18,hp:10000,maxHp:10000,speed:1,...extra};}
 function tick(g,n){g.run(`for(let t=0;t<${n};t++)updateAstra()`);}
 
+test('suction wakes are bounded, ignore captured/dead targets, and never change combat state',()=>{
+  const g=game();vm.runInContext(fs.readFileSync(path.join(root,'js/04-astra-vfx.js'),'utf8'),g.context);
+  g.context.raidBossProjectiles=Array.from({length:100},()=>({x:50,y:0,r:8,life:10,astraAbsorb:{age:20,wellX:0,wellY:0}}));
+  g.context.zombies.push(enemy(50,0,{hp:0}),enemy(50,0,{astraControl:true}),...Array.from({length:100},()=>enemy(50,0)));
+  const before=JSON.stringify([g.context.zombies,g.context.raidBossProjectiles]);
+  g.run('let wakeCalls=0;astraVisible=()=>true;drawAstraSuctionWake=()=>wakeCalls++;drawAstraSuctionTargets({x:0,y:0,pullR:100,maxLife:270,life:200,phase:1})');
+  assert.equal(g.run('wakeCalls'),18);
+  g.run('wakeCalls=0;drawAstraAbsorbedMissileWakes()');assert.equal(g.run('wakeCalls'),24);
+  g.run('wakeCalls=0;drawAstraSuctionTargets({x:0,y:0,pullR:100,maxLife:270,life:269,phase:1})');assert.equal(g.run('wakeCalls'),0);
+  assert.equal(JSON.stringify([g.context.zombies,g.context.raidBossProjectiles]),before);
+});
+
 test('one basic bolt pierces multiple living and dying targets, hits each only once, then expires',()=>{
   const g=game(),targets=[enemy(40,0,{hp:5}),enemy(90,0),enemy(150,0),enemy(210,0,{r:60,isRaidBoss:true}),enemy(290,0,{isBossMinion:true})];
   g.context.zombies.push(...targets);

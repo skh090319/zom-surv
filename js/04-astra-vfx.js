@@ -295,6 +295,46 @@ function drawAstraAccretionReach(w, alpha) {
   ctx.restore();
 }
 
+// Short object-anchored spiral wakes: bounded geometry, no extra combat particles.
+function drawAstraSuctionWake(x, y, cx, cy, size, phase, alpha) {
+  const distance = Math.hypot(x - cx, y - cy);
+  if (distance < 3 || alpha <= 0) return;
+  const angle = Math.atan2(y - cy, x - cx);
+  ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha *= alpha;
+  for (let layer = 0; layer < 2; layer++) {
+    ctx.strokeStyle = layer ? "rgba(211,244,255,.8)" : "rgba(118,134,255,.24)";
+    ctx.lineWidth = layer ? .9 : 4; ctx.beginPath();
+    for (let i = 0; i <= 12; i++) {
+      const t = i / 12, a = angle - t * .52, r = distance + t * Math.min(38, size * 2);
+      const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    }
+    ctx.stroke();
+  }
+  astraDiamond(x, y, 2 + Math.sin(phase) ** 2, angle, "#d6f6ff");
+  ctx.restore();
+}
+function drawAstraSuctionTargets(w) {
+  if (!astraWellPulling(w)) return;
+  let count = 0;
+  for (const z of zombies) {
+    if (z.hp <= 0 || z.astraControl || z.isBossMinion) continue;
+    const d = Math.hypot(z.x-w.x,z.y-w.y);
+    if (d < 12 || d > w.pullR + z.r || !astraVisible(z.x,z.y,60)) continue;
+    drawAstraSuctionWake(z.x,z.y,w.x,w.y,z.r,w.phase,.5);
+    if (++count >= 18) break;
+  }
+}
+function drawAstraAbsorbedMissileWakes() {
+  if (typeof raidBossProjectiles === "undefined") return;
+  let count = 0;
+  for (const p of raidBossProjectiles) {
+    const a = p.astraAbsorb;
+    if (!a || p.life <= 0 || !astraVisible(p.x,p.y,60)) continue;
+    drawAstraSuctionWake(p.x,p.y,a.wellX,a.wellY,Math.max(8,p.r),a.age*.1,1-a.age/60);
+    if (++count >= 24) break;
+  }
+}
 function drawAstraWell(w) {
   const age = w.maxLife - w.life, appear = astraEase(age / 24), close = astraEase(w.life / 28), scale = appear * (.15 + close * .85), r = w.r * scale;
   if (r < 1) return;
@@ -439,7 +479,10 @@ function drawAstraEffects() {
   prepareAstraVfx();
   worldStart(); ctx.save(); ctx.lineCap = "round";
   drawAstraGrowth(false);
-  for (const w of astraWells) if (astraVisible(w.x, w.y, Math.max(w.r * 1.3, w.pullR || 0))) drawAstraWell(w);
+  for (const w of astraWells) if (astraVisible(w.x, w.y, Math.max(w.r * 1.3, w.pullR || 0))) {
+    drawAstraWell(w); drawAstraSuctionTargets(w);
+  }
+  drawAstraAbsorbedMissileWakes();
   ctx.globalCompositeOperation = "lighter";
   const radius = astraOrbitRadius();
   const launchStars=astraQFlights().filter(m=>m.age<14&&!m.returning);
@@ -488,8 +531,10 @@ function drawAstraBurst(e) {
     ctx.beginPath(); ctx.arc(e.x, e.y, r, 0, ASTRA_TAU); ctx.stroke();
     if (r > 12) {
       astraRuneRing(e.x, e.y, r, p * .2, fade * .4);
-      ctx.save();ctx.translate(e.x,e.y);ctx.rotate(-.35);ctx.scale(1,.42);
-      astraRuneRing(0,0,r*.92,-p*.3,fade*.32);ctx.restore();
+      for (let plane=0;plane<3;plane++) {
+        ctx.save();ctx.translate(e.x,e.y);ctx.rotate(-.35+plane*Math.PI/3);ctx.scale(1,.42);
+        astraRuneRing(0,0,r*(.92-plane*.09),-p*.3,fade*.28);ctx.restore();
+      }
     }
     return;
   }
@@ -502,6 +547,14 @@ function drawAstraBurst(e) {
   astraGlow(0, 0, e.r * (big ? 1.15 : .9), Math.max(0, 1 - p * 3), "blue");
   astraGlow(0, 0, e.r * .42, Math.max(0, 1 - p * 4), "gold");
   if (big) {
+    // Staggered expanding fronts read as several impacts, not a single thick ring.
+    for (let wave=0;wave<3;wave++) {
+      const q=Math.max(0,Math.min(1,(p-wave*.095)/(1-wave*.095)));
+      if(q<=0)continue;
+      const rr=e.r*(1-(1-q)**3)*(1+wave*.1), opacity=(1-q)**2;
+      ctx.strokeStyle=wave===1?`rgba(223,194,255,${opacity*.5})`:`rgba(158,231,255,${opacity*.65})`;
+      ctx.lineWidth=1.3-wave*.2;ctx.beginPath();ctx.arc(0,0,rr,0,ASTRA_TAU);ctx.stroke();
+    }
     ctx.save(); ctx.rotate(e.seed + p * .25); ctx.scale(1, .78); astraGlow(0, 0, r * 1.4, fade * .72, "cloud"); ctx.restore();
     astraNebula(0, 0, r * 1.48, e.seed + p * .6, fade * .85, .85);
     ctx.strokeStyle = `rgba(76,107,225,${fade * .19})`; ctx.lineWidth = 14 * (1 - p) + 1;
@@ -539,6 +592,12 @@ function drawAstraForeground() {
     astraRibbon(m.trail, m.kind === "orbit" ? m.r * 1.75 : 12, m.returning);
     astraStar(m.x, m.y, m.r, m.a + astraFrame * .06);
     if (m.kind === "orbit") {
+      if (!m.returning && m.age < 12) {
+        const flare = 1-m.age/12;
+        astraGlow(m.x,m.y,65,flare*.7);
+        astraDiamond(m.x,m.y,38*flare,m.a,"rgba(227,252,255,.85)");
+        astraDiamond(m.x,m.y,22*flare,m.a+Math.PI/2,"rgba(255,232,188,.7)");
+      }
       // Counter-rotating fine filaments wrap the comet head, rather than a flat glow.
       ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(m.a); ctx.strokeStyle = "rgba(243,220,167,.72)"; ctx.lineWidth = .9;
       for (const side of [-1, 1]) { ctx.beginPath(); ctx.moveTo(10, side * 3); ctx.bezierCurveTo(-12, side * 24, -35, side * 18, -70, side * 4); ctx.stroke(); } ctx.restore();
