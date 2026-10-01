@@ -4,7 +4,34 @@ const ASTRA_TAU = Math.PI * 2;
 let astraVfxWarmupScheduled = false;
 let astraRealmSurface = null;
 const astraRuneGeometry = new Map();
+const astraRuneDirections = Array.from({ length: 24 }, (_, i) => ({ c: Math.cos(i * Math.PI / 12), s: Math.sin(i * Math.PI / 12) }));
 const astraRibbonTapers = new Map();
+const astraSuctionArmCache = new Map();
+let astraWellArmGeometry = null;
+function astraSpiralGeometry(pullRatio) {
+  const well = pullRatio === undefined;
+  if (well && astraWellArmGeometry) return astraWellArmGeometry;
+  if (!well && astraSuctionArmCache.has(pullRatio)) return astraSuctionArmCache.get(pullRatio);
+  const steps = well ? 40 : 24, points = new Float64Array((steps + 1) * 2);
+  const path = typeof Path2D === "function" ? new Path2D() : null;
+  for (let i = 0; i <= steps; i++) {
+    const q = i / steps, rr = well ? .12 + .8 * q : pullRatio * .58 + (1 - pullRatio * .58) * q;
+    const a = well ? -q * 3.6 : (1 - q) ** 1.5 * 2.15;
+    const x = Math.cos(a) * rr, y = Math.sin(a) * rr;
+    points[i * 2] = x; points[i * 2 + 1] = y;
+    if (path) i ? path.lineTo(x, y) : path.moveTo(x, y);
+  }
+  const geometry = { points, path };
+  if (well) astraWellArmGeometry = geometry;
+  else { if (astraSuctionArmCache.size >= 8) astraSuctionArmCache.delete(astraSuctionArmCache.keys().next().value); astraSuctionArmCache.set(pullRatio, geometry); }
+  return geometry;
+}
+function astraStrokeSpiral(geometry) {
+  if (geometry.path) { ctx.stroke(geometry.path); return; }
+  ctx.beginPath();
+  for (let i = 0; i < geometry.points.length; i += 2) i ? ctx.lineTo(geometry.points[i], geometry.points[i + 1]) : ctx.moveTo(geometry.points[i], geometry.points[i + 1]);
+  ctx.stroke();
+}
 function astraRealmRevealGeometry(progress) {
   const scale = getWorldViewScale(), x = (player.x - camera.x) * scale, y = (player.y - camera.y) * scale;
   const farthest = Math.hypot(Math.max(x, canvas.width - x), Math.max(y, canvas.height - y));
@@ -83,7 +110,7 @@ function drawAstraUltimatePortrait(){
 function prepareAstraVfx() {
   if (astraVfxWarmupScheduled) return;
   astraVfxWarmupScheduled = true;
-  const bake = () => { astraNebulaTexture(); astraVfxTexture("blue"); astraVfxTexture("gold"); astraVfxTexture("cloud"); for(const r of [10,12,16,18,22,24])astraStarFaceTexture(r); };
+  const bake = () => { astraNebulaTexture(); astraVfxTexture("blue"); astraVfxTexture("gold"); astraVfxTexture("cloud"); for(const r of [10,12,16,18,22,24])astraStarFaceTexture(r); astraAuroraTexture(0); astraAuroraTexture(1); };
   if (typeof requestIdleCallback === "function") requestIdleCallback(bake, { timeout: 400 });
   else if (typeof setTimeout === "function") setTimeout(bake, 0);
 }
@@ -185,18 +212,21 @@ function astraRuneRing(x, y, r, rotation, alpha = .6) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(rotation); ctx.globalAlpha *= alpha;
   // Same lines, colours and widths, batched by material. Cache geometry rather
   // than redrawing 24 individual rotated ticks for every orbit/body each frame.
-  if (typeof Path2D === "function") {
+  // Integer radii are reused by the permanent orbit/HUD/wells. Continuously
+  // changing X/capture radii use batched direct paths below, avoiding five new
+  // Path2D objects and cache evictions every animation frame (no quantisation).
+  if (typeof Path2D === "function" && Number.isInteger(r)) {
     let paths = astraRuneGeometry.get(r);
     if (!paths) {
       paths = Array.from({length: 5}, () => new Path2D());
       paths[0].arc(0, 0, r, 0, ASTRA_TAU); paths[1].arc(0, 0, r - 4, 0, ASTRA_TAU);
       for (let i = 0; i < 24; i++) {
-        const a = i * Math.PI / 12, major = i % 3 === 0, p = paths[major ? 2 : 3], c = Math.cos(a), s = Math.sin(a);
+        const major = i % 3 === 0, p = paths[major ? 2 : 3], { c, s } = astraRuneDirections[i];
         p.moveTo((r - (major ? 9 : 4)) * c, (r - (major ? 9 : 4)) * s); p.lineTo((r + (major ? 4 : 0)) * c, (r + (major ? 4 : 0)) * s);
         if (major) { p.moveTo((r-10)*c+3*s,(r-10)*s-3*c);p.lineTo((r-6)*c,(r-6)*s);p.lineTo((r-10)*c-3*s,(r-10)*s+3*c); }
       }
       for(let i=0;i<3;i++) {
-        const a=i*ASTRA_TAU/3,c=Math.cos(a),s=Math.sin(a),p=paths[4];
+        const { c, s }=astraRuneDirections[i*8],p=paths[4];
         p.moveTo((r+5)*c,(r+5)*s);p.lineTo(r*c-1.9*s,r*s+1.9*c);p.lineTo((r-5)*c,(r-5)*s);p.lineTo(r*c+1.9*s,r*s-1.9*c);p.closePath();
       }
       if (astraRuneGeometry.size >= 48) astraRuneGeometry.delete(astraRuneGeometry.keys().next().value);
@@ -209,14 +239,22 @@ function astraRuneRing(x, y, r, rotation, alpha = .6) {
   ctx.strokeStyle = "#d5b980"; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(0, 0, r, 0, ASTRA_TAU); ctx.stroke();
   ctx.strokeStyle = "rgba(138,223,244,.45)"; ctx.beginPath(); ctx.arc(0, 0, r - 4, 0, ASTRA_TAU); ctx.stroke();
-  for (let i = 0; i < 24; i++) {
-    const a = i * Math.PI / 12, major = i % 3 === 0;
-    ctx.save(); ctx.rotate(a); ctx.strokeStyle = major ? "#f1d4a2" : "rgba(132,194,218,.58)";
-    ctx.beginPath(); ctx.moveTo(r - (major ? 9 : 4), 0); ctx.lineTo(r + (major ? 4 : 0), 0); ctx.stroke();
-    if (major) { ctx.beginPath(); ctx.moveTo(r - 10, -3); ctx.lineTo(r - 6, 0); ctx.lineTo(r - 10, 3); ctx.stroke(); }
-    ctx.restore();
+  for (const major of [true, false]) {
+    ctx.strokeStyle = major ? "#f1d4a2" : "rgba(132,194,218,.58)"; ctx.beginPath();
+    for (let i = 0; i < 24; i++) {
+      if ((i % 3 === 0) !== major) continue;
+      const { c, s } = astraRuneDirections[i];
+      ctx.moveTo((r - (major ? 9 : 4)) * c, (r - (major ? 9 : 4)) * s); ctx.lineTo((r + (major ? 4 : 0)) * c, (r + (major ? 4 : 0)) * s);
+      if (major) { ctx.moveTo((r-10)*c+3*s,(r-10)*s-3*c);ctx.lineTo((r-6)*c,(r-6)*s);ctx.lineTo((r-10)*c-3*s,(r-10)*s+3*c); }
+    }
+    ctx.stroke();
   }
-  for (let i = 0; i < 3; i++) { const a = i * ASTRA_TAU / 3; astraDiamond(Math.cos(a) * r, Math.sin(a) * r, 5, a, "#f3dcab"); }
+  ctx.fillStyle = "#f3dcab"; ctx.beginPath();
+  for (let i = 0; i < 3; i++) {
+    const { c, s } = astraRuneDirections[i*8];
+    ctx.moveTo((r+5)*c,(r+5)*s);ctx.lineTo(r*c-1.9*s,r*s+1.9*c);ctx.lineTo((r-5)*c,(r-5)*s);ctx.lineTo(r*c+1.9*s,r*s-1.9*c);ctx.closePath();
+  }
+  ctx.fill();
   ctx.restore();
 }
 function astraRibbon(trail, width, gold = false, alpha = 1) {
@@ -255,6 +293,80 @@ function astraVisible(x, y, r) {
   return x + r >= camera.x && x - r <= camera.x + getCameraViewWidth() && y + r >= camera.y && y - r <= camera.y + getCameraViewHeight();
 }
 
+// Two high-resolution emission sheets are baked once, then counter-rotated.
+// Fine aurora curtains and their light filaments survive mobile zoom without
+// per-frame blur, offscreen surfaces, or a new particle emitter.
+function astraAuroraTexture(layer) {
+  const key = "aurora:" + layer;
+  if (astraVfxTextures.has(key)) return astraVfxTextures.get(key);
+  const image = document.createElement("canvas"), size = 768, radius = 260, steps = 192;
+  image.width = image.height = size;
+  const c = image.getContext("2d"); c.translate(size / 2, size / 2);
+  c.globalCompositeOperation = "lighter"; c.lineJoin = "round";
+  const point = (a, ribbon, height) => {
+    const wave = Math.sin(a * 3 + layer * 2.1 + ribbon * .9) * 17 + Math.sin(a * 7 - layer + ribbon * .4) * 7;
+    const crest = .5 + .5 * Math.sin(a * 3 + layer * 1.7 + ribbon);
+    const veil = 17 + 57 * crest * crest;
+    const r = radius + wave + ribbon * 5 + height * veil;
+    const fold = a + height * .055 * Math.sin(a * 5 + ribbon + layer);
+    return [Math.cos(fold) * r, Math.sin(fold) * r];
+  };
+  // Each strand fades from a bright hem into a translucent violet/teal curtain.
+  for (let ribbon = 0; ribbon < 3; ribbon++) {
+    for (let band = 11; band >= 0; band--) {
+      const q = band / 12, next = (band + 1) / 12;
+      // Luminous translucent material is broadest inside the fold, not only
+      // along its hem. This remains recognisable on a small, bright phone map.
+      const alpha = Math.pow(1 - q, 1.05) * Math.pow(Math.sin((q + .13) / 1.13 * Math.PI), .6) * (ribbon === 1 ? .59 : .43);
+      c.fillStyle = layer ? `rgba(170,73,255,${alpha})` : `rgba(32,236,208,${alpha})`;
+      c.beginPath();
+      for (let i = 0; i <= steps; i++) { const p = point(i / steps * ASTRA_TAU, ribbon, q); i ? c.lineTo(...p) : c.moveTo(...p); }
+      for (let i = steps; i >= 0; i--) c.lineTo(...point(i / steps * ASTRA_TAU, ribbon, next));
+      c.closePath(); c.fill();
+    }
+    // Irregularly illuminated seams give the veil structure, not a flat halo.
+    for (let pass = 0; pass < 3; pass++) {
+      c.lineWidth = [10, 2.5, .8][pass];
+      c.strokeStyle = ["rgba(86,117,255,.075)", layer ? "rgba(181,154,255,.25)" : "rgba(109,236,255,.27)", "rgba(212,253,255,.12)"][pass];
+      c.beginPath();
+      for (let i = 0; i <= steps; i++) { const p = point(i / steps * ASTRA_TAU, ribbon, 0); i ? c.lineTo(...p) : c.moveTo(...p); }
+      c.stroke();
+    }
+  }
+  for (let i = 0; i < 120; i++) {
+    const a = i / 120 * ASTRA_TAU, brightness = .055 + Math.pow(.5 + .5 * Math.sin(i * 2.399 + layer), 3) * .21;
+    const tail = .38 + (i % 7) * .08;
+    c.strokeStyle = `rgba(182,231,255,${brightness})`; c.lineWidth = .65;
+    c.beginPath(); c.moveTo(...point(a, 1, .05));
+    c.quadraticCurveTo(...point(a + .011, 1, tail * .55), ...point(a + .019, 1, tail)); c.stroke();
+  }
+  astraVfxTextures.set(key, image); return image;
+}
+function astraAuroraState() {
+  const blend = Math.max(0, Math.min(1, player.astraOrbitBlend || 0));
+  const unfold = astraEase(blend);
+  return { alpha: unfold, radius: astraOrbitRadius() * (.76 + .24 * unfold), unfold };
+}
+function drawAstraAurora() {
+  const state = astraAuroraState(); if (state.alpha <= .001) return;
+  const extent = state.radius * 384 / 260, phase = astraFrame * .004;
+  ctx.save(); ctx.translate(player.x, player.y); ctx.globalCompositeOperation = "lighter";
+  for (let layer = 0; layer < 2; layer++) {
+    ctx.save(); ctx.rotate(layer ? -phase * 1.35 + .8 : phase);
+    ctx.globalAlpha *= state.alpha * (layer ? .64 : .95);
+    ctx.drawImage(astraAuroraTexture(layer), -extent, -extent, extent * 2, extent * 2); ctx.restore();
+  }
+  // Sparse moving highlights follow the same expanding orbit as the star heads.
+  ctx.globalAlpha *= state.alpha;
+  for (let i = 0; i < 8; i++) {
+    const a = i * ASTRA_TAU / 8 + phase * (i % 2 ? -1.1 : 1.4);
+    const r = state.radius * (1.01 + Math.sin(a * 3 + phase) * .025);
+    const x = Math.cos(a) * r, y = Math.sin(a) * r, shimmer = .5 + .5 * Math.sin(phase * 5 + i);
+    astraDiamond(x, y, 2 + shimmer * 2.4, a, i % 3 ? "#c3faff" : "#f2dfba");
+  }
+  ctx.restore();
+}
+
 function drawAstraAccretionReach(w, alpha) {
   const outer = w.pullR || w.r, inner = w.r;
   if (alpha <= 0 || outer <= inner) return;
@@ -268,18 +380,14 @@ function drawAstraAccretionReach(w, alpha) {
   ctx.fillStyle = haze; ctx.beginPath(); ctx.arc(0, 0, outer, 0, ASTRA_TAU); ctx.fill();
   ctx.strokeStyle = "rgba(142,192,255,.2)"; ctx.lineWidth = .9;
   ctx.beginPath(); ctx.arc(0, 0, outer, 0, ASTRA_TAU); ctx.stroke();
+  const armGeometry = astraSpiralGeometry(inner / outer);
   for (let arm = 0; arm < 8; arm++) {
     const start = arm * ASTRA_TAU / 8 + w.phase * .12;
     ctx.strokeStyle = arm % 3 ? "rgba(127,181,255,.12)" : "rgba(224,206,172,.14)";
-    ctx.lineWidth = .7; ctx.beginPath();
-    for (let step = 0; step <= 24; step++) {
-      const q = step / 24, rr = inner * .58 + (outer - inner * .58) * q, a = start + (1 - q) ** 1.5 * 2.15;
-      const x = Math.cos(a) * rr, y = Math.sin(a) * rr;
-      step ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
-    }
-    ctx.stroke();
+    ctx.save(); ctx.rotate(start); ctx.scale(outer, outer); ctx.lineWidth = .7 / outer;
+    astraStrokeSpiral(armGeometry); ctx.restore();
     // Small orbit fragments at the outer boundary make its shape readable.
-    ctx.strokeStyle = "rgba(160,208,255,.32)";
+    ctx.strokeStyle = "rgba(160,208,255,.32)"; ctx.lineWidth = .7;
     ctx.beginPath(); ctx.arc(0, 0, outer, start, start + .055); ctx.stroke();
   }
   for (let n = 0; n < 24; n++) {
@@ -351,14 +459,15 @@ function drawAstraWell(w) {
   // Fine boundary remains at the true damage radius while the core contracts.
   astraRuneRing(0, 0, w.r, -.05 * w.phase, .23 * appear);
   ctx.save(); ctx.scale(1, .68); ctx.rotate(-.2);
+  const wellArm = astraSpiralGeometry();
   for (let arm = 0; arm < 7; arm++) {
     const offset = arm * ASTRA_TAU / 7 + w.phase;
+    ctx.save(); ctx.rotate(offset); ctx.scale(r, r);
     for (let layer = 0; layer < 2; layer++) {
-      ctx.strokeStyle = layer ? "rgba(168,222,255,.29)" : "rgba(89,70,226,.12)"; ctx.lineWidth = layer ? .85 : 12;
-      ctx.beginPath();
-      for (let step = 0; step <= 40; step++) { const q = step / 40, rr = r * (.12 + .8 * q), a = offset - q * 3.6, x = Math.cos(a) * rr, y = Math.sin(a) * rr; step ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
-      ctx.stroke();
+      ctx.strokeStyle = layer ? "rgba(168,222,255,.29)" : "rgba(89,70,226,.12)"; ctx.lineWidth = (layer ? .85 : 12) / r;
+      astraStrokeSpiral(wellArm);
     }
+    ctx.restore();
   }
   ctx.restore();
   // The accretion disc crosses behind a dark lens, with a thin, bright foreground lip.
@@ -417,33 +526,54 @@ function drawAstraGrowth(front = false) {
       astraDiamond(x + Math.cos(a) * r, y - 25 + Math.sin(a) * r * .6, 1.6 + i % 3, a, i % 3 ? "#b3eaff" : "#ffe5ac");
     }
     ctx.globalAlpha = 1;
-    if (stage >= 3) {
-      const cy = y - 67 + Math.sin(t) * 2;
-      astraGlow(x, cy, 29, .34, "gold");
-      ctx.strokeStyle = "rgba(248,225,175,.85)"; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(x - 18, cy + 5); ctx.lineTo(x - 21, cy - 6);
-      ctx.lineTo(x - 9, cy); ctx.lineTo(x, cy - 12); ctx.lineTo(x + 9, cy); ctx.lineTo(x + 21, cy - 6); ctx.lineTo(x + 18, cy + 5); ctx.closePath(); ctx.stroke();
-      for (const dx of [-21, 0, 21]) astraDiamond(x + dx, cy - (dx ? 6 : 12), dx ? 3 : 5, Math.PI / 2, "#edfbff");
-    }
   }
   ctx.restore();
 }
 function drawAstraConstellation(g) {
   const bodies = g.bodies.filter(b => b.state === "orbit");
-  if (bodies.length < 2) return;
+  const formation = g.constellationProgress || 0;
+  if (bodies.length < 2 && !formation) return;
   const stride = Math.max(1, Math.ceil(bodies.length / 24));
   ctx.save(); ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = astraEase(g.age / 42) * (g.state === "launch" ? Math.max(0, 1 - g.launchAge / 24) : 1);
-  ctx.strokeStyle = "rgba(148,209,255,.3)"; ctx.lineWidth = .8;
+  ctx.strokeStyle = `rgba(148,209,255,${.3 + formation * .25})`; ctx.lineWidth = .8 + formation * .3;
   ctx.beginPath();
   for (let i = 0; i < bodies.length; i += stride) {
     const b = bodies[i], next = bodies[(i + stride) % bodies.length];
     ctx.moveTo(b.x, b.y); ctx.lineTo(next.x, next.y);
-    if (i % (stride * 3) === 0) { ctx.moveTo(g.x, g.y - 38); ctx.lineTo(b.x, b.y); }
+    if (i % (stride * 3) === 0 && formation < .7) { ctx.moveTo(g.x, g.y - 38); ctx.lineTo(b.x, b.y); }
   }
   ctx.stroke();
   for (let i = 0; i < bodies.length; i += stride) {
-    const b = bodies[i]; astraDiamond(b.x, b.y, 4, astraFrame * .01, "#fff0c2");
+    const b = bodies[i]; astraDiamond(b.x, b.y, 4 + formation * 2, astraFrame * .01, "#fff0c2");
+  }
+  if (formation > 0 && typeof astraConstellationPoint === "function") {
+    // The same ten vertices as the actual captured-body formation: the sigil
+    // completes before release, then fades while the volley departs.
+    const vertices = Array.from({ length: 10 }, (_, i) => astraConstellationPoint(i, 10, g));
+    const trace = Math.min(10, formation * 12), complete = Math.floor(trace), fraction = trace - complete;
+    for (let layer = 0; layer < 3; layer++) {
+      ctx.strokeStyle = ["rgba(123,99,248,.14)", "rgba(116,217,255,.45)", "rgba(225,250,255,.94)"][layer];
+      ctx.lineWidth = [8, 2.5, .85][layer]; ctx.beginPath(); ctx.moveTo(vertices[0].x, vertices[0].y);
+      for (let i = 1; i <= complete; i++) ctx.lineTo(vertices[i % 10].x, vertices[i % 10].y);
+      if (complete < 10) {
+        const a = vertices[complete], b = vertices[(complete + 1) % 10];
+        ctx.lineTo(a.x + (b.x - a.x) * fraction, a.y + (b.y - a.y) * fraction);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha *= formation;
+    for (let i = 0; i < 10; i++) {
+      if (i > trace) break;
+      const p = vertices[i];
+      astraDiamond(p.x, p.y, i % 2 ? 3.2 : 7, Math.PI / 2, i % 2 ? "#c7d8ff" : "#fff0c8");
+      if (i % 2 === 0) astraGlow(p.x, p.y, 21, .32, "gold");
+    }
+    if (formation > .7) {
+      ctx.globalAlpha *= astraEase((formation - .7) / .3);
+      ctx.strokeStyle = "rgba(200,216,255,.42)"; ctx.lineWidth = .75;
+      ctx.beginPath(); ctx.arc(g.x, g.y - 38, 232, 0, ASTRA_TAU); ctx.stroke();
+    }
   }
   ctx.restore();
 }
@@ -479,6 +609,7 @@ function drawAstraEffects() {
   prepareAstraVfx();
   worldStart(); ctx.save(); ctx.lineCap = "round";
   drawAstraGrowth(false);
+  drawAstraAurora();
   for (const w of astraWells) if (astraVisible(w.x, w.y, Math.max(w.r * 1.3, w.pullR || 0))) {
     drawAstraWell(w); drawAstraSuctionTargets(w);
   }

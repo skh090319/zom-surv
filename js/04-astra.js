@@ -5,6 +5,11 @@ let astraWake = [];
 let astraRewardedKills = new WeakSet(), astraOrbitPrevious = new Map(), astraEnemyPrevious = new WeakMap();
 const ASTRA_Q_CD = 240, ASTRA_E_CD = 510, ASTRA_X_CD = 780, ASTRA_R_CD = 1680;
 const ASTRA_R_DURATION = 360, ASTRA_R_LIFT = 42, ASTRA_R_FLIGHT = 980;
+const ASTRA_R_CONSTELLATION_FORM = 26, ASTRA_R_CONSTELLATION_HOLD = 10;
+const ASTRA_CONSTELLATION_VERTICES = Array.from({ length: 10 }, (_, i) => {
+  const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 99 : 220;
+  return { x: Math.cos(a) * r, y: Math.sin(a) * r };
+});
 const ASTRA_REALM_FADE_IN = 54, ASTRA_REALM_FADE_OUT = 60;
 // Independent balance knobs: do not multiply the shared player.damage stat.
 const ASTRA_BASIC_DAMAGE_MULTIPLIER = 2, ASTRA_ORBIT_DAMAGE_MULTIPLIER = 6, ASTRA_WELL_PULL_MULTIPLIER = 12;
@@ -114,8 +119,13 @@ function astraSegmentDistance(x, y, ax, ay, bx, by) {
   return Math.hypot(x - ax - dx * t, y - ay - dy * t);
 }
 function astraTrail(entity, limit = 22) {
-  (entity.trail ||= []).push({ x: entity.x, y: entity.y });
-  if (entity.trail.length > limit) entity.trail.shift();
+  const trail = entity.trail ||= [];
+  // Recycle the oldest sample after warm-up: same complete trail, no per-tick
+  // position garbage for every orbiting or flying celestial body.
+  const recycle = trail.length >= limit && trail.length > 0;
+  const point = recycle ? trail.shift() : {};
+  point.x = entity.x; point.y = entity.y; trail.push(point);
+  if (!recycle && trail.length > limit) trail.shift();
 }
 
 // Bounded visual allocation, independent of the number of combat targets.
@@ -170,7 +180,7 @@ function activateAstraR() {
   player.astraUltimateCasts = (player.astraUltimateCasts || 0) + 1;
   const targets = zombies.filter(z => astraCanCapture(z) && Math.hypot(z.x - player.x, z.y - player.y) <= astraRRadius() + z.r);
   const count = targets.length || Math.max(5, astraOrbitCount());
-  astraGravity = { age: 0, backdropReadyAge: 0, state: "orbit", x: player.x, y: player.y, launchAge: 0, radius: astraRRadius(), bossSpent: new Map(), bodies: [] };
+  astraGravity = { age: 0, backdropReadyAge: 0, constellationProgress: 0, state: "orbit", x: player.x, y: player.y, launchAge: 0, radius: astraRRadius(), bossSpent: new Map(), bodies: [] };
   for (let i = 0; i < count; i++) {
     const z = targets[i] || null, ring = i % 3;
     const b = { zombie: z, virtual: !z, ring, index: i, a: i * 2.399963, x: z ? z.x : player.x, y: z ? z.y : player.y,
@@ -197,6 +207,13 @@ function astraGravityOrbitPoint(b, g) {
   const ox = Math.cos(b.a) * radius, oy = Math.sin(b.a) * radius * .57;
   return { x: g.x + ox * Math.cos(tilt) - oy * Math.sin(tilt), y: g.y + ox * Math.sin(tilt) + oy * Math.cos(tilt) - 38 };
 }
+function astraConstellationPoint(index, count, g) {
+  // Equal-length star edges keep dense captures evenly spaced. Five virtual
+  // bodies land on the five outer tips; the VFX uses this same cached outline.
+  const u = index / Math.max(1, count) * 10, edge = Math.floor(u), t = u - edge;
+  const a = ASTRA_CONSTELLATION_VERTICES[edge % 10], b = ASTRA_CONSTELLATION_VERTICES[(edge + 1) % 10];
+  return { x: g.x + a.x + (b.x - a.x) * t, y: g.y - 38 + a.y + (b.y - a.y) * t };
+}
 function launchAstraGravity() {
   const g = astraGravity;
   if (!g || g.state !== "orbit") return;
@@ -207,11 +224,11 @@ function launchAstraGravity() {
   astraImpact("release", player.x, player.y - 38, 205);
 }
 function astraFindMeteorTarget(b, targets) {
-  let closest = null, distance = ASTRA_R_FLIGHT * 1.2;
+  let closest = null, distanceSq = (ASTRA_R_FLIGHT * 1.2) ** 2;
   for (const z of targets) {
     if (z.hp <= 0 || z.astraControl) continue;
-    const d = Math.hypot(z.x - b.x, z.y - b.y);
-    if (d < distance) { distance = d; closest = z; }
+    const dx = z.x - b.x, dy = z.y - b.y, d = dx * dx + dy * dy;
+    if (d < distanceSq) { distanceSq = d; closest = z; }
   }
   return closest;
 }
@@ -242,8 +259,10 @@ function updateAstraGravity() {
   // A slow first download must fade in too, never pop in at full opacity.
   if (typeof astraUltimateBackdrop !== "undefined" && astraUltimateBackdrop.complete && astraUltimateBackdrop.naturalWidth > 0) g.backdropReadyAge++;
   const living = new Set(zombies);
-  const targets = zombies.filter(z => z.hp > 0 && !z.astraControl);
+  // Homing targets are unused during the 360-tick capture phase.
+  const targets = g.state === "launch" || g.age >= ASTRA_R_DURATION ? zombies.filter(z => z.hp > 0 && !z.astraControl) : null;
   for (const b of g.bodies) astraDetachDeadBody(b, living);
+  if (g.state === "orbit") g.constellationProgress = astraEase((g.age - ASTRA_R_DURATION + ASTRA_R_CONSTELLATION_FORM + ASTRA_R_CONSTELLATION_HOLD) / ASTRA_R_CONSTELLATION_FORM);
   if (g.state === "orbit" && g.age >= ASTRA_R_DURATION) launchAstraGravity();
   if (g.state === "launch") g.launchAge++;
   for (const b of g.bodies) {
@@ -255,7 +274,16 @@ function updateAstraGravity() {
     }
     if (b.state === "orbit") {
       b.a += (.028 + b.ring * .009) * (b.ring === 1 ? -1 : 1) * (1 + (player.astraOrbitBlend || 0) * .9);
-      const p = astraGravityOrbitPoint(b, g), t = astraEase(g.age / ASTRA_R_LIFT);
+      const formation = g.constellationProgress, t = astraEase(g.age / ASTRA_R_LIFT);
+      let p;
+      if (formation >= 1) p = astraConstellationPoint(b.index, g.bodies.length, g);
+      else {
+        p = astraGravityOrbitPoint(b, g);
+        if (formation > 0) {
+          const star = astraConstellationPoint(b.index, g.bodies.length, g);
+          p.x += (star.x - p.x) * formation; p.y += (star.y - p.y) * formation;
+        }
+      }
       b.x = b.startX + (p.x - b.startX) * t; b.y = b.startY + (p.y - b.startY) * t; b.lift = 38 * t;
     } else {
       const px = b.x, py = b.y; b.speed = Math.min(25, b.speed + .9);
@@ -282,7 +310,8 @@ function updateAstraGravity() {
       const cx = Math.floor(b.x / cell), cy = Math.floor(b.y / cell);
       for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) {
         for (const other of buckets.get(`${cx + ox}/${cy + oy}`) || []) {
-          if (b.collisionCooldown || other.collisionCooldown || Math.hypot(b.x - other.x, b.y - other.y) > b.r + other.r + 5) continue;
+          const dx = b.x - other.x, dy = b.y - other.y, contact = b.r + other.r + 5;
+          if (b.collisionCooldown || other.collisionCooldown || dx * dx + dy * dy > contact * contact) continue;
           b.collisionCooldown = other.collisionCooldown = 24;
           astraDamage(b.zombie, astraScaledDamage(player.damage * .55)); astraDamage(other.zombie, astraScaledDamage(player.damage * .55));
           astraImpact("collision", (b.x + other.x) / 2, (b.y + other.y) / 2, 48);
@@ -385,7 +414,11 @@ function updateAstra() {
   }
   astraOrbitPrevious = nextOrbit;
   updateAstraMeteors(); updateAstraWells(); updateAstraGravity();
-  for (const z of zombies) astraEnemyPrevious.set(z, { x: z.x, y: z.y });
+  for (const z of zombies) {
+    const previous = astraEnemyPrevious.get(z);
+    if (previous) { previous.x = z.x; previous.y = z.y; }
+    else astraEnemyPrevious.set(z, { x: z.x, y: z.y });
+  }
   for (let i = astraEffects.length - 1; i >= 0; i--) if (--astraEffects[i].life <= 0) astraEffects.splice(i, 1);
   for (let i = astraDust.length - 1; i >= 0; i--) {
     const p = astraDust[i]; p.px = p.x; p.py = p.y; p.x += p.vx; p.y += p.vy; p.vx *= .955; p.vy *= .955;
@@ -440,7 +473,7 @@ function drawAstraInterface() {
   ctx.fillStyle = "#80ddff"; ctx.font = "bold 12px Arial";
   ctx.fillText(astraGravity ? `만유인력 역전 · ${astraGravity.bodies.filter(b => b.state !== "done").length}개 천체` : `공전성 ${astraOrbitCount() - astraQFlights().length}/${astraOrbitCount()} · 궤도 ${Math.round(astraOrbitRadius())}`, textX, y + 55,textW);
   ctx.fillStyle = "#cabfe6"; ctx.font = "11px Arial";
-  const hint = astraGravity ? (astraGravity.state === "orbit" ? `${Math.ceil((ASTRA_R_DURATION - astraGravity.age) / 60)}초 후 적을 추적해 발사` : "유도 천체 · 성운 폭발") : (astraQFlights().length ? "Q 재사용: 모든 공전성 즉시 회수" : "별빛 잔상 50 · 천문 고리 150 · 왕관 300");
+  const hint = astraGravity ? (astraGravity.state === "orbit" ? `${Math.ceil((ASTRA_R_DURATION - astraGravity.age) / 60)}초 후 적을 추적해 발사` : "유도 천체 · 성운 폭발") : (astraQFlights().length ? "Q 재사용: 모든 공전성 즉시 회수" : "별빛 잔상 50 · 천문 고리 150 · 성운 300");
   ctx.fillText(hint, textX, y + 78,textW);
   ctx.fillStyle = "#f4d58e"; ctx.font = "bold 11px Arial";
   ctx.fillText(`별가루 ${player.astraStardust || 0} · 피해 +${player.astraStardust || 0}% · 경험치 +${(player.astraUltimateCasts || 0) * 20}%`, textX, y + 99,textW);

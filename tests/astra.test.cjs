@@ -19,6 +19,19 @@ function game(){
 function enemy(x,y,extra={}){return {x,y,r:18,hp:10000,maxHp:10000,speed:1,...extra};}
 function tick(g,n){g.run(`for(let t=0;t<${n};t++)updateAstra()`);}
 
+test('Astra attack uses the generated bitmap while joystick stays code-rendered',()=>{
+  const g=game(),source=fs.readFileSync(path.join(root,'js/08-mobile.js'),'utf8');
+  vm.runInContext(source.slice(source.indexOf('function drawAstraControlIcon('),source.indexOf('function drawMobileControls(')),g.context);
+  const images=[];g.context.ctx.drawImage=(...args)=>images.push(args);
+  g.context.astraBasicAttackIcon={complete:true,naturalWidth:512};
+  g.run("drawAstraControlIcon(100,200,45,'attack',true)");
+  assert.equal(images.length,1);assert.equal(images[0][0],g.context.astraBasicAttackIcon);
+  assert.deepEqual(images[0].slice(1),[55,155,90,90]);
+  g.run("drawAstraControlIcon(100,200,45,'joystick',true,12,-10)");assert.equal(images.length,1);
+  g.context.astraBasicAttackIcon.complete=false;g.run("drawAstraControlIcon(100,200,45,'attack')");assert.equal(images.length,1);
+  assert.ok(fs.statSync(path.join(root,'assets/astra-basic-attack-v1.webp')).size<150000);
+});
+
 test('dedicated touch icons keep drawing state balanced at custom sizes without changing gameplay',()=>{
   const g=game(),source=fs.readFileSync(path.join(root,'js/08-mobile.js'),'utf8');
   vm.runInContext(source.slice(source.indexOf('function drawAstraControlIcon('),source.indexOf('function drawMobileControls(')),g.context);
@@ -286,6 +299,55 @@ test('R launch uses the current aim at expiry, not the original cast direction',
   assert.equal(g.run('astraGravity.bodies[0].state'),'flight');
 });
 
+test('R completes a smooth constellation, holds ten ticks, and launches at the original expiry',()=>{
+  for(const count of [0,23]){
+    const g=game();for(let i=0;i<count;i++)g.context.zombies.push(enemy(i*12-120,80));
+    g.run('activateAstraR()');assert.equal(g.run('astraGravity.constellationProgress'),0);tick(g,324);
+    assert.equal(g.run('astraGravity.constellationProgress'),0);
+    let previous=g.run('astraGravity.bodies.map(b=>({x:b.x,y:b.y}))'),progress=0;
+    for(let age=325;age<=350;age++){
+      tick(g,1);const current=g.run('astraGravity.constellationProgress');
+      assert.ok(current>progress&&current<=1);progress=current;
+      const bodies=g.run('astraGravity.bodies');
+      for(let i=0;i<bodies.length;i++){
+        const b=bodies[i],expected=g.run(`(()=>{const g=astraGravity,b=g.bodies[${i}],p=astraGravityOrbitPoint(b,g),s=astraConstellationPoint(b.index,g.bodies.length,g);return{x:p.x+(s.x-p.x)*g.constellationProgress,y:p.y+(s.y-p.y)*g.constellationProgress};})()`);
+        assert.ok(Math.abs(b.x-expected.x)<1e-8&&Math.abs(b.y-expected.y)<1e-8);
+        assert.ok(Math.hypot(b.x-previous[i].x,b.y-previous[i].y)<45,'formation never snaps');
+      }
+      previous=bodies.map(b=>({x:b.x,y:b.y}));
+    }
+    assert.equal(progress,1);tick(g,9);assert.equal(g.run('astraGravity.age'),359);
+    assert.equal(g.run('astraGravity.state'),'orbit');assert.equal(g.run('astraGravity.constellationProgress'),1);
+    for(const [i,b] of g.run('astraGravity.bodies').entries())assert.ok(Math.hypot(b.x-previous[i].x,b.y-previous[i].y)<1e-8,'completed constellation holds');
+    assert.equal(g.context.player.astraRCooldown,1680-359);assert.equal(g.context.player.astraUltimateCasts,1);
+    tick(g,1);assert.equal(g.run('astraGravity.age'),360);assert.equal(g.run('astraGravity.state'),'launch');
+    assert.equal(g.run('astraGravity.bodies[0].state'),'flight');
+    for(const b of g.run('astraGravity.bodies.filter(b=>b.state==="orbit")')){
+      const p=g.run(`astraConstellationPoint(${b.index},astraGravity.bodies.length,astraGravity)`);
+      assert.ok(Math.hypot(b.x-p.x,b.y-p.y)<1e-8,'staggered projectiles stay on their constellation until launch');
+    }
+  }
+});
+
+test('completed constellation follows Astra and five virtual bodies occupy its outer tips',()=>{
+  const g=game();g.run('activateAstraR()');tick(g,350);
+  for(const b of g.run('astraGravity.bodies'))assert.ok(Math.abs(Math.hypot(b.x,b.y+38)-220)<1e-8);
+  g.context.player.x=150;g.context.player.y=80;tick(g,5);
+  assert.ok(g.run('astraGravity.x>0&&astraGravity.y>0'));
+  for(const b of g.run('astraGravity.bodies')){
+    const center=g.run('({x:astraGravity.x,y:astraGravity.y-38})');
+    assert.ok(Math.abs(Math.hypot(b.x-center.x,b.y-center.y)-220)<1e-8);
+  }
+});
+
+test('squared-distance meteor targeting matches nearest eligible distance and range limits',()=>{
+  const g=game(),targets=[enemy(20,20,{hp:0}),enemy(12,12,{astraControl:true}),enemy(500,-50),enemy(500,50),enemy(1000,500)];
+  g.context.reviewTargets=targets;
+  assert.equal(g.run('astraFindMeteorTarget({x:0,y:0},reviewTargets)'),targets[2]);
+  g.context.reviewTargets=[enemy(1176,0)];assert.equal(g.run('astraFindMeteorTarget({x:0,y:0},reviewTargets)'),null);
+  g.context.reviewTargets=[enemy(1175.999,0)];assert.equal(g.run('astraFindMeteorTarget({x:0,y:0},reviewTargets)'),g.context.reviewTargets[0]);
+});
+
 test('empty-field R creates blue-white virtual bodies and its final collision hits a boss',()=>{
   const g=game(),boss=enemy(740,0,{r:100,isRaidBoss:true,maxHp:100000,hp:100000});g.context.zombies.push(boss);
   g.context.mouse.worldX=740;g.run('activateAstraR()');assert.equal(g.run('astraGravity.bodies.length'),5);assert.ok(g.run('astraGravity.bodies.every(b=>b.virtual)'));
@@ -402,6 +464,29 @@ test('growth tiers and movement wake stay bounded and reset between runs',()=>{
   }
   g.run('for(let i=0;i<200;i++){player.x+=2;updateAstra()}');assert.ok(g.run('astraWake.length<=24'));
   g.run('resetAstra()');assert.equal(g.run('astraWake.length'),0);assert.equal(g.run('astraGrowthStage()'),0);
+});
+
+test('trail samples are recycled without losing any positions or extended flight tails',()=>{
+  const g=game(),entity={x:0,y:0,trail:[]},identities=new Set(),expected=[];g.context.reviewEntity=entity;
+  for(let i=0;i<100;i++){
+    const limit=i<30||i>=80?12:26;entity.x=i*1.5;entity.y=Math.sin(i)*80;
+    expected.push({x:entity.x,y:entity.y});if(expected.length>limit)expected.shift();
+    g.run(`astraTrail(reviewEntity,${limit})`);
+    assert.equal(JSON.stringify(entity.trail),JSON.stringify(expected));
+    for(const p of entity.trail)identities.add(p);
+  }
+  assert.equal(identities.size,26,'only the eventual tail capacity is allocated');
+});
+
+test('enemy sweep history reuses its position records and remains accurate between frames',()=>{
+  const g=game(),z=enemy(1000,1000);g.context.zombies.push(z);g.context.reviewEnemy=z;tick(g,1);
+  const previous=g.run('astraEnemyPrevious.get(reviewEnemy)');
+  for(let i=0;i<60;i++){
+    z.x+=3;z.y-=2;tick(g,1);
+    assert.equal(g.run('astraEnemyPrevious.get(reviewEnemy)'),previous);
+    assert.equal(previous.x,z.x);assert.equal(previous.y,z.y);
+  }
+  g.run('resetAstra()');assert.equal(g.run('astraEnemyPrevious.get(reviewEnemy)'),undefined);
 });
 
 test('Astra HUD draws a real portrait crop and restores canvas state',()=>{

@@ -371,6 +371,16 @@ function drawMobileHomeScreen(){
 
 
 function drawAstraControlIcon(x,y,r,kind,active=false,dx=0,dy=0){
+  if(kind==='attack'&&typeof astraBasicAttackIcon!=='undefined'&&astraBasicAttackIcon.complete&&astraBasicAttackIcon.naturalWidth){
+    ctx.save();ctx.globalAlpha=1;ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(astraBasicAttackIcon,x-r,y-r,r*2,r*2);
+    if(active){
+      const phase=typeof astraFrame==='number'?astraFrame*.07:0;
+      ctx.strokeStyle='rgba(195,244,255,.95)';ctx.lineWidth=1.5;
+      for(let i=0;i<3;i++){const a=phase+i*Math.PI*2/3;ctx.beginPath();ctx.arc(x,y,r*.84,a,a+.42);ctx.stroke();}
+    }
+    ctx.restore();return;
+  }
   ctx.save();ctx.translate(x,y);ctx.scale(r,r);ctx.globalAlpha=1;
   const phase=typeof astraFrame==='number'?astraFrame*.012:0;
   const bg=ctx.createRadialGradient(-.24,-.3,.03,0,0,1);
