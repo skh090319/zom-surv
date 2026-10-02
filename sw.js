@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v71";
+const CACHE_VERSION = "zombie-survival-v72";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -58,6 +58,8 @@ const CORE_ASSETS = [
   "./js/07-world-render.js",
   "./js/07-fire-trail-polish.js",
   "./js/08-astra-healthbar.js",
+  "./js/08-lobby-motion-art.js",
+  "./js/08-lobby-motion.js",
   "./js/08-ui.js",
   "./js/08-guide.js",
   "./js/08-mobile.js",
@@ -80,6 +82,8 @@ self.addEventListener("fetch", event => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  // Let the browser handle video byte ranges; Cache.put cannot store 206 responses.
+  if (request.headers?.has("range")) return;
 
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).then(response => {

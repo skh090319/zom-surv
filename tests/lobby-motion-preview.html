@@ -1,0 +1,10 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><base href="../"><title>Lobby orbit video review</title><link rel="stylesheet" href="style.css"><style>html,body{height:auto;overflow:auto}body{margin:0;background:#09121f;color:#fff;font:14px system-ui}header{display:flex;gap:8px;padding:8px}button{padding:8px}canvas{display:block;width:100%;height:auto}output{display:block;padding:8px}</style></head><body>
+<header><button onclick="choose('astra')">아스트라</button><button onclick="choose('mare')">마레</button><button onclick="phone(false)">Desktop</button><button onclick="phone(true)">Phone</button><button onclick="screenMode='game'">게임 전환</button></header><canvas id="game" width="1280" height="760"></canvas><output id="status">Loading</output><output id="errors"></output>
+<script>
+const nativeRAF=requestAnimationFrame.bind(window);window.requestAnimationFrame=()=>0;let ready=false,mobile=false;
+addEventListener('error',e=>document.getElementById('errors').textContent+=e.message+'\n');
+function choose(id){selectedCharacter=id;screenMode='home';prepareGameImages();}
+function phone(value){mobile=value;canvas.width=value?844:1280;canvas.height=value?390:760;}
+function tick(){if(ready){draw();const item=lobbyMotionPlayers.get(selectedCharacter);document.getElementById('status').textContent=JSON.stringify({character:selectedCharacter,screen:screenMode,videoTime:item?.video.currentTime,videoReady:item?.video.readyState,fallback:item?.failed,paused:item?.video.paused});}nativeRAF(tick);}
+(async()=>{const html=await(await fetch('index.html?motion-review='+Date.now(),{cache:'no-store'})).text(),doc=new DOMParser().parseFromString(html,'text/html');for(const original of doc.querySelectorAll('script[src]')){const src=original.getAttribute('src');if(src.includes('pwa.js'))continue;await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src+'&review='+Date.now();s.onload=resolve;s.onerror=reject;document.head.append(s);});}saveTotalKills=()=>{};isMobileTouchDevice=()=>mobile;choose('astra');ready=true;tick();})();
+</script></body></html>

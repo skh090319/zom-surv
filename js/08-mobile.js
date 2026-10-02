@@ -387,7 +387,9 @@ function drawMobileHomeScreen(){
   if(sprite?.complete&&sprite.naturalWidth){
     const heroW=heroRight-heroLeft,availableH=frameH-(short?42:62);
     const scale=Math.min(heroW*.74/sprite.naturalWidth,availableH*.82/sprite.naturalHeight),dw=sprite.naturalWidth*scale,dh=sprite.naturalHeight*scale;
-    ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=24;ctx.drawImage(sprite,heroX-dw/2,heroCenterY-dh/2,dw,dh);ctx.restore();
+    ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=24;
+    const animated=typeof drawLobbyAnimatedHero==='function'&&drawLobbyAnimatedHero(selectedCharacter,heroX-dh/3,heroCenterY-dh/2,dh*2/3,dh);
+    if(!animated)ctx.drawImage(sprite,heroX-dw/2,heroCenterY-dh/2,dw,dh);ctx.restore();
   }
   const nameY=outerY+frameH-(short?9:20);
   ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=`${short?17:22}px ${MOBILE_LOBBY_DISPLAY_FONT}`;ctx.fillText(info.name,heroX,nameY);ctx.fillStyle=accent;ctx.fillRect(heroX-38,nameY+8,76,2);

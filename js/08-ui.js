@@ -923,7 +923,9 @@ function drawHomeScreen() {
     const maxW=wide?Math.min(510,canvas.width*.38):Math.min(280,canvas.width*.4),maxH=canvas.height*.63;
     const scale=Math.min(maxW/sprite.naturalWidth,maxH/sprite.naturalHeight),dw=sprite.naturalWidth*scale,dh=sprite.naturalHeight*scale;
     ctx.save();ctx.globalAlpha=.25;ctx.filter="blur(18px)";ctx.drawImage(sprite,heroX-dw*.53,heroY-dh*.48+10,dw*1.06,dh*1.06);ctx.restore();
-    ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=30;ctx.drawImage(sprite,heroX-dw/2,heroY-dh/2,dw,dh);ctx.restore();
+    ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=30;
+    const animated=typeof drawLobbyAnimatedHero==='function'&&drawLobbyAnimatedHero(selectedCharacter,heroX-dh/3,heroY-dh/2,dh*2/3,dh);
+    if(!animated)ctx.drawImage(sprite,heroX-dw/2,heroY-dh/2,dw,dh);ctx.restore();
   }
   const heroLabelY=canvas.height*.82;
   drawRoundedRect(heroX-92,heroLabelY-17,184,25,13,"rgba(3,6,14,.82)",`${accent}55`,1);

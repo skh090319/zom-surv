@@ -1,8 +1,10 @@
 // 게임 초기화와 메인 루프
 
 function draw() {
+  if(typeof suspendLobbyMotion==='function'&&(screenMode!=='home'||!['astra','mare'].includes(selectedCharacter))&&lobbyMotionActive)suspendLobbyMotion();
   prepareGameImages();
   if (typeof isMobilePortraitMode === "function" && isMobilePortraitMode()) {
+    if(typeof suspendLobbyMotion==='function'&&lobbyMotionActive)suspendLobbyMotion();
     drawMobilePortraitLock();
     return;
   }
