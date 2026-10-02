@@ -47,7 +47,7 @@ function getMobileViewZoom(){return clampMobileViewZoom(mobileControlSettings.vi
 function fitMobileControlCenter(value,r,min,max){const inset=Math.min(r,Math.max(0,(max-min)/2));return Math.max(min+inset,Math.min(max-inset,value));}
 
 const MOBILE_SKILL_KEYS = {
-  suncall:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
+  suncall:["q","e","x","r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
   nightLord:["q","e","x","r"],zero:["q","e","x","r"],paladin:["q","e","x","r"],arc:["q","e","x","r"],
   terra:["q","e","x","r"],void:["q","e","x","r"],carmilla:["q"],vargas:["q","e","x","r"],
   echo:["q","e","r"],aria:["q","e","x","r"],moira:["q","e","x","r"],mare:["q","e","x","r"],nullZero:["q","e","x","r"],astra:["q","e","x","r"]
@@ -291,6 +291,7 @@ addEventListener("mouseup",()=>{if(mobileSettingsMouseDrag)saveMobileControlSett
 
 function getMobileSkillIcon(key){
   const index={q:0,e:1,x:2,r:3}[key]??0;
+  if(selectedCharacter==='suncall')return {atlas:suncallSkillIconAtlas,index};
   if(selectedCharacter==="yupiter"){if(key==="q")return{image:[crescentBladeSprite,severingBladeSprite,flameCannonSprite][player.yupiterWeapon]};if(key==="e")return{image:yupiterESkillIcons[player.yupiterWeapon]};if(key==="r")return{image:yupiterUltimateIcon};}
   if(selectedCharacter==="ren")return{image:renSkillIcons[{q:0,x:1,e:2,r:3}[key]]};
   if(selectedCharacter==="nightLord")return{image:nightLordSkillIcons[index]};if(selectedCharacter==="zero")return{image:zeroSkillIcons[index]};if(selectedCharacter==="paladin")return{image:paladinSkillIcons[index]};
@@ -300,7 +301,7 @@ function getMobileSkillIcon(key){
 
 function getMobileSkillName(key){
   const names={
-    suncall:{r:"재장전"},
+    suncall:{q:'서리창',e:'뇌전 회로',x:'결정 회수',r:'백야의 뇌폭'},
     ren:{q:"분신 배치",x:"그림자 이동",e:"분신 습격",r:"그림자 지대"},nightLord:{q:"그림자 추격",e:"광란",x:"처형",r:"불사의 밤"},
     zero:{q:"참격",e:"급소",x:"심판",r:"검의 왈츠"},paladin:{q:"성스러운 반격",e:"연속 절단",x:"콤보 전환",r:"한계 돌파"},
     arc:{q:"일륜",e:"홍염 파동",x:"태양 낙하",r:"초신성"},terra:{q:"단층 붕괴",e:"암벽 융기",x:"지각 압축",r:"대륙 분쇄"},
@@ -314,6 +315,7 @@ function getMobileSkillName(key){
 }
 
 function getMobileSkillCooldown(key){
+  if(selectedCharacter==='suncall')return {value:player['suncall'+key.toUpperCase()+'Cooldown']||0,max:{q:SUNCALL_Q_CD,e:SUNCALL_E_CD,x:SUNCALL_X_CD,r:SUNCALL_R_CD}[key]||1};
   if(selectedCharacter==="astra"&&key==="q"&&astraQFlights().length)return {value:0,max:ASTRA_Q_CD};
   const reloadInfo=()=>({value:player.reloadTime||0,max:90,label:"재장전"});
   if(["suncall","luminous"].includes(selectedCharacter))return key==="r"?reloadInfo():null;
@@ -339,7 +341,7 @@ function getMobileSkillCooldown(key){
 }
 
 function isMobileUltimateLocked(key){
-  return key==="r"&&player.level<10&&!["suncall","luminous","carmilla"].includes(selectedCharacter);
+  return key==="r"&&player.level<10&&!["luminous","carmilla"].includes(selectedCharacter);
 }
 
 function drawMobileIcon(icon,cx,cy,r){

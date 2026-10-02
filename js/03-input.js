@@ -28,6 +28,9 @@ addEventListener("keydown", e => {
   }
 
   if (!e.repeat && screenMode === "game" && !paused && !gameOver) {
+    if(selectedCharacter==='suncall'){
+      if(key==='q')activateSuncallQ();if(key==='e')activateSuncallE();if(key==='x')activateSuncallX();if(key==='r')activateSuncallR();
+    }
     if (key === "q" && selectedCharacter === "yupiter") switchYupiterWeapon();
     if (key === "e" && selectedCharacter === "yupiter") activateYupiterSkill();
     if (key === "r" && selectedCharacter === "yupiter") activateYupiterUltimate();
@@ -87,7 +90,7 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="astra"&&key==="e")activateAstraE();
     if(selectedCharacter==="astra"&&key==="x")activateAstraX();
     if(selectedCharacter==="astra"&&key==="r")activateAstraR();
-    if (key === "r" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero" && selectedCharacter !== "astra") reload();
+    if (key === "r" && selectedCharacter !== "suncall" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero" && selectedCharacter !== "astra") reload();
   }
   if ((gameOver || raidVictory) && key === "enter") {
     restart();

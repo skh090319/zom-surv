@@ -200,6 +200,7 @@ function raidPlayerDamage(ratio, lethal = false, source = null) {
   }
   if (player.invincibleTime > 0 || tryDodgeAttack()) return;
   let damage = player.maxHp * ratio;
+  if(typeof absorbSuncallShield==='function')damage=absorbSuncallShield(damage);
   if (selectedCharacter === "vargas" && player.vargasShield > 0) {
     const absorbed = Math.min(player.vargasShield, damage);
     player.vargasShield -= absorbed;

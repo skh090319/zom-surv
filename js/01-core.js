@@ -6,6 +6,8 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d", { alpha: false });
 
 const suncallSprite = new Image();
+const suncallSkillIconAtlas=setGameImageSource(new Image(),'assets/suncall-skill-icons-v1.webp');
+const suncallAugmentIconAtlas=setGameImageSource(new Image(),'assets/suncall-augment-icons-v1.webp');
 setGameImageSource(suncallSprite, "assets/characters-original-v2/suncall.webp");
 let suncallSpriteLoaded = false;
 suncallSprite.onload = () => {

@@ -49,6 +49,7 @@ function draw() {
   drawMoiraEffects();
   drawMareEffects();
   drawNullZeroEffects();
+  drawSuncallEffects();
   drawAstraEffects();
   drawItems();
   drawExpOrbs();
@@ -64,6 +65,7 @@ function draw() {
   drawRaidBoss();
   drawDaggers();
   drawPlayer();
+  drawSuncallForeground();
   drawAstraForeground();
   drawRaidBossEffects();
   drawRenAttackOverlay();
@@ -87,6 +89,7 @@ function draw() {
     drawMoiraInterface();
     drawMareInterface();
     drawNullZeroInterface();
+    drawSuncallInterface();
     drawAstraInterface();
     drawReloadingOverlay();
     drawExpBar();
@@ -266,6 +269,7 @@ function restart() {
   player.mareQCooldown=0;player.mareECooldown=0;player.mareXCooldown=0;player.mareRCooldown=0;player.mareUltimateTime=0;player.mareUltimateTick=0;player.mareUltimateAngle=0;player.mareWhaleTrailTick=0;player.mareDepthLevel=0;player.mareCurrentLevel=0;player.mareFoamLevel=0;player.mareChargeTime=0;player.mareChargeAngle=0;player.mareChargeStartX=0;player.mareChargeStartY=0;player.mareChargeHitIds=new Set();mareEffects=[];mareCore=null;mareCurrents=[];
   player.nullZeroQCooldown=0;player.nullZeroECooldown=0;player.nullZeroXCooldown=0;player.nullZeroRCooldown=0;player.nullZeroForkTime=0;player.nullZeroKernelTime=0;player.nullZeroPacketLevel=0;player.nullZeroQuarantineLevel=0;player.nullZeroForkLevel=0;nullZeroProjectiles=[];nullZeroZones=[];nullZeroEffects=[];
   resetAstra();
+  if(typeof resetSuncall==='function')resetSuncall();
 
   player.dodgeLevel = 0;
   player.crownLevel = 0;

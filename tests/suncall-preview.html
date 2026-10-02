@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><base href="../"><title>Frost Circuit review</title><link rel="stylesheet" href="style.css"><style>html,body{height:auto;overflow:auto}body{margin:0;background:#071421;color:#daf7ff;font:14px system-ui}header{padding:10px;display:flex;flex-wrap:wrap;gap:8px}button{background:#17334a;color:#d9faff;border:1px solid #54a8c7;border-radius:5px;padding:8px 12px;cursor:pointer}canvas{display:block;max-width:100%;height:auto;margin:auto}output{display:block;padding:8px;white-space:pre-wrap}#errors{color:#ff9595}</style></head><body>
+<header><strong>FROST CIRCUIT · PRODUCTION REVIEW</strong><button onclick="scene('q')">Q · 서리창</button><button onclick="scene('e')">E · 뇌전 회로</button><button onclick="scene('x')">X · 결정 회수</button><button onclick="scene('r')">R · 백야의 뇌폭</button><button onclick="scene('augments')">전용 증강</button><button onclick="step(20)">+20 frames</button><button onclick="step(120)">+120 frames</button><button onclick="resizeReview(false)">Desktop</button><button onclick="resizeReview(true)">Phone</button><button onclick="benchmark()">Profile · 180 frames</button><button onclick="document.querySelector('header').style.display='none';scrollTo(0,0);paint()">Game view</button></header>
+<canvas id="game" width="1280" height="760"></canvas><output id="status">Loading…</output><output id="errors"></output>
+<script>
+const nativeRAF=requestAnimationFrame.bind(window);window.requestAnimationFrame=()=>0;
+let ready=false,phone=false,kind='r';
+addEventListener('error',e=>document.getElementById('errors').textContent+=e.message+'\n');addEventListener('unhandledrejection',e=>document.getElementById('errors').textContent+=String(e.reason)+'\n');
+function report(extra=''){document.getElementById('status').textContent=JSON.stringify({scene:kind,frame:suncallFrame,crystals:suncallCrystals.length,shots:suncallShots.length,effects:suncallEffects.length,storm:suncallStorm?.life,shield:player.suncallShield,mobile:phone})+' '+extra;}
+function paint(){draw();report();}
+function step(n){for(let i=0;i<n;i++)updateSuncall();paint();}
+function resizeReview(value){phone=value;canvas.width=value?844:1280;canvas.height=value?390:760;isMobileTouchDevice=()=>value;updateCamera();if(ready)paint();}
+function scene(value){if(!ready)return;kind=value;selectedCharacter='suncall';restart();screenMode='game';player.level=10;player.damage=35;player.exp=4;player.expNeed=12;player.x=1700;player.y=1150;updateCamera();mouse.worldX=player.x+580;mouse.worldY=player.y;mouse.x=(mouse.worldX-camera.x)*getWorldViewScale();mouse.y=(mouse.worldY-camera.y)*getWorldViewScale();
+  for(let i=0;i<24;i++){const a=i*2.39996,r=150+i%5*60;zombies.push({x:player.x+Math.cos(a)*r,y:player.y+Math.sin(a)*r,r:18,hp:100000,maxHp:100000,speed:.9,expValue:1,scoreValue:10});}
+  if(value==='q'){activateSuncallQ();step(14);}
+  else if(value==='e'){for(let i=0;i<6;i++){const a=i*Math.PI/3;suncallPlant(player.x+Math.cos(a)*260,player.y+Math.sin(a)*260);}activateSuncallE();step(3);}
+  else if(value==='x'){for(let i=0;i<6;i++){const a=i*Math.PI/3;suncallPlant(player.x+Math.cos(a)*220,player.y+Math.sin(a)*220);}activateSuncallX();step(8);}
+  else if(value==='augments'){choosingUpgrade=true;upgradeChoices=upgrades.filter(u=>['suncallCrystal','suncallCircuit','suncallGuard'].includes(u.id));upgradeAnimTime=90;paint();}
+  else{activateSuncallR();step(50);}
+}
+async function benchmark(){scene('r');for(let i=0;i<200;i++){const a=i*2.39996,r=120+i%9*30;zombies.push({x:player.x+Math.cos(a)*r,y:player.y+Math.sin(a)*r,r:18,hp:100000,maxHp:100000,speed:.9,expValue:1,scoreValue:10});}const times=[];for(let i=0;i<180;i++){const t=performance.now();updateSuncall();draw();times.push(performance.now()-t);if(i%10===0)await new Promise(nativeRAF);}times.sort((a,b)=>a-b);report(`224 enemies; CPU median ${times[90].toFixed(2)} ms; p95 ${times[171].toFixed(2)} ms`);}
+(async()=>{const html=await(await fetch('index.html?review='+Date.now(),{cache:'no-store'})).text(),doc=new DOMParser().parseFromString(html,'text/html');for(const original of doc.querySelectorAll('script[src]')){const src=original.getAttribute('src');if(src.includes('pwa.js'))continue;await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src+(src.includes('?')?'&':'?')+'review='+Date.now();s.onload=resolve;s.onerror=reject;document.head.append(s);});}saveTotalKills=()=>{};isMobileTouchDevice=()=>phone;selectedCharacter='suncall';screenMode='game';prepareGameImages();await Promise.all(gameImageRegistry.filter(img=>img.assetRequested).map(img=>img.decode().catch(()=>{})));ready=true;resizeReview(false);scene('r');})();
+</script></body></html>

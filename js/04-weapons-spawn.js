@@ -1,6 +1,7 @@
 // 총기, 발사, 적·아이템 생성, 처치 처리
 
 function reload() {
+  if(selectedCharacter==='suncall')return;
   if (player.reloadTime <= 0 && player.ammo < player.maxAmmo) {
     player.reloadTime = 90;
   }
@@ -8,6 +9,7 @@ function reload() {
 
 function shoot() {
   if (player.fireCooldown > 0 || player.reloadTime > 0) return;
+  if(selectedCharacter==='suncall'){attackWithSuncall();return;}
 
   if (selectedCharacter === "ren") {
     attackWithRen();

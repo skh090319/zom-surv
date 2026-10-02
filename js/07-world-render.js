@@ -247,7 +247,7 @@ function drawPlayer() {
     ctx.fill();
   }
 
-  if (gunSpriteLoaded && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero" && selectedCharacter !== "astra") {
+  if (gunSpriteLoaded && selectedCharacter !== 'suncall' && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero" && selectedCharacter !== "astra") {
     const gunW = 68;
     const gunH = 30;
 

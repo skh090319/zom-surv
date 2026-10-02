@@ -7,6 +7,10 @@ function getMobileAimedSkillTargetSpec(key){
   const cone=(range,arc)=>({type:"cone",range,arc});
   const level=name=>player[name]||0;
   switch(selectedCharacter){
+    case 'suncall':
+      if(key==='q')return line(suncallQRange(),44,{capsule:true});
+      if(key==='r')return {type:'self',range:390+(player.suncallCircuitLevel||0)*20,aim:false};
+      return null;
     case "yupiter":
       return key==="r"&&player.yupiterWeapon===2?line(1440,68,{offset:42,capsule:true}):null;
     case "ren":
@@ -80,6 +84,10 @@ function getMobileSkillTargetSpec(key){
   const status=label=>({type:"status",range:0,aim:false,label});
   const marked=(list)=>list.filter(z=>z.hp>0).map(z=>circle(z,(z.r||20)+8));
   switch(selectedCharacter){
+    case 'suncall':
+      if(key==='e'){const graph=suncallGraph();return graph.length?effects(graph.map(edge=>segment(edge.a,edge.b,60)),'연결될 회로'): {type:'line',range:360,width:60,capsule:true};}
+      if(key==='x')return effects(suncallCrystals.filter(c=>Math.hypot(c.x-player.x,c.y-player.y)<=suncallCircuitRange()).map(c=>circle(c,110+(player.suncallCrystalLevel||0)*12)),'결정 폭발 · 보호막');
+      break;
     case "yupiter":
       if(key==="e"&&player.yupiterWeapon===2)return effects(zombies.filter(z=>z.flameMarked).map(z=>circle(z,155)),"표식 폭발");
       if(key==="r"&&player.yupiterWeapon===0)return effects([circle(player,345)],"회전검 최대 범위");
@@ -132,7 +140,7 @@ function getMobileSkillTargetSpec(key){
       if(key==="x")return status(player.astraOverdriveTime>0?"궤도 확장·가속 중":"공전 궤도 가속");
       break;
   }
-  if(["suncall","luminous"].includes(selectedCharacter))return status("재장전");
+  if(selectedCharacter==='luminous')return status("재장전");
   if(selectedCharacter==="void"&&key==="e")return status("공허 질량 필요");
   return status(selectedCharacter==="paladin"&&key==="q"?"반격 준비":"자신 강화");
 }
@@ -142,6 +150,7 @@ function getMobileAttackTargetSpec(){
   const cone=(range,arc)=>({type:"cone",range,arc,centerArrow:true});
   const target=(range,radius)=>({type:"target",range,radius,variable:true});
   switch(selectedCharacter){
+    case 'suncall':return line(675,20);
     case "ren":return {type:"self",range:REN_ATTACK_RANGE};
     case "nightLord":return cone((player.nightLordUltimateTime>0?205:128)*(1+(player.nightLordReachLevel||0)*.15),player.nightLordFrenzyTime>0||transcended.nightReach?Math.PI*2:Math.PI*.9);
     case "zero":return {...line(ZERO_ATTACK_RANGE,20),startWidth:ZERO_ATTACK_RANGE/3+20};

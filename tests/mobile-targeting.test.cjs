@@ -50,7 +50,7 @@ function game() {
   const load=file=>vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
   load('03-input.js');
   // Load the real entry-point order, including overrides of the original casts.
-  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','04-null-zero.js','04-astra-constellations.js','04-astra.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
+  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','04-null-zero.js','04-suncall.js','04-astra-constellations.js','04-astra.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
   return {context,draws,storage,run:code=>vm.runInContext(code,context),touch(type,id,x,y){context.canvas.dispatchEvent({type,preventDefault(){},changedTouches:[{identifier:id,clientX:x,clientY:y}]});}};
 }
 
@@ -166,7 +166,7 @@ test('marker and released Mare core use the same position, even while moving and
 
 test('buffs, recall and automatic casts show effects without changing aim',()=>{
   const g=game();
-  const noAim={suncall:['r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','r'],moira:['x','r'],mare:['x']};
+  const noAim={suncall:['x','r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','r'],moira:['x','r'],mare:['x']};
   for(const [character,keys] of Object.entries(noAim))for(const key of keys){
     g.context.selectedCharacter=character;
     assert.equal(g.run(`getMobileSkillTargetSpec('${key}').aim`),false,character+' '+key);
@@ -177,6 +177,25 @@ test('buffs, recall and automatic casts show effects without changing aim',()=>{
     g.run(`applyMobileDragAim(mobileSkillAim,getMobileSkillTargetSpec('${key}'))`);
     assert.equal(g.context.mouse.worldX,1789);assert.equal(g.context.mouse.worldY,654);
   }
+});
+
+test('Frost Circuit mobile skills use generated icons, real cooldowns and a level-ten ultimate',()=>{
+  const g=game();g.context.selectedCharacter='suncall';g.context.suncallSkillIconAtlas={complete:true,naturalWidth:768,naturalHeight:768};g.run('resetSuncall()');
+  assert.equal(g.run('MOBILE_SKILL_KEYS.suncall.join("")'),'qexr');
+  for(const [i,key] of ['q','e','x','r'].entries()){assert.equal(g.run(`getMobileSkillIcon('${key}').index`),i);assert.ok(g.run(`getMobileSkillName('${key}')`).length>1);}
+  const skill=g.run('getMobileControlLayout().skills.find(s=>s.key==="q")');
+  g.touch('touchstart',71,skill.x,skill.y);g.touch('touchmove',71,skill.x-60,skill.y);
+  assert.equal(g.run('suncallShots.length'),0);g.touch('touchend',71,skill.x-60,skill.y);
+  assert.equal(g.run('suncallShots.length'),1);assert.ok(Math.abs(g.run('suncallShots[0].angle')-Math.PI)<.001);assert.equal(g.run('getMobileSkillCooldown("q").value'),240);
+  g.context.player.level=9;assert.equal(g.run('isMobileUltimateLocked("r")'),true);g.run('activateSuncallR()');assert.equal(g.run('suncallStorm'),null);
+  g.context.player.level=10;g.run('activateSuncallR()');assert.equal(g.run('suncallStorm.life'),360);assert.equal(g.run('getMobileSkillCooldown("r").value'),1680);
+});
+
+test('Frost Circuit X preview shows only crystals it can actually shatter; R never changes aim',()=>{
+  const g=game();g.context.selectedCharacter='suncall';g.run('resetSuncall();suncallPlant(1200,1000);suncallPlant(1800,1000)');
+  assert.equal(g.run('getMobileSkillTargetSpec("x").shapes.length'),1);assert.equal(g.run('getMobileSkillTargetSpec("x").shapes[0].r'),110);
+  assert.equal(g.run('getMobileSkillTargetSpec("r").range'),390);assert.equal(g.run('getMobileSkillTargetSpec("r").aim'),false);
+  const q=g.run('getMobileSkillTargetSpec("q")');assert.equal(q.range,580);assert.equal(q.width,44);
 });
 
 test('cancelled or interrupted touches cannot cast a skill',()=>{

@@ -399,6 +399,7 @@ function updateZombies() {
             : (player.crownLevel > 0 ? 20 : 10) * getZombieDifficultyDamageMultiplier();
           const carmillaFatalGuard = selectedCharacter === "carmilla" && player.carmillaBloodMoonTime > 0 && transcended.carmillaFeast;
           let remainingDamage=incomingDamage;
+          if(typeof absorbSuncallShield==='function')remainingDamage=absorbSuncallShield(remainingDamage);
           if(selectedCharacter==="vargas"&&player.vargasShield>0){const absorbed=Math.min(player.vargasShield,remainingDamage);player.vargasShield-=absorbed;remainingDamage-=absorbed;}
           player.hp -= carmillaFatalGuard ? Math.min(remainingDamage, Math.max(0, player.hp - 1)) : remainingDamage;
           player.invincibleTime = 12;
@@ -588,6 +589,7 @@ function update() {
   updateMoira();
   updateMare();
   updateNullZero();
+  if(typeof updateSuncall==='function')updateSuncall();
   updateAstra();
   updateZombies();
   updateDaggers();

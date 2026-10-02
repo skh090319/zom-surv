@@ -63,7 +63,7 @@ function drawHUD() {
 
   // HP는 화면 상단 체력바로 표시
 
-  const weaponText = selectedCharacter === "astra"
+  const weaponText = selectedCharacter === 'suncall' ? '썬콜 · 빙결 회로술사' : selectedCharacter === "astra"
     ? "아스트라 · 추락한 점성술사"
     : selectedCharacter === "nullZero"
     ? "NULL-ZERO · 감염된 관리자"
@@ -610,6 +610,7 @@ function drawExpBar() {
 }
 
 function getMobileCharacterResource(){
+  if(selectedCharacter==='suncall')return {label:'SUN CALL · 빙결 회로',value:suncallCrystals.length,max:suncallCapacity(),color:'#78dfff',text:`결정 ${suncallCrystals.length}/${suncallCapacity()} · 보호막 ${Math.ceil(player.suncallShield||0)}`};
   if(selectedCharacter==="paladin"){
     const tierNames=["봉인검","해방검","폭주검","진명 해방"],tier=getPaladinTier();
     return{label:`PALADIN · ${tierNames[tier]}`,value:player.paladinCombo,max:100,color:["#91a4b8","#59c8ff","#ffd25f","#fff2a8"][tier],text:`${Math.floor(player.paladinCombo)} COMBO`};
@@ -963,7 +964,7 @@ function drawHomeScreen() {
 }
 
 const characterSkillGuide = {
-  suncall:{name:"썬콜",color:"#48d8ff",passive:"이동속도가 15% 증가하며 공격 시 10% 확률로 둔화 얼음 지대를 만듭니다.",skills:[["기본 공격","빠른 총격으로 적을 공격하고 얼음 지대를 생성합니다."],["R 재장전","탄창을 다시 채웁니다."]]},
+  suncall:{name:'썬콜',color:'#48d8ff',passive:'냉기 3중첩으로 일반 적을 빙결시킵니다. 빙결된 적과 얼음 결정은 번개의 연결점이 됩니다. 보스와 이동 방해 면역 소환수는 빙결 대신 추가 피해를 받습니다. 탄창과 재장전이 없습니다.',skills:[['기본 공격 · 서리 파편','얼음 파편으로 냉기를 1중첩 쌓습니다.'],['Q · 서리창','관통 얼음 창으로 냉기를 3중첩 쌓고, 창이 도달한 끝에 12초 동안 얼음 결정을 남깁니다. 기본 최대 6개.'],['E · 뇌전 회로','주변 결정과 냉기가 가득 찬 적을 번개로 연결해 경로의 적을 타격합니다. 연결점이 없으면 조준 방향으로 번개를 쏩니다.'],['X · 결정 회수','주변 결정을 폭파해 피해를 주고, 회수한 결정 수에 비례하는 보호막을 얻습니다.'],['R · 백야의 뇌폭','10레벨부터 사용 가능. 주변에 얼음 결정 6개를 펼치고 6초간 눈보라와 회로 낙뢰로 적을 공격합니다. 마지막에 결정을 폭발시키며 거대한 냉기 충격파를 방출합니다.']]},
   yupiter:{name:"유피테르",color:"#64ef91",passive:"Q로 반월검·절단검·화염포를 전환하며 각 무기마다 E와 R이 달라집니다.",skills:[["Q 무기 전환","반월검·절단검·화염포를 교체하며 각 무기의 기본 공격을 확인합니다."],["E 반월검 증식","반월검을 4개로 늘려 한 번의 공격으로 더 큰 피해를 줍니다."],["E 절단검 가속","공격속도를 폭발적으로 높여 연속 참격을 가합니다."],["E 화염포 폭파","화염포 표식이 묻은 적들을 한꺼번에 폭발시킵니다."],["R 반월검 궁극기","10레벨부터 10개의 반월검이 점점 넓게 공전하며 적을 공격합니다."],["R 절단검 궁극기","10레벨부터 이동속도·공격 범위가 증가하고 낮은 체력의 적을 처형합니다."],["R 화염포 궁극기","10레벨부터 에너지 구체 적중 지점에서 모든 적에게 화염탄을 퍼뜨립니다."]]},
   ren:{name:"렌",color:"#ff496f",passive:"그림자 조각을 흡수해 공격력을 높이고 분신을 강화합니다.",skills:[["Q 분신 배치","분신을 커서 방향의 제한 거리까지 내보냅니다."],["X 그림자 이동","가장 최근 분신 위치로 순간이동합니다."],["E 분신 습격","분신이 적을 찾아 강하게 습격합니다."],["R 그림자 지대","10레벨부터 거대한 마법진을 펼쳐 적을 둔화하고 지속 피해를 줍니다."]]},
   nightLord:{name:"나이트 로드",color:"#a855f7",passive:"잃은 체력에 비례해 공격력이 증가하며 처형과 흡혈로 역전합니다.",skills:[["Q 그림자 추격","적에게 파고들어 베고 잠시 공격속도가 증가합니다."],["E 광란","현재 체력을 대가로 연속 참격을 사용합니다."],["X 처형","기준 이하 체력의 적을 마무리합니다."],["R 불사의 밤","10레벨부터 체력이 1 아래로 내려가지 않는 강화 상태가 됩니다."]]},
@@ -985,7 +986,7 @@ astra:{name:"아스트라",color:"#e6bd62",passive:"비전과 중력장을 보�
 function getCharacterPreviewSprite(id, thumbnail = false){if(thumbnail)return getCharacterThumbnail(id);const image = id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:id==="echo"?echoSprite:id==="aria"?ariaSprite:id==="moira"?moiraSprite:id==="mare"?mareSprite:id==="nullZero"?nullZeroSprite:id==="astra"?astraSprite:id==="vargas"?vargasSprite:yupiterSprite;return ensureGameImage(image, "high");}
 
 const characterSkillVideoKeys = {
-  suncall:["attack","reload"],
+  suncall:[], // Old gun/reload videos no longer describe Frost Circuit.
   yupiter:["q","e-crescent","e-severing","e-flame","r-crescent","r-severing","r-flame"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
   zero:["q","e","x","r"], paladin:["q","e","x","r"], arc:["q","e","x","r"],
   terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"],vargas:["attack","q","e","x","r"],echo:["attack","close","phase","r"],aria:["attack","q","e","x","r"],moira:["attack","q","e","x","r"],mare:["attack","q","e","x","r"]
@@ -1088,7 +1089,7 @@ function drawCharacterSelectScreen() {
   });
 
   const themes = {
-    suncall: { color: "#48d8ff", color2: "#2469c7", role: "MOBILITY", number: "01" },
+    suncall: { color: "#48d8ff", color2: "#2469c7", role: "FROST CIRCUIT", number: "01" },
     yupiter: { color: "#64ef91", color2: "#148b69", role: "WEAPON MASTER", number: "03" },
     ren: { color: "#ff496f", color2: "#6e36c8", role: "SHADOW ASSASSIN", number: "04" },
     nightLord: { color: "#a855f7", color2: "#3b1769", role: "DARK SLAYER", number: "05" },
@@ -1668,6 +1669,11 @@ const transcendIconCells = {
 };
 
 function drawAugmentIcon(id, x, y, size, transcendent = false) {
+  if(['suncallCrystal','suncallCircuit','suncallGuard'].includes(id)&&suncallAugmentIconAtlas.complete&&suncallAugmentIconAtlas.naturalWidth){
+    const i={suncallCrystal:0,suncallCircuit:1,suncallGuard:2}[id],sw=suncallAugmentIconAtlas.naturalWidth/2,sh=suncallAugmentIconAtlas.naturalHeight/2;
+    ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();ctx.drawImage(suncallAugmentIconAtlas,(i%2)*sw,Math.floor(i/2)*sh,sw,sh,x,y,size,size);ctx.restore();
+    if(transcendent){ctx.save();ctx.strokeStyle='#ffe5a0';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2-1,0,Math.PI*2);ctx.stroke();ctx.restore();}return;
+  }
   if (id === "immortal" && immortalIconLoaded) {
     ctx.drawImage(immortalIcon, x, y, size, size);
     return;

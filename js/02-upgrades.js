@@ -48,7 +48,7 @@ const upgradeCount = {
   ,ariaSoil:0,ariaThorn:0,ariaNight:0
   ,moiraThread:0,moiraNeedle:0,moiraDoll:0
   ,mareDepth:0,mareCurrent:0,mareFoam:0
-  ,nullZeroPacket:0,nullZeroQuarantine:0,nullZeroFork:0,astraRed:0,astraBlue:0,astraHorizon:0
+  ,nullZeroPacket:0,nullZeroQuarantine:0,nullZeroFork:0,astraRed:0,astraBlue:0,astraHorizon:0,suncallCrystal:0,suncallCircuit:0,suncallGuard:0
 
 
 };
@@ -99,12 +99,15 @@ const transcended = {
   ,ariaSoil:false,ariaThorn:false,ariaNight:false
   ,moiraThread:false,moiraNeedle:false,moiraDoll:false
   ,mareDepth:false,mareCurrent:false,mareFoam:false
-  ,nullZeroPacket:false,nullZeroQuarantine:false,nullZeroFork:false,astraRed:false,astraBlue:false,astraHorizon:false
+  ,nullZeroPacket:false,nullZeroQuarantine:false,nullZeroFork:false,astraRed:false,astraBlue:false,astraHorizon:false,suncallCrystal:false,suncallCircuit:false,suncallGuard:false
 
 
 };
 
 const upgrades = [
+  {id:'suncallCrystal',category:'support',name:'서리 공명',desc:'결정 보유량 +1 · 서리창 사거리 +35 · 피해·폭발 범위 증가',transcendName:'초월: 빙정 성채',transcendDesc:'얼음 결정 최대 보유량이 추가로 2개 증가합니다',requires(){return selectedCharacter==='suncall';},apply(){upgradeCount.suncallCrystal=(upgradeCount.suncallCrystal||0)+1;if(upgradeCount.suncallCrystal<4)player.suncallCrystalLevel=(player.suncallCrystalLevel||0)+1;else transcended.suncallCrystal=true;}},
+  {id:'suncallCircuit',category:'support',name:'초전도 회로',desc:'연결 사거리·연결점 수 증가 · 번개 피해 +15%',transcendName:'초월: 무한 전도',transcendDesc:'번개의 최대 연결 수가 추가로 6개 증가합니다',requires(){return selectedCharacter==='suncall';},apply(){upgradeCount.suncallCircuit=(upgradeCount.suncallCircuit||0)+1;if(upgradeCount.suncallCircuit<4)player.suncallCircuitLevel=(player.suncallCircuitLevel||0)+1;else transcended.suncallCircuit=true;}},
+  {id:'suncallGuard',category:'support',name:'극지 수호',desc:'결정 회수 보호막 +20% · 보호막 지속시간 +1초',transcendName:'초월: 절대 영도',transcendDesc:'보호막이 흡수한 피해를 주변 적에게 반사하며 냉기를 쌓습니다',requires(){return selectedCharacter==='suncall';},apply(){upgradeCount.suncallGuard=(upgradeCount.suncallGuard||0)+1;if(upgradeCount.suncallGuard<4)player.suncallGuardLevel=(player.suncallGuardLevel||0)+1;else transcended.suncallGuard=true;}},
   { id: "damage", category: "support", name: "데미지 증가", desc: "모든 데미지 +12%", transcendName: "초월: 사망 폭발", transcendDesc: "좀비 사망 시 폭발",
     apply() { upgradeCount.damage++; if (upgradeCount.damage < 4) { player.globalDamageMultiplier += 0.12; player.damage = Math.floor(player.damage * 1.08); } else if (!transcended.damage) { transcended.damage = true; player.explosionLevel++; } } },
   { id: "hp", category: "support", name: "최대 체력 증가", desc: "최대 체력 +25", transcendName: "초월: 재생력", transcendDesc: "매초 최대 체력의 2% 회복",
