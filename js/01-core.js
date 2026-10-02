@@ -200,7 +200,11 @@ const ariaAugmentIconAtlas=new Image();setGameImageSource(ariaAugmentIconAtlas, 
 const moiraSprite=new Image();setGameImageSource(moiraSprite, "assets/moira.webp");let moiraSpriteLoaded=false;moiraSprite.onload=()=>moiraSpriteLoaded=true;
 const moiraSkillIconAtlas=new Image();setGameImageSource(moiraSkillIconAtlas, "assets/moira-skill-icons.webp");
 const moiraAugmentIconAtlas=new Image();setGameImageSource(moiraAugmentIconAtlas, "assets/moira-augment-icons.webp");
-const mareSprite=new Image();setGameImageSource(mareSprite, "assets/mare.webp");let mareSpriteLoaded=false;mareSprite.onload=()=>mareSpriteLoaded=true;
+const mareSprite=new Image();setGameImageSource(mareSprite, "assets/mare-mature-v1.webp");let mareSpriteLoaded=false;mareSprite.onload=()=>mareSpriteLoaded=true;
+const marePortraitImage=setGameImageSource(new Image(),'assets/mare-portrait-v1.webp');
+const mareUiPanelImage=setGameImageSource(new Image(),'assets/mare-ui-panel-v1.webp');
+const mareSkillFrameImage=setGameImageSource(new Image(),'assets/mare-skill-frame-v1.webp');
+const mareControlIconAtlas=setGameImageSource(new Image(),'assets/mare-control-icons-v1.webp');
 const mareSkillIconAtlas=new Image();setGameImageSource(mareSkillIconAtlas, "assets/mare-skill-icons.webp");
 const mareAugmentIconAtlas=new Image();setGameImageSource(mareAugmentIconAtlas, "assets/mare-augment-icons.webp");
 const mareLeviathanSprite=new Image();setGameImageSource(mareLeviathanSprite, "assets/mare-leviathan.webp");let mareLeviathanLoaded=false;mareLeviathanSprite.onload=()=>mareLeviathanLoaded=true;

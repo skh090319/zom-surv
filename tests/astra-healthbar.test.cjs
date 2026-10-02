@@ -70,7 +70,7 @@ test('nebula and stars flow independently, and pause freezes their motion',()=>{
 });
 
 test('non-Astra health stays red and does not allocate galaxy textures',()=>{
-  const game=healthbar();game.sandbox.selectedCharacter='mare';game.run('drawHealthBar()');
+  const game=healthbar();game.sandbox.selectedCharacter='ren';game.run('drawHealthBar()');
   assert.equal(game.surfaces.length,0);
   assert.equal(game.calls.filter(call=>call[0]==='drawImage').length,0);
   assert.equal(game.calls.filter(call=>call[0]==='strokeText').length,0);

@@ -35,7 +35,7 @@ function getCharacterThumbnail(id) {
   if (!characterThumbnailImages.has(fileId)) {
     const redesigned = ["suncall", "luminous", "yupiter", "ren", "night-lord", "zero", "paladin", "arc", "null-zero", "astra"].includes(fileId);
     const swappedPortraitRevision = fileId === "zero" || fileId === "paladin" ? "?v=20260928-swap1" : "";
-    const source = redesigned ? `assets/characters-original-v2/${fileId}-thumb.webp${swappedPortraitRevision}` : `assets/character-thumbs-v1/${fileId}.webp`;
+    const source = fileId==='mare'?'assets/character-thumbs-v1/mare-mature-v1.webp':redesigned ? `assets/characters-original-v2/${fileId}-thumb.webp${swappedPortraitRevision}` : `assets/character-thumbs-v1/${fileId}.webp`;
     characterThumbnailImages.set(fileId, setGameImageSource(new Image(), source));
   }
   return ensureGameImage(characterThumbnailImages.get(fileId));

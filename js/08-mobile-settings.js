@@ -22,7 +22,7 @@ function getMobileHudBounds(id){
   const cw=canvas.width,ch=canvas.height,margin=Math.max(120,cw*.29);
   const layouts={health:{x:cw/2,y:30,w:Math.min(520,cw-80)+8,h:32},exp:{x:cw/2,y:ch-52,w:Math.max(150,cw-margin*2),h:38},
     boss:{x:cw/2,y:73,w:Math.min(400,cw*.62)+6,h:60},timer:{x:cw/2,y:73,w:Math.min(400,cw*.62),h:48},
-    resource:{x:cw/2,y:ch-(selectedCharacter==='astra'?91:85),w:selectedCharacter==='astra'?Math.min(370,cw*.44):Math.min(330,Math.max(180,cw*.36))+8,h:selectedCharacter==='astra'?34:36},
+    resource:{x:cw/2,y:ch-(['astra','mare'].includes(selectedCharacter)?91:85),w:['astra','mare'].includes(selectedCharacter)?Math.min(370,cw*.44):Math.min(330,Math.max(180,cw*.36))+8,h:['astra','mare'].includes(selectedCharacter)?34:36},
     pause:{x:cw-47,y:45,w:54,h:54}};
   return layouts[id];
 }

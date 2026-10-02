@@ -17,13 +17,15 @@ function drawHealthBar() {
   ctx.fillRect(x, y, barW, barH);
 
   const astralHealth = selectedCharacter === "astra";
-  if (astralHealth && typeof drawAstraHealthFlow === 'function') drawAstraHealthFlow(x, y, barW, barH, hpRatio);
+  const oceanHealth = selectedCharacter === 'mare';
+  if(oceanHealth&&typeof drawMareHealthFlow==='function')drawMareHealthFlow(x,y,barW,barH,hpRatio);
+  else if (astralHealth && typeof drawAstraHealthFlow === 'function') drawAstraHealthFlow(x, y, barW, barH, hpRatio);
   else {
     ctx.fillStyle = astralHealth ? '#647fd3' : '#ff3b3b';
     ctx.fillRect(x, y, barW * hpRatio, barH);
   }
 
-  ctx.strokeStyle = astralHealth ? "#c4c9f4" : "white";
+  ctx.strokeStyle = oceanHealth ? '#b6f4eb' : astralHealth ? "#c4c9f4" : "white";
   ctx.lineWidth = 2;
   ctx.strokeRect(x, y, barW, barH);
 
@@ -32,7 +34,7 @@ function drawHealthBar() {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const healthText=selectedCharacter==="vargas"?`${Math.max(0,player.hp).toFixed(1)} / ${player.maxHp.toFixed(1)}`:`${Math.max(0,Math.floor(player.hp))} / ${Math.floor(player.maxHp)}`;
-  if (astralHealth) {
+  if (astralHealth || oceanHealth) {
     ctx.strokeStyle = 'rgba(5,10,27,.94)'; ctx.lineWidth = 3;
     ctx.strokeText(healthText, canvas.width / 2, y + barH / 2);
   }
@@ -629,6 +631,7 @@ function getMobileCharacterResource(){
 
 function drawMobileCharacterResource(){
   if(!(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()))return;
+  if(selectedCharacter==='mare'&&typeof drawMareMobileResource==='function'){drawMareMobileResource();return;}
   if(selectedCharacter==="astra"){
     const dust=Math.max(0,Math.floor(player.astraStardust||0)),xp=(player.astraUltimateCasts||0)*20;
     const w=Math.min(370,canvas.width*.44),h=34,x=(canvas.width-w)/2,y=canvas.height-108;
