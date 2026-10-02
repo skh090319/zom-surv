@@ -105,16 +105,12 @@ const transcended = {
 };
 
 const upgrades = [
-  { id: "ammo", category: "support", name: "탄창 증가", desc: "최대 총알 +4", transcendName: "초월: 게틀링 건", transcendDesc: "탄 소모 없이 초고속 자동 사격",
-    apply() { upgradeCount.ammo++; if (upgradeCount.ammo < 4) { player.maxAmmo += 4; player.ammo = player.maxAmmo; } else if (!transcended.ammo) { transcended.ammo = true; player.gatlingLevel = 1; player.fireRateBonus += 3; } } },
   { id: "damage", category: "support", name: "데미지 증가", desc: "모든 데미지 +12%", transcendName: "초월: 사망 폭발", transcendDesc: "좀비 사망 시 폭발",
     apply() { upgradeCount.damage++; if (upgradeCount.damage < 4) { player.globalDamageMultiplier += 0.12; player.damage = Math.floor(player.damage * 1.08); } else if (!transcended.damage) { transcended.damage = true; player.explosionLevel++; } } },
   { id: "hp", category: "support", name: "최대 체력 증가", desc: "최대 체력 +25", transcendName: "초월: 재생력", transcendDesc: "매초 최대 체력의 2% 회복",
     apply() { upgradeCount.hp++; if (upgradeCount.hp < 4) { player.maxHp += 25; player.hp = player.maxHp; } else if (!transcended.hp) { transcended.hp = true; player.regenLevel = 1; } } },
   { id: "speed", category: "support", name: "이동속도 증가", desc: "이동속도 +0.25", transcendName: "초월: 화염 질주", transcendDesc: "이동 경로에 불 자취를 남김",
     apply() { upgradeCount.speed++; if (upgradeCount.speed < 4) { player.speed += 0.25; } else if (!transcended.speed) { transcended.speed = true; player.fireTrailLevel = 1; } } },
-  { id: "fireRate", category: "support", name: "연사속도 증가", desc: "발사 쿨타임 감소", transcendName: "초월: 춤추는 유탄", transcendDesc: "유탄이 좀비 사이를 춤추듯 튕깁니다",
-    apply() { upgradeCount.fireRate++; if (upgradeCount.fireRate < 4) { player.fireRateBonus++; } else if (!transcended.fireRate) { transcended.fireRate = true; player.ricochetLevel++; } } },
   { id: "recall", category: "support", name: "회수", desc: "반월검의 귀환 속도가 20% 증가합니다", transcendName: "초월: 계엄령", transcendDesc: "반월검 타격이 적을 강하게 밀어냅니다. 귀환 타격은 더 강한 넉백을 적용합니다",
     requires() { return selectedCharacter === "yupiter"; },
     apply() {

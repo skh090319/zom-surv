@@ -198,10 +198,6 @@ canvas.addEventListener("mousedown", event => {
         selectedCharacter = "suncall";
       }
 
-      if (card.id === "luminous") {
-        selectedCharacter = "luminous";
-      }
-
       if (card.id === "yupiter") {
         selectedCharacter = "yupiter";
       }

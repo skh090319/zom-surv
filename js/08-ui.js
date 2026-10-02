@@ -964,7 +964,6 @@ function drawHomeScreen() {
 
 const characterSkillGuide = {
   suncall:{name:"썬콜",color:"#48d8ff",passive:"이동속도가 15% 증가하며 공격 시 10% 확률로 둔화 얼음 지대를 만듭니다.",skills:[["기본 공격","빠른 총격으로 적을 공격하고 얼음 지대를 생성합니다."],["R 재장전","탄창을 다시 채웁니다."]]},
-  luminous:{name:"루미너스",color:"#59e9ff",passive:"8개의 마력탄이 발사 순간 지정한 적을 자동 추적합니다.",skills:[["유도 마력탄","손끝에서 발사한 마력탄이 궤도를 휘어 적을 끝까지 추적합니다."]]},
   yupiter:{name:"유피테르",color:"#64ef91",passive:"Q로 반월검·절단검·화염포를 전환하며 각 무기마다 E와 R이 달라집니다.",skills:[["Q 무기 전환","반월검·절단검·화염포를 교체하며 각 무기의 기본 공격을 확인합니다."],["E 반월검 증식","반월검을 4개로 늘려 한 번의 공격으로 더 큰 피해를 줍니다."],["E 절단검 가속","공격속도를 폭발적으로 높여 연속 참격을 가합니다."],["E 화염포 폭파","화염포 표식이 묻은 적들을 한꺼번에 폭발시킵니다."],["R 반월검 궁극기","10레벨부터 10개의 반월검이 점점 넓게 공전하며 적을 공격합니다."],["R 절단검 궁극기","10레벨부터 이동속도·공격 범위가 증가하고 낮은 체력의 적을 처형합니다."],["R 화염포 궁극기","10레벨부터 에너지 구체 적중 지점에서 모든 적에게 화염탄을 퍼뜨립니다."]]},
   ren:{name:"렌",color:"#ff496f",passive:"그림자 조각을 흡수해 공격력을 높이고 분신을 강화합니다.",skills:[["Q 분신 배치","분신을 커서 방향의 제한 거리까지 내보냅니다."],["X 그림자 이동","가장 최근 분신 위치로 순간이동합니다."],["E 분신 습격","분신이 적을 찾아 강하게 습격합니다."],["R 그림자 지대","10레벨부터 거대한 마법진을 펼쳐 적을 둔화하고 지속 피해를 줍니다."]]},
   nightLord:{name:"나이트 로드",color:"#a855f7",passive:"잃은 체력에 비례해 공격력이 증가하며 처형과 흡혈로 역전합니다.",skills:[["Q 그림자 추격","적에게 파고들어 베고 잠시 공격속도가 증가합니다."],["E 광란","현재 체력을 대가로 연속 참격을 사용합니다."],["X 처형","기준 이하 체력의 적을 마무리합니다."],["R 불사의 밤","10레벨부터 체력이 1 아래로 내려가지 않는 강화 상태가 됩니다."]]},
@@ -986,7 +985,7 @@ astra:{name:"아스트라",color:"#e6bd62",passive:"비전과 중력장을 보�
 function getCharacterPreviewSprite(id, thumbnail = false){if(thumbnail)return getCharacterThumbnail(id);const image = id==="suncall"?suncallSprite:id==="luminous"?luminousSprite:id==="yupiter"?yupiterSprite:id==="ren"?renSprite:id==="nightLord"?nightLordSprite:id==="zero"?zeroSprite:id==="paladin"?paladinSprite:id==="arc"?arcSprite:id==="terra"?terraSprite:id==="void"?voidSprite:id==="carmilla"?carmillaSprite:id==="echo"?echoSprite:id==="aria"?ariaSprite:id==="moira"?moiraSprite:id==="mare"?mareSprite:id==="nullZero"?nullZeroSprite:id==="astra"?astraSprite:id==="vargas"?vargasSprite:yupiterSprite;return ensureGameImage(image, "high");}
 
 const characterSkillVideoKeys = {
-  suncall:["attack","reload"], luminous:["attack"],
+  suncall:["attack","reload"],
   yupiter:["q","e-crescent","e-severing","e-flame","r-crescent","r-severing","r-flame"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
   zero:["q","e","x","r"], paladin:["q","e","x","r"], arc:["q","e","x","r"],
   terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"],vargas:["attack","q","e","x","r"],echo:["attack","close","phase","r"],aria:["attack","q","e","x","r"],moira:["attack","q","e","x","r"],mare:["attack","q","e","x","r"]
@@ -1066,7 +1065,7 @@ function drawCharacterSelectScreen() {
 
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
   const maxCardsPerRow = 4;
-  const characterIds = ["suncall", "luminous", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare","nullZero","astra"];
+  const characterIds = ["suncall", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare","nullZero","astra"];
   const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
@@ -1090,7 +1089,6 @@ function drawCharacterSelectScreen() {
 
   const themes = {
     suncall: { color: "#48d8ff", color2: "#2469c7", role: "MOBILITY", number: "01" },
-    luminous: { color: "#f0c65a", color2: "#3ecdf3", role: "HOMING MAGE", number: "02" },
     yupiter: { color: "#64ef91", color2: "#148b69", role: "WEAPON MASTER", number: "03" },
     ren: { color: "#ff496f", color2: "#6e36c8", role: "SHADOW ASSASSIN", number: "04" },
     nightLord: { color: "#a855f7", color2: "#3b1769", role: "DARK SLAYER", number: "05" },
@@ -1180,7 +1178,7 @@ function drawCharacterSelectScreen() {
       ctx.font = `bold ${card.w < 145 ? 10 : 13}px Arial`;
       ctx.fillText(isSelected ? "✓ 현재 선택됨" : "선택하기", card.x + card.w / 2, displayY + 461 * cardScale);
     } else {
-      const unlockKills = card.id === "luminous" ? 1000 : 200;
+      const unlockKills = 200;
       const remaining = Math.max(0, unlockKills - totalZombieKills);
       const progress = Math.min(1, totalZombieKills / unlockKills);
       ctx.fillStyle = "rgba(255,255,255,0.08)";

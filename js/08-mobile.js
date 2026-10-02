@@ -47,7 +47,7 @@ function getMobileViewZoom(){return clampMobileViewZoom(mobileControlSettings.vi
 function fitMobileControlCenter(value,r,min,max){const inset=Math.min(r,Math.max(0,(max-min)/2));return Math.max(min+inset,Math.min(max-inset,value));}
 
 const MOBILE_SKILL_KEYS = {
-  suncall:["r"],luminous:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
+  suncall:["r"],yupiter:["q","e","r"],ren:["q","x","e","r"],
   nightLord:["q","e","x","r"],zero:["q","e","x","r"],paladin:["q","e","x","r"],arc:["q","e","x","r"],
   terra:["q","e","x","r"],void:["q","e","x","r"],carmilla:["q"],vargas:["q","e","x","r"],
   echo:["q","e","r"],aria:["q","e","x","r"],moira:["q","e","x","r"],mare:["q","e","x","r"],nullZero:["q","e","x","r"],astra:["q","e","x","r"]
@@ -300,7 +300,7 @@ function getMobileSkillIcon(key){
 
 function getMobileSkillName(key){
   const names={
-    suncall:{r:"재장전"},luminous:{r:"재장전"},
+    suncall:{r:"재장전"},
     ren:{q:"분신 배치",x:"그림자 이동",e:"분신 습격",r:"그림자 지대"},nightLord:{q:"그림자 추격",e:"광란",x:"처형",r:"불사의 밤"},
     zero:{q:"참격",e:"급소",x:"심판",r:"검의 왈츠"},paladin:{q:"성스러운 반격",e:"연속 절단",x:"콤보 전환",r:"한계 돌파"},
     arc:{q:"일륜",e:"홍염 파동",x:"태양 낙하",r:"초신성"},terra:{q:"단층 붕괴",e:"암벽 융기",x:"지각 압축",r:"대륙 분쇄"},

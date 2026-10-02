@@ -166,7 +166,7 @@ test('marker and released Mare core use the same position, even while moving and
 
 test('buffs, recall and automatic casts show effects without changing aim',()=>{
   const g=game();
-  const noAim={suncall:['r'],luminous:['r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','r'],moira:['x','r'],mare:['x']};
+  const noAim={suncall:['r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','r'],moira:['x','r'],mare:['x']};
   for(const [character,keys] of Object.entries(noAim))for(const key of keys){
     g.context.selectedCharacter=character;
     assert.equal(g.run(`getMobileSkillTargetSpec('${key}').aim`),false,character+' '+key);

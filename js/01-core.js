@@ -13,21 +13,18 @@ suncallSprite.onload = () => {
 };
 
 const luminousSprite = new Image();
-setGameImageSource(luminousSprite, "assets/characters-original-v2/luminous.webp");
 let luminousSpriteLoaded = false;
 luminousSprite.onload = () => {
   luminousSpriteLoaded = true;
 };
 
 const luminousAttackSprite = new Image();
-setGameImageSource(luminousAttackSprite, "assets/characters-original-v2/luminous-attack.webp");
 let luminousAttackSpriteLoaded = false;
 luminousAttackSprite.onload = () => {
   luminousAttackSpriteLoaded = true;
 };
 
 const luminousBulletSprite = new Image();
-setGameImageSource(luminousBulletSprite, "assets/luminous-bullet.webp");
 let luminousBulletSpriteLoaded = false;
 luminousBulletSprite.onload = () => {
   luminousBulletSpriteLoaded = true;
