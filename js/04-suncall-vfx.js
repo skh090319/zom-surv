@@ -23,7 +23,7 @@ function suncallDrawBolt(effect){
   const age=effect.maxLife-effect.life,alpha=Math.min(1,effect.life/10),points=effect.points;
   ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha*=alpha;ctx.lineJoin='round';ctx.lineCap='round';
   // A broad emission layer, electric-blue sheath and white-hot filaments.
-  for(const [width,color] of [[20,'rgba(39,107,255,.08)'],[10,'rgba(58,181,255,.17)'],[4.5,'#4dcbff'],[1.5,'#f5ffff']]){
+  for(const [width,color] of [[130,'rgba(39,107,255,.025)'],[54,'rgba(58,181,255,.055)'],[20,'rgba(39,107,255,.08)'],[10,'rgba(58,181,255,.17)'],[4.5,'#4dcbff'],[1.5,'#f5ffff']]){
     ctx.lineWidth=width;ctx.strokeStyle=color;ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
   }
   ctx.lineWidth=1;ctx.strokeStyle='#a4e9ff';

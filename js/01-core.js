@@ -205,6 +205,7 @@ const marePortraitImage=setGameImageSource(new Image(),'assets/mare-portrait-v1.
 const mareUiPanelImage=setGameImageSource(new Image(),'assets/mare-ui-panel-v1.webp');
 const mareSkillFrameImage=setGameImageSource(new Image(),'assets/mare-skill-frame-v1.webp');
 const mareControlIconAtlas=setGameImageSource(new Image(),'assets/mare-control-icons-v1.webp');
+const mareSpellWaterImage=setGameImageSource(new Image(),'assets/lobby-motion-v1/water-ribbon.webp');mareSpellWaterImage.assetGroup='mare';
 const mareSkillIconAtlas=new Image();setGameImageSource(mareSkillIconAtlas, "assets/mare-skill-icons.webp");
 const mareAugmentIconAtlas=new Image();setGameImageSource(mareAugmentIconAtlas, "assets/mare-augment-icons.webp");
 const mareLeviathanSprite=new Image();setGameImageSource(mareLeviathanSprite, "assets/mare-leviathan.webp");let mareLeviathanLoaded=false;mareLeviathanSprite.onload=()=>mareLeviathanLoaded=true;

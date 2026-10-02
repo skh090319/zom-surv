@@ -18,7 +18,7 @@ function getLobbyMotionPlayer(id){
   const safari=/AppleWebKit/.test(navigator.userAgent)&&!/(Chrome|Chromium|Edg)/.test(navigator.userAgent);
   item.failed=safari||!video.canPlayType('video/webm; codecs="vp9"');
   video.addEventListener('error',()=>{item.failed=true;video.pause();});
-  if(!item.failed){video.src=`assets/lobby-motion-v1/${id}-orbit-v2.webm`;video.preload='auto';video.load();}
+  if(!item.failed){video.src=`assets/lobby-motion-v1/${id}-orbit-${id==='astra'?'v3':'v2'}.webm`;video.preload='auto';video.load();}
   lobbyMotionPlayers.set(id,item);return item;
 }
 function drawLobbyAnimatedHero(id,x,y,w,h){

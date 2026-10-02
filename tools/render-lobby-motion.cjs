@@ -16,7 +16,7 @@ async function main(){
   const water=await loadImage(path.join(directory,'water-ribbon.webp'));
   for(const id of process.argv[7]?[process.argv[7]]:['astra','mare']){
     const body=await loadImage(path.join(directory,id+'-body.webp')),canvas=createCanvas(640,960),p=canvas.getContext('2d');
-    const file=path.join(directory,id+'-orbit-v2.webm');
+    const file=path.join(directory,id+'-orbit-'+(id==='astra'?'v3':'v2')+'.webm');
     const proc=spawn(ffmpeg,['-y','-f','rawvideo','-pixel_format','rgba','-video_size','640x960','-framerate','30','-i','pipe:0','-an','-c:v','libvpx-vp9','-pix_fmt','yuva420p','-auto-alt-ref','0','-b:v','0','-crf','28','-deadline','good','-cpu-used','3',file],{stdio:['pipe','ignore','pipe']});
     let error='';proc.stderr.on('data',d=>error+=d);
     const complete=new Promise((resolve,reject)=>proc.on('close',code=>code?reject(Error(error)):resolve()));

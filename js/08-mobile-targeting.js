@@ -8,8 +8,8 @@ function getMobileAimedSkillTargetSpec(key){
   const level=name=>player[name]||0;
   switch(selectedCharacter){
     case 'suncall':
-      if(key==='q')return line(suncallQRange(),44,{capsule:true});
-      if(key==='r')return {type:'self',range:390+(player.suncallCircuitLevel||0)*20,aim:false};
+      if(key==='q')return line(suncallQRange(),80,{capsule:true});
+      if(key==='r')return {type:'self',range:suncallStormRadius(),aim:false};
       return null;
     case "yupiter":
       return key==="r"&&player.yupiterWeapon===2?line(1440,68,{offset:42,capsule:true}):null;
@@ -85,8 +85,8 @@ function getMobileSkillTargetSpec(key){
   const marked=(list)=>list.filter(z=>z.hp>0).map(z=>circle(z,(z.r||20)+8));
   switch(selectedCharacter){
     case 'suncall':
-      if(key==='e'){const graph=suncallGraph();return graph.length?effects(graph.map(edge=>segment(edge.a,edge.b,60)),'연결될 회로'): {type:'line',range:360,width:60,capsule:true};}
-      if(key==='x')return effects(suncallCrystals.filter(c=>Math.hypot(c.x-player.x,c.y-player.y)<=suncallCircuitRange()).map(c=>circle(c,110+(player.suncallCrystalLevel||0)*12)),'결정 폭발 · 보호막');
+      if(key==='e'){const graph=suncallGraph();return graph.length?effects(graph.flatMap(edge=>[segment(edge.a,edge.b,130),circle(edge.b,90)]),'연결될 회로'): {type:'line',range:suncallCircuitRange(),width:130,capsule:true,endRadius:90};}
+      if(key==='x')return effects(suncallCrystals.filter(c=>Math.hypot(c.x-player.x,c.y-player.y)<=suncallCircuitRange()).map(c=>circle(c,160+(player.suncallCrystalLevel||0)*12)),'결정 폭발 · 보호막');
       break;
     case "yupiter":
       if(key==="e"&&player.yupiterWeapon===2)return effects(zombies.filter(z=>z.flameMarked).map(z=>circle(z,155)),"표식 폭발");
@@ -369,6 +369,7 @@ function drawMobileTargetingIndicator(){
     else{
       ctx.translate((spec.offset||0)*scale,0);
       drawMobileAimLane(aimedRange,spec.width*scale,{arrow:spec.type==="line",capsule:spec.capsule,startWidth:(spec.startWidth??spec.width)*scale});
+      if(spec.endRadius)drawMobileAimRing(aimedRange,0,spec.endRadius*scale);
     }
     ctx.restore();if(spec.label)drawMobileAimLabel(spec.label);
   }

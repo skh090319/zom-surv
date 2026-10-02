@@ -14,16 +14,16 @@ test('three cold stacks freeze normal enemies; raid bosses and immune summons ge
   const g=game(),z=g.enemy();g.c.target=z;g.run('suncallCold(target,3)');assert.equal(z.stunTime,90);assert.equal(z.suncallFrozenTime,90);assert.equal(z.suncallConductTime,150);
   for(const flags of [{isRaidBoss:true},{isBossMinion:true},{movementImmune:true}]){const immune=g.enemy(1200,1000,flags);g.c.target=immune;g.run('suncallCold(target,3)');assert.equal(immune.hp,99985);assert.equal(immune.stunTime,undefined);assert.equal(immune.suncallFrozenTime,undefined);}
 });
-test('Q pierces, freezes and plants a finite endpoint crystal at the actual cast range',()=>{
-  const g=game(),a=g.enemy(1120),b=g.enemy(1400);g.run('activateSuncallQ();activateSuncallQ();for(let i=0;i<29;i++)updateSuncall()');
-  assert.equal(a.hp,99970);assert.equal(b.hp,99970);assert.equal(a.suncallFrozenTime>0,true);assert.equal(g.run('suncallCrystals.length'),1);assert.equal(g.run('suncallCrystals[0].x'),1580);assert.equal(g.run('suncallShots.length'),0);
+test('Q pierces, freezes and plants midpoint and endpoint relay crystals at the actual cast range',()=>{
+  const g=game(),a=g.enemy(1120),b=g.enemy(1400);g.run('activateSuncallQ();activateSuncallQ();for(let i=0;i<35;i++)updateSuncall()');
+  assert.equal(a.hp,99970);assert.equal(b.hp,99970);assert.equal(a.suncallFrozenTime>0,true);assert.equal(g.run('suncallCrystals.length'),2);assert.equal(g.run('suncallCrystals[0].x'),1350);assert.equal(g.run('suncallCrystals[1].x'),1700);assert.equal(g.run('suncallShots.length'),0);assert.ok(g.run('suncallGraph().some(e=>e.b.x===1700)'));
   g.run('for(let i=0;i<720;i++)updateSuncall()');assert.equal(g.run('suncallCrystals.length'),0);
 });
 test('crystal capacity is bounded, world edges clamp and exclusive augments upgrade only Suncall',()=>{
   const g=game();g.run('for(let i=0;i<40;i++)suncallPlant(i*100,1000)');assert.equal(g.run('suncallCrystals.length'),6);
   g.run('suncallPlant(-500,9000)');assert.equal(g.run('suncallCrystals.at(-1).x'),28);assert.equal(g.run('suncallCrystals.at(-1).y'),3972);
   for(const id of ['suncallCrystal','suncallCircuit','suncallGuard']){assert.equal(g.run(`upgrades.find(u=>u.id==='${id}').requires()`),true);g.run(`for(let i=0;i<4;i++)upgrades.find(u=>u.id==='${id}').apply()`);assert.equal(g.run(`transcended.${id}`),true);}
-  assert.equal(g.run('suncallCapacity()'),11);assert.equal(g.run('suncallQRange()'),685);g.c.selectedCharacter='mare';assert.equal(g.run("upgrades.find(u=>u.id==='suncallCrystal').requires()"),false);
+  assert.equal(g.run('suncallCapacity()'),11);assert.equal(g.run('suncallQRange()'),805);g.c.selectedCharacter='mare';assert.equal(g.run("upgrades.find(u=>u.id==='suncallCrystal').requires()"),false);
 });
 test('E connects real crystals and frozen targets; each enemy takes one hit even at intersecting links',()=>{
   const g=game(),a=g.enemy(1120),b=g.enemy(1240),outside=g.enemy(1400,1350);g.run('suncallPlant(1200,1000);suncallPlant(1450,1000);activateSuncallE()');
@@ -54,5 +54,16 @@ test('detailed VFX geometry stays finite, restores save state and bounds persist
 });
 test('generated skill and augment images are compact WebP atlases registered for demand loading',()=>{
   for(const file of ['suncall-skill-icons-v1.webp','suncall-augment-icons-v1.webp']){const data=fs.readFileSync(path.join(root,'assets',file));assert.equal(data.toString('ascii',0,4),'RIFF');assert.equal(data.toString('ascii',8,12),'WEBP');assert.ok(data.length<320000);assert.ok(fs.readFileSync(path.join(root,'js/01-core.js'),'utf8').includes(file));}
-  const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');for(const file of ['04-suncall.js','04-suncall-vfx.js']){assert.ok(html.includes(file+'?v=20261002-frost-circuit1'));assert.ok(sw.includes(file));}
+  const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');for(const file of ['04-suncall.js','04-suncall-vfx.js']){assert.ok(html.includes(file+'?v=20261002-frost-circuit2'));assert.ok(sw.includes(file));}
+});
+test('wider Q and X reach lateral enemies without changing their per-hit damage',()=>{
+  const q=game(),side=q.enemy(1400,1055);q.run('activateSuncallQ();for(let i=0;i<35;i++)updateSuncall()');assert.equal(side.hp,99970);
+  const x=game(),edge=x.enemy(1360);x.run('suncallPlant(1200,1000);activateSuncallX()');assert.equal(edge.hp,99976);assert.equal(x.c.player.suncallXCooldown,600);
+});
+test('E fallback reaches distant enemies and wide circuit/node overlaps still hit only once',()=>{
+  const fallback=game(),far=fallback.enemy(1750);fallback.run('activateSuncallE()');assert.equal(far.hp,99966);assert.equal(fallback.run('suncallEffects.find(e=>e.type==="bolt").points.at(-1).x'),1800);
+  const graph=game(),side=graph.enemy(1450,1070);graph.run('suncallPlant(1450,1000);suncallPlant(1500,1000);activateSuncallE()');assert.equal(side.hp,99966);assert.equal(graph.run('suncallGraph().length'),2);
+});
+test('R expands to radius 500 and smoothly follows without changing its duration or damage powers',()=>{
+  const g=game();g.run('activateSuncallR();player.x=1200;updateSuncall()');assert.equal(g.run('suncallStorm.r'),500);assert.equal(g.run('suncallStorm.x'),1016);assert.equal(g.run('suncallStorm.life'),359);assert.equal(g.run('suncallCrystals.length'),6);
 });

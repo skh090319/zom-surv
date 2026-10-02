@@ -192,10 +192,10 @@ test('Frost Circuit mobile skills use generated icons, real cooldowns and a leve
 });
 
 test('Frost Circuit X preview shows only crystals it can actually shatter; R never changes aim',()=>{
-  const g=game();g.context.selectedCharacter='suncall';g.run('resetSuncall();suncallPlant(1200,1000);suncallPlant(1800,1000)');
-  assert.equal(g.run('getMobileSkillTargetSpec("x").shapes.length'),1);assert.equal(g.run('getMobileSkillTargetSpec("x").shapes[0].r'),110);
-  assert.equal(g.run('getMobileSkillTargetSpec("r").range'),390);assert.equal(g.run('getMobileSkillTargetSpec("r").aim'),false);
-  const q=g.run('getMobileSkillTargetSpec("q")');assert.equal(q.range,580);assert.equal(q.width,44);
+  const g=game();g.context.selectedCharacter='suncall';g.run('resetSuncall();suncallPlant(1200,1000);suncallPlant(1900,1000)');
+  assert.equal(g.run('getMobileSkillTargetSpec("x").shapes.length'),1);assert.equal(g.run('getMobileSkillTargetSpec("x").shapes[0].r'),160);
+  assert.equal(g.run('getMobileSkillTargetSpec("r").range'),500);assert.equal(g.run('getMobileSkillTargetSpec("r").aim'),false);
+  const q=g.run('getMobileSkillTargetSpec("q")');assert.equal(q.range,700);assert.equal(q.width,80);
 });
 
 test('cancelled or interrupted touches cannot cast a skill',()=>{

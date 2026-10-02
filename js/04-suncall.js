@@ -5,8 +5,9 @@ function resetSuncall(){
   suncallCrystals=[];suncallShots=[];suncallEffects=[];suncallStorm=null;suncallFrame=0;
   for(const name of ['QCooldown','ECooldown','XCooldown','RCooldown','CrystalLevel','CircuitLevel','GuardLevel','Shield','ShieldTime'])player['suncall'+name]=0;
 }
-function suncallQRange(){return 580+(player.suncallCrystalLevel||0)*35;}
-function suncallCircuitRange(){return 650+(player.suncallCircuitLevel||0)*35;}
+function suncallQRange(){return 700+(player.suncallCrystalLevel||0)*35;}
+function suncallCircuitRange(){return 800+(player.suncallCircuitLevel||0)*35;}
+function suncallStormRadius(){return 500+(player.suncallCircuitLevel||0)*20;}
 function suncallCapacity(){return 6+(player.suncallCrystalLevel||0)+(transcended.suncallCrystal?2:0);}
 function suncallDamage(z,amount){
   if(!z||z.hp<=0||!zombies.includes(z))return;
@@ -34,7 +35,7 @@ function suncallPlant(x,y){
 function suncallSpawnShot(spear=false){
   const angle=Math.atan2(mouse.worldY-player.y,mouse.worldX-player.x),range=spear?suncallQRange():675,speed=spear?20:15;
   suncallShots.push({x:player.x,y:player.y,angle,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,remaining:range,
-    width:spear?22:10,spear,damage:scaledDamage(player.damage*(spear?3+(player.suncallCrystalLevel||0)*.3:1.25)),hits:new Set(),trail:[]});
+    width:spear?40:10,spear,totalRange:range,relayPlanted:false,damage:scaledDamage(player.damage*(spear?3+(player.suncallCrystalLevel||0)*.3:1.25)),hits:new Set(),trail:[]});
   suncallBurst(player.x,player.y,spear?50:22,'cast');
 }
 function attackWithSuncall(){if(player.fireCooldown>0)return;suncallSpawnShot();player.fireCooldown=22;}
@@ -51,7 +52,7 @@ function suncallGraph(origin={x:player.x,y:player.y},range=suncallCircuitRange()
   while(nodes.length&&graph.length<limit){
     let best=-1,parent=null,score=Infinity;
     for(let i=0;i<nodes.length;i++)for(const from of visited){const d=Math.hypot(nodes[i].x-from.x,nodes[i].y-from.y);if(d<score){score=d;best=i;parent=from;}}
-    if(score>360+(player.suncallCircuitLevel||0)*40)break;
+    if(score>520+(player.suncallCircuitLevel||0)*40)break;
     const node=nodes.splice(best,1)[0];graph.push({a:{x:parent.x,y:parent.y},b:{x:node.x,y:node.y}});visited.push(node);
   }
   return graph;
@@ -62,7 +63,7 @@ function suncallLightning(edge,index){
     points.push({x:edge.a.x+dx*t-dy/len*offset,y:edge.a.y+dy*t+dx/len*offset});}
   if(suncallEffects.length>=100)suncallEffects.shift();
   suncallEffects.push({type:'bolt',points,life:26,maxLife:26,seed:index});
-  suncallBurst(edge.b.x,edge.b.y,48,'spark');
+  suncallBurst(edge.b.x,edge.b.y,90,'spark');
 }
 function suncallPulse(origin,range,power,fallback=null){
   const graph=suncallGraph(origin,range);
@@ -70,19 +71,19 @@ function suncallPulse(origin,range,power,fallback=null){
   graph.forEach(suncallLightning);
   const damage=scaledDamage(player.damage*power*(1+(player.suncallCircuitLevel||0)*.15));
   for(const z of [...zombies]){
-    if(!graph.some(e=>suncallDistanceToSegment(z,e.a,e.b)<=z.r+30))continue;
+    if(!graph.some(e=>suncallDistanceToSegment(z,e.a,e.b)<=z.r+65||Math.hypot(z.x-e.b.x,z.y-e.b.y)<=z.r+90))continue;
     suncallCold(z,1);suncallDamage(z,damage);
   }
   return graph;
 }
 function activateSuncallE(){
   if(player.suncallECooldown>0)return;
-  const angle=Math.atan2(mouse.worldY-player.y,mouse.worldX-player.x),d=Math.min(360,Math.hypot(mouse.worldX-player.x,mouse.worldY-player.y));
+  const angle=Math.atan2(mouse.worldY-player.y,mouse.worldX-player.x),d=suncallCircuitRange();
   suncallPulse({x:player.x,y:player.y},suncallCircuitRange(),3.4,{x:player.x+Math.cos(angle)*d,y:player.y+Math.sin(angle)*d});
   player.suncallECooldown=SUNCALL_E_CD;
 }
 function suncallShatter(center,range,power){
-  const nodes=suncallCrystals.filter(c=>Math.hypot(c.x-center.x,c.y-center.y)<=range),radius=110+(player.suncallCrystalLevel||0)*12;
+  const nodes=suncallCrystals.filter(c=>Math.hypot(c.x-center.x,c.y-center.y)<=range),radius=160+(player.suncallCrystalLevel||0)*12;
   const chosen=new Set(nodes);suncallCrystals=suncallCrystals.filter(c=>!chosen.has(c));
   for(const c of nodes){suncallBurst(c.x,c.y,radius);for(const z of [...zombies])if(Math.hypot(z.x-c.x,z.y-c.y)<=radius+z.r){suncallCold(z,1);suncallDamage(z,scaledDamage(player.damage*power));}}
   return nodes.length;
@@ -102,7 +103,7 @@ function absorbSuncallShield(damage){
 }
 function activateSuncallR(){
   if(player.level<10||player.suncallRCooldown>0||suncallStorm)return;
-  const r=390+(player.suncallCircuitLevel||0)*20;
+  const r=suncallStormRadius();
   suncallStorm={x:player.x,y:player.y,r,age:0,life:360};
   for(let i=0;i<6;i++){const a=i*Math.PI/3;suncallPlant(player.x+Math.cos(a)*r*.62,player.y+Math.sin(a)*r*.62);}
   suncallBurst(player.x,player.y,r,'storm');player.suncallRCooldown=SUNCALL_R_CD;
@@ -115,11 +116,13 @@ function updateSuncall(){
   for(let i=suncallShots.length-1;i>=0;i--){
     const s=suncallShots[i],a={x:s.x,y:s.y},speed=Math.hypot(s.vx,s.vy),step=Math.min(speed,s.remaining);
     s.x+=s.vx/speed*step;s.y+=s.vy/speed*step;s.remaining-=step;s.trail.push(a);if(s.trail.length>7)s.trail.shift();
+    if(s.spear&&!s.relayPlanted&&s.remaining<=s.totalRange*.5){s.relayPlanted=true;const overshoot=s.totalRange*.5-s.remaining;suncallPlant(s.x-s.vx/speed*overshoot,s.y-s.vy/speed*overshoot);}
     for(const z of [...zombies])if(z.hp>0&&!s.hits.has(z)&&suncallDistanceToSegment(z,a,s)<=z.r+s.width){s.hits.add(z);suncallCold(z,s.spear?3:1);suncallDamage(z,s.damage);if(!s.spear){s.remaining=0;break;}}
     if(s.remaining<=0){if(s.spear)suncallPlant(s.x,s.y);suncallShots.splice(i,1);}
   }
   for(let i=suncallCrystals.length-1;i>=0;i--){if(--suncallCrystals[i].life<=0)suncallCrystals.splice(i,1);}
   if(suncallStorm){const storm=suncallStorm;storm.age++;storm.life--;
+    storm.x+=(player.x-storm.x)*.08;storm.y+=(player.y-storm.y)*.08;
     if(storm.age%24===0){suncallPulse(storm,storm.r+120,1.6);for(const z of [...zombies])if(Math.hypot(z.x-storm.x,z.y-storm.y)<=storm.r+z.r){suncallCold(z,1);suncallDamage(z,scaledDamage(player.damage*.6));}}
     if(storm.life<=0){suncallShatter(storm,storm.r+120,4.5);suncallBurst(storm.x,storm.y,storm.r,'final');
       for(const z of [...zombies])if(Math.hypot(z.x-storm.x,z.y-storm.y)<=storm.r+z.r)suncallDamage(z,scaledDamage(player.damage*3));suncallStorm=null;}
