@@ -1,10 +1,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const {drawLobbyMotionFrame}=require('../js/08-lobby-motion-art');
-test('both lobby loops wrap exactly at eight seconds, preserve draw state and layer the body between front and back',()=>{
+test('both slowed lobby loops wrap exactly at eighteen seconds, preserve draw state and layer the body between front and back',()=>{
   for(const id of ['astra','mare']){
     const body={width:640,height:960},ornaments={width:960,height:960},water={width:960,height:320};
     function frame(t){const calls=[];let saves=0;const p=new Proxy({save(){saves++},restore(){saves--}},{get(o,k){if(k in o)return o[k];return(...a)=>{for(const v of a)if(typeof v==='number')assert.ok(Number.isFinite(v));calls.push([k,...a]);};}});drawLobbyMotionFrame(p,id,body,ornaments,t,640,960,water);assert.equal(saves,0);const index=calls.findIndex(c=>c[0]==='drawImage'&&c[1]===body);assert.ok(index>0&&index<calls.length-1);if(id==='mare')assert.ok(calls.some(c=>c[0]==='drawImage'&&c[1]===water));return calls;}
-    assert.deepEqual(frame(0),frame(8));assert.notDeepEqual(frame(0),frame(2));
+    assert.deepEqual(frame(0),frame(18));assert.notDeepEqual(frame(0),frame(2));
   }
 });
 function player(safari=false){
