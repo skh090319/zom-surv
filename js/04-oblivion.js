@@ -1,6 +1,6 @@
 // Oblivion: bounded effects, no per-frame image creation or enemy-array copies.
 const OBLIVION_CD={q:270,e:210,x:240,r:1500};
-const oblivionSprite=setGameImageSource(new Image(),'assets/oblivion/body.webp');
+const oblivionSprite=setGameImageSource(new Image(),'assets/oblivion/body-sovereign-v2.webp');
 const oblivionIcons=Array.from({length:6},(_,i)=>setGameImageSource(new Image(),`assets/oblivion/skill-${i}.webp`));
 const oblivionAugmentIcons=Array.from({length:6},(_,i)=>setGameImageSource(new Image(),`assets/oblivion/augment-${i}.webp`));
 for(const im of [oblivionSprite,...oblivionIcons,...oblivionAugmentIcons])im.assetGroup='oblivion';
