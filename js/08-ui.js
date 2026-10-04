@@ -1077,6 +1077,7 @@ function drawCharacterSelectScreen() {
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
   const maxCardsPerRow = 4;
   const characterIds = ["suncall", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare","nullZero","astra","oblivion"];
+  if(characterSkillGuide.lush)characterIds.push('lush');
   const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
@@ -1119,9 +1120,9 @@ function drawCharacterSelectScreen() {
     const cardScale = 1;
     if (card.y + card.h < y - 8 || card.y > canvas.height) continue;
     const isSelected = selectedCharacter === card.id;
-    const unlocked = card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas"||card.id==="echo"||card.id==="aria"||card.id==="moira"||card.id==="mare"||card.id==="nullZero"||card.id==="astra"||card.id==="oblivion" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
+    const unlocked = card.id === 'lush' || card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas"||card.id==="echo"||card.id==="aria"||card.id==="moira"||card.id==="mare"||card.id==="nullZero"||card.id==="astra"||card.id==="oblivion" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
     const hover = pointInRect(mouse.x, mouse.y, card);
-    const theme = themes[card.id];
+    const theme = card.id==='lush'?{color:'#e8bc6c',color2:'#7b1538',role:'FATE GAMBLER',number:'20'}:themes[card.id];
     const displayY = card.y + (hover && unlocked ? -7 : 0);
     const stroke = unlocked ? (isSelected ? theme.color : `${theme.color}9a`) : "#4c5261";
     const cardGradient = ctx.createLinearGradient(card.x, displayY, card.x + card.w, displayY + card.h);

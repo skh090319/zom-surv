@@ -237,6 +237,7 @@ canvas.addEventListener("mousedown", event => {
       if(card.id==="nullZero")selectedCharacter="nullZero";
       if(card.id==="oblivion")selectedCharacter="oblivion";
       if(card.id==="astra")selectedCharacter="astra";
+      if(card.id==="lush")selectedCharacter="lush";
 
       return;
     }
