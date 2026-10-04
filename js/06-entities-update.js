@@ -588,7 +588,7 @@ function update() {
   updateAria();
   updateMoira();
   updateMare();
-  updateOblivion();
+  updateOblivionPresentation();
   updateNullZero();
   if(typeof updateSuncall==='function')updateSuncall();
   updateAstra();

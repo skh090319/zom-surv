@@ -20,6 +20,7 @@ function replayMobileSettingsHistory(redo=false){
 }
 function getMobileHudBounds(id){
   const cw=canvas.width,ch=canvas.height,margin=Math.max(120,cw*.29);
+  if(id==='resource'&&selectedCharacter==='oblivion'){const w=Math.min(300,cw*.42),h=w/3;return{x:cw/2,y:ch-61-h/2,w,h};}
   const layouts={health:{x:cw/2,y:30,w:Math.min(520,cw-80)+8,h:32},exp:{x:cw/2,y:ch-52,w:Math.max(150,cw-margin*2),h:38},
     boss:{x:cw/2,y:73,w:Math.min(400,cw*.62)+6,h:60},timer:{x:cw/2,y:73,w:Math.min(400,cw*.62),h:48},
     resource:{x:cw/2,y:ch-(['astra','mare'].includes(selectedCharacter)?91:85),w:['astra','mare'].includes(selectedCharacter)?Math.min(370,cw*.44):Math.min(330,Math.max(180,cw*.36))+8,h:['astra','mare'].includes(selectedCharacter)?34:36},
@@ -74,7 +75,7 @@ function getMobileSettingControls(){
     });
   }
   const layout=getMobileControlLayout();
-  return [{...layout.joystick,id:"joystick",name:"이동"},{...layout.attack,id:"attack",name:"평타"},
+  return [{...layout.joystick,id:"joystick",name:"이동"},...(selectedCharacter==='oblivion'?[]:[{...layout.attack,id:"attack",name:"평타"}]),
     ...layout.skills.map(skill=>({...skill,id:skill.key,name:getMobileSkillName(skill.key)}))];
 }
 

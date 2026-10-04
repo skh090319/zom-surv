@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v81-sovereign-art";
+const CACHE_VERSION = "zombie-survival-v82-oblivion-art-only";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

@@ -50,7 +50,6 @@ function draw() {
   drawAriaEffectsV3();
   drawMoiraEffects();
   drawMareEffects();
-  drawOblivionEffects();
   drawNullZeroEffects();
   drawSuncallEffects();
   drawAstraEffects();
@@ -123,7 +122,7 @@ function draw() {
 }
 
 function restart() {
-  if(typeof resetOblivion==='function')resetOblivion();
+  if(typeof resetOblivionPresentation==='function')resetOblivionPresentation();
   // 기본 능력치 초기화
   player.x = WORLD.width / 2;
   player.y = WORLD.height / 2;

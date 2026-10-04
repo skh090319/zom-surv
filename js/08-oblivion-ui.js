@@ -14,22 +14,77 @@ function drawOblivionMenuAura(id,x,y,w,h){
   for(let i=0;i<18;i++){const a=i*2.39996,px=Math.cos(a)*(105+i%4*11),py=Math.sin(a)*185;ctx.fillStyle=`rgba(255,100,142,${.25+.2*Math.sin(t+i)**2})`;ctx.fillRect(px,py,1.5,1.5);}
   ctx.restore();
 }
-// Dedicated art-backed HUD, shared by desktop and editable mobile layout.
-characterSkillGuide.oblivion={name:'오블리비언',color:'#ff4263',passive:'공격 3회 적중 시 균열이 폭발합니다. 설치한 공간의 문에서 평타와 Q가 발사됩니다.',skills:[['기본 공격 · 틈새의 칼날','균열에서 조준 방향으로 관통 칼날을 발사합니다.'],['Q · 사각의 침입','공간의 문에서 긴 균열 창을 발사합니다.'],['E · 공허의 문','지정 위치에 8초간 출구를 설치합니다. 평타와 Q의 발사 위치가 출구로 바뀝니다.'],['X · 경계 이탈','조준 방향으로 이동하며 잠시 무적이 됩니다. 원래 위치의 균열이 잠시 후 폭발합니다.'],['R · 세계의 상처','10레벨부터 사용. 거대한 특이점이 적을 흡입하며 5초간 반복 공격하고 마지막에 붕괴합니다.']]};
-guideCharacterOrder.push('oblivion');MOBILE_SKILL_KEYS.oblivion=['q','e','x','r'];
-const oblivionAugments=[['교차하는 파멸','출구가 2개로 증가하고 지속시간이 단계마다 1초 증가합니다.','초월: 교차 세계'],['사건의 지평선','출구 주변의 적을 끌어당기며 단계마다 흡인력이 증가합니다.','초월: 탈출 불가'],['균열 보행자','경계 이탈 쿨타임이 감소하고 출구 근처로 이동하면 쿨타임이 절반으로 감소합니다.','초월: 무경계'],['돌아오는 종말','Q가 잠시 후 반대 방향으로 돌아와 단계마다 증가하는 추가 피해를 줍니다.','초월: 왕복 붕괴'],['붉은 특이점','표식 폭발이 주변 적에게도 피해를 주고 단계마다 범위가 증가합니다.','초월: 연쇄 특이점'],['끝나지 않는 상처','궁극기 종료 위치에 출구를 남기며 단계마다 지속시간이 증가합니다.','초월: 영원한 균열']];
-oblivionAugmentIds.forEach((id,i)=>{upgradeCount[id]=0;transcended[id]=false;exclusiveAugmentOwners[id]='oblivion';upgrades.push({id,category:'support',name:oblivionAugments[i][0],desc:oblivionAugments[i][1],transcendName:oblivionAugments[i][2],transcendDesc:oblivionAugments[i][1]+' 효과가 4단계로 강화됩니다.',requires(){return selectedCharacter==='oblivion';},apply(){upgradeCount[id]++;player[id]=upgradeCount[id];if(upgradeCount[id]>=4)transcended[id]=true;}});});
-function drawOblivionFrame(x,y,w,h,color='#bcaab7'){ctx.save();ctx.fillStyle='#09070fe8';ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+10,y);ctx.lineTo(x+w-10,y);ctx.lineTo(x+w,y+h/2);ctx.lineTo(x+w-10,y+h);ctx.lineTo(x+10,y+h);ctx.lineTo(x,y+h/2);ctx.closePath();ctx.fill();ctx.stroke();ctx.strokeStyle='#ff365855';ctx.strokeRect(x+12,y+4,w-24,h-8);ctx.restore();}
-function drawOblivionBar(x,y,w,h,ratio,color,label){drawOblivionFrame(x,y,w,h);ctx.save();ctx.beginPath();ctx.rect(x+13,y+5,(w-26)*Math.max(0,Math.min(1,ratio)),h-10);ctx.clip();const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,'#f8d6e2');g.addColorStop(.25,color);g.addColorStop(1,'#230b23');ctx.fillStyle=g;ctx.fillRect(x+13,y+5,w-26,h-10);ctx.strokeStyle='#ffffff30';for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(x+i*w/8,y+h);ctx.lineTo(x+i*w/8+20,y);ctx.stroke();}ctx.restore();ctx.save();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.strokeStyle='#08040c';ctx.lineWidth=3;ctx.strokeText(label,x+w/2,y+h/2);ctx.fillText(label,x+w/2,y+h/2);ctx.restore();}
-const oblivionHealthBase=drawHealthBar;drawHealthBar=function(){if(selectedCharacter!=='oblivion')return oblivionHealthBase();const w=Math.min(520,canvas.width-80);drawOblivionBar((canvas.width-w)/2,18,w,30,player.hp/player.maxHp,'#ed244c',`HP ${Math.max(0,Math.floor(player.hp))} / ${player.maxHp}`);};
-const oblivionExpBase=drawExpBar;drawExpBar=function(){if(selectedCharacter!=='oblivion')return oblivionExpBase();const mobile=isMobileTouchDevice(),margin=mobile?Math.max(120,canvas.width*.29):260,w=Math.max(150,canvas.width-margin*2);drawOblivionBar(margin,canvas.height-(mobile?52:32),w,mobile?18:22,player.exp/player.expNeed,'#a98bdf',`LV.${player.level} · ${Math.floor(player.exp)} / ${player.expNeed}`);};
-const oblivionHudBase=drawHUD;drawHUD=function(){if(selectedCharacter!=='oblivion')return oblivionHudBase();ctx.save();drawOblivionFrame(14,64,175,92);ctx.fillStyle='#fff';ctx.font='bold 17px Arial';ctx.fillText('오블리비언',30,89);ctx.fillStyle='#c6adb9';ctx.font='12px Arial';ctx.fillText(`LV.${player.level} · 처치 ${player.kills}`,30,113);ctx.fillText('균열 3중첩 → 붕괴',30,139);ctx.restore();};
-function drawOblivionInterface(){if(selectedCharacter!=='oblivion')return;const w=Math.min(470,canvas.width-24),x=(canvas.width-w)/2,y=canvas.height-139;drawOblivionFrame(x,y,w,89);ctx.save();ctx.textAlign='center';const ids=[2,3,4,5],keys=['q','e','x','r'];keys.forEach((key,i)=>{const cx=x+w*(i+.5)/4,cy=y+36,r=25;drawMobileIcon({image:oblivionIcons[ids[i]]},cx,cy,r);drawOblivionControl(cx,cy,r,'frame',false);const cd=player['oblivion'+key+'CD'];if(cd>0)drawCooldownCover(cx,cy,r,cd/OBLIVION_CD[key],cd);drawSkillHudLabel(cx,y+76,key==='r'&&player.level<10?'10레벨':getMobileSkillName(key),key.toUpperCase(),'#f1dbe3');});ctx.restore();}
-function drawOblivionControl(x,y,r,kind,active,dx=0,dy=0){ctx.save();ctx.fillStyle='#09050ddb';ctx.strokeStyle=active?'#ff5474':'#b5a6b8';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(kind!=='frame')ctx.fill();ctx.stroke();ctx.strokeStyle='#e8345e80';ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r*.89,0,Math.PI*2);ctx.stroke();if(kind==='joystick'){ctx.strokeStyle='#ab96ae60';ctx.beginPath();ctx.arc(x,y,r*.63,0,Math.PI*2);ctx.stroke();drawOblivionRift(x+dx,y+dy,r*.3,Math.PI/2);}else if(kind==='attack')drawMobileIcon({image:oblivionIcons[1]},x,y,r*.85);for(let i=0;i<4;i++){const a=i*Math.PI/2;ctx.fillStyle='#d4bccb';ctx.beginPath();ctx.moveTo(x+Math.cos(a)*(r+4),y+Math.sin(a)*(r+4));ctx.lineTo(x+Math.cos(a+.055)*(r-3),y+Math.sin(a+.055)*(r-3));ctx.lineTo(x+Math.cos(a-.055)*(r-3),y+Math.sin(a-.055)*(r-3));ctx.closePath();ctx.fill();}ctx.restore();}
-const oblivionMobileIconBase=getMobileSkillIcon;getMobileSkillIcon=function(key){return selectedCharacter==='oblivion'?{image:oblivionIcons[{q:2,e:3,x:4,r:5}[key]]}:oblivionMobileIconBase(key);};
-const oblivionMobileNameBase=getMobileSkillName;getMobileSkillName=function(key){return selectedCharacter==='oblivion'?{q:'사각의 침입',e:'공허의 문',x:'경계 이탈',r:'세계의 상처'}[key]:oblivionMobileNameBase(key);};
-const oblivionMobileCooldownBase=getMobileSkillCooldown;getMobileSkillCooldown=function(key){return selectedCharacter==='oblivion'?{value:player['oblivion'+key+'CD']||0,max:OBLIVION_CD[key]}:oblivionMobileCooldownBase(key);};
-const oblivionTargetBase=getMobileAimedSkillTargetSpec;getMobileAimedSkillTargetSpec=function(key){if(selectedCharacter!=='oblivion')return oblivionTargetBase(key);if(key==='q')return {type:'line',range:560,width:48,capsule:true};if(key==='e')return {type:'target',range:420,radius:55,variable:true};if(key==='x')return {type:'line',range:230,width:40,capsule:true,clampDash:true,variable:true};return {type:'target',range:460,radius:310,variable:true};};
-const oblivionAugmentDrawBase=drawAugmentIcon;drawAugmentIcon=function(id,x,y,size,transcendent){const i=oblivionAugmentIds.indexOf(id);if(i<0)return oblivionAugmentDrawBase(id,x,y,size,transcendent);const im=oblivionAugmentIcons[i];if(im.complete&&im.naturalWidth){ctx.drawImage(im,x,y,size,size);if(transcendent){ctx.save();ctx.strokeStyle='#ff7193';ctx.lineWidth=2;ctx.strokeRect(x,y,size,size);ctx.restore();}}};
-const oblivionPreviewBase=getCharacterPreviewSprite;getCharacterPreviewSprite=function(id,thumbnail=false){return id==='oblivion'?ensureGameImage(oblivionSprite,'high'):oblivionPreviewBase(id,thumbnail);};
-const oblivionResourceBase=getMobileCharacterResource;getMobileCharacterResource=function(){return selectedCharacter==='oblivion'?{label:'OBLIVION · 균열',value:oblivionGates.length,max:2,color:'#ff4263',text:oblivionRealm?'세계의 상처 활성':`공허의 문 ${oblivionGates.length}개`}:oblivionResourceBase();};
+// The character has no skills or exclusive augments until they are designed again.
+characterSkillGuide.oblivion={name:'오블리비언',color:'#ff4263',passive:'현재 외형과 전용 UI만 적용되어 있습니다. 평타·패시브·스킬·전용 증강은 없습니다.',skills:[]};
+guideCharacterOrder.push('oblivion');
+MOBILE_SKILL_KEYS.oblivion=[];
+let oblivionBars=null;
+function resetOblivionBars(){oblivionBars=null;}
+function updateOblivionBars(){
+  const hp=Math.max(0,Math.min(1,player.hp/Math.max(1,player.maxHp))),xp=Math.max(0,Math.min(1,player.exp/Math.max(1,player.expNeed)));
+  if(!oblivionBars){oblivionBars={hp,trail:hp,xp,lastHp:hp,lastXp:xp,level:player.level,delay:0,hpFlash:0,xpFlash:0};return;}
+  const b=oblivionBars;
+  if(hp<b.lastHp){b.delay=24;b.hpFlash=36;}
+  if(hp>b.lastHp)b.hpFlash=24;
+  if(xp>b.lastXp||player.level!==b.level)b.xpFlash=40;
+  if(player.level!==b.level)b.xp=0;
+  b.hp+=(hp-b.hp)*.22;b.xp+=(xp-b.xp)*.12;
+  if(b.delay>0)b.delay--;else b.trail+=(hp-b.trail)*.055;
+  b.trail=Math.max(b.trail,b.hp);
+  b.hpFlash=Math.max(0,b.hpFlash-1);b.xpFlash=Math.max(0,b.xpFlash-1);
+  b.lastHp=hp;b.lastXp=xp;b.level=player.level;
+}
+function drawOblivionFrame(x,y,w,h,color='#bcaab7'){
+  ctx.save();ctx.fillStyle='#09070fee';ctx.strokeStyle=color;ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(x+10,y);ctx.lineTo(x+w-10,y);ctx.lineTo(x+w,y+h/2);ctx.lineTo(x+w-10,y+h);ctx.lineTo(x+10,y+h);ctx.lineTo(x,y+h/2);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.strokeStyle='#ff365855';ctx.strokeRect(x+12,y+4,w-24,h-8);ctx.restore();
+}
+function drawOblivionBar(x,y,w,h,ratio,color,label,kind){
+  drawOblivionFrame(x,y,w,h);
+  const b=oblivionBars,t=oblivionPresentationTime,inner=w-26,fill=Math.max(0,Math.min(1,b?b[kind]:ratio)),flash=b?(kind==='hp'?b.hpFlash/36:b.xpFlash/40):0;
+  ctx.save();ctx.beginPath();ctx.rect(x+13,y+5,inner,h-10);ctx.clip();
+  if(kind==='hp'&&b){ctx.fillStyle='#ffd3b578';ctx.fillRect(x+13,y+5,inner*b.trail,h-10);}
+  ctx.beginPath();ctx.rect(x+13,y+5,inner*fill,h-10);ctx.clip();
+  const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,'#f8d6e2');g.addColorStop(.28,color);g.addColorStop(1,'#230b23');ctx.fillStyle=g;ctx.fillRect(x+13,y+5,inner,h-10);
+  ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ffffff27';ctx.lineWidth=1;
+  for(let i=0;i<9;i++){const px=x+13+((i*inner/8+t*.75)%(inner+36))-18;ctx.beginPath();ctx.moveTo(px,y+h-5);ctx.lineTo(px+18,y+5);ctx.stroke();}
+  const sx=x+13+((t*1.7)%(inner+90))-90,sheen=ctx.createLinearGradient(sx,0,sx+90,0);sheen.addColorStop(0,'#ffffff00');sheen.addColorStop(.5,'#ffd6eb33');sheen.addColorStop(1,'#ffffff00');ctx.fillStyle=sheen;ctx.fillRect(sx,y+5,90,h-10);
+  ctx.fillStyle=`rgba(255,216,238,${flash*.4})`;ctx.fillRect(x+13,y+5,inner,h-10);ctx.restore();
+  ctx.save();ctx.strokeStyle='#ffb9d8';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+13+inner*fill,y+4);ctx.lineTo(x+13+inner*fill,y+h-4);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.strokeStyle='#08040c';ctx.lineWidth=3;ctx.strokeText(label,x+w/2,y+h/2);ctx.fillText(label,x+w/2,y+h/2);ctx.restore();
+}
+function drawOblivionPortrait(cx,cy,r){
+  const im=oblivionSprite;if(!im.complete||!im.naturalWidth)return;
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();ctx.fillStyle='#1b0916';ctx.fillRect(cx-r,cy-r,r*2,r*2);
+  // Frame the face and collar rather than squeezing the full body into the socket.
+  const scale=r*1.45/(im.naturalHeight*.13);
+  ctx.translate(cx,cy);ctx.scale(-1,1);ctx.drawImage(im,-im.naturalWidth*.54*scale,-im.naturalHeight*.125*scale,im.naturalWidth*scale,im.naturalHeight*scale);ctx.restore();
+}
+function drawOblivionIdentityPanel(x,y,w,h,compact=false){
+  ctx.save();const im=oblivionUiPanel;
+  if(im.complete&&im.naturalWidth)ctx.drawImage(im,x,y,w,h);else drawOblivionFrame(x,y,w,h);
+  drawOblivionPortrait(x+w*.183,y+h*.475,h*.215);
+  const tx=x+w*.34,tw=w*.55;ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#ffe2ec';ctx.font=`bold ${compact?12:18}px Arial`;ctx.fillText('오블리비언',tx,y+h*.36,tw);
+  ctx.fillStyle='#d2acbc';ctx.font=`${compact?10:12}px Arial`;ctx.fillText(`LV.${player.level} · 처치 ${player.kills||0}`,tx,y+h*.53,tw);
+  ctx.fillStyle='#fa90b0';ctx.font=`${compact?9:11}px Arial`;ctx.fillText('스킬 · 증강 미설정',tx,y+h*.64,tw);ctx.restore();
+}
+const oblivionHealthBase=drawHealthBar;
+drawHealthBar=function(){if(selectedCharacter!=='oblivion')return oblivionHealthBase();const w=Math.min(520,canvas.width-80);drawOblivionBar((canvas.width-w)/2,18,w,30,player.hp/player.maxHp,'#ed244c',`HP ${Math.max(0,Math.floor(player.hp))} / ${player.maxHp}`,'hp');};
+const oblivionExpBase=drawExpBar;
+drawExpBar=function(){if(selectedCharacter!=='oblivion')return oblivionExpBase();const mobile=isMobileTouchDevice(),margin=mobile?Math.max(120,canvas.width*.29):260,w=Math.max(150,canvas.width-margin*2);drawOblivionBar(margin,canvas.height-(mobile?52:32),w,mobile?18:22,player.exp/player.expNeed,'#a98bdf',`LV.${player.level} · ${Math.floor(player.exp)} / ${player.expNeed}`,'xp');};
+const oblivionHudBase=drawHUD;
+drawHUD=function(){if(selectedCharacter!=='oblivion')return oblivionHudBase();ctx.save();ctx.fillStyle='#ffcadf';ctx.font='bold 13px Arial';ctx.textAlign='left';ctx.fillText('OBLIVION',20,83);ctx.fillStyle='#c6adb9';ctx.font='12px Arial';ctx.fillText(`처치 ${player.kills||0}`,20,103);ctx.restore();};
+function drawOblivionInterface(){if(selectedCharacter!=='oblivion')return;const w=Math.min(450,canvas.width-24),h=w/3;drawOblivionIdentityPanel((canvas.width-w)/2,canvas.height-h-40,w,h);}
+function drawOblivionControl(x,y,r,kind,active,dx=0,dy=0){
+  ctx.save();ctx.fillStyle='#09050ddb';ctx.strokeStyle=active?'#ff5474':'#b5a6b8';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(kind!=='frame')ctx.fill();ctx.stroke();ctx.strokeStyle='#e8345e80';ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r*.89,0,Math.PI*2);ctx.stroke();
+  if(kind==='joystick'){ctx.strokeStyle='#ab96ae60';ctx.beginPath();ctx.arc(x,y,r*.63,0,Math.PI*2);ctx.stroke();drawOblivionRift(x+dx,y+dy,r*.3,Math.PI/2);}
+  for(let i=0;i<4;i++){const a=i*Math.PI/2;ctx.fillStyle='#d4bccb';ctx.beginPath();ctx.moveTo(x+Math.cos(a)*(r+4),y+Math.sin(a)*(r+4));ctx.lineTo(x+Math.cos(a+.055)*(r-3),y+Math.sin(a+.055)*(r-3));ctx.lineTo(x+Math.cos(a-.055)*(r-3),y+Math.sin(a-.055)*(r-3));ctx.closePath();ctx.fill();}ctx.restore();
+}
+const oblivionPreviewBase=getCharacterPreviewSprite;
+getCharacterPreviewSprite=function(id,thumbnail=false){return id==='oblivion'?ensureGameImage(oblivionSprite,'high'):oblivionPreviewBase(id,thumbnail);};
+const oblivionMobileResourceBase=drawMobileCharacterResource;
+drawMobileCharacterResource=function(){
+  if(selectedCharacter!=='oblivion')return oblivionMobileResourceBase();
+  if(!isMobileTouchDevice())return;
+  const w=Math.min(300,canvas.width*.42),h=w/3;drawOblivionIdentityPanel((canvas.width-w)/2,canvas.height-61-h,w,h,true);
+};

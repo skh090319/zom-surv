@@ -6,7 +6,7 @@ const heroUltimateBackdrops={
 for(const id of Object.keys(heroUltimateBackdrops))heroUltimateBackdrops[id].assetGroup=id;
 function heroUltimateBackdropLife(){
   if(screenMode!=='game'||player.hp<=0)return 0;
-  return selectedCharacter==='mare'?player.mareUltimateTime||0:selectedCharacter==='oblivion'?oblivionRealm?.life||0:0;
+  return selectedCharacter==='mare'?player.mareUltimateTime||0:selectedCharacter==='oblivion'?oblivionBackdropTime||0:0;
 }
 function heroUltimateBackdropProgress(){
   const life=heroUltimateBackdropLife(),im=heroUltimateBackdrops[selectedCharacter];

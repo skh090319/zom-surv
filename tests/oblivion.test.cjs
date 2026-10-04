@@ -1,6 +1,20 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-function game(){const c={Image:class{},setGameImageSource:i=>i,selectedCharacter:'oblivion',player:{x:500,y:500,r:18,damage:20,level:10,fireCooldown:0},WORLD:{width:2000,height:2000},mouse:{worldX:700,worldY:500},zombies:[],scaledDamage:d=>d,killZombie(i){c.zombies.splice(i,1)}};vm.createContext(c);vm.runInContext(fs.readFileSync('js/04-oblivion.js','utf8'),c);const run=s=>vm.runInContext(s,c);run('resetOblivion()');return{c,run};}
-test('Oblivion gates relocate basic attacks; third hit detonates a mark',()=>{const {c,run}=game();c.zombies.push({x:950,y:500,r:18,hp:1000});run('activateOblivionE();attackWithOblivion()');assert.ok(c.zombies[0].hp<1000);const hp=c.zombies[0].hp;run('player.fireCooldown=0;attackWithOblivion();player.fireCooldown=0;attackWithOblivion()');assert.ok(hp-c.zombies[0].hp>20*.85*2);assert.equal(c.zombies[0].oblivionMark,0);});
-test('dash remains in world, gates expire, restart clears cooldowns and augments',()=>{const{c,run}=game();c.mouse.worldX=-10000;c.mouse.worldY=-10000;run('activateOblivionX()');assert.ok(c.player.x>=18&&c.player.y>=18);assert.equal(c.player.invincibleTime,18);run('activateOblivionE();for(let i=0;i<500;i++)updateOblivion()');assert.equal(run('oblivionGates.length'),0);run('player.oblivionCross=4;resetOblivion()');assert.equal(c.player.oblivionCross,0);assert.equal(c.player.oblivionxCD,0);});
-test('ultimate respects level lock, collapses after five seconds and leaves augmented gate',()=>{const{c,run}=game();c.player.level=9;run('activateOblivionR()');assert.equal(run('oblivionRealm'),null);c.player.level=10;c.player.oblivionScar=1;c.zombies.push({x:700,y:500,r:18,hp:10000});run('activateOblivionR();for(let i=0;i<300;i++)updateOblivion()');assert.equal(run('oblivionRealm'),null);assert.equal(run('oblivionGates.length'),1);assert.ok(c.zombies[0].hp<10000);});
-test('visual effects stay capped during sustained attacks and all six augment stats change gameplay',()=>{const{run}=game();run("for(let i=0;i<1000;i++)oblivionFx('burst',0,0)");assert.equal(run('oblivionEffects.length'),64);const{c,run:r}=game();c.player.oblivionCross=2;r('activateOblivionE()');assert.equal(r('oblivionGates.length'),2);assert.equal(r('oblivionGates[0].life'),600);c.player.oblivionReturn=1;r('activateOblivionQ()');assert.ok(r("oblivionEffects.some(e=>e.type==='return')"));});
+function game(){
+  const c={Image:class{},setGameImageSource:i=>i,ensureGameImage:i=>i,selectedCharacter:'oblivion',player:{x:500,y:500,hp:73,maxHp:100,exp:4,expNeed:12,level:10,fireCooldown:0,reloadTime:0},zombies:[{x:700,y:500,hp:1000}],bullets:[],characterSkillGuide:{},guideCharacterOrder:[],MOBILE_SKILL_KEYS:{},upgrades:[{id:'general'}],exclusiveAugmentOwners:{},drawHealthBar(){},drawExpBar(){},drawHUD(){},getCharacterPreviewSprite(){},drawMobileCharacterResource(){}};
+  vm.createContext(c);for(const file of ['04-oblivion.js','04-weapons-spawn.js','08-oblivion-ui.js'])vm.runInContext(fs.readFileSync('js/'+file,'utf8'),c);
+  return{c,run:s=>vm.runInContext(s,c)};
+}
+test('Oblivion has no attack or skills, and shooting cannot fall through to the generic gun',()=>{
+  const{c,run}=game(),before=JSON.stringify([c.player,c.zombies,c.bullets]);
+  for(const name of ['attackWithOblivion','activateOblivionQ','activateOblivionE','activateOblivionX','activateOblivionR','oblivionDamage'])assert.equal(run(`typeof ${name}`),'undefined');
+  run('for(let i=0;i<300;i++){shoot();updateOblivionPresentation();}');assert.equal(JSON.stringify([c.player,c.zombies,c.bullets]),before);assert.equal(run('oblivionBackdropTime'),0);
+});
+test('no exclusive augments register, and mobile and guide skill lists are empty',()=>{
+  const{c}=game();assert.equal(c.upgrades.length,1);assert.deepEqual(Object.keys(c.exclusiveAugmentOwners),[]);assert.equal(c.MOBILE_SKILL_KEYS.oblivion.length,0);assert.equal(c.characterSkillGuide.oblivion.skills.length,0);
+});
+test('HP and XP animation follows actual changes and restart resets presentation',()=>{
+  const{c,run}=game();run('updateOblivionPresentation()');c.player.hp=23;c.player.exp=10;run('updateOblivionPresentation()');
+  assert.ok(run('oblivionBars.trail>oblivionBars.hp'));assert.ok(run('oblivionBars.xp>4/12&&oblivionBars.xp<10/12'));const before=JSON.stringify(c.player);
+  run('for(let i=0;i<150;i++)updateOblivionPresentation()');assert.ok(Math.abs(run('oblivionBars.hp')-.23)<1e-6);assert.ok(Math.abs(run('oblivionBars.trail')-.23)<.002);assert.equal(JSON.stringify(c.player),before);
+  c.player.level++;c.player.exp=1;run('updateOblivionPresentation()');assert.ok(run('oblivionBars.xp')<.1);run('oblivionBackdropTime=255;resetOblivionPresentation()');assert.equal(run('oblivionBars'),null);assert.equal(run('oblivionBackdropTime'),0);assert.equal(run('oblivionPresentationTime'),0);
+});

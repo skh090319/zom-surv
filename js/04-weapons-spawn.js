@@ -45,7 +45,7 @@ function shoot() {
   if(selectedCharacter==="echo"){attackWithEcho();return;}
   if(selectedCharacter==="aria"){attackWithAria();return;}
   if(selectedCharacter==="moira"){attackWithMoira();return;}
-  if(selectedCharacter==="oblivion"){attackWithOblivion();return;}
+  if(selectedCharacter==="oblivion")return;
   if(selectedCharacter==="mare"){attackWithMare();return;}
   if(selectedCharacter==="nullZero"){attackWithNullZero();return;}
   if(selectedCharacter==="astra"){attackWithAstra();return;}

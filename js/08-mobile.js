@@ -218,7 +218,7 @@ canvas.addEventListener("touchstart",event=>{
     // Also allow a second finger to tap X while the skill finger stays held.
     if(mobileSkillOverCancel(p)){cancelMobileSkillAim();continue;}
     const skill=layout.skills.find(button=>pointInCircle(p,{...button,r:button.r*1.48}));if(skill&&mobileSkillAim===null){mobileSkillAim={touchId:touch.identifier,key:skill.key,startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};updateMobileAttackAim(true);continue;}
-    if(mobileAttackTouchId===null&&pointInCircle(p,{...layout.attack,r:layout.attack.r*1.42})){mobileAttackTouchId=touch.identifier;mobileAttackAim={startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};mouse.down=true;updateMobileAttackAim();continue;}
+    if(selectedCharacter!=='oblivion'&&mobileAttackTouchId===null&&pointInCircle(p,{...layout.attack,r:layout.attack.r*1.42})){mobileAttackTouchId=touch.identifier;mobileAttackAim={startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};mouse.down=true;updateMobileAttackAim();continue;}
     const nearJoystick=pointInCircle(p,{...layout.joystick,r:layout.joystick.r*2.25})||(p.x<canvas.width*.38&&p.y>canvas.height*.42);
     if(mobileJoystickTouchId===null&&nearJoystick){const r=layout.joystick.r,safe=14;mobileJoystickOrigin={x:Math.max(safe+r,Math.min(canvas.width*.42-r,p.x)),y:Math.max(canvas.height*.42+r,Math.min(canvas.height-safe-r,p.y))};mobileJoystickTouchId=touch.identifier;updateMobileJoystick(p.x,p.y);continue;}
     if(pointInRect(p.x,p.y,pauseButtonRect))dispatchMobileCanvasClick(p);
@@ -471,7 +471,6 @@ function drawMobileControls(){
   const attackGlow=mobileAttackTouchId!==null;
   if(selectedCharacter==='oblivion'){
     drawOblivionControl(joystick.x,joystick.y,joystick.r,'joystick',mobileJoystickTouchId!==null,mobileStickX,mobileStickY);
-    drawOblivionControl(attack.x,attack.y,attack.r,'attack',attackGlow);
   }else if(selectedCharacter==='mare'){
     drawMareControlIcon(joystick.x,joystick.y,joystick.r,'joystick',mobileJoystickTouchId!==null,mobileStickX,mobileStickY);
     drawMareControlIcon(attack.x,attack.y,attack.r,'attack',attackGlow);
@@ -494,10 +493,7 @@ function drawMobileControls(){
     if(cooldown?.value>0)drawCooldownCover(skill.x,skill.y,skill.r,cooldown.value/cooldown.max,cooldown.value);
     if(locked){ctx.fillStyle="rgba(5,7,13,.72)";ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r,0,Math.PI*2);ctx.fill();ctx.fillStyle="#fff";ctx.font=`900 ${Math.max(13,skill.r*.58)}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("10",skill.x,skill.y);}
     ctx.fillStyle="#fff";ctx.font="900 9px Arial";ctx.textAlign="center";ctx.textBaseline="alphabetic";
-    if(selectedCharacter==='oblivion'){
-      drawOblivionControl(skill.x,skill.y,skill.r,'frame',false);
-      ctx.fillStyle='#ffe2eb';ctx.font='bold 9px Arial';ctx.fillText({q:'침입',e:'공허',x:'이탈',r:'종말'}[skill.key],skill.x,skill.y+skill.r+12,skill.r*2+8);
-    }else if(selectedCharacter==="astra"){
+    if(selectedCharacter==="astra"){
       drawAstraSkillFrame(skill.x,skill.y,skill.r);
       const lines=skill.key==="r"?["만유인력","역전"]:[skillName];
       lines.forEach((label,i)=>ctx.fillText(label,skill.x,skill.y+skill.r+12+i*10,skill.r*2+8));

@@ -1017,6 +1017,10 @@ function getCharacterSkillVideo(id, skillIndex) {
 function drawCharacterGameplayPreview(id,skillIndex,skillName,x,y,w,h,color){
   const video=getCharacterSkillVideo(id,skillIndex);
   ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,18);ctx.clip();ctx.fillStyle="#070911";ctx.fillRect(x,y,w,h);
+  if(id==='oblivion'){
+    const im=ensureGameImage(oblivionSprite,'high');
+    if(im.complete&&im.naturalWidth){const sc=Math.min(w/im.naturalWidth,h/im.naturalHeight);ctx.drawImage(im,x+(w-im.naturalWidth*sc)/2,y+(h-im.naturalHeight*sc)/2,im.naturalWidth*sc,im.naturalHeight*sc);}
+  }
   if(video){
     if(video.dataset.openedAt!==String(characterDetailOpenedAt)){video.dataset.openedAt=String(characterDetailOpenedAt);video.currentTime=0;video.play().catch(()=>{});}
     if(video.readyState>=2){
@@ -1026,7 +1030,7 @@ function drawCharacterGameplayPreview(id,skillIndex,skillName,x,y,w,h,color){
     } else {ctx.fillStyle="#aab8d0";ctx.font="bold 15px Arial";ctx.textAlign="center";ctx.fillText("실제 플레이 영상 불러오는 중…",x+w/2,y+h/2);}
   }
   const shade=ctx.createLinearGradient(0,y+h-58,0,y+h);shade.addColorStop(0,"rgba(4,7,14,0)");shade.addColorStop(1,"rgba(4,7,14,.9)");ctx.fillStyle=shade;ctx.fillRect(x,y+h-58,w,58);
-  ctx.fillStyle="#d9e5fa";ctx.font="bold 11px Arial";ctx.textAlign="left";ctx.fillText(`RECORDED GAMEPLAY  ·  ${skillName}`,x+13,y+h-13);ctx.restore();
+  ctx.fillStyle="#d9e5fa";ctx.font="bold 11px Arial";ctx.textAlign="left";ctx.fillText(id==='oblivion'?'OBLIVION · ORIGINAL ART':`RECORDED GAMEPLAY  ·  ${skillName}`,x+13,y+h-13);ctx.restore();
   drawRoundedRect(x,y,w,h,18,"rgba(0,0,0,0)",`${color}aa`,2);
 }
 
@@ -1036,8 +1040,8 @@ function drawCharacterDetailOverlay(){
   const w=Math.min(1040,canvas.width-36),h=Math.min(650,canvas.height-40),x=(canvas.width-w)/2,y=(canvas.height-h)/2;const panel=ctx.createLinearGradient(x,y,x+w,y+h);panel.addColorStop(0,"rgba(15,21,36,.99)");panel.addColorStop(1,"rgba(7,9,18,.99)");drawRoundedRect(x,y,w,h,24,panel,info.color,2);
   characterDetailCloseRect={x:x+w-58,y:y+14,w:42,h:42};drawRoundedRect(characterDetailCloseRect.x,characterDetailCloseRect.y,42,42,12,"rgba(255,255,255,.06)","rgba(255,255,255,.18)",1);ctx.fillStyle="#fff";ctx.font="bold 24px Arial";ctx.textAlign="center";ctx.fillText("×",characterDetailCloseRect.x+21,characterDetailCloseRect.y+29);
   const mobileDetail=typeof isMobileTouchDevice==="function"&&isMobileTouchDevice();ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font="900 32px Arial";ctx.fillText(info.name,x+30,y+47);ctx.fillStyle=info.color;ctx.font="bold 13px Arial";ctx.fillText(mobileDetail?"길게 눌러 연 상세 정보  ·  × 닫기":"우클릭 상세 정보  ·  ESC 또는 × 닫기",x+30,y+70);
-  const previewW=Math.min(540,w*(mobileDetail ? .48 : .54)),previewH=Math.min(440,h-(mobileDetail?100:120));const activeSkill=info.skills[Math.min(characterDetailSkillIndex,info.skills.length-1)];drawCharacterGameplayPreview(characterDetailId,characterDetailSkillIndex,activeSkill[0],x+26,y+92,previewW,previewH,info.color);
-  const tx=x+previewW+(mobileDetail?42:52),tw=w-previewW-(mobileDetail?68:80);ctx.fillStyle="#f3f6ff";ctx.font=`bold ${mobileDetail?14:18}px Arial`;ctx.fillText("패시브",tx,y+(mobileDetail?88:108));ctx.fillStyle="#b9c5d8";ctx.font=`${mobileDetail?11:14}px Arial`;wrapTextLeft(info.passive,tx,y+(mobileDetail?108:136),tw,mobileDetail?15:22);
+  const previewW=Math.min(540,w*(mobileDetail ? .48 : .54)),previewH=Math.min(440,h-(mobileDetail?100:120));const activeSkill=info.skills[Math.min(characterDetailSkillIndex,info.skills.length-1)]||["캐릭터 원화",""];drawCharacterGameplayPreview(characterDetailId,characterDetailSkillIndex,activeSkill[0],x+26,y+92,previewW,previewH,info.color);
+  const tx=x+previewW+(mobileDetail?42:52),tw=w-previewW-(mobileDetail?68:80);ctx.fillStyle="#f3f6ff";ctx.font=`bold ${mobileDetail?14:18}px Arial`;ctx.fillText(info.skills.length?"패시브":"캐릭터 상태",tx,y+(mobileDetail?88:108));ctx.fillStyle="#b9c5d8";ctx.font=`${mobileDetail?11:14}px Arial`;wrapTextLeft(info.passive,tx,y+(mobileDetail?108:136),tw,mobileDetail?15:22);
   characterDetailSkillRects=[];const compact=info.skills.length>5,itemH=mobileDetail?(compact?30:38):(compact?50:72),itemGap=mobileDetail?(compact?33:42):(compact?56:82);let sy=mobileDetail?(compact?y+126:y+154):(compact?y+174:y+202);for(let i=0;i<info.skills.length;i++){const skill=info.skills[i],selected=i===characterDetailSkillIndex,rect={x:tx,y:sy,w:tw,h:itemH};characterDetailSkillRects.push(rect);const hover=pointInRect(mouse.x,mouse.y,rect);drawRoundedRect(tx,sy,tw,itemH,mobileDetail?8:12,selected?`${info.color}24`:(hover?"rgba(255,255,255,.075)":"rgba(255,255,255,.035)"),selected?info.color:`${info.color}55`,selected?2:1);ctx.fillStyle=info.color;ctx.font=`bold ${mobileDetail?10:(compact?13:15)}px Arial`;ctx.fillText(`${selected?"▶ ":""}${skill[0]}`,tx+9,sy+(mobileDetail?13:(compact?18:23)));ctx.fillStyle="#c9d2e2";ctx.font=`${mobileDetail?9:(compact?11:13)}px Arial`;wrapTextLeft(skill[1],tx+9,sy+(mobileDetail?27:(compact?36:46)),tw-18,mobileDetail?11:(compact?14:18));sy+=itemGap;}
   ctx.restore();
 }

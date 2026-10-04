@@ -78,7 +78,6 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="moira"&&key==="e")activateMoiraE();
     if(selectedCharacter==="moira"&&key==="x")activateMoiraX();
     if(selectedCharacter==="moira"&&key==="r")activateMoiraR();
-    if(selectedCharacter==="oblivion"){if(key==="q")activateOblivionQ();if(key==="e")activateOblivionE();if(key==="x")activateOblivionX();if(key==="r")activateOblivionR();}
     if(selectedCharacter==="mare"&&key==="q")activateMareQ();
     if(selectedCharacter==="mare"&&key==="e")activateMareE();
     if(selectedCharacter==="mare"&&key==="x")activateMareX();
