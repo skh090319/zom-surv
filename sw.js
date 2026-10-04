@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v74";
+const CACHE_VERSION = "zombie-survival-v80-filled-portrait";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -56,6 +56,7 @@ const CORE_ASSETS = [
   "./js/05-skills.js",
   "./js/06-entities-update.js",
   "./js/07-world-render.js",
+  "./js/07-hero-ultimate-background.js",
   "./js/07-fire-trail-polish.js",
   "./js/08-astra-healthbar.js",
   "./js/08-lobby-motion-art.js",
@@ -65,6 +66,9 @@ const CORE_ASSETS = [
   "./js/08-mobile.js",
   "./js/08-mobile-settings.js",
   "./js/08-mobile-targeting.js",
+  "./js/04-oblivion.js",
+  "./js/08-oblivion-ui.js",
+  "./js/08-oblivion-prestige.js",
   "./js/09-main.js",
   "./js/pwa.js"
 ];

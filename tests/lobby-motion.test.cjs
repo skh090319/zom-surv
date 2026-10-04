@@ -11,15 +11,17 @@ function player(safari=false){
   const created=[];let images=0;class Image{constructor(){images++;this.complete=true;this.naturalWidth=640;this.naturalHeight=960;}}
   const ctx=new Proxy({save(){},restore(){},drawImage(...a){created.push(['draw',...a])}},{get(o,k){return o[k]||(()=>{});}});
   const document={hidden:false,addEventListener(){},createElement(){const v={paused:true,readyState:2,currentTime:0,canPlayType(){return 'probably'},addEventListener(){},load(){},play(){this.paused=false;created.push(['play',this]);return Promise.resolve();},pause(){this.paused=true;created.push(['pause',this])}};created.push(['video',v]);return v;}};
-  const sandbox={ctx,document,Image,navigator:{userAgent:safari?'AppleWebKit Safari':'AppleWebKit Chrome'},performance:{now:()=>1000},drawLobbyMotionFrame(){created.push(['fallback'])}};
+  const sandbox={ctx,document,Image,astraSprite:{complete:true,naturalWidth:640},ensureGameImage(){},navigator:{userAgent:safari?'AppleWebKit Safari':'AppleWebKit Chrome'},performance:{now:()=>1000},drawLobbyMotionFrame(){created.push(['fallback'])}};
   vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(__dirname,'../js/08-lobby-motion.js'),'utf8'),sandbox);return {sandbox,created,get images(){return images;},run:code=>vm.runInContext(code,sandbox)};
 }
-test('lobby videos load only on selecting one of the two heroes and stop on switching or leaving',()=>{
-  const p=player();assert.equal(p.images,0);assert.equal(p.run("drawLobbyAnimatedHero('ren',0,0,300,450)"),false);assert.equal(p.images,0);
-  assert.equal(p.run("drawLobbyAnimatedHero('astra',0,0,300,450)"),true);assert.equal(p.images,2);
-  const astra=p.created.find(c=>c[0]==='video')[1];assert.equal(astra.loop,true);assert.equal(astra.muted,true);assert.equal(astra.playsInline,true);
-  p.run("drawLobbyAnimatedHero('mare',0,0,300,450)");assert.equal(astra.paused,true);assert.equal(p.images,4);
-  p.run('suspendLobbyMotion()');assert.ok(p.created.filter(c=>c[0]==='video').every(c=>c[1].paused));
+test('Astra uses original art without creating videos; Mare pauses on switching to Astra',()=>{
+ const p=player();assert.equal(p.images,0);
+ assert.equal(p.run("drawLobbyAnimatedHero('astra',0,0,300,450)"),true);
+ assert.equal(p.images,0);assert.equal(p.created.filter(c=>c[0]==='video').length,0);
+ p.run("drawLobbyAnimatedHero('mare',0,0,300,450)");
+ const mare=p.created.find(c=>c[0]==='video')[1];assert.equal(mare.paused,false);assert.equal(p.images,2);
+ p.run("drawLobbyAnimatedHero('astra',0,0,300,450)");assert.equal(mare.paused,true);
+ assert.equal(p.created.filter(c=>c[0]==='video').length,1);
 });
 test('Safari uses the same authored animation without downloading unsupported alpha videos',()=>{
   const p=player(true);assert.equal(p.run("drawLobbyAnimatedHero('mare',0,0,300,450)"),true);assert.ok(p.created.some(c=>c[0]==='fallback'));assert.ok(p.created.filter(c=>c[0]==='video').every(c=>!c[1].src));

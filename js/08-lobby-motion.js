@@ -6,7 +6,7 @@ function suspendLobbyMotion(){
   lobbyMotionActive='';
 }
 function getLobbyMotionPlayer(id){
-  if(!['astra','mare'].includes(id)||typeof document==='undefined')return null;
+  if(!['mare'].includes(id)||typeof document==='undefined')return null;
   if(lobbyMotionPlayers.has(id))return lobbyMotionPlayers.get(id);
   const body=new Image(),ornaments=id==='astra'?new Image():null,water=id==='mare'?new Image():null;
   body.decoding='async';body.src=`assets/lobby-motion-v1/${id}-body.webp`;
@@ -22,6 +22,7 @@ function getLobbyMotionPlayer(id){
   lobbyMotionPlayers.set(id,item);return item;
 }
 function drawLobbyAnimatedHero(id,x,y,w,h){
+  if(id==='astra'){suspendLobbyMotion();ensureGameImage(astraSprite,'high');if(astraSprite.complete&&astraSprite.naturalWidth){ctx.drawImage(astraSprite,x,y,w,h);return true;}return false;}
   const item=getLobbyMotionPlayer(id);if(!item)return false;
   if(lobbyMotionActive!==id){suspendLobbyMotion();lobbyMotionActive=id;}
   if(!item.failed&&!item.started&&(!document.hidden)){

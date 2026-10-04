@@ -12,6 +12,9 @@ function worldEnd() {
 }
 
 function drawBackground() {
+  if(typeof heroUltimateBackdropProgress==='function'&&heroUltimateBackdropProgress()>=1){
+    drawHeroUltimateBackdrop();return;
+  }
   // The fully opaque realm already covers the map: skip the invisible map
   // draw and brightness pass. During either fade the original layers remain.
   if(astraBackdropProgress()>=1&&astraUltimateBackdrop.complete&&astraUltimateBackdrop.naturalWidth&&astraUltimateBackdrop.naturalHeight){
@@ -53,6 +56,7 @@ function drawBackground() {
   ctx.fillStyle = "rgba(255, 255, 255, 0.10)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   drawAstraUltimateBackdrop();
+  if(typeof drawHeroUltimateBackdrop==='function')drawHeroUltimateBackdrop();
 }
 
 function drawFireTrails() {
@@ -143,7 +147,7 @@ function drawPlayer() {
     : null;
   const nightLordAttackHeld = selectedCharacter === "nightLord" && mouse.down && player.nightLordFrenzyTime <= 0;
   const nightLordIsAttacking = Boolean((nightLordSlash || nightLordAttackHeld) && nightLordAttackSpriteLoaded);
-  const activeSprite = selectedCharacter === "astra"
+  const activeSprite = selectedCharacter === "oblivion" ? oblivionSprite : selectedCharacter === "astra"
     ? astraSprite
     : selectedCharacter === "nullZero"
     ? nullZeroSprite
@@ -182,7 +186,7 @@ function drawPlayer() {
             ? yupiterSeveringSprite
             : (player.yupiterWeapon === 2 && yupiterFlameSpriteLoaded ? yupiterFlameSprite : yupiterSprite)))
         : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSprite : renSprite) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSprite : nightLordSprite) : yupiterSprite))));
-  const activeLoaded = selectedCharacter === "astra"
+  const activeLoaded = selectedCharacter === "oblivion" ? (oblivionSprite.complete && oblivionSprite.naturalWidth>0) : selectedCharacter === "astra"
     ? astraSpriteLoaded
     : selectedCharacter === "nullZero"
     ? nullZeroSpriteLoaded
@@ -215,7 +219,7 @@ function drawPlayer() {
       : (selectedCharacter === "yupiter" ? yupiterSpriteLoaded : (selectedCharacter === "ren" ? (renAttackHeld && renAttackSpriteLoaded ? renAttackSpriteLoaded : renSpriteLoaded) : (selectedCharacter === "nightLord" ? (nightLordIsAttacking ? nightLordAttackSpriteLoaded : nightLordSpriteLoaded) : yupiterSpriteLoaded))));
 
   if (activeLoaded) {
-    const size = selectedCharacter === "vargas" ? (player.vargasUltimateTime>0?142:122) : ((selectedCharacter === "luminous" || selectedCharacter === "ren" || selectedCharacter === "nightLord" || selectedCharacter === "zero" || selectedCharacter === "paladin" || selectedCharacter === "arc" || selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "echo" || selectedCharacter === "aria" || selectedCharacter === "moira" || selectedCharacter === "mare" || selectedCharacter === "nullZero" || selectedCharacter === "astra") ? 112 : ((selectedCharacter === "suncall" || selectedCharacter === "yupiter") ? 104 : 96));
+    const size = selectedCharacter === "vargas" ? (player.vargasUltimateTime>0?142:122) : ((selectedCharacter === "luminous" || selectedCharacter === "ren" || selectedCharacter === "nightLord" || selectedCharacter === "zero" || selectedCharacter === "paladin" || selectedCharacter === "arc" || selectedCharacter === "terra" || selectedCharacter === "void" || selectedCharacter === "echo" || selectedCharacter === "aria" || selectedCharacter === "moira" || selectedCharacter === "mare" || selectedCharacter === "nullZero" || selectedCharacter === "astra" || selectedCharacter === "oblivion") ? 112 : ((selectedCharacter === "suncall" || selectedCharacter === "yupiter") ? 104 : 96));
 
     ctx.save();
     const castLunge = luminousIsAttacking ? 4 * Math.min(1, player.luminousAttackTime / 4) : 0;
@@ -238,7 +242,7 @@ function drawPlayer() {
     if (selectedCharacter === "mare" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "nullZero" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "astra" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
-    ctx.drawImage(activeSprite, -size / 2, -size / 2 - 18, size, size);
+    if(selectedCharacter==='oblivion'){const h=size*1.24,w=h*activeSprite.naturalWidth/activeSprite.naturalHeight;ctx.drawImage(activeSprite,-w/2,-h*.65,w,h);}else ctx.drawImage(activeSprite, -size / 2, -size / 2 - 18, size, size);
     ctx.restore();
   } else {
     ctx.fillStyle = "#4da3ff";
@@ -247,7 +251,7 @@ function drawPlayer() {
     ctx.fill();
   }
 
-  if (gunSpriteLoaded && selectedCharacter !== 'suncall' && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero" && selectedCharacter !== "astra") {
+  if (gunSpriteLoaded && selectedCharacter !== 'suncall' && selectedCharacter !== "luminous" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero" && selectedCharacter !== "astra" && selectedCharacter !== "oblivion") {
     const gunW = 68;
     const gunH = 30;
 

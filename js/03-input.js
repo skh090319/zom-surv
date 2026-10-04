@@ -78,6 +78,7 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="moira"&&key==="e")activateMoiraE();
     if(selectedCharacter==="moira"&&key==="x")activateMoiraX();
     if(selectedCharacter==="moira"&&key==="r")activateMoiraR();
+    if(selectedCharacter==="oblivion"){if(key==="q")activateOblivionQ();if(key==="e")activateOblivionE();if(key==="x")activateOblivionX();if(key==="r")activateOblivionR();}
     if(selectedCharacter==="mare"&&key==="q")activateMareQ();
     if(selectedCharacter==="mare"&&key==="e")activateMareE();
     if(selectedCharacter==="mare"&&key==="x")activateMareX();
@@ -90,7 +91,7 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="astra"&&key==="e")activateAstraE();
     if(selectedCharacter==="astra"&&key==="x")activateAstraX();
     if(selectedCharacter==="astra"&&key==="r")activateAstraR();
-    if (key === "r" && selectedCharacter !== "suncall" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero" && selectedCharacter !== "astra") reload();
+    if (key === "r" && selectedCharacter !== "suncall" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero" && selectedCharacter !== "astra" && selectedCharacter !== "oblivion") reload();
   }
   if ((gameOver || raidVictory) && key === "enter") {
     restart();
@@ -235,6 +236,7 @@ canvas.addEventListener("mousedown", event => {
       if(card.id==="moira")selectedCharacter="moira";
       if(card.id==="mare")selectedCharacter="mare";
       if(card.id==="nullZero")selectedCharacter="nullZero";
+      if(card.id==="oblivion")selectedCharacter="oblivion";
       if(card.id==="astra")selectedCharacter="astra";
 
       return;

@@ -922,6 +922,7 @@ function drawHomeScreen() {
   if(sprite&&sprite.complete&&sprite.naturalWidth){
     const maxW=wide?Math.min(510,canvas.width*.38):Math.min(280,canvas.width*.4),maxH=canvas.height*.63;
     const scale=Math.min(maxW/sprite.naturalWidth,maxH/sprite.naturalHeight),dw=sprite.naturalWidth*scale,dh=sprite.naturalHeight*scale;
+    if(typeof drawOblivionMenuAura==='function')drawOblivionMenuAura(selectedCharacter,heroX-dw/2,heroY-dh/2,dw,dh);
     ctx.save();ctx.globalAlpha=.25;ctx.filter="blur(18px)";ctx.drawImage(sprite,heroX-dw*.53,heroY-dh*.48+10,dw*1.06,dh*1.06);ctx.restore();
     ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=30;
     const animated=typeof drawLobbyAnimatedHero==='function'&&drawLobbyAnimatedHero(selectedCharacter,heroX-dh/3,heroY-dh/2,dh*2/3,dh);
@@ -1071,7 +1072,7 @@ function drawCharacterSelectScreen() {
 
   const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
   const maxCardsPerRow = 4;
-  const characterIds = ["suncall", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare","nullZero","astra"];
+  const characterIds = ["suncall", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare","nullZero","astra","oblivion"];
   const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
   const y = 151;
   const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
@@ -1102,7 +1103,7 @@ function drawCharacterSelectScreen() {
     paladin: { color: "#ffe48b", color2: "#315a94", role: "COMBO KNIGHT", number: "07" },
     arc: { color: "#ff8b32", color2: "#7d1e12", role: "SOLAR MAGE", number: "08" },
     terra: { color: "#c5d965", color2: "#526b2d", role: "EARTH BREAKER", number: "09" },
-    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "10" },carmilla:{color:"#ff315d",color2:"#5c071d",role:"TRUE VAMPIRE",number:"11"},vargas:{color:"#58f39a",color2:"#4b1321",role:"ABYSSAL COLOSSUS",number:"12"},echo:{color:"#65e8ff",color2:"#6044a8",role:"DIMENSION TAILOR",number:"13"},aria:{color:"#ff83bd",color2:"#3d817d",role:"DREAM GARDENER",number:"14"},moira:{color:"#ff315b",color2:"#4d071d",role:"CURSED PUPPETEER",number:"15"},mare:{color:"#45dff0",color2:"#075772",role:"ABYSS CONDUCTOR",number:"16"},nullZero:{color:"#52efff",color2:"#8b123e",role:"MALWARE HOST",number:"17"},astra:{color:"#e6bd62",color2:"#39308c",role:"FALLEN ASTROLOGER",number:"18"}
+    void: { color: "#b665ff", color2: "#32104f", role: "VOID DEVOURER", number: "10" },carmilla:{color:"#ff315d",color2:"#5c071d",role:"TRUE VAMPIRE",number:"11"},vargas:{color:"#58f39a",color2:"#4b1321",role:"ABYSSAL COLOSSUS",number:"12"},echo:{color:"#65e8ff",color2:"#6044a8",role:"DIMENSION TAILOR",number:"13"},aria:{color:"#ff83bd",color2:"#3d817d",role:"DREAM GARDENER",number:"14"},moira:{color:"#ff315b",color2:"#4d071d",role:"CURSED PUPPETEER",number:"15"},mare:{color:"#45dff0",color2:"#075772",role:"ABYSS CONDUCTOR",number:"16"},nullZero:{color:"#52efff",color2:"#8b123e",role:"MALWARE HOST",number:"17"},oblivion:{color:"#ff4263",color2:"#210919",role:"REALITY FRACTURE",number:"19"},astra:{color:"#e6bd62",color2:"#39308c",role:"FALLEN ASTROLOGER",number:"18"}
   };
 
   ctx.save();
@@ -1114,7 +1115,7 @@ function drawCharacterSelectScreen() {
     const cardScale = 1;
     if (card.y + card.h < y - 8 || card.y > canvas.height) continue;
     const isSelected = selectedCharacter === card.id;
-    const unlocked = card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas"||card.id==="echo"||card.id==="aria"||card.id==="moira"||card.id==="mare"||card.id==="nullZero"||card.id==="astra" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
+    const unlocked = card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas"||card.id==="echo"||card.id==="aria"||card.id==="moira"||card.id==="mare"||card.id==="nullZero"||card.id==="astra"||card.id==="oblivion" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
     const hover = pointInRect(mouse.x, mouse.y, card);
     const theme = themes[card.id];
     const displayY = card.y + (hover && unlocked ? -7 : 0);
@@ -1159,6 +1160,7 @@ function drawCharacterSelectScreen() {
       const spriteScale = Math.min(maxSpriteW / sprite.naturalWidth, maxSpriteH / sprite.naturalHeight);
       const spriteW = sprite.naturalWidth * spriteScale;
       const spriteH = sprite.naturalHeight * spriteScale;
+      if(typeof drawOblivionMenuAura==='function')drawOblivionMenuAura(card.id,card.x+(card.w-spriteW)/2,displayY+28*cardScale+(maxSpriteH-spriteH)/2,spriteW,spriteH);
       ctx.shadowColor = unlocked ? theme.color : "transparent";
       ctx.shadowBlur = unlocked ? 16 : 0;
       ctx.drawImage(sprite, card.x + (card.w - spriteW) / 2, displayY + 28 * cardScale + (maxSpriteH - spriteH) / 2, spriteW, spriteH);

@@ -387,6 +387,7 @@ function drawMobileHomeScreen(){
   if(sprite?.complete&&sprite.naturalWidth){
     const heroW=heroRight-heroLeft,availableH=frameH-(short?42:62);
     const scale=Math.min(heroW*.74/sprite.naturalWidth,availableH*.82/sprite.naturalHeight),dw=sprite.naturalWidth*scale,dh=sprite.naturalHeight*scale;
+    if(typeof drawOblivionMenuAura==='function')drawOblivionMenuAura(selectedCharacter,heroX-dw/2,heroCenterY-dh/2,dw,dh);
     ctx.save();ctx.shadowColor=accent;ctx.shadowBlur=24;
     const animated=typeof drawLobbyAnimatedHero==='function'&&drawLobbyAnimatedHero(selectedCharacter,heroX-dh/3,heroCenterY-dh/2,dh*2/3,dh);
     if(!animated)ctx.drawImage(sprite,heroX-dw/2,heroCenterY-dh/2,dw,dh);ctx.restore();
@@ -468,7 +469,10 @@ function drawAstraControlIcon(x,y,r,kind,active=false,dx=0,dy=0){
 function drawMobileControls(){
   if(!isMobileTouchDevice()||isMobilePortraitMode()||screenMode!=="game"||paused||choosingUpgrade||gameOver||raidVictory)return;const {joystick,attack,skills}=getMobileControlLayout();ctx.save();
   const attackGlow=mobileAttackTouchId!==null;
-  if(selectedCharacter==='mare'){
+  if(selectedCharacter==='oblivion'){
+    drawOblivionControl(joystick.x,joystick.y,joystick.r,'joystick',mobileJoystickTouchId!==null,mobileStickX,mobileStickY);
+    drawOblivionControl(attack.x,attack.y,attack.r,'attack',attackGlow);
+  }else if(selectedCharacter==='mare'){
     drawMareControlIcon(joystick.x,joystick.y,joystick.r,'joystick',mobileJoystickTouchId!==null,mobileStickX,mobileStickY);
     drawMareControlIcon(attack.x,attack.y,attack.r,'attack',attackGlow);
   }else if(selectedCharacter!=='astra'){
@@ -490,7 +494,10 @@ function drawMobileControls(){
     if(cooldown?.value>0)drawCooldownCover(skill.x,skill.y,skill.r,cooldown.value/cooldown.max,cooldown.value);
     if(locked){ctx.fillStyle="rgba(5,7,13,.72)";ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r,0,Math.PI*2);ctx.fill();ctx.fillStyle="#fff";ctx.font=`900 ${Math.max(13,skill.r*.58)}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("10",skill.x,skill.y);}
     ctx.fillStyle="#fff";ctx.font="900 9px Arial";ctx.textAlign="center";ctx.textBaseline="alphabetic";
-    if(selectedCharacter==="astra"){
+    if(selectedCharacter==='oblivion'){
+      drawOblivionControl(skill.x,skill.y,skill.r,'frame',false);
+      ctx.fillStyle='#ffe2eb';ctx.font='bold 9px Arial';ctx.fillText({q:'침입',e:'공허',x:'이탈',r:'종말'}[skill.key],skill.x,skill.y+skill.r+12,skill.r*2+8);
+    }else if(selectedCharacter==="astra"){
       drawAstraSkillFrame(skill.x,skill.y,skill.r);
       const lines=skill.key==="r"?["만유인력","역전"]:[skillName];
       lines.forEach((label,i)=>ctx.fillText(label,skill.x,skill.y+skill.r+12+i*10,skill.r*2+8));

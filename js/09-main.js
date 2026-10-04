@@ -50,6 +50,7 @@ function draw() {
   drawAriaEffectsV3();
   drawMoiraEffects();
   drawMareEffects();
+  drawOblivionEffects();
   drawNullZeroEffects();
   drawSuncallEffects();
   drawAstraEffects();
@@ -90,6 +91,7 @@ function draw() {
     drawAriaInterface();
     drawMoiraInterface();
     drawMareInterface();
+    drawOblivionInterface();
     drawNullZeroInterface();
     drawSuncallInterface();
     drawAstraInterface();
@@ -117,9 +119,11 @@ function draw() {
   if (typeof drawMobileControls === "function") drawMobileControls();
   // Keep Astra's triangular ultimate cut-in above every desktop and mobile UI.
   drawAstraUltimatePortrait();
+  if(typeof drawHeroUltimatePortrait==='function')drawHeroUltimatePortrait();
 }
 
 function restart() {
+  if(typeof resetOblivion==='function')resetOblivion();
   // 기본 능력치 초기화
   player.x = WORLD.width / 2;
   player.y = WORLD.height / 2;
