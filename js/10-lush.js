@@ -216,7 +216,7 @@ function lushUpdateRoyalBursts(){
   const s=lushState;
   for(let i=s.qBursts.length-1;i>=0;i--){const b=s.qBursts[i];
     if(b.age%7===0&&b.next<5){const rank=b.next++;
-      lushSpawnCard(b.x,b.y,b.a,{kind:'royal',rank,suit:rank%4,castId:b.castId,replica:b.replica,power:(rank===4?3.8:1.65)*b.power,markPower:b.power,radius:34,speed:25,range:1100,homing:0,life:65});}
+      lushSpawnCard(b.x,b.y,b.a,{kind:'royal',rank,suit:rank%4,castId:b.castId,replica:b.replica,power:(rank===4?3.8:1.65)*b.power,markPower:b.power,radius:34,speed:25,range:1100,homing:.14,seekUntilHit:true,homingLocked:false,life:65});}
     b.age++;if(b.next===5)s.qBursts.splice(i,1);
   }
 }
@@ -224,19 +224,27 @@ function lushUpdateCards(){
   const s=lushState,targets=[...zombies],ricochets=[];
   for(let i=s.cards.length-1;i>=0;i--){const c=s.cards[i],old={x:c.x,y:c.y};
     if(c.kind==='ricochet'){if(!lushUpdateRicochet(c))s.cards.splice(i,1);continue;}
-    if(c.homing&&s.frame%3===0){const z=lushTarget(c.x,c.y,500,c.a);if(z)c.a+=Math.max(-c.homing*3,Math.min(c.homing*3,lushAngleDelta(Math.atan2(z.y-c.y,z.x-c.x),c.a)));}
+    if(c.seekUntilHit){
+      // Royal cards steer independently until their first hit, then keep that exact heading.
+      if(!c.homingLocked){const z=lushTarget(c.x,c.y,Math.max(0,c.range-c.distance));if(z){
+        // Tighten nearby turns so a close target cannot remain inside the turning circle.
+        const turn=Math.min(.65,Math.max(c.homing,c.speed*1.6/Math.max(1,Math.hypot(z.x-c.x,z.y-c.y))));
+        c.a+=Math.max(-turn,Math.min(turn,lushAngleDelta(Math.atan2(z.y-c.y,z.x-c.x),c.a)));
+      }}
+    }else if(c.homing&&s.frame%3===0){const z=lushTarget(c.x,c.y,500,c.a);if(z)c.a+=Math.max(-c.homing*3,Math.min(c.homing*3,lushAngleDelta(Math.atan2(z.y-c.y,z.x-c.x),c.a)));}
     c.x+=Math.cos(c.a)*c.speed;c.y+=Math.sin(c.a)*c.speed;c.distance+=c.speed;c.life--;c.trail.push(old);if(c.trail.length>9)c.trail.shift();
     for(const z of targets){if(z.hp<=0||c.hits.has(z)||lushSegmentDistance(z,old,c)>(z.r||0)+c.radius)continue;
-      c.hits.add(z);const marks=z.lushMarkUntil>=s.frame?z.lushMarks||0:0;
+      c.hits.add(z);const marks=z.lushMarkUntil>=s.frame?z.lushMarks||0:0;let hit=false;
       if(c.kind==='royal'&&c.rank<4){z.lushMarks=Math.min(8,marks+1);z.lushMarkUntil=s.frame+180;lushFx('royalMark',z.x,z.y,42,{rank:c.rank,count:z.lushMarks,life:28,maxLife:28});}
       if(c.kind==='royal'&&c.rank===4&&marks){
         z.lushMarks=0;z.lushMarkUntil=0;const power=c.markPower||1;
-        lushDamage(z,lushPower(c.power+marks*1.9*power));lushCircle(z.x,z.y,115+marks*9,marks*1.15*power);
+        hit=lushDamage(z,lushPower(c.power+marks*1.9*power));lushCircle(z.x,z.y,115+marks*9,marks*1.15*power);
         lushFx('royalDetonate',z.x,z.y,115+marks*9,{count:marks,life:56,maxLife:56});
       }else{
-        const damage=lushPower(c.power);
-        if(lushDamage(z,damage)&&c.ricochetEligible&&!c.ricochetUsed){c.ricochetUsed=true;ricochets.push({source:c,origin:z,damage});}
+        const damage=lushPower(c.power);hit=lushDamage(z,damage);
+        if(hit&&c.ricochetEligible&&!c.ricochetUsed){c.ricochetUsed=true;ricochets.push({source:c,origin:z,damage});}
       }
+      if(hit&&c.seekUntilHit)c.homingLocked=true;
       lushFx('hit',c.x,c.y,c.kind==='royal'?38:24);
     }
     if(c.life<=0||c.distance>=c.range)s.cards.splice(i,1);

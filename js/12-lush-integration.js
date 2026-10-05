@@ -1,8 +1,8 @@
 // Registration is isolated so existing heroes retain their own behavior.
-characterSkillGuide.lush={name:'LusH',color:'#e8bc6c',passive:'처치 수익과 정산 순이익이 총자산으로 영구 누적됩니다. 자산이 커질수록 화력과 공격 단계가 성장하며, 4연승하면 대형 잭팟과 자동 정산이 발동합니다.',skills:[
-  ['패시브 · 하우스 어드밴티지','처치당 칩과 총자산 +1. 총자산 1당 본체 피해 +0.5%. 자산 50/150/350/700에서 평타의 추가 카드 사격이 단계별로 늘어납니다. 총자산은 이번 게임 동안 유지되며 실패해도 줄지 않습니다. 원금은 중복 계산하지 않습니다.'],
+characterSkillGuide.lush={name:'LusH',color:'#e8bc6c',passive:'탐욕 3단계와 초월: 흡혈 군주, 악의적 수익 창출을 보유하고 시작합니다. 처치 수익과 정산 순이익이 총자산으로 영구 누적됩니다. 자산이 커질수록 화력과 공격 단계가 성장하며, 4연승하면 대형 잭팟과 자동 정산이 발동합니다.',skills:[
+  ['패시브 · 하우스 어드밴티지','탐욕 3단계·초월: 흡혈 군주·악의적 수익 창출을 보유하고 시작합니다. 경험치 획득량 1.95배, 일반 적 처치 시 최대 체력의 1% 회복. 처치당 칩과 총자산 +1. 총자산 1당 본체 피해 +0.5%. 자산 50/150/350/700에서 평타의 추가 카드 사격이 단계별로 늘어납니다. 총자산은 이번 게임 동안 유지되며 실패해도 줄지 않습니다. 원금은 중복 계산하지 않습니다.'],
   ['기본 공격 · 데드맨즈 핸드','약하게 유도되는 카드 세 장을 발사합니다. 첫 적을 맞힌 카드는 한 번 튕겨 주변의 다른 적에게 피해의 50%를 줍니다. 주변에 다른 적이 없으면 원래 적에게 돌아와 50% 피해를 줍니다. 네 번째 공격은 황금 에이스를 추가로 날리고, 자산이 성장할수록 추가 카드와 보조 사격이 생깁니다.'],
-  ['Q · 로열 스트레이트','1100 거리까지 10·J·Q·K·A 다섯 장을 연속 관통 발사합니다. 앞의 네 장이 문양을 새기고, 마지막 에이스가 문양을 연쇄 폭발시킵니다. 여러 문양이 쌓인 보스에게도 강력합니다.'],
+  ['Q · 로열 스트레이트','1100 거리까지 10·J·Q·K·A 다섯 장을 연속 관통 발사합니다. 각 카드는 첫 적에게 맞을 때까지 유도되며, 첫 적중 후에는 직선으로 관통합니다. 앞의 네 장이 문양을 새기고, 마지막 에이스가 문양을 연쇄 폭발시킵니다. 여러 문양이 쌓인 보스에게도 강력합니다.'],
   ['E · 더블 오어 다이','유리 주사위를 던져 관통·충격파 공격과 베팅을 동시에 진행합니다. 성공률 70% → 62.5% → 55% → 47.5%. 성공하면 판돈 두 배와 황금 주사위 추가 공격, 실패하면 미정산 판돈만 잃습니다. 칩이 없어도 공격은 발동합니다.'],
   ['X · 캐시아웃','유리 보호막과 왕복 칩 폭풍을 생성합니다. 판돈이 있으면 은행으로 정산하고 순이익만 총자산에 더하며, 10초 공격 강화를 얻습니다. 판돈이 없어도 기본 방어·공격은 사용 가능합니다.'],
   ['R · 하우스 올인','10레벨부터 사용. 10초간 카지노를 열고 네 환영 딜러가 함께 이동하며 카드 사격과 Q 복제를 수행합니다. E 성공 시 딜러 강화. 종료 시 카드 폭풍/거대 주사위 3개/777 연쇄 폭발로 마무리합니다. 궁극기 중 4연승은 777 확정!']
@@ -15,8 +15,19 @@ const lushAugmentDefs=[
   {id:'lushJackpot',name:'잭팟 중독',desc:'캐시아웃 공격 강화 +10% · 보호막 보상 -10%',transcendName:'초월: 끝없는 여운',transcendDesc:'캐시아웃 공격 강화의 지속시간이 3초 증가합니다.'}
 ];
 lushAugmentDefs.forEach(def=>{exclusiveAugmentOwners[def.id]='lush';upgradeCount[def.id]=0;transcended[def.id]=false;upgrades.push({...def,category:'support',requires(){return selectedCharacter==='lush';},apply(){upgradeCount[def.id]=(upgradeCount[def.id]||0)+1;if(upgradeCount[def.id]>=4)transcended[def.id]=true;}});});
+function grantLushStartingAugments(){
+  if(selectedCharacter!=='lush')return;
+  for(const [id,count] of [['greed',4],['maliciousProfit',1]]){
+    const upgrade=upgrades.find(item=>item.id===id);
+    // Use the real selections so their gameplay effects and reward exclusions agree.
+    while((upgradeCount[id]||0)<count)upgrade.apply();
+    let owned=selectedAugments.find(item=>item.id===id);
+    if(!owned){owned={id};selectedAugments.push(owned);}
+    Object.assign(owned,{name:upgrade.name,category:upgrade.category,count:upgradeCount[id]});
+  }
+}
 const lushRestartBase=restart;
-restart=function(){lushRestartBase();resetLush();};
+restart=function(){lushRestartBase();resetLush();grantLushStartingAugments();};
 resetLush();
 const lushShootBase=shoot;
 shoot=function(){return selectedCharacter==='lush'?attackWithLush():lushShootBase();};

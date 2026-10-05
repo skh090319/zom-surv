@@ -33,7 +33,7 @@ function game() {
     ensureGameImage: image => image,
     player: {x:1000,y:1000,r:20,level:1,damage:35,speed:4.2,hp:100,maxHp:100,fireCooldown:0,globalDamageMultiplier:1,crownLevel:0},
     camera:{x:500,y:700}, mouse:{x:0,y:0,worldX:1200,worldY:1000},
-    zombies:[], selectedCharacter:'lush', screenMode:'game', paused:false, choosingUpgrade:false, gameOver:false, raidVictory:false,
+    zombies:[], selectedAugments:[], selectedCharacter:'lush', screenMode:'game', paused:false, choosingUpgrade:false, gameOver:false, raidVictory:false,
     characterSkillGuide:{}, guideCharacterOrder:[], exclusiveAugmentOwners:{},
     getWorldViewScale: () => .78, WORLD:{width:4000,height:4000},
     screenToWorld() { c.mouse.worldX = c.mouse.x / .78 + c.camera.x; c.mouse.worldY = c.mouse.y / .78 + c.camera.y; },

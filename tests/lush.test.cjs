@@ -34,6 +34,58 @@ test('Q launches all five ranks, pierces multiple enemies, marks and detonates f
 test('Q remains available during an unresolved wager and the ultimate mirrors its five-card volley',()=>{
   const g=game();g.run('lushState.chips=10;activateLushE();activateLushR();activateLushQ()');assert.equal(g.run('lushState.qBursts.length'),5);assert.ok(g.run('lushState.bet'));g.step(1);assert.equal(g.run("lushState.cards.filter(c=>c.kind==='royal').length"),5);
 });
+test('Q preserves launch aim, five-card timing, width, range, damage and rank art while enabling independent seeking',()=>{
+  const g=game();g.c.mouse.worldY=1300;const aim=Math.atan2(300,600);g.run('activateLushQ();lushUpdateRoyalBursts()');
+  const first=g.run('lushState.cards[0]');assert.equal(first.a,aim);assert.equal(first.distance,0);assert.equal(first.seekUntilHit,true);assert.equal(first.homingLocked,false);
+  const frames=[0];for(let frame=1;frame<=28;frame++){g.step(1);if(g.run('lushState.cards.length')>frames.length)frames.push(frame);}
+  assert.deepEqual(frames,[0,7,14,21,28]);const cards=g.run('lushState.cards');assert.equal(cards.length,5);
+  for(let rank=0;rank<5;rank++){const c=cards[rank];assert.equal(c.kind,'royal');assert.equal(c.rank,rank);assert.equal(c.suit,rank%4);assert.equal(c.radius,34);assert.equal(c.range,1100);assert.equal(c.speed,25);assert.equal(c.power,rank===4?3.8:1.65);assert.equal(c.a,aim);assert.equal(c.seekUntilHit,true);assert.equal(c.homingLocked,false);assert.equal(c.ricochetEligible,false);}
+});
+test('Q selects the nearest live enemy without a front cone and retargets dead or removed enemies',()=>{
+  const g=game(),near=g.enemy(850,1100),far=g.enemy(1500,850);g.enemy(1025,1000,0);g.run('activateLushQ();lushUpdateRoyalBursts();lushState.qBursts=[]');const card=g.run('lushState.cards[0]');
+  g.step(1);assert.ok(card.a>0);assert.ok(card.a<Math.atan2(100,-150));assert.equal(card.homingLocked,false);
+  near.hp=0;const before=card.a;g.step(1);assert.ok(card.a<before);assert.equal(card.homingLocked,false);
+  g.c.zombies.splice(g.c.zombies.indexOf(far),1);const abandoned=card.a;g.step(1);assert.equal(card.a,abandoned);
+  g.enemy(card.x+150,card.y-120);g.step(1);assert.ok(card.a<abandoned);
+});
+test('Q smoothly follows a moving target and can actually hit close lateral and behind targets',()=>{
+  for(const [x,y] of [[900,1000],[1000,1100],[1000,900]]){
+    const g=game(),z=g.enemy(x,y);g.run('activateLushQ();lushUpdateRoyalBursts();lushState.qBursts=[]');const c=g.run('lushState.cards[0]');
+    g.step(44);assert.equal(z.hp,99983.5,`${x},${y}`);assert.equal(c.homingLocked,true);assert.equal(c.hits.size,1);assert.equal(g.run('lushState.cards.length'),0);
+  }
+  const g=game(),moving=g.enemy(1350,1180);g.run('activateLushQ();lushUpdateRoyalBursts();lushState.qBursts=[]');const card=g.run('lushState.cards[0]');g.step(1);assert.equal(card.a,.14);
+  moving.y=860;const old=card.a;g.step(1);assert.ok(card.a<old);assert.ok(Math.abs(card.a-old)<=.15);
+  for(let frame=0;frame<42;frame++){moving.y-=1;g.step(1);}assert.equal(moving.hp,99983.5);assert.equal(card.homingLocked,true);
+});
+test('the first actual Q hit freezes its heading forever while subsequent enemies are still pierced once',()=>{
+  const g=game(),first=g.enemy(1250,1120);g.run('activateLushQ();lushUpdateRoyalBursts();lushState.qBursts=[]');const card=g.run('lushState.cards[0]');
+  for(let frame=0;frame<30&&!card.homingLocked;frame++)g.step(1);assert.equal(card.homingLocked,true);assert.equal(first.hp,99983.5);
+  const heading=card.a,at={x:card.x,y:card.y},next=g.enemy(at.x+Math.cos(heading)*220,at.y+Math.sin(heading)*220),side=g.enemy(at.x-Math.sin(heading)*100,at.y+Math.cos(heading)*100);
+  first.x=card.x-200;first.y=card.y+220;
+  for(let frame=1;frame<=15;frame++){side.x+=2;g.step(1);assert.equal(card.a,heading);assert.ok(Math.abs(card.x-at.x-Math.cos(heading)*25*frame)<1e-8);assert.ok(Math.abs(card.y-at.y-Math.sin(heading)*25*frame)<1e-8);}
+  assert.equal(next.hp,99983.5);assert.equal(side.hp,100000);assert.equal(card.hits.size,2);g.step(60);assert.equal(next.hp,99983.5);
+});
+test('any live collision locks Q heading, including a bystander or lethal first hit, independently per card',()=>{
+  const g=game();g.enemy(1400,1200);g.run('activateLushQ();lushUpdateRoyalBursts();lushState.qBursts=[]');const card=g.run('lushState.cards[0]');
+  const dead=g.enemy(1020,1000,0);g.step(1);assert.equal(card.homingLocked,false);assert.equal(card.hits.has(dead),false);
+  const bystander=g.enemy(card.x+Math.cos(card.a)*20,card.y+Math.sin(card.a)*20,1);g.step(1);assert.equal(g.c.zombies.includes(bystander),false);assert.equal(card.homingLocked,true);
+  const heading=card.a;g.run('player.lushqCooldown=0;activateLushQ();lushUpdateRoyalBursts();lushState.qBursts=[]');const fresh=g.run('lushState.cards.find(c=>c!==lushState.cards[0])');assert.equal(fresh.homingLocked,false);
+  g.step(3);assert.equal(card.a,heading);assert.ok(fresh.a>0);assert.equal(fresh.homingLocked,false);
+});
+test('Q has no steering without a reachable target and expires after the same bounded travel even when it misses',()=>{
+  const g=game();g.enemy(1000,2300);g.run('activateLushQ();lushUpdateRoyalBursts();lushState.qBursts=[]');const card=g.run('lushState.cards[0]');g.step(5);
+  assert.equal(card.a,0);assert.equal(card.x,1125);assert.equal(card.y,1000);assert.equal(card.homingLocked,false);
+  const runner=g.enemy(card.x,card.y+300);for(let frame=0;frame<39;frame++){runner.y+=40;g.step(1);}
+  assert.equal(card.distance,1100);assert.equal(card.homingLocked,false);assert.equal(card.hits.size,0);assert.equal(runner.hp,100000);assert.equal(g.run('lushState.cards.length'),0);
+  const empty=game();empty.run('activateLushQ()');empty.step(100);assert.equal(empty.run('lushState.cards.length'),0);assert.equal(empty.run('lushState.qBursts.length'),0);
+});
+test('all ultimate Q replicas seek independently and lock on their first hit without gaining basic ricochets',()=>{
+  const g=game();g.run('activateLushR();activateLushQ();lushUpdateRoyalBursts();lushState.qBursts=[]');const cards=[...g.run('lushState.cards')];assert.equal(cards.length,5);assert.equal(cards.filter(c=>c.replica).length,4);
+  for(const c of cards){assert.equal(c.seekUntilHit,true);assert.equal(c.homingLocked,false);assert.equal(c.a,0);g.enemy(c.x,c.y+100);}
+  for(let frame=0;frame<15;frame++)g.step(1);
+  for(const c of cards){assert.ok(c.a>0);assert.equal(c.homingLocked,true);assert.equal(c.ricochetEligible,false);assert.ok(c.hits.size>=1);}
+  const angles=cards.map(c=>c.a);g.step(10);assert.deepEqual(cards.map(c=>c.a),angles);assert.equal(g.run("lushState.cards.some(c=>c.kind==='ricochet')"),false);
+});
 test('basic attacks have three piercing cards, every fourth ace and permanent tier extra shots',()=>{
   const g=game(),a=g.enemy(1250,1000),b=g.enemy(1500,1000);g.run('attackWithLush()');assert.equal(g.run('lushState.cards.length'),3);g.step(40);assert.ok(a.hp<100000&&b.hp<100000);
   g.run('lushState.cards=[];lushState.shots=3;player.fireCooldown=0;lushState.totalAssets=700;attackWithLush()');assert.equal(g.run('lushState.cards.length'),8);assert.equal(g.run("lushState.cards.filter(c=>c.kind==='ace').length"),1);
