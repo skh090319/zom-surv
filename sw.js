@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v83-lush";
+const CACHE_VERSION = "zombie-survival-v84-lush-royal";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -72,6 +72,7 @@ const CORE_ASSETS = [
   "./js/09-main.js",
   "./js/10-lush.js",
   "./js/11-lush-presentation.js",
+  "./js/11-lush-vfx.js",
   "./js/12-lush-integration.js",
   "./js/pwa.js"
 ];

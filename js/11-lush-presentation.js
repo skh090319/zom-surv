@@ -1,7 +1,9 @@
 // Image-backed casino ornament, animated glass bars and layered world-space VFX.
 function lushAsset(file){const image=setGameImageSource(new Image(),'assets/lush-v1/'+file+'.webp');image.assetGroup='lush';return image;}
+function lushV2Asset(file){const image=setGameImageSource(new Image(),'assets/lush-v2/'+file+'.webp');image.assetGroup='lush';return image;}
 const lushArt={body:lushAsset('lush'),thumb:lushAsset('lush-thumb'),portrait:lushAsset('portrait'),realm:lushAsset('casino-realm'),slot:lushAsset('slot-machine'),
-  skills:[0,1,2,3].map(i=>lushAsset('skill-'+i)),augments:[0,1,2,3].map(i=>lushAsset('augment-'+i)),controls:[0,1,2,3].map(i=>lushAsset('control-'+i))};
+  skills:[0,1,2,3].map(i=>lushV2Asset('skill-'+i)),augments:[0,1,2,3].map(i=>lushV2Asset('augment-'+i)),controls:[0,1,2,3].map(i=>lushAsset('control-'+i))};
+lushArt.vfx=Object.fromEntries(['card','die','shatter','dealer','burst','sigil'].map(name=>[name,lushV2Asset('vfx-'+name)]));
 const lushTextures=new Map();
 function lushGlowTexture(color='gold'){
   if(lushTextures.has(color))return lushTextures.get(color);
@@ -96,16 +98,19 @@ function drawLushResource(x,y,w,h,compact=false){
   const s=lushState;ctx.save();ctx.fillStyle='#180d1bef';ctx.strokeStyle='#bb8a49';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,h,7);ctx.fill();ctx.stroke();ctx.strokeStyle='#b9385755';ctx.strokeRect(x+4,y+4,w-8,h-8);
   const im=ensureGameImage(lushArt.portrait),r=h*.36,cx=x+h*.5,cy=y+h*.5;ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();if(im.complete&&im.naturalWidth)ctx.drawImage(im,cx-r,cy-r,r*2,r*2.65);ctx.restore();
   const tx=x+h+5;ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#ffe0a0';ctx.font=`bold ${compact?10:13}px Arial`;
-  const chance=(lushOdds()*100).toFixed(1).replace('.0','');ctx.fillText(`칩 ${s.chips}  ·  판돈 ${s.pot}  ·  ${s.wins}/4연승`,tx,y+h*.30,w-h-12);
+  const chance=(lushOdds()*100).toFixed(1).replace('.0','');ctx.fillText(`총자산 ${Math.floor(s.totalAssets||0)}  ·  TIER ${typeof lushTier==='function'?lushTier():0}  ·  피해 +${((s.totalAssets||0)*.5).toFixed(1)}%`,tx,y+h*.22,w-h-12);
+  ctx.font=`${compact?9:11}px Arial`;ctx.fillStyle='#f7d19c';ctx.fillText(`칩 ${s.chips}  ·  판돈 ${s.pot}  ·  ${s.wins}/4연승`,tx,y+h*.51,w-h-12);
   ctx.fillStyle=s.bet?'#ffc395':'#f4d9cf';ctx.font=`${compact?9:11}px Arial`;
-  ctx.fillText(s.bet?'베팅 중…':s.ready?`성공 ${chance}% → ${s.pot?s.pot*2:s.chips*2}칩  ·  보상 확정 가능`:s.messageTime?s.message:'Q로 판을 열고 E로 베팅',tx,y+h*.69,w-h-12);ctx.restore();
+  ctx.fillText(s.bet?'주사위 판정 중…':s.messageTime?s.message:`E 성공 ${chance}%  ·  X ${s.pot?'판돈 정산':'유리 보호막'}`,tx,y+h*.80,w-h-12);ctx.restore();
 }
 function drawLushInterface(){
   if(selectedCharacter!=='lush')return;const w=Math.min(700,canvas.width-30),x=(canvas.width-w)/2,y=canvas.height-151;
   drawLushResource(x,y,w-285,80);for(let i=0;i<4;i++){const key=['q','e','x','r'][i],cx=x+w-245+i*68,cy=y+28,r=25;
     drawMobileIcon({image:lushArt.skills[i]},cx,cy,r);const cd=player['lush'+key+'Cooldown'];if(cd>0)drawCooldownCover(cx,cy,r,cd/LUSH_CD[key],cd);drawLushSkillFrame(cx,cy,r);
     if(key==='r'&&player.level<10){ctx.save();ctx.fillStyle='#140512ba';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 12px Arial';ctx.fillText('10레벨',cx,cy+4);ctx.restore();}
-    drawSkillHudLabel(cx,y+79,['데드 다이스','재베팅','보상 확정','하우스 올인'][i],key.toUpperCase(),'#ffe1a2');}
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#ffe1a2';ctx.font='bold 10px Arial';
+    const labels=[['로열','스트레이트'],['더블','오어 다이'],['','캐시아웃'],['','하우스 올인']][i];
+    ctx.fillText(labels[0],cx,y+65);ctx.fillText(labels[1],cx,y+77);ctx.fillStyle='#fff';ctx.font='bold 11px Arial';ctx.fillText(key.toUpperCase(),cx,y+90);ctx.restore();}
 }
 function drawLushMobileControls(){
   if(!isMobileTouchDevice()||isMobilePortraitMode()||screenMode!=='game'||paused||choosingUpgrade||gameOver||raidVictory)return;
@@ -115,7 +120,7 @@ function drawLushMobileControls(){
   for(const sk of skills){const i=['q','e','x','r'].indexOf(sk.key);drawMobileIcon({image:lushArt.skills[i]},sk.x,sk.y,sk.r);
     const cd=getMobileSkillCooldown(sk.key);if(cd?.value>0)drawCooldownCover(sk.x,sk.y,sk.r,cd.value/cd.max,cd.value);
     if(isMobileUltimateLocked(sk.key)){ctx.fillStyle='#120814cc';ctx.beginPath();ctx.arc(sk.x,sk.y,sk.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 14px Arial';ctx.fillText('10',sk.x,sk.y+4);}
-    drawLushSkillFrame(sk.x,sk.y,sk.r);ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.font='bold 9px Arial';ctx.fillStyle='#fff3d2';ctx.strokeStyle='#100813';ctx.lineWidth=3;const text=getMobileSkillName(sk.key);ctx.strokeText(text,sk.x,sk.y+sk.r+12);ctx.fillText(text,sk.x,sk.y+sk.r+12);
+    drawLushSkillFrame(sk.x,sk.y,sk.r);ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.font='bold 9px Arial';ctx.fillStyle='#fff3d2';ctx.strokeStyle='#100813';ctx.lineWidth=3;const text=getMobileSkillName(sk.key),labelWidth=sk.r*2+14;ctx.strokeText(text,sk.x,sk.y+sk.r+12,labelWidth);ctx.fillText(text,sk.x,sk.y+sk.r+12,labelWidth);
   }ctx.restore();drawMobileSkillCancelButton();
 }
 function drawLushUltimatePortrait(){

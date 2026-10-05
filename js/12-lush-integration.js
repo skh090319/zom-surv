@@ -1,15 +1,16 @@
 // Registration is isolated so existing heroes retain their own behavior.
-characterSkillGuide.lush={name:'LusH',color:'#e8bc6c',passive:'처치로 칩을 모아 판돈을 두 배로 불립니다. 연속 성공 확률은 70% → 62.5% → 55% → 47.5%. 4연승하면 잭팟과 자동 정산! 새로 얻는 칩은 판돈과 별도로 보관됩니다.',skills:[
-  ['기본 공격 · 밑장 빼기','카드를 던집니다. 네 번째 공격은 관통·분열·폭발·흡혈 중 하나로 강화됩니다.'],
-  ['Q · 데드 다이스','500 거리까지 유리 주사위를 굴려 관통하고, 멈춘 자리에서 주사위 눈만큼 충격파를 냅니다. 6이면 거대 주사위가 추가 낙하합니다. 공격 종료 후 베팅이 열립니다.'],
-  ['E · 더블 오어 낫싱','보유 칩을 베팅하거나 현재 판돈을 다시 겁니다. 성공하면 두 배의 판돈과 강화 주사위 공격. 실패하면 판돈을 잃고 발밑에 1초 뒤 터지는 위험 지대가 생깁니다.'],
-  ['X · 캐시아웃','판돈을 보호막과 10초 공격 강화로 확정합니다. 첫 베팅 전에는 칩을 잃지 않고 판을 닫습니다.'],
-  ['R · 하우스 올인','10레벨부터 사용. 칩과 판돈을 모두 걸어 6초간 카지노를 엽니다. 평타로 슬롯 릴을 멈추며, 미조작 시 자동 정지합니다. 777은 대형 잭팟, 다른 조합도 광역 공격을 냅니다. 실패한 궁극기마다 다음 7 출현 확률이 증가합니다.']
+characterSkillGuide.lush={name:'LusH',color:'#e8bc6c',passive:'처치 수익과 정산 순이익이 총자산으로 영구 누적됩니다. 자산이 커질수록 화력과 공격 단계가 성장하며, 4연승하면 대형 잭팟과 자동 정산이 발동합니다.',skills:[
+  ['패시브 · 하우스 어드밴티지','처치당 칩과 총자산 +1. 총자산 1당 본체 피해 +0.5%. 자산 50/150/350/700에서 평타의 추가 카드 사격이 단계별로 늘어납니다. 총자산은 이번 게임 동안 유지되며 실패해도 줄지 않습니다. 원금은 중복 계산하지 않습니다.'],
+  ['기본 공격 · 데드맨즈 핸드','약하게 유도되는 관통 카드 세 장을 발사합니다. 네 번째 공격은 황금 에이스를 추가로 날리고, 자산이 성장할수록 추가 카드와 보조 사격이 생깁니다.'],
+  ['Q · 로열 스트레이트','1100 거리까지 10·J·Q·K·A 다섯 장을 연속 관통 발사합니다. 앞의 네 장이 문양을 새기고, 마지막 에이스가 문양을 연쇄 폭발시킵니다. 여러 문양이 쌓인 보스에게도 강력합니다.'],
+  ['E · 더블 오어 다이','유리 주사위를 던져 관통·충격파 공격과 베팅을 동시에 진행합니다. 성공률 70% → 62.5% → 55% → 47.5%. 성공하면 판돈 두 배와 황금 주사위 추가 공격, 실패하면 미정산 판돈만 잃습니다. 칩이 없어도 공격은 발동합니다.'],
+  ['X · 캐시아웃','유리 보호막과 왕복 칩 폭풍을 생성합니다. 판돈이 있으면 은행으로 정산하고 순이익만 총자산에 더하며, 10초 공격 강화를 얻습니다. 판돈이 없어도 기본 방어·공격은 사용 가능합니다.'],
+  ['R · 하우스 올인','10레벨부터 사용. 10초간 카지노를 열고 네 환영 딜러가 함께 이동하며 카드 사격과 Q 복제를 수행합니다. E 성공 시 딜러 강화. 종료 시 카드 폭풍/거대 주사위 3개/777 연쇄 폭발로 마무리합니다. 궁극기 중 4연승은 777 확정!']
 ]};
 guideCharacterOrder.push('lush');MOBILE_SKILL_KEYS.lush=['q','e','x','r'];
 const lushAugmentDefs=[
-  {id:'lushLoaded',name:'사기 주사위',desc:'주사위 최저 눈 +1 (최대 3) · 6의 추가 낙하 피해 -20%',transcendName:'초월: 설계된 행운',transcendDesc:'최저 눈 3을 유지하고 베팅 성공 시 보호막 10%를 얻습니다.'},
-  {id:'lushCollateral',name:'목숨 담보',desc:'칩이 없을 때 체력 15%를 걸어 베팅 · 담보 칩 16/20/24',transcendName:'초월: 최후의 담보',transcendDesc:'담보로 시작한 판의 성공 시 소모 체력을 회복합니다.'},
+  {id:'lushLoaded',name:'사기 주사위',desc:'최저 눈 2→3→3 · 6의 추가 낙하 피해 -20% (3단계에서 해제)',transcendName:'초월: 설계된 행운',transcendDesc:'최저 눈 3을 유지하고 베팅 성공 시 보호막 10%를 얻습니다.'},
+  {id:'lushCollateral',name:'황금 장부',desc:'정산 순이익의 총자산 반영량 +10% (최대 +30%)',transcendName:'초월: 황금 결산',transcendDesc:'판돈을 정산할 때 최대 체력의 10%를 회복합니다.'},
   {id:'lushRecovery',name:'잃을 게 없는 자',desc:'실패 후 공격 간격 감소 · 이동 속도 +8% · 지속시간 +1초',transcendName:'초월: 역전의 발걸음',transcendDesc:'베팅 실패 시 체력 15% 보호막을 얻습니다.'},
   {id:'lushJackpot',name:'잭팟 중독',desc:'캐시아웃 공격 강화 +10% · 보호막 보상 -10%',transcendName:'초월: 끝없는 여운',transcendDesc:'캐시아웃 공격 강화의 지속시간이 3초 증가합니다.'}
 ];
@@ -23,7 +24,7 @@ const lushReloadBase=reload;
 reload=function(){if(selectedCharacter!=='lush')return lushReloadBase();};
 const lushKillBase=killZombie;
 killZombie=function(index,zombie,allowExplosion=true){
-  if(selectedCharacter==='lush'&&zombies.includes(zombie))lushState.chips++;
+  if(selectedCharacter==='lush'&&zombies.includes(zombie))lushAwardKill(zombie);
   return lushKillBase(index,zombie,allowExplosion);
 };
 const lushShieldBase=absorbSuncallShield;
@@ -67,17 +68,19 @@ drawMobileControls=function(){return selectedCharacter==='lush'?drawLushMobileCo
 const lushSkillIconBase=getMobileSkillIcon;
 getMobileSkillIcon=function(key){return selectedCharacter==='lush'?{image:ensureGameImage(lushArt.skills[{q:0,e:1,x:2,r:3}[key]])}:lushSkillIconBase(key);};
 const lushSkillNameBase=getMobileSkillName;
-getMobileSkillName=function(key){return selectedCharacter==='lush'?{q:'데드 다이스',e:lushState.pot?'재베팅':'베팅',x:'보상 확정',r:'하우스 올인'}[key]:lushSkillNameBase(key);};
+getMobileSkillName=function(key){return selectedCharacter==='lush'?{q:'로열 스트레이트',e:'더블 오어 다이',x:'캐시아웃',r:'하우스 올인'}[key]:lushSkillNameBase(key);};
 const lushSkillCooldownBase=getMobileSkillCooldown;
 getMobileSkillCooldown=function(key){return selectedCharacter==='lush'?{value:player['lush'+key+'Cooldown']||0,max:LUSH_CD[key]||1}:lushSkillCooldownBase(key);};
 const lushSkillTargetBase=getMobileSkillTargetSpec;
 getMobileSkillTargetSpec=function(key){
   if(selectedCharacter!=='lush')return lushSkillTargetBase(key);
-  if(key==='q')return {type:'line',range:500,width:68,endRadius:245,capsule:true};
-  if(key==='r')return {type:'self',range:600,aim:false};
+  if(key==='q')return {type:'line',range:1100,width:68,capsule:true};
+  if(key==='e')return {type:'line',range:500,width:72,endRadius:280,capsule:true};
+  if(key==='x')return {type:'self',range:360+lushTier()*20,aim:false};
+  if(key==='r')return {type:'self',range:620,aim:false};
   return null;
 };
 const lushAttackTargetBase=getMobileAttackTargetSpec;
-getMobileAttackTargetSpec=function(){return selectedCharacter==='lush'?{type:'line',range:765,width:18}:lushAttackTargetBase();};
+getMobileAttackTargetSpec=function(){return selectedCharacter==='lush'?{type:'cone',range:980,arc:.34,centerArrow:true}:lushAttackTargetBase();};
 const lushAugmentIconBase=drawAugmentIcon;
 drawAugmentIcon=function(id,x,y,size,transcendent=false){const i=lushAugmentDefs.findIndex(d=>d.id===id);if(i<0)return lushAugmentIconBase(id,x,y,size,transcendent);const im=ensureGameImage(lushArt.augments[i]);if(im.complete&&im.naturalWidth)ctx.drawImage(im,x,y,size,size);};
