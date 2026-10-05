@@ -46,10 +46,50 @@ function lushTarget(x,y,range=1000,angle=null){
   }return best;
 }
 function lushSpawnCard(x,y,a,extra={}){
-  const c={x,y,a,life:75,maxLife:75,suit:0,kind:'basic',rank:0,power:1.2,radius:10,speed:19,range:980,distance:0,homing:.014,hits:new Set(),trail:[],...extra};
+  const c={x,y,a,life:75,maxLife:75,suit:0,kind:'basic',rank:0,power:1.2,radius:10,speed:19,range:980,distance:0,homing:.014,ricochetEligible:false,hits:new Set(),trail:[],...extra};
   // Old basic cards are the first to expire in prolonged late-game fights.
   if(lushState.cards.length>=176){const i=lushState.cards.findIndex(card=>card.kind==='basic'||card.kind==='dealer');lushState.cards.splice(i<0?0:i,1);}
   lushState.cards.push(c);return c;
+}
+function lushRicochetTarget(x,y,origin){
+  let best=null,distance=600;
+  for(const z of zombies){if(z===origin||z.hp<=0)continue;const d=Math.hypot(z.x-x,z.y-y);if(d<=distance){best=z;distance=d;}}
+  return best||(origin.hp>0&&zombies.includes(origin)&&Math.hypot(origin.x-x,origin.y-y)<=600?origin:null);
+}
+function lushBeginRicochetLoop(c){
+  c.ricochetPhase='loop';c.loopRadius=72;c.loopProgress=0;c.loopStartAngle=c.a-Math.PI/2;
+  c.loopCenterX=c.x-Math.sin(c.a)*c.loopRadius;c.loopCenterY=c.y+Math.cos(c.a)*c.loopRadius;
+}
+function lushSpawnRicochet(source,origin,damage){
+  const target=lushRicochetTarget(source.x,source.y,origin);if(!target)return;
+  const c=lushSpawnCard(source.x,source.y,source.a,{kind:'ricochet',sourceKind:source.kind,suit:source.suit,rank:source.rank,
+    power:source.power*.5,damage:damage*.5,radius:source.radius,speed:source.speed+3,homing:0,life:90,maxLife:90,range:1800,
+    target,originTarget:origin,ricochetUsed:true,ricochetPhase:'seek',age:0,looped:false});
+  if(target===origin)lushBeginRicochetLoop(c);
+  lushFx('ricochet',c.x,c.y,32,{angle:c.a,life:24,maxLife:24});
+}
+function lushUpdateRicochet(c){
+  const old={x:c.x,y:c.y};c.age++;c.life--;
+  if(c.target.hp<=0||!zombies.includes(c.target)){
+    c.target=lushRicochetTarget(c.x,c.y,c.originTarget);if(!c.target)return false;
+    if(c.target===c.originTarget&&!c.looped&&c.ricochetPhase!=='loop')lushBeginRicochetLoop(c);
+  }
+  if(c.ricochetPhase==='loop'){
+    // Collision stays disabled until the entire circle has finished, even for large targets.
+    const step=Math.min(c.speed,(Math.PI*2-c.loopProgress)*c.loopRadius);c.distance+=step;
+    c.loopProgress=Math.min(Math.PI*2,c.loopProgress+step/c.loopRadius);
+    const angle=c.loopStartAngle+c.loopProgress;c.x=c.loopCenterX+Math.cos(angle)*c.loopRadius;c.y=c.loopCenterY+Math.sin(angle)*c.loopRadius;c.a=angle+Math.PI/2;
+    if(c.loopProgress>=Math.PI*2){c.looped=true;c.ricochetPhase='seek';}
+  }else{
+    c.a=Math.atan2(c.target.y-c.y,c.target.x-c.x);const step=Math.min(c.speed,Math.hypot(c.target.x-c.x,c.target.y-c.y));
+    c.x+=Math.cos(c.a)*step;c.y+=Math.sin(c.a)*step;c.distance+=step;
+    if(lushSegmentDistance(c.target,old,c)<=(c.target.r||0)+c.radius){
+      if(lushDamage(c.target,c.damage))lushFx('hit',c.x,c.y,30);
+      return false;
+    }
+  }
+  c.trail.push(old);if(c.trail.length>12)c.trail.shift();
+  return c.life>0&&c.distance<c.range;
 }
 function lushLaunchDie(power=1,opensBet=false,extra={}){
   const angle=extra.a===undefined?lushAim():extra.a,eye=extra.eye||lushRoll();lushState.lastDie=eye;lushState.lastAngle=angle;
@@ -59,11 +99,11 @@ function lushLaunchDie(power=1,opensBet=false,extra={}){
 }
 function attackWithLush(){
   if(player.fireCooldown>0)return;const s=lushState,a=lushAim(),tier=lushTier();s.shots++;
-  for(const off of [-.17,0,.17])lushSpawnCard(player.x,player.y,a+off,{suit:s.shots%4});
-  if(s.shots%4===0){lushSpawnCard(player.x,player.y,a,{kind:'ace',rank:4,suit:0,power:3.6,radius:21,speed:23,range:1120,homing:.008});lushFx('ace',player.x,player.y,70,{angle:a});}
+  for(const off of [-.17,0,.17])lushSpawnCard(player.x,player.y,a+off,{suit:s.shots%4,ricochetEligible:true});
+  if(s.shots%4===0){lushSpawnCard(player.x,player.y,a,{kind:'ace',rank:4,suit:0,power:3.6,radius:21,speed:23,range:1120,homing:.008,ricochetEligible:true});lushFx('ace',player.x,player.y,70,{angle:a});}
   for(let i=0;i<tier;i++){
     const side=i%2?-1:1,offset=side*(34+Math.floor(i/2)*20);
-    lushSpawnCard(player.x-Math.sin(a)*offset,player.y+Math.cos(a)*offset,a,{kind:'dealer',power:1.15,homing:.025,suit:i%4});
+    lushSpawnCard(player.x-Math.sin(a)*offset,player.y+Math.cos(a)*offset,a,{kind:'dealer',power:1.15,homing:.025,suit:i%4,ricochetEligible:true});
   }
   player.fireCooldown=s.failureTime>0&&upgradeCount.lushRecovery>0?15:23;
   if(s.ultimate&&s.ultimate.age>=24)lushStopReel();
@@ -181,8 +221,9 @@ function lushUpdateRoyalBursts(){
   }
 }
 function lushUpdateCards(){
-  const s=lushState,targets=[...zombies];
+  const s=lushState,targets=[...zombies],ricochets=[];
   for(let i=s.cards.length-1;i>=0;i--){const c=s.cards[i],old={x:c.x,y:c.y};
+    if(c.kind==='ricochet'){if(!lushUpdateRicochet(c))s.cards.splice(i,1);continue;}
     if(c.homing&&s.frame%3===0){const z=lushTarget(c.x,c.y,500,c.a);if(z)c.a+=Math.max(-c.homing*3,Math.min(c.homing*3,lushAngleDelta(Math.atan2(z.y-c.y,z.x-c.x),c.a)));}
     c.x+=Math.cos(c.a)*c.speed;c.y+=Math.sin(c.a)*c.speed;c.distance+=c.speed;c.life--;c.trail.push(old);if(c.trail.length>9)c.trail.shift();
     for(const z of targets){if(z.hp<=0||c.hits.has(z)||lushSegmentDistance(z,old,c)>(z.r||0)+c.radius)continue;
@@ -192,11 +233,16 @@ function lushUpdateCards(){
         z.lushMarks=0;z.lushMarkUntil=0;const power=c.markPower||1;
         lushDamage(z,lushPower(c.power+marks*1.9*power));lushCircle(z.x,z.y,115+marks*9,marks*1.15*power);
         lushFx('royalDetonate',z.x,z.y,115+marks*9,{count:marks,life:56,maxLife:56});
-      }else lushDamage(z,lushPower(c.power));
+      }else{
+        const damage=lushPower(c.power);
+        if(lushDamage(z,damage)&&c.ricochetEligible&&!c.ricochetUsed){c.ricochetUsed=true;ricochets.push({source:c,origin:z,damage});}
+      }
       lushFx('hit',c.x,c.y,c.kind==='royal'?38:24);
     }
     if(c.life<=0||c.distance>=c.range)s.cards.splice(i,1);
   }
+  // Spawning after iteration keeps the shared card cap from shifting active card indices.
+  for(const r of ricochets)lushSpawnRicochet(r.source,r.origin,r.damage);
 }
 function lushUpdateDice(){
   const s=lushState;

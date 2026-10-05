@@ -215,9 +215,10 @@ function drawLushEffects(){
   for(const h of s.hazards||[]){const p=lushVfxClamp(h.age/60);ctx.save();ctx.globalAlpha=.65;ctx.strokeStyle='#ff416d';ctx.lineWidth=2;ctx.setLineDash([8,6]);ctx.beginPath();ctx.arc(h.x,h.y,h.r,0,LUSH_TAU);ctx.stroke();ctx.setLineDash([]);ctx.lineWidth=3;ctx.beginPath();ctx.arc(h.x,h.y,h.r,-Math.PI/2,-Math.PI/2+LUSH_TAU*p);ctx.stroke();ctx.restore();}
   for(const f of s.finishers||[]){if(f.age>=0||!lushVfxVisible(f.x,f.y,f.radius+220))continue;const p=1-lushVfxClamp(-f.age/Math.max(1,f.delay||30));lushVfxShock(f.x,f.y,f.radius,p,.45);if(f.type==='die'||f.kind==='die'){const y=f.y-260*(1-p),size=48+60*p;lushVfxLance(f.x,y,-Math.PI/2,170,25,p*.55);lushVfxDie(f.x,y,size,6,-.13+(1-p)*.4,true,.35+p*.65);}}
   for(const storm of s.chipStorms||[])lushVfxChipStorm(storm);
-  for(const c of s.cards){if(!lushVfxVisible(c.x,c.y,150))continue;const royal=c.kind==='royal',ace=c.kind==='ace'||c.kind==='finisher',dealer=c.kind==='dealer',size=royal?37:ace?32:dealer?19:17,red=(c.suit||0)%2===1;
+  for(const c of s.cards){if(!lushVfxVisible(c.x,c.y,150))continue;const royal=c.kind==='royal',ricochet=c.kind==='ricochet',ace=c.kind==='ace'||c.kind==='finisher',dealer=c.kind==='dealer',size=royal?37:ace?32:ricochet?20:dealer?19:17,red=(c.suit||0)%2===1;
     lushVfxRibbon(c.trail,c,royal?23:ace?18:10,red,royal?.95:.78);
     if(royal||ace){lushVfxLance(c.x,c.y,c.a,royal?120:75,royal?18:12,.6,red);lushVfxFlare(c.x,c.y,royal?65:42,.45);}
+    if(ricochet){lushVfxFlare(c.x,c.y,30,.28);const tail=c.trail||[];for(let k=3;k<tail.length;k+=4){const p=tail[k];lushDiamond(p.x,p.y,1.6,'#fff0cba8',c.a+k*.5);}}
     lushVfxCard(c.x,c.y,c.a+Math.PI/2,size,c.rank??(ace?4:0),c.suit<0?0:c.suit??0,1);
     if(royal){ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#fff0b4aa';ctx.lineWidth=1;ctx.translate(c.x,c.y);ctx.rotate(c.a);for(const sign of [-1,1]){ctx.beginPath();ctx.moveTo(-95,sign*19);ctx.quadraticCurveTo(-30,sign*29,20,sign*12);ctx.stroke();}ctx.restore();}
   }

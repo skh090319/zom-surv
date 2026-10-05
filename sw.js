@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v84-lush-royal";
+const CACHE_VERSION = "zombie-survival-v85-lush-intro";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -6,6 +6,7 @@ const CORE_ASSETS = [
   "./",
   "./index.html",
   "./style.css",
+  "./studio-intro.css",
   "./manifest.webmanifest",
   "./background.webp",
   "./assets/lobby-background-v1.webp",
@@ -19,6 +20,7 @@ const CORE_ASSETS = [
   "./assets/pwa/icon-512.png",
   "./assets/pwa/icon-maskable-512.png",
   "./js/00-assets.js",
+  "./js/studio-intro.js",
   "./js/01-core.js",
   "./js/02-upgrades.js",
   "./js/03-input.js",

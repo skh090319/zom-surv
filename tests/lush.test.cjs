@@ -38,6 +38,97 @@ test('basic attacks have three piercing cards, every fourth ace and permanent ti
   const g=game(),a=g.enemy(1250,1000),b=g.enemy(1500,1000);g.run('attackWithLush()');assert.equal(g.run('lushState.cards.length'),3);g.step(40);assert.ok(a.hp<100000&&b.hp<100000);
   g.run('lushState.cards=[];lushState.shots=3;player.fireCooldown=0;lushState.totalAssets=700;attackWithLush()');assert.equal(g.run('lushState.cards.length'),8);assert.equal(g.run("lushState.cards.filter(c=>c.kind==='ace').length"),1);
 });
+test('each basic card makes one complete collision-free circle before hitting a lone target for half damage',()=>{
+  const g=game(),z=g.enemy(1100,1000);g.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');g.step(4);
+  assert.equal(z.hp,99988);const bounce=g.run("lushState.cards.find(c=>c.kind==='ricochet')");
+  assert.ok(bounce);assert.equal(bounce.damage,6);assert.equal(bounce.target,z);assert.equal(bounce.ricochetPhase,'loop');assert.equal(bounce.age,0);
+  const start={x:bounce.x,y:bounce.y},positions=[];
+  while(bounce.ricochetPhase==='loop'){
+    g.step(1);positions.push({x:bounce.x,y:bounce.y});assert.equal(z.hp,99988);
+    assert.ok(Math.abs(Math.hypot(bounce.x-bounce.loopCenterX,bounce.y-bounce.loopCenterY)-72)<1e-8);
+    assert.ok(positions.length<30);
+  }
+  assert.equal(positions.length,21);assert.equal(bounce.loopProgress,Math.PI*2);assert.equal(bounce.looped,true);
+  assert.ok(Math.hypot(bounce.x-start.x,bounce.y-start.y)<1e-8);assert.ok(Math.max(...positions.map(p=>p.y))-Math.min(...positions.map(p=>p.y))>140);
+  g.step(1);assert.equal(z.hp,99982);assert.equal(g.run("lushState.cards.some(c=>c.kind==='ricochet')"),false);
+  g.step(100);assert.equal(z.hp,99982);assert.equal(g.run('lushState.cards.length'),0);
+});
+test('ricochet chooses the nearest other live enemy within 600 and cannot chain to a third enemy',()=>{
+  const g=game(),a=g.enemy(1100,1000),b=g.enemy(1100,1120),c=g.enemy(1100,1250),dead=g.enemy(1100,1040,0);
+  g.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');g.step(4);
+  const bounce=g.run("lushState.cards.find(c=>c.kind==='ricochet')");assert.equal(bounce.target,b);assert.equal(bounce.ricochetPhase,'seek');assert.equal(bounce.ricochetEligible,false);
+  g.step(120);assert.equal(a.hp,99988);assert.equal(b.hp,99994);assert.equal(c.hp,100000);assert.equal(dead.hp,0);assert.equal(g.run('lushState.cards.length'),0);
+});
+test('original cards still pierce but only their first successful hit creates a ricochet',()=>{
+  const g=game(),a=g.enemy(1100,1000),b=g.enemy(1300,1000),c=g.enemy(1600,1000);
+  g.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');let count=0;
+  for(let i=0;i<100;i++){g.step(1);count+=g.run("lushState.cards.filter(c=>c.kind==='ricochet'&&c.age===0).length");}
+  assert.equal(count,1);assert.equal(a.hp,99988);assert.equal(b.hp,99982);assert.equal(c.hp,99988);
+});
+test('ricochet freezes half of the actual scaled hit even if assets and buffs later change',()=>{
+  const g=game(),a=g.enemy(1100,1000),b=g.enemy(1100,1200);g.c.scaledDamage=n=>n*2;
+  g.run('lushState.totalAssets=200;lushState.buff=.5;lushState.buffTime=500;lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');g.step(4);
+  assert.equal(a.hp,99928);assert.equal(g.run("lushState.cards.find(c=>c.kind==='ricochet').damage"),36);
+  g.run('lushState.totalAssets=2000;lushState.buff=3');g.step(50);assert.equal(b.hp,99964);
+});
+test('fourth-shot golden ace and wealth side cards each get one correctly scaled ricochet',()=>{
+  for(const kind of ['basic','ace','dealer']){
+    const g=game(),z=g.enemy(1100,1000);g.run(`lushState.shots=3;lushState.totalAssets=700;attackWithLush();lushState.cards=[lushState.cards.find(c=>c.kind==='${kind}')];lushState.cards[0].x=1000;lushState.cards[0].y=1000;lushState.cards[0].a=0;lushState.cards[0].homing=0`);
+    const expected=g.run('lushPower(lushState.cards[0].power)');g.step(4);const bounce=g.run("lushState.cards.find(c=>c.kind==='ricochet')");
+    assert.ok(bounce,kind);assert.equal(bounce.sourceKind,kind);assert.equal(bounce.damage,expected*.5);g.step(120);assert.ok(Math.abs(100000-z.hp-expected*1.5)<1e-8,kind);
+  }
+});
+test('ricochets do not shorten normal or recovery fire cadence or create additional base shots',()=>{
+  for(const recovery of [false,true]){
+    const g=game();g.enemy(1100,1000);g.run(recovery?'lushState.failureTime=180;upgradeCount.lushRecovery=1':'0');const cadence=recovery?15:23;
+    g.run('attackWithLush()');assert.equal(g.c.player.fireCooldown,cadence);
+    for(let i=1;i<cadence;i++){g.run('player.fireCooldown--;updateLush();attackWithLush()');assert.equal(g.run('lushState.shots'),1);}
+    assert.ok(g.run("lushState.cards.some(c=>c.kind==='ricochet')"));g.run('player.fireCooldown--;updateLush();attackWithLush()');assert.equal(g.run('lushState.shots'),2);assert.equal(g.c.player.fireCooldown,cadence);
+  }
+});
+test('a lethal initial hit can ricochet to another live enemy without extra kill credit',()=>{
+  const g=game(),a=g.enemy(1100,1000,1),b=g.enemy(1100,1120);g.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');g.step(4);
+  assert.equal(g.c.zombies.includes(a),false);assert.equal(g.run("lushState.cards.find(c=>c.kind==='ricochet').damage"),6);g.step(100);
+  assert.equal(b.hp,99994);assert.equal(g.run('lushState.chips'),1);assert.equal(g.run('lushState.totalAssets'),1);
+});
+test('a ricochet kill earns exactly one chip and asset with no recursive hit or extra attack',()=>{
+  const g=game();g.enemy(1100,1000);g.enemy(1100,1120,6);g.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');g.step(100);
+  assert.equal(g.c.zombies.length,1);assert.equal(g.run('lushState.chips'),1);assert.equal(g.run('lushState.totalAssets'),1);assert.equal(g.run('lushState.cards.length'),0);
+});
+test('ricochet sweeps only its selected target, ignoring enemies crossing the path',()=>{
+  const g=game();g.enemy(1100,1000);const target=g.enemy(1100,1300);g.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');g.step(4);
+  const bystander=g.enemy(1100,1140);g.run("lushState.cards.find(c=>c.kind==='ricochet').speed=400");g.step(1);
+  assert.equal(target.hp,99994);assert.equal(bystander.hp,100000);assert.equal(g.run("lushState.cards.some(c=>c.kind==='ricochet')"),false);
+});
+test('a dead ricochet target retargets safely, or circles back to the surviving original',()=>{
+  const g=game(),a=g.enemy(1100,1000),b=g.enemy(1100,1200),c=g.enemy(1100,1400);g.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');g.step(4);b.hp=0;g.step(1);
+  assert.equal(g.run("lushState.cards.find(c=>c.kind==='ricochet').target"),c);g.step(100);assert.equal(a.hp,99988);assert.equal(c.hp,99994);
+  const h=game(),original=h.enemy(1100,1000),other=h.enemy(1100,1200);h.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');h.step(4);h.c.zombies.splice(h.c.zombies.indexOf(other),1);h.step(1);
+  assert.equal(h.run("lushState.cards.find(c=>c.kind==='ricochet').ricochetPhase"),'loop');assert.equal(original.hp,99988);h.step(100);assert.equal(original.hp,99982);
+});
+test('isolated dead targets despawn, distant enemies do not prevent the circle, and chase lifetime is bounded',()=>{
+  const g=game(),a=g.enemy(1100,1000);g.enemy(1100,1700);g.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');g.step(4);
+  assert.equal(g.run("lushState.cards.find(c=>c.kind==='ricochet').ricochetPhase"),'loop');a.hp=0;g.step(1);assert.equal(g.run("lushState.cards.some(c=>c.kind==='ricochet')"),false);
+  const h=game(),dead=h.enemy(1100,1000,1);h.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');h.step(4);assert.equal(h.c.zombies.includes(dead),false);assert.equal(h.run("lushState.cards.some(c=>c.kind==='ricochet')"),false);
+  const k=game();k.enemy(1100,1000);const runner=k.enemy(1100,1300);k.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');k.step(4);
+  for(let i=0;i<100;i++){runner.y+=30;k.step(1);}assert.equal(runner.hp,100000);assert.equal(k.run('lushState.cards.length'),0);
+});
+test('a large lone enemy cannot be hit again during the full circular flight',()=>{
+  const g=game(),z=g.enemy(1100,1000);z.r=200;g.run('lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');g.step(1);assert.equal(z.hp,99988);
+  g.step(21);assert.equal(z.hp,99988);g.step(1);assert.equal(z.hp,99982);
+});
+test('Q, automatic ultimate dealers and finisher cards never gain basic ricochets',()=>{
+  const q=game();q.enemy(1250,1000);q.run('activateLushQ()');let qBounces=0;
+  for(let i=0;i<100;i++){q.step(1);qBounces+=q.run("lushState.cards.filter(c=>c.kind==='ricochet'||c.ricochetEligible).length");}assert.equal(qBounces,0);
+  const r=game();r.enemy(1250,1000);r.run('activateLushR()');let rBounces=0;
+  for(let i=0;i<180;i++){r.step(1);rBounces+=r.run("lushState.cards.filter(c=>c.kind==='ricochet'||c.ricochetEligible).length");}assert.equal(rBounces,0);
+  r.run('lushRadialCards(36,5.8)');assert.equal(r.run('lushState.cards.some(c=>c.ricochetEligible)'),false);
+});
+test('ricochet spawning at the card cap cannot update a source twice or grow the card pool',()=>{
+  const g=game(),z=g.enemy(1019,1000);g.run('for(let i=0;i<176;i++)lushSpawnCard(1000,1000,0,{ricochetEligible:true,homing:0})');g.step(1);
+  assert.equal(z.hp,100000-176*12);assert.equal(g.run('lushState.cards.length'),176);assert.equal(g.run("lushState.cards.filter(c=>c.kind==='ricochet').length"),176);
+  g.step(150);assert.equal(z.hp,100000-176*18);assert.equal(g.run('lushState.cards.length'),0);
+});
 test('kill awards exactly one chip and permanent asset even under repeated kill processing',()=>{
   const g=game(),z=g.enemy(1100,1000,1);g.c.victim=z;g.run('lushAwardKill(victim);lushAwardKill(victim);lushDamage(victim,100);lushDamage(victim,100)');assert.equal(g.run('lushState.chips'),1);assert.equal(g.run('lushState.totalAssets'),1);assert.equal(g.c.zombies.length,0);
 });

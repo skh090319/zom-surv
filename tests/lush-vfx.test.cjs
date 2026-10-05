@@ -3,7 +3,19 @@ const source=fs.readFileSync(path.join(__dirname,'../js/11-lush-vfx.js'),'utf8')
 function scene({loaded=true}={}){
   let depth=0,canvases=0,calls=0,playerDraws=0;
   const gradient={addColorStop(){}};
-  function fakeContext(track=false){return new Proxy({},{get(target,key){if(key in target)return target[key];if(key==='save')return()=>{if(track)depth++;};if(key==='restore')return()=>{if(track)assert.ok(--depth>=0,'unmatched restore');};if(key==='createLinearGradient'||key==='createRadialGradient')return()=>gradient;return(...args)=>{calls++;for(const n of args)if(typeof n==='number')assert.ok(Number.isFinite(n),`${key} received ${n}`);};},set(target,key,value){if(typeof value==='number')assert.ok(Number.isFinite(value),`${key} received ${value}`);target[key]=value;return true;}});}
+  function fakeContext(track=false){
+    const saved=[],defaults={globalAlpha:1,globalCompositeOperation:'source-over',fillStyle:'#000000',strokeStyle:'#000000',lineWidth:1,lineCap:'butt',lineJoin:'miter',miterLimit:10,lineDashOffset:0,shadowBlur:0,shadowColor:'rgba(0, 0, 0, 0)',shadowOffsetX:0,shadowOffsetY:0,font:'10px sans-serif',textAlign:'start',textBaseline:'alphabetic',direction:'inherit',filter:'none',imageSmoothingEnabled:true,imageSmoothingQuality:'low'};
+    return new Proxy(defaults,{
+      get(target,key){
+        if(key in target)return target[key];
+        if(key==='save')return()=>{saved.push(Object.fromEntries(Object.entries(target).filter(([,value])=>typeof value!=='function')));if(track)depth++;};
+        if(key==='restore')return()=>{if(track)assert.ok(--depth>=0,'unmatched restore');const previous=saved.pop();if(!previous)return;for(const property of Object.keys(target))if(typeof target[property]!=='function')delete target[property];Object.assign(target,previous);};
+        if(key==='createLinearGradient'||key==='createRadialGradient')return()=>gradient;
+        return(...args)=>{calls++;for(const n of args)if(typeof n==='number')assert.ok(Number.isFinite(n),`${key} received ${n}`);};
+      },
+      set(target,key,value){if(typeof value==='number')assert.ok(Number.isFinite(value),`${key} received ${value}`);target[key]=value;return true;}
+    });
+  }
   const image=()=>({complete:loaded,naturalWidth:loaded?512:0,naturalHeight:512});
   const ctx=fakeContext(true),state={frame:100,totalAssets:800,realm:1,cards:[],dice:[],effects:[],hazards:[],finishers:[],chipStorms:[],shield:30};
   const c={console,Math,ctx,selectedCharacter:'lush',lushState:state,player:{x:500,y:500},camera:{x:0,y:0},canvas:{width:1280,height:760},zombies:[],lushArt:{body:image(),vfx:Object.fromEntries(['card','die','shatter','dealer','burst','sigil'].map(k=>[k,image()]))},Image:class{},document:{createElement(){canvases++;return{getContext:()=>fakeContext()};}},setGameImageSource:im=>im,ensureGameImage:im=>im,lushAim:()=>0,lushGlow(){},lushDiamond(){},getWorldViewScale:()=>1,worldStart(){ctx.save();},worldEnd(){ctx.restore();},drawLushPlayer(){playerDraws++;},drawLushRealm(){}};
@@ -23,3 +35,5 @@ test('rendering is read-only and reusable canvases are not reallocated per frame
 test('incoming giant dice, outgoing chips and finale fades remain valid at boundaries',()=>{const g=scene();populate(g);for(const age of [0,1,30,59,60,72,90,120]){g.state.chipStorms[0].age=age;g.state.ultimate.resolved=true;g.state.ultimate.finaleAge=age;for(const e of g.state.effects)e.age=age;g.state.finishers[0].age=age-30;g.run('drawLushEffects()');assert.equal(g.depth(),0);}});
 test('other heroes do not render LusH world effects or load its textures',()=>{const g=scene();populate(g);g.c.selectedCharacter='astra';g.run('drawLushEffects()');assert.equal(g.canvases(),0);assert.equal(g.calls(),0);assert.equal(g.depth(),0);});
 test('dense glass fragments are batched without dropping their silhouettes',()=>{const g=scene();let fills=0,strokes=0,polygons=0;g.c.ctx.fill=()=>fills++;g.c.ctx.stroke=()=>strokes++;g.c.ctx.closePath=()=>polygons++;g.run('lushVfxShards(100,100,300,20,60,12,true,false)');assert.equal(polygons,32);assert.equal(fills,2);assert.equal(strokes,4);assert.equal(g.depth(),0);});
+
+test('ricochet ribbons follow the full loop and remain read-only with bounded texture reuse',()=>{const g=scene();g.state.cards=[{kind:'ricochet',sourceKind:'basic',x:570,y:500,a:0,rank:0,suit:1,ricochetPhase:'loop',loopProgress:Math.PI,trail:Array.from({length:12},(_,i)=>({x:500+Math.cos(i*.25)*72,y:500+Math.sin(i*.25)*72}))}];const before=JSON.stringify(g.state);g.run('drawLushEffects()');const warm=g.canvases();for(const phase of ['loop','seek']){g.state.cards[0].ricochetPhase=phase;g.run('drawLushEffects()');}g.state.cards[0].ricochetPhase='loop';assert.equal(JSON.stringify(g.state),before);assert.equal(g.canvases(),warm);assert.equal(g.depth(),0);});

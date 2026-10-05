@@ -17,6 +17,8 @@
   <link rel="preload" as="font" type="font/ttf" crossorigin href="assets/fonts/BlackHanSans-Regular.ttf">
   <link rel="preload" as="font" type="font/ttf" crossorigin href="assets/fonts/DoHyeon-Regular.ttf">
   <link rel="stylesheet" href="style.css?v=20260929-no3d1">
+  <link rel="stylesheet" href="studio-intro.css?v=20261006-gloss1">
+  <script src="js/studio-intro.js?v=20261006-gloss1" defer></script>
   <script src="js/00-assets.js?v=20261005-realm1" defer></script>
   <script src="js/01-core.js?v=20261002-ocean-comet1" defer></script>
   <script src="js/02-upgrades.js?v=20261005-oblivion1" defer></script>
@@ -68,14 +70,21 @@
   <script src="js/08-mobile-targeting.js?v=20261002-frost-circuit2" defer></script>
   <script src="js/08-oblivion-ui.js?v=20261005-art-only3" defer></script>
   <script src="js/08-oblivion-prestige.js?v=20261005-art-only3" defer></script>
-  <script src="js/09-main.js?v=20261005-art-only3" defer></script>
-  <script src="js/10-lush.js?v=20261006-lush2" defer></script>
-  <script src="js/11-lush-presentation.js?v=20261006-lush2" defer></script>
-  <script src="js/11-lush-vfx.js?v=20261006-lush2" defer></script>
-  <script src="js/12-lush-integration.js?v=20261006-lush2" defer></script>
-  <script src="js/pwa.js?v=20260926-force-update1" defer></script>
+  <script src="js/09-main.js?v=20261006-gloss1" defer></script>
+  <script src="js/10-lush.js?v=20261006-lush3" defer></script>
+  <script src="js/11-lush-presentation.js?v=20261006-lush3" defer></script>
+  <script src="js/11-lush-vfx.js?v=20261006-lush3" defer></script>
+  <script src="js/12-lush-integration.js?v=20261006-lush3" defer></script>
+  <script src="js/pwa.js?v=20261006-gloss1" defer></script>
 </head>
 <body>
-  <canvas id="game"></canvas>
+  <section id="studio-intro" role="dialog" aria-modal="true" aria-label="세미콜론 스튜디오 인트로" hidden>
+    <video id="studio-intro-video" src="assets/intro/semicolon-gloss-v1.mp4" autoplay muted playsinline preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+    <div class="studio-intro-controls">
+      <button id="studio-intro-sound" type="button" aria-pressed="false">소리 켜기</button>
+      <button id="studio-intro-skip" type="button">건너뛰기</button>
+    </div>
+  </section>
+  <canvas id="game" tabindex="-1"></canvas>
 </body>
 </html>

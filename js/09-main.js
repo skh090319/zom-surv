@@ -393,7 +393,20 @@ function loop(now = performance.now()) {
 }
 
 
-restart();
-screenMode = "home";
-paused = false;
-loop();
+function startGameAfterStudioIntro() {
+  restart();
+  screenMode = "home";
+  paused = false;
+  // Start a fresh clock: video time must never become simulation catch-up work.
+  lastLoopTime = performance.now();
+  mobileUpdateAccumulator = 0;
+  loop(lastLoopTime);
+}
+
+// No game RAF, canvas drawing or demand-loaded image decoding under the video.
+// Keeping the normal script tags also preserves standalone character previews.
+if (typeof window !== "undefined" && window.studioIntro) {
+  window.studioIntro.finished.then(startGameAfterStudioIntro);
+} else {
+  startGameAfterStudioIntro();
+}

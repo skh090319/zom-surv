@@ -4,11 +4,14 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (refreshingForUpdate) return;
     refreshingForUpdate = true;
+    if (window.studioIntro) window.studioIntro.prepareForUpdateReload();
     location.reload();
   });
   addEventListener("load", async () => {
+    // Leave bandwidth and decoding time to the opening film before updating.
+    if (window.studioIntro) await window.studioIntro.finished;
     try {
-      const registration = await navigator.serviceWorker.register("./sw.js?v=20260926-17", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./sw.js?v=20261006-lush-intro1", { scope: "./", updateViaCache: "none" });
       await registration.update();
     } catch (error) {
       console.warn("PWA service worker registration failed", error);

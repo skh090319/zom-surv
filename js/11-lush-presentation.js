@@ -1,8 +1,9 @@
 // Image-backed casino ornament, animated glass bars and layered world-space VFX.
 function lushAsset(file){const image=setGameImageSource(new Image(),'assets/lush-v1/'+file+'.webp');image.assetGroup='lush';return image;}
 function lushV2Asset(file){const image=setGameImageSource(new Image(),'assets/lush-v2/'+file+'.webp');image.assetGroup='lush';return image;}
+function lushV3Asset(file){const image=setGameImageSource(new Image(),'assets/lush-v3/'+file+'.webp');image.assetGroup='lush';return image;}
 const lushArt={body:lushAsset('lush'),thumb:lushAsset('lush-thumb'),portrait:lushAsset('portrait'),realm:lushAsset('casino-realm'),slot:lushAsset('slot-machine'),
-  skills:[0,1,2,3].map(i=>lushV2Asset('skill-'+i)),augments:[0,1,2,3].map(i=>lushV2Asset('augment-'+i)),controls:[0,1,2,3].map(i=>lushAsset('control-'+i))};
+  skills:[0,1,2,3].map(i=>lushV2Asset('skill-'+i)),augments:[0,1,2,3].map(i=>lushV2Asset('augment-'+i)),controls:[0,1,2,3].map(i=>lushAsset('control-'+i)),resourceFrame:lushV3Asset('resource-frame')};
 lushArt.vfx=Object.fromEntries(['card','die','shatter','dealer','burst','sigil'].map(name=>[name,lushV2Asset('vfx-'+name)]));
 const lushTextures=new Map();
 function lushGlowTexture(color='gold'){
@@ -81,6 +82,8 @@ function drawLushPlayer(){
 }
 function lushControlArt(index,x,y,w,h=w){const im=ensureGameImage(lushArt.controls[index]);if(im.complete&&im.naturalWidth){
   if(index===3){const sw=im.naturalWidth,sh=im.naturalHeight,cap=sw*.23,d=Math.min(w*.24,cap*h/sh);ctx.drawImage(im,0,0,cap,sh,x,y,d,h);ctx.drawImage(im,cap,0,sw-cap*2,sh,x+d,y,w-d*2,h);ctx.drawImage(im,sw-cap,0,cap,sh,x+w-d,y,d,h);}
+  // The original skill frame's square crop includes an unrelated sliver on its right.
+  else if(index===2)ctx.drawImage(im,0,0,im.naturalWidth*.8125,im.naturalHeight,x,y,w,h);
   else ctx.drawImage(im,x,y,w,h);return true;}return false;}
 function drawLushSkillFrame(x,y,r){ctx.save();lushControlArt(2,x-r*1.13,y-r*1.13,r*2.26);ctx.restore();}
 function drawLushBar(x,y,w,h,ratio,label,kind){
@@ -94,23 +97,62 @@ function drawLushBar(x,y,w,h,ratio,label,kind){
   // Keep the image border's bevels visible while reserving a full-width bar interior.
   ctx.save();lushControlArt(3,x-10,y-5,w+20,h+10);ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`bold ${h<25?10:12}px Arial`;ctx.lineWidth=3;ctx.strokeStyle='#1b0810';ctx.fillStyle='#fff8dd';ctx.strokeText(label,x+w/2,y+h/2);ctx.fillText(label,x+w/2,y+h/2);ctx.restore();
 }
-function drawLushResource(x,y,w,h,compact=false){
-  const s=lushState;ctx.save();ctx.fillStyle='#180d1bef';ctx.strokeStyle='#bb8a49';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,h,7);ctx.fill();ctx.stroke();ctx.strokeStyle='#b9385755';ctx.strokeRect(x+4,y+4,w-8,h-8);
-  const im=ensureGameImage(lushArt.portrait),r=h*.36,cx=x+h*.5,cy=y+h*.5;ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();if(im.complete&&im.naturalWidth)ctx.drawImage(im,cx-r,cy-r,r*2,r*2.65);ctx.restore();
-  const tx=x+h+5;ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#ffe0a0';ctx.font=`bold ${compact?10:13}px Arial`;
-  const chance=(lushOdds()*100).toFixed(1).replace('.0','');ctx.fillText(`총자산 ${Math.floor(s.totalAssets||0)}  ·  TIER ${typeof lushTier==='function'?lushTier():0}  ·  피해 +${((s.totalAssets||0)*.5).toFixed(1)}%`,tx,y+h*.22,w-h-12);
-  ctx.font=`${compact?9:11}px Arial`;ctx.fillStyle='#f7d19c';ctx.fillText(`칩 ${s.chips}  ·  판돈 ${s.pot}  ·  ${s.wins}/4연승`,tx,y+h*.51,w-h-12);
-  ctx.fillStyle=s.bet?'#ffc395':'#f4d9cf';ctx.font=`${compact?9:11}px Arial`;
-  ctx.fillText(s.bet?'주사위 판정 중…':s.messageTime?s.message:`E 성공 ${chance}%  ·  X ${s.pot?'판돈 정산':'유리 보호막'}`,tx,y+h*.80,w-h-12);ctx.restore();
+function lushHudNumber(value){const n=Math.max(0,Number(value)||0);return n>=1e8?(n/1e8).toFixed(1).replace(/\.0$/,'')+'억':n>=1e4?(n/1e4).toFixed(1).replace(/\.0$/,'')+'만':String(Math.round(n*10)/10);}
+function lushHudText(text,x,y,width,size=12,minSize=size,bold=false){
+  let fontSize=size;const setFont=()=>ctx.font=`${bold?'bold ':''}${fontSize}px Arial`;setFont();
+  while(fontSize>minSize&&ctx.measureText(text).width>width){fontSize--;setFont();}
+  if(ctx.measureText(text).width>width){while(text.length&&ctx.measureText(text+'…').width>width)text=text.slice(0,-1);text+='…';}
+  // Canvas maxWidth scales glyphs horizontally; use measured text at its true font size.
+  ctx.fillText(text,x,y);
 }
+function drawLushResourceFrame(x,y,w,h){
+  const im=ensureGameImage(lushArt.resourceFrame);ctx.save();
+  if(im.complete&&im.naturalWidth&&im.naturalHeight){
+    const sw=im.naturalWidth,sh=im.naturalHeight,sx=sw*.14,sy=sh*.30,dx=h<70?13:22,dy=h<70?13:22;
+    const sourceX=[0,sx,sw-sx,sw],sourceY=[0,sy,sh-sy,sh],targetX=[x,x+dx,x+w-dx,x+w],targetY=[y,y+dy,y+h-dy,y+h];
+    for(let row=0;row<3;row++)for(let col=0;col<3;col++)ctx.drawImage(im,sourceX[col],sourceY[row],sourceX[col+1]-sourceX[col],sourceY[row+1]-sourceY[row],targetX[col],targetY[row],targetX[col+1]-targetX[col],targetY[row+1]-targetY[row]);
+  }else{
+    ctx.strokeStyle='#d6ae6d';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(x+1,y+1,w-2,h-2,8);ctx.stroke();
+    ctx.strokeStyle='#8d3a51';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x+5,y+5,w-10,h-10,5);ctx.stroke();
+    for(const px of [x+7,x+w-7])for(const py of [y+7,y+h-7])lushDiamond(px,py,4,'#da6176');
+  }ctx.restore();
+}
+function drawLushResource(x,y,w,h,compact=false){
+  const s=lushState;ctx.save();const fill=ctx.createLinearGradient(x,y,x,y+h);fill.addColorStop(0,'#291220f5');fill.addColorStop(1,'#100914f5');ctx.fillStyle=fill;ctx.beginPath();ctx.roundRect(x+3,y+3,w-6,h-6,8);ctx.fill();
+  const im=ensureGameImage(lushArt.portrait),r=compact?17:31,cx=x+(compact?27:46),cy=y+h/2;
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();ctx.fillStyle='#421c2c';ctx.fill();
+  if(im.complete&&im.naturalWidth&&im.naturalHeight){const crop=im.naturalWidth*.69;ctx.drawImage(im,im.naturalWidth*.21,0,crop,crop,cx-r,cy-r,r*2,r*2);}ctx.restore();
+  ctx.strokeStyle='#dfb66b';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy,r+.75,0,Math.PI*2);ctx.stroke();
+  const tx=cx+r+(compact?8:14),width=x+w-12-tx,assets=lushHudNumber(s.totalAssets),tier=typeof lushTier==='function'?lushTier():0,chance=(lushOdds()*100).toFixed(1).replace(/\.0$/,'');
+  ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#ffe7b2';
+  lushHudText(`${compact?'자산':'총자산'} ${assets} · ${compact?'T':'TIER '}${tier} · 피해 +${lushHudNumber((s.totalAssets||0)*.5)}%`,tx,y+h/2-(compact?14:24),width,compact?11:14,compact?10:12,true);
+  ctx.fillStyle='#f5d4b0';lushHudText(`칩 ${lushHudNumber(s.chips)} · 판돈 ${lushHudNumber(s.pot)} · ${s.wins}/4연승`,tx,y+h/2,width,compact?11:12,compact?10:11);
+  const message=s.bet?'주사위 판정 중…':s.messageTime?s.message:`E ${chance}% · X ${s.pot?'판돈 정산':'보호막'}`;
+  ctx.fillStyle=s.bet?'#ffc18d':'#dca7b4';lushHudText(message,tx,y+h/2+(compact?14:24),width,compact?10:12,compact?10:11);drawLushResourceFrame(x,y,w,h);ctx.restore();
+}
+function getLushDesktopHudLayout(){
+  const available=Math.max(240,canvas.width-28),cell=Math.min(98,available/4),skillWidth=cell*4,h=96,resourceWidth=Math.min(340,available),gap=14,stacked=available<resourceWidth+skillWidth+gap;
+  const totalWidth=stacked?Math.max(resourceWidth,skillWidth):resourceWidth+gap+skillWidth,bottom=canvas.height-60,top=bottom-h*(stacked?2:1)-(stacked?8:0),left=(canvas.width-totalWidth)/2;
+  const resource={x:stacked?(canvas.width-resourceWidth)/2:left,y:top,w:resourceWidth,h};
+  const skillX=stacked?(canvas.width-skillWidth)/2:left+resourceWidth+gap,skillY=stacked?top+h+8:top;
+  return{resource,skills:['q','e','x','r'].map((key,i)=>({key,x:skillX+cell*(i+.5),y:skillY+34,r:27,labelY:skillY+83,keyY:skillY+59,width:cell-6})),top,bottom,stacked};
+}
+function getLushMobileResourceBounds(){const w=Math.min(370,Math.max(230,canvas.width*.44),canvas.width-24),h=54;return{x:canvas.width/2,y:canvas.height-97,w,h};}
 function drawLushInterface(){
-  if(selectedCharacter!=='lush')return;const w=Math.min(700,canvas.width-30),x=(canvas.width-w)/2,y=canvas.height-151;
-  drawLushResource(x,y,w-285,80);for(let i=0;i<4;i++){const key=['q','e','x','r'][i],cx=x+w-245+i*68,cy=y+28,r=25;
-    drawMobileIcon({image:lushArt.skills[i]},cx,cy,r);const cd=player['lush'+key+'Cooldown'];if(cd>0)drawCooldownCover(cx,cy,r,cd/LUSH_CD[key],cd);drawLushSkillFrame(cx,cy,r);
-    if(key==='r'&&player.level<10){ctx.save();ctx.fillStyle='#140512ba';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 12px Arial';ctx.fillText('10레벨',cx,cy+4);ctx.restore();}
-    ctx.save();ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#ffe1a2';ctx.font='bold 10px Arial';
-    const labels=[['로열','스트레이트'],['더블','오어 다이'],['','캐시아웃'],['','하우스 올인']][i];
-    ctx.fillText(labels[0],cx,y+65);ctx.fillText(labels[1],cx,y+77);ctx.fillStyle='#fff';ctx.font='bold 11px Arial';ctx.fillText(key.toUpperCase(),cx,y+90);ctx.restore();}
+  if(selectedCharacter!=='lush'||isMobileTouchDevice())return;const layout=getLushDesktopHudLayout(),box=layout.resource;drawLushResource(box.x,box.y,box.w,box.h);
+  for(const [i,sk]of layout.skills.entries()){const {key,x:cx,y:cy,r}=sk;drawMobileIcon({image:lushArt.skills[i]},cx,cy,r);const cd=player['lush'+key+'Cooldown'];if(cd>0)drawCooldownCover(cx,cy,r,cd/LUSH_CD[key],cd);drawLushSkillFrame(cx,cy,r);
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+    if(key==='r'&&player.level<10){ctx.fillStyle='#140512cf';ctx.beginPath();ctx.arc(cx,cy,r*.91,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.fillText('10레벨',cx,cy);}
+    ctx.fillStyle='#2b1020';ctx.strokeStyle='#cfab69';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(cx+18,sk.keyY-12,20,20,4);ctx.fill();ctx.stroke();ctx.fillStyle='#fff0c5';ctx.font='bold 12px Arial';ctx.fillText(key.toUpperCase(),cx+28,sk.keyY-2);
+    ctx.fillStyle='#ffe5b4';lushHudText(getMobileSkillName(key),cx,sk.labelY,sk.width,12,11,true);ctx.restore();}
+}
+function drawLushMobileSkillLabel(sk){
+  const lines={q:['로열','스트레이트'],e:['더블','오어 다이'],x:['캐시아웃'],r:['하우스','올인']}[sk.key]||[getMobileSkillName(sk.key)];
+  ctx.save();ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='#fff3d2';ctx.shadowColor='#100813';ctx.shadowBlur=3;
+  // The default X and R centers are close together. Keep each complete line inside
+  // its own button diameter instead of widening or squeezing a single-line name.
+  for(const [i,line]of lines.entries())lushHudText(line,sk.x,sk.y+sk.r+11+i*11,sk.r*2,11,Math.min(8,Math.floor(sk.r*2/line.length)),true);
+  ctx.restore();
 }
 function drawLushMobileControls(){
   if(!isMobileTouchDevice()||isMobilePortraitMode()||screenMode!=='game'||paused||choosingUpgrade||gameOver||raidVictory)return;
@@ -120,7 +162,7 @@ function drawLushMobileControls(){
   for(const sk of skills){const i=['q','e','x','r'].indexOf(sk.key);drawMobileIcon({image:lushArt.skills[i]},sk.x,sk.y,sk.r);
     const cd=getMobileSkillCooldown(sk.key);if(cd?.value>0)drawCooldownCover(sk.x,sk.y,sk.r,cd.value/cd.max,cd.value);
     if(isMobileUltimateLocked(sk.key)){ctx.fillStyle='#120814cc';ctx.beginPath();ctx.arc(sk.x,sk.y,sk.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 14px Arial';ctx.fillText('10',sk.x,sk.y+4);}
-    drawLushSkillFrame(sk.x,sk.y,sk.r);ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.font='bold 9px Arial';ctx.fillStyle='#fff3d2';ctx.strokeStyle='#100813';ctx.lineWidth=3;const text=getMobileSkillName(sk.key),labelWidth=sk.r*2+14;ctx.strokeText(text,sk.x,sk.y+sk.r+12,labelWidth);ctx.fillText(text,sk.x,sk.y+sk.r+12,labelWidth);
+    drawLushSkillFrame(sk.x,sk.y,sk.r);drawLushMobileSkillLabel(sk);
   }ctx.restore();drawMobileSkillCancelButton();
 }
 function drawLushUltimatePortrait(){
