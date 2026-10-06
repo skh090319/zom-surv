@@ -117,8 +117,11 @@ function drawLushResourceFrame(x,y,w,h){
     for(const px of [x+7,x+w-7])for(const py of [y+7,y+h-7])lushDiamond(px,py,4,'#da6176');
   }ctx.restore();
 }
-function drawLushResource(x,y,w,h,compact=false){
-  const s=lushState;ctx.save();const fill=ctx.createLinearGradient(x,y,x,y+h);fill.addColorStop(0,'#291220f5');fill.addColorStop(1,'#100914f5');ctx.fillStyle=fill;ctx.beginPath();ctx.roundRect(x+3,y+3,w-6,h-6,8);ctx.fill();
+function drawLushPanelBackground(x,y,w,h){
+  const fill=ctx.createLinearGradient(x,y,x,y+h);fill.addColorStop(0,'#291220f5');fill.addColorStop(1,'#100914f5');ctx.fillStyle=fill;ctx.beginPath();ctx.roundRect(x+3,y+3,w-6,h-6,8);ctx.fill();
+}
+function drawLushResource(x,y,w,h,compact=false,framed=true){
+  const s=lushState;ctx.save();if(framed)drawLushPanelBackground(x,y,w,h);
   const im=ensureGameImage(lushArt.portrait),r=compact?17:31,cx=x+(compact?27:46),cy=y+h/2;
   ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();ctx.fillStyle='#421c2c';ctx.fill();
   if(im.complete&&im.naturalWidth&&im.naturalHeight){const crop=im.naturalWidth*.69;ctx.drawImage(im,im.naturalWidth*.21,0,crop,crop,cx-r,cy-r,r*2,r*2);}ctx.restore();
@@ -128,23 +131,32 @@ function drawLushResource(x,y,w,h,compact=false){
   lushHudText(`${compact?'자산':'총자산'} ${assets} · ${compact?'T':'TIER '}${tier} · 피해 +${lushHudNumber((s.totalAssets||0)*.5)}%`,tx,y+h/2-(compact?14:24),width,compact?11:14,compact?10:12,true);
   ctx.fillStyle='#f5d4b0';lushHudText(`칩 ${lushHudNumber(s.chips)} · 판돈 ${lushHudNumber(s.pot)} · ${s.wins}/4연승`,tx,y+h/2,width,compact?11:12,compact?10:11);
   const message=s.bet?'주사위 판정 중…':s.messageTime?s.message:`E ${chance}% · X ${s.pot?'판돈 정산':'보호막'}`;
-  ctx.fillStyle=s.bet?'#ffc18d':'#dca7b4';lushHudText(message,tx,y+h/2+(compact?14:24),width,compact?10:12,compact?10:11);drawLushResourceFrame(x,y,w,h);ctx.restore();
+  ctx.fillStyle=s.bet?'#ffc18d':'#dca7b4';lushHudText(message,tx,y+h/2+(compact?14:24),width,compact?10:12,compact?10:11);if(framed)drawLushResourceFrame(x,y,w,h);ctx.restore();
 }
 function getLushDesktopHudLayout(){
-  const available=Math.max(240,canvas.width-28),cell=Math.min(98,available/4),skillWidth=cell*4,h=96,resourceWidth=Math.min(340,available),gap=14,stacked=available<resourceWidth+skillWidth+gap;
-  const totalWidth=stacked?Math.max(resourceWidth,skillWidth):resourceWidth+gap+skillWidth,bottom=canvas.height-60,top=bottom-h*(stacked?2:1)-(stacked?8:0),left=(canvas.width-totalWidth)/2;
-  const resource={x:stacked?(canvas.width-resourceWidth)/2:left,y:top,w:resourceWidth,h};
-  const skillX=stacked?(canvas.width-skillWidth)/2:left+resourceWidth+gap,skillY=stacked?top+h+8:top;
-  return{resource,skills:['q','e','x','r'].map((key,i)=>({key,x:skillX+cell*(i+.5),y:skillY+34,r:27,labelY:skillY+83,keyY:skillY+59,width:cell-6})),top,bottom,stacked};
+  const available=Math.max(240,canvas.width-28),pad=12,insetY=10,innerWidth=available-pad*2;
+  const cell=Math.min(98,innerWidth/4),skillWidth=cell*4,resourceWidth=Math.min(340,innerWidth),stacked=available<resourceWidth+skillWidth+14+pad*2;
+  const compact=stacked&&canvas.height<420,resourceHeight=compact?64:96,skillHeight=compact?82:96,gap=compact?8:14;
+  const panelWidth=(stacked?Math.max(resourceWidth,skillWidth):resourceWidth+gap+skillWidth)+pad*2,panelHeight=(stacked?resourceHeight+gap+skillHeight:96)+insetY*2;
+  const bottom=canvas.height-60,top=bottom-panelHeight,panel={x:(canvas.width-panelWidth)/2,y:top,w:panelWidth,h:panelHeight};
+  const resource={x:stacked?(canvas.width-resourceWidth)/2:panel.x+pad,y:top+insetY,w:resourceWidth,h:resourceHeight};
+  const skillX=stacked?(canvas.width-skillWidth)/2:resource.x+resourceWidth+gap,skillY=stacked?resource.y+resource.h+gap:resource.y;
+  const divider=stacked?{x1:panel.x+22,y1:resource.y+resource.h+gap/2,x2:panel.x+panel.w-22,y2:resource.y+resource.h+gap/2}:{x1:resource.x+resource.w+gap/2,y1:panel.y+18,x2:resource.x+resource.w+gap/2,y2:panel.y+panel.h-18};
+  return{panel,resource,divider,skills:['q','e','x','r'].map((key,i)=>({key,x:skillX+cell*(i+.5),y:skillY+(compact?29:34),r:compact?24:27,labelY:skillY+(compact?71:83),keyY:skillY+(compact?54:59),width:cell-6})),top,bottom,stacked};
 }
 function getLushMobileResourceBounds(){const w=Math.min(370,Math.max(230,canvas.width*.44),canvas.width-24),h=54;return{x:canvas.width/2,y:canvas.height-97,w,h};}
 function drawLushInterface(){
-  if(selectedCharacter!=='lush'||isMobileTouchDevice())return;const layout=getLushDesktopHudLayout(),box=layout.resource;drawLushResource(box.x,box.y,box.w,box.h);
+  if(selectedCharacter!=='lush'||isMobileTouchDevice())return;const layout=getLushDesktopHudLayout(),box=layout.resource,panel=layout.panel,d=layout.divider;
+  ctx.save();drawLushPanelBackground(panel.x,panel.y,panel.w,panel.h);drawLushResource(box.x,box.y,box.w,box.h,false,false);
+  ctx.strokeStyle='#d6ac6455';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(d.x1,d.y1);ctx.lineTo(d.x2,d.y2);ctx.stroke();
+  lushDiamond(d.x1,d.y1,2.5,'#edc47f');lushDiamond(d.x2,d.y2,2.5,'#edc47f');
   for(const [i,sk]of layout.skills.entries()){const {key,x:cx,y:cy,r}=sk;drawMobileIcon({image:lushArt.skills[i]},cx,cy,r);const cd=player['lush'+key+'Cooldown'];if(cd>0)drawCooldownCover(cx,cy,r,cd/LUSH_CD[key],cd);drawLushSkillFrame(cx,cy,r);
     ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
     if(key==='r'&&player.level<10){ctx.fillStyle='#140512cf';ctx.beginPath();ctx.arc(cx,cy,r*.91,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.fillText('10레벨',cx,cy);}
     ctx.fillStyle='#2b1020';ctx.strokeStyle='#cfab69';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(cx+18,sk.keyY-12,20,20,4);ctx.fill();ctx.stroke();ctx.fillStyle='#fff0c5';ctx.font='bold 12px Arial';ctx.fillText(key.toUpperCase(),cx+28,sk.keyY-2);
     ctx.fillStyle='#ffe5b4';lushHudText(getMobileSkillName(key),cx,sk.labelY,sk.width,12,11,true);ctx.restore();}
+  // One ornament surrounds the resource section and all four skills together.
+  drawLushResourceFrame(panel.x,panel.y,panel.w,panel.h);ctx.restore();
 }
 function drawLushMobileSkillLabel(sk){
   const lines={q:['로열','스트레이트'],e:['더블','오어 다이'],x:['캐시아웃'],r:['하우스','올인']}[sk.key]||[getMobileSkillName(sk.key)];

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v86-lush-start-tracking";
+const CACHE_VERSION = "zombie-survival-v87-lush-unified-hud";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

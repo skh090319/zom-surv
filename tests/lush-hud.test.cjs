@@ -8,36 +8,76 @@ function scene({width=1280,height=760,mobile=false,loaded=true}={}){
     if(key==='save')return()=>stack.push({...target});
     if(key==='restore')return()=>{assert.ok(stack.length,'unmatched canvas restore');const saved=stack.pop();for(const k of Object.keys(target))delete target[k];Object.assign(target,saved);};
     if(key==='measureText')return text=>({width:[...text].reduce((sum,ch)=>sum+(/[^\x00-\x7f]/.test(ch)?1:.55),0)*(parseFloat(target.font.match(/[\d.]+px/)?.[0])||10)});
-    return(...args)=>{for(const value of args)if(typeof value==='number')assert.ok(Number.isFinite(value),`${key} received ${value}`);calls.push({method:key,args,font:target.font});if(key.startsWith('create'))return gradient;};
+    return(...args)=>{for(const value of args)if(typeof value==='number')assert.ok(Number.isFinite(value),`${key} received ${value}`);calls.push({method:key,args,font:target.font,textAlign:target.textAlign,textBaseline:target.textBaseline});if(key.startsWith('create'))return gradient;};
   }});
   const c={console,Math,ctx,canvas:{width,height},player:{level:10,hp:70,maxHp:100},selectedCharacter:'lush',screenMode:'game',paused:false,choosingUpgrade:false,gameOver:false,raidVictory:false,
     characterSkillGuide:{},guideCharacterOrder:[],exclusiveAugmentOwners:{},MOBILE_SKILL_KEYS:{},upgradeCount:{},transcended:{},upgrades:[],zombies:[],mobileControlSettings:{hud:{}},
     Image:class{constructor(){this.complete=loaded;this.naturalWidth=loaded?256:0;this.naturalHeight=loaded?256:0;}},setGameImageSource(im,src){im.src=src;return im;},ensureGameImage:im=>im,
     addEventListener(){},isMobileTouchDevice:()=>mobile,isMobilePortraitMode:()=>false,getWorldViewScale:()=>1,
-    drawMobileIcon(spec,x,y,r){calls.push({method:'mobileIcon',args:[spec,x,y,r]});},drawCooldownCover(){},drawMobileSkillCancelButton(){}};
+    drawMobileIcon(spec,x,y,r){calls.push({method:'mobileIcon',args:[spec,x,y,r]});},drawCooldownCover(...args){calls.push({method:'cooldown',args});},drawMobileSkillCancelButton(){}};
   for(const name of ['restart','shoot','reload','killZombie','absorbSuncallShield','update','updatePlayer','getCharacterPreviewSprite','drawPlayer','drawParticles','drawBackground','draw','drawHUD','drawHealthBar','drawExpBar','drawMobileCharacterResource','drawMobileControls','getMobileSkillIcon','getMobileSkillName','getMobileSkillCooldown','getMobileSkillTargetSpec','getMobileAttackTargetSpec','drawAugmentIcon'])c[name]=(...args)=>calls.push({method:'base:'+name,args});
   vm.createContext(c);for(const file of ['08-mobile-settings.js','10-lush.js','11-lush-presentation.js','12-lush-integration.js'])vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),c,{filename:file});
   return{c,calls,run:s=>vm.runInContext(s,c),depth:()=>stack.length,state:()=>({...state})};
 }
 
-test('desktop HUD aligns resource, portrait and four skills in one compact readable row',()=>{
+function assertInsidePanel(panel,box,description){
+  const tolerance=1e-7;
+  assert.ok(box.x>=panel.x-tolerance&&box.y>=panel.y-tolerance&&box.x+box.w<=panel.x+panel.w+tolerance&&box.y+box.h<=panel.y+panel.h+tolerance,`${description} is outside the shared HUD frame: ${JSON.stringify({panel,box})}`);
+}
+
+function assertDesktopDrawsInsidePanel(g,panel){
+  for(const call of g.calls){
+    const a=call.args;
+    if(call.method==='drawImage'){
+      const start=a.length===9?5:1;assertInsidePanel(panel,{x:a[start],y:a[start+1],w:a[start+2],h:a[start+3]},a[0].src);
+    }else if(call.method==='mobileIcon')assertInsidePanel(panel,{x:a[1]-a[3],y:a[2]-a[3],w:a[3]*2,h:a[3]*2},'skill icon');
+    else if(call.method==='roundRect')assertInsidePanel(panel,{x:a[0],y:a[1],w:a[2],h:a[3]},'panel fill or key badge');
+    else if(call.method==='fillText'){
+      const size=parseFloat(call.font.match(/[\d.]+px/)[0]),width=[...a[0]].reduce((sum,ch)=>sum+(/[^\x00-\x7f]/.test(ch)?1:.55),0)*size;
+      assertInsidePanel(panel,{x:a[1]-(call.textAlign==='center'?width/2:call.textAlign==='right'?width:0),y:a[2]-(call.textBaseline==='middle'?size/2:size),w:width,h:size},`text ${a[0]}`);
+    }
+  }
+}
+
+test('desktop HUD puts portrait, resource and every skill inside one compact framed row',()=>{
   const g=scene(),layout=g.run('getLushDesktopHudLayout()');assert.equal(layout.stacked,false);assert.equal(layout.resource.h,96);
+  assertInsidePanel(layout.panel,layout.resource,'resource region');
   g.run('lushState.totalAssets=150;lushState.chips=20;lushState.messageTime=0;drawLushInterface()');
   const names=g.calls.filter(c=>c.method==='fillText'&&['로열 스트레이트','더블 오어 다이','캐시아웃','하우스 올인'].includes(c.args[0]));
   assert.equal(names.length,4);assert.equal(new Set(names.map(c=>c.args[2])).size,1);
   assert.ok(names.every(c=>parseFloat(c.font.match(/[\d.]+px/)[0])>=11));
   const text=g.calls.filter(c=>c.method==='fillText');assert.ok(text.every(c=>c.args.length===3),'no glyphs are squeezed by Canvas maxWidth');
   for(const sk of layout.skills){assert.ok(sk.y-sk.r*1.13>=layout.resource.y);assert.ok(sk.labelY+8<=layout.resource.y+layout.resource.h);}
+  const frames=g.calls.filter(c=>c.method==='drawImage'&&c.args[0].src.endsWith('resource-frame.webp'));assert.equal(frames.length,9,'one shared outer frame, no separate resource-only frame');
+  assert.ok(Math.abs(Math.min(...frames.map(c=>c.args[5]))-layout.panel.x)<1e-8);assert.ok(Math.abs(Math.max(...frames.map(c=>c.args[5]+c.args[7]))-(layout.panel.x+layout.panel.w))<1e-8);
+  assert.ok(Math.abs(Math.min(...frames.map(c=>c.args[6]))-layout.panel.y)<1e-8);assert.ok(Math.abs(Math.max(...frames.map(c=>c.args[6]+c.args[8]))-(layout.panel.y+layout.panel.h))<1e-8);
+  assertDesktopDrawsInsidePanel(g,layout.panel);
   assert.equal(g.depth(),0);
 });
 
-test('narrow desktops reflow the complete HUD inside the viewport',()=>{
+test('wide and narrow desktops keep all contents inside the same outer panel',()=>{
   for(const [width,height]of [[1920,1080],[1024,768],[800,600],[640,480],[480,320]]){
-    const g=scene({width,height}),layout=g.run('getLushDesktopHudLayout()'),r=layout.resource;
-    assert.ok(r.x>=0&&r.x+r.w<=width&&r.y>=0&&r.y+r.h<=height);
-    for(const sk of layout.skills){assert.ok(sk.x-sk.width/2>=0&&sk.x+sk.width/2<=width);assert.ok(sk.labelY+8<=height-40);}
-    assert.equal(layout.stacked,width<774);g.run('drawLushInterface()');assert.equal(g.depth(),0);
+    const g=scene({width,height}),layout=g.run('getLushDesktopHudLayout()'),panel=layout.panel,before=g.state();
+    assertInsidePanel({x:0,y:0,w:width,h:height},panel,'outer panel');assertInsidePanel(panel,layout.resource,'resource region');
+    assert.ok(panel.y>=60,'short layouts leave the HP frame clear');assert.ok(panel.y+panel.h<=height-48,'panel leaves EXP clear');
+    for(const end of [1,2])assertInsidePanel(panel,{x:layout.divider['x'+end]-2.5,y:layout.divider['y'+end]-2.5,w:5,h:5},'divider ornament');
+    for(const sk of layout.skills){
+      assertInsidePanel(panel,{x:sk.x-sk.r*1.13,y:sk.y-sk.r*1.13,w:sk.r*2.26,h:sk.r*2.26},`${sk.key} ornament`);
+      assertInsidePanel(panel,{x:sk.x+18,y:sk.keyY-12,w:20,h:20},`${sk.key} key badge`);
+      assertInsidePanel(panel,{x:sk.x-sk.width/2,y:sk.labelY-8,w:sk.width,h:16},`${sk.key} name`);
+    }
+    assert.equal(layout.stacked,width<798);g.run('drawLushInterface()');assertDesktopDrawsInsidePanel(g,panel);assert.equal(g.depth(),0);assert.deepEqual(g.state(),before);
+    assert.equal(g.calls.filter(c=>c.method==='drawImage'&&c.args[0].src.endsWith('resource-frame.webp')).length,9);
   }
+});
+
+test('the unified desktop panel preserves all four cooldowns and the ultimate level lock',()=>{
+  const g=scene();g.run('player.level=9;player.lushqCooldown=210;player.lusheCooldown=75;player.lushxCooldown=150;player.lushrCooldown=1050;drawLushInterface()');
+  const skills=g.run('getLushDesktopHudLayout().skills'),cooldowns=g.calls.filter(c=>c.method==='cooldown');assert.equal(cooldowns.length,4);
+  for(const [i,call]of cooldowns.entries()){assert.deepEqual(call.args.slice(0,3),[skills[i].x,skills[i].y,skills[i].r]);assert.equal(call.args[3],i===0?1:.5);}
+  assert.equal(g.calls.filter(c=>c.method==='mobileIcon').length,4);assert.equal(g.calls.filter(c=>c.method==='fillText'&&c.args[0]==='10레벨').length,1);
+  assertDesktopDrawsInsidePanel(g,g.run('getLushDesktopHudLayout().panel'));assert.equal(g.depth(),0);
+  g.calls.length=0;g.run('player.level=10;drawLushInterface()');assert.equal(g.calls.filter(c=>c.method==='fillText'&&c.args[0]==='10레벨').length,0);assert.equal(g.calls.filter(c=>c.method==='cooldown').length,4);assert.equal(g.depth(),0);
 });
 
 test('phone and tablet resource bounds match rendering and preserve custom position and scale',()=>{
