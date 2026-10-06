@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v87-lush-unified-hud";
+const CACHE_VERSION = "zombie-survival-v88-oblivion-calamity";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -76,6 +76,11 @@ const CORE_ASSETS = [
   "./js/11-lush-presentation.js",
   "./js/11-lush-vfx.js",
   "./js/12-lush-integration.js",
+  "./js/12-oblivion-art.js",
+  "./js/13-oblivion-combat.js",
+  "./js/14-oblivion-vfx.js",
+  "./js/15-oblivion-ui.js",
+  "./js/16-oblivion-integration.js",
   "./js/pwa.js"
 ];
 

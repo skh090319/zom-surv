@@ -75,7 +75,7 @@ function getMobileSettingControls(){
     });
   }
   const layout=getMobileControlLayout();
-  return [{...layout.joystick,id:"joystick",name:"이동"},...(selectedCharacter==='oblivion'?[]:[{...layout.attack,id:"attack",name:"평타"}]),
+  return [{...layout.joystick,id:"joystick",name:"이동"},{...layout.attack,id:"attack",name:"평타"},
     ...layout.skills.map(skill=>({...skill,id:skill.key,name:getMobileSkillName(skill.key)}))];
 }
 
@@ -263,7 +263,12 @@ function drawMobileControlEditor(){
     }
     ctx.fillStyle="rgba(9,21,31,.92)";ctx.strokeStyle=selected?"#e8f7c1":id==="joystick"?"#6bcfe7":"#a99ed3";ctx.lineWidth=selected?3:1.5;
     ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
-    if(selectedCharacter==='astra'&&(id==='joystick'||id==='attack')){
+    if(selectedCharacter==='oblivion'&&typeof oblivionUiImage==='function'&&(id==='joystick'||id==='attack')){
+      if(id==='joystick'){
+        oblivionUiImage(oblivionCombatArt.joystickBase,x-r,y-r,r*2);
+        oblivionUiImage(oblivionCombatArt.joystickThumb,x-r*.36,y-r*.36,r*.72);
+      }else oblivionUiImage(oblivionCombatArt.attack,x-r,y-r,r*2);
+    }else if(selectedCharacter==='astra'&&(id==='joystick'||id==='attack')){
       drawAstraControlIcon(x,y,r,id,selected);
     }else if(id==="joystick"){
       ctx.fillStyle="#47778b";ctx.beginPath();ctx.arc(x,y,r*.35,0,Math.PI*2);ctx.fill();
@@ -272,6 +277,7 @@ function drawMobileControlEditor(){
       ctx.textAlign="center";ctx.fillStyle="#eaf4ff";ctx.font="bold 10px Arial";ctx.fillText(name,x,y+4,r*1.7);
     }
     if(selectedCharacter==='astra'&&id!=='joystick'&&id!=='attack')drawAstraSkillFrame(x,y,r);
+    if(selectedCharacter==='oblivion'&&typeof oblivionUiImage==='function'&&id!=='joystick'&&id!=='attack')oblivionUiImage(oblivionCombatArt.skillFrame,x-r*1.12,y-r*1.12,r*2.24);
     if(selected){ctx.strokeStyle="#e8f7c1";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+5,0,Math.PI*2);ctx.stroke();}
     ctx.textAlign="center";ctx.fillStyle="#f0f7fd";ctx.font="bold 10px Arial";
     if(id==="joystick"||id==="attack")ctx.fillText(name,x,Math.min(canvas.height-5,y+r+13));

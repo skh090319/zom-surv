@@ -63,6 +63,7 @@ function prepareGameImages() {
     if (screenMode === "home" || screenMode === "mobileSettings") needed ||= group === "lobby";
     // Prepare Astra's realm before a run without adding it to every hero's load.
     if (screenMode === "home" && selected === "astra") needed ||= image.assetSource === "assets/astra-ultimate-nebula-v1.webp" || image.assetSource === "assets/astra-ultimate-portrait-v1.webp";
+    if (screenMode === "home" && selected === "oblivion") needed ||= image.assetSource.startsWith("assets/oblivion-v4/");
     if (screenMode === "home" && group === selected) needed ||= image.assetSource.includes('/ultimate-backgrounds-v1/');
     if (screenMode === "mobileSettings" && settings === "controls") needed ||= group === selected;
     if (playing) needed ||= group === "world" || group === "boss" || group === selected || group === "augment";
