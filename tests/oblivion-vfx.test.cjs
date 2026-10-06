@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'../js/14-oblivion-vfx.js'),'utf8');
 function scene(loaded=true){
-  let depth=0,surfaces=0,operations=0,screenGradients=0;
+  let depth=0,surfaces=0,operations=0,screenGradients=0;const images=[],geometry=[];
   function context(track=false){
     const stack=[],values={globalAlpha:1,globalCompositeOperation:'source-over',shadowBlur:0};
     return new Proxy(values,{get(o,k){
@@ -9,14 +9,14 @@ function scene(loaded=true){
       if(k==='save')return()=>{stack.push({...o});if(track)depth++;};
       if(k==='restore')return()=>{const prior=stack.pop();assert.ok(prior,'balanced restore');Object.assign(o,prior);if(track)depth--;};
       if(k==='createRadialGradient'||k==='createLinearGradient')return()=>{if(track)screenGradients++;return{addColorStop(){}};};
-      return(...args)=>{operations++;for(const value of args)if(typeof value==='number')assert.ok(Number.isFinite(value),`${k}: ${value}`);};
+      return(...args)=>{operations++;for(const value of args)if(typeof value==='number')assert.ok(Number.isFinite(value),`${k}: ${value}`);if(track&&k==='drawImage')images.push({args,alpha:o.globalAlpha,composite:o.globalCompositeOperation});if(track&&(k==='moveTo'||k==='lineTo'||k==='translate'))geometry.push([k,...args]);};
     },set(o,k,v){if(typeof v==='number')assert.ok(Number.isFinite(v),`${k}: ${v}`);if(k==='shadowBlur')assert.equal(v,0,'frame rendering must not enable expensive blur');o[k]=v;return true;}});
   }
   const image=()=>({complete:loaded,naturalWidth:loaded?768:0,naturalHeight:1024}),ctx=context(true);
   const state={frame:150,gauge:80,empowered:true,ultimateTime:570,ultimateMax:600,formBlend:1,lastAngle:.2,avatarPulse:12,avatarX:440,avatarY:440,shield:30,projectiles:[],casts:[],effects:[]};
-  const c={Math,console,Map,Float64Array,ctx,oblivionState:state,selectedCharacter:'oblivion',screenMode:'game',player:{x:500,y:500,invincibleTime:0},camera:{x:0,y:0},canvas:{width:1280,height:760},oblivionSprite:image(),oblivionCombatArt:{monster:image()},heroUltimateBackdrops:{oblivion:image()},ensureGameImage:im=>im,getWorldViewScale:()=>1,worldStart(){ctx.save();},worldEnd(){ctx.restore();},document:{createElement(){surfaces++;return{getContext:()=>context()};}}};
+  const c={Math,console,Map,Float64Array,ctx,oblivionState:state,selectedCharacter:'oblivion',screenMode:'game',player:{x:500,y:500,invincibleTime:0},camera:{x:0,y:0},canvas:{width:1280,height:760},paused:false,choosingUpgrade:false,gameOver:false,raidVictory:false,isMobileTouchDevice:()=>false,oblivionSprite:image(),oblivionCombatArt:{monster:image()},heroUltimateBackdrops:{oblivion:image()},ensureGameImage:im=>im,getWorldViewScale:()=>1,worldStart(){ctx.save();},worldEnd(){ctx.restore();},document:{createElement(){surfaces++;return{getContext:()=>context()};}}};
   vm.createContext(c);vm.runInContext(source,c);
-  return{c,state,run:s=>vm.runInContext(s,c),depth:()=>depth,surfaces:()=>surfaces,operations:()=>operations,gradients:()=>screenGradients};
+  return{c,state,images,geometry,run:s=>vm.runInContext(s,c),depth:()=>depth,surfaces:()=>surfaces,operations:()=>operations,gradients:()=>screenGradients};
 }
 function populate(g){
   g.state.projectiles=[{x:600,y:400,a:.2,r:13,trail:Array.from({length:10},(_,i)=>({x:450+i*15,y:400-i*2}))}];
@@ -54,4 +54,55 @@ test('enemy hit crowds have bounded drawing work while major attacks remain visi
 test('other characters never load or draw Oblivion combat assets; sealed player uses original draw',()=>{
   const g=scene();populate(g);g.c.selectedCharacter='lush';g.run('drawOblivionCombatEffects();drawOblivionCombatRealm();drawOblivionCombatPortrait()');assert.equal(g.run('drawOblivionCombatPlayer()'),false);assert.equal(g.surfaces(),0);assert.equal(g.operations(),0);
   g.c.selectedCharacter='oblivion';g.state.empowered=false;g.state.ultimateTime=0;g.state.formBlend=0;assert.equal(g.run('drawOblivionCombatPlayer()'),false);
+});
+test('realm progress uses the 600-frame ultimate with 36-frame entry and 48-frame exit',()=>{
+  const g=scene();
+  for(const [life,expected] of [[600,0],[582,.5],[564,1],[300,1],[48,1],[24,.5],[0,0]]){
+    g.state.ultimateTime=life;assert.equal(g.run('getOblivionCombatRealmProgress()'),expected,`life ${life}`);
+  }
+  g.state.ultimateTime=300;g.c.paused=true;
+  assert.equal(g.run('getOblivionCombatRealmProgress()'),1,'paused realm holds simulation position');
+  delete g.c.player;assert.equal(g.run('getOblivionCombatRealmProgress()'),1,'minimal preview without player is safe');
+  delete g.c.oblivionState;assert.equal(g.run('getOblivionCombatRealmProgress()'),0,'no combat state is inactive');
+});
+test('loaded realm is a fully opaque image and covers PC/phone through its drift without stretching',()=>{
+  const g=scene(),im=g.c.heroUltimateBackdrops.oblivion;im.naturalWidth=1599;im.naturalHeight=900;
+  g.c.ctx.globalAlpha=.61;g.c.ctx.globalCompositeOperation='lighter';
+  for(const [width,height] of [[1280,720],[844,390]])for(const life of [564,300,48]){
+    g.c.canvas={width,height};g.state.ultimateTime=life;g.images.length=0;g.run('drawOblivionCombatRealm()');
+    assert.equal(g.images.length,1);const call=g.images[0],[drawn,x,y,w,h]=call.args;
+    assert.equal(drawn,im);assert.equal(call.alpha,1);assert.equal(call.composite,'source-over');
+    assert.ok(x<=0&&y<=0&&x+w>=width&&y+h>=height,'drift covers all edges');assert.ok(Math.abs(w/h-im.naturalWidth/im.naturalHeight)<1e-12);
+    assert.equal(g.c.ctx.globalAlpha,.61);assert.equal(g.c.ctx.globalCompositeOperation,'lighter');assert.equal(g.depth(),0);
+  }
+});
+test('cold or failed image loads retain the map and never substitute the monster for the human portrait',()=>{
+  const g=scene(false);g.state.ultimateTime=540;
+  assert.equal(g.run('getOblivionCombatRealmProgress()'),0);g.run('drawOblivionCombatRealm();drawOblivionCombatPortrait()');assert.equal(g.images.length,0);assert.equal(g.operations(),0);
+  const human=g.c.oblivionSprite;Object.assign(human,{complete:true,naturalWidth:768,naturalHeight:1152});
+  g.run('drawOblivionCombatPortrait()');assert.equal(g.images.length,1);assert.equal(g.images[0].args[0],human,'human cut-in works even while realm art is loading');
+  Object.assign(g.c.heroUltimateBackdrops.oblivion,{complete:true,naturalWidth:1599,naturalHeight:900});
+  assert.equal(g.run('getOblivionCombatRealmProgress()'),1);g.run('drawOblivionCombatRealm()');assert.equal(g.images.at(-1).args[0],g.c.heroUltimateBackdrops.oblivion);
+  delete g.c.heroUltimateBackdrops;assert.equal(g.run('getOblivionCombatRealmProgress()'),0);g.run('drawOblivionCombatRealm();drawOblivionCombatPortrait()');assert.equal(g.depth(),0);
+});
+test('human face cut-in uses the upper-right triangle, 150-frame lifetime and a 95px phone cap',()=>{
+  const g=scene(),human=g.c.oblivionSprite;human.naturalWidth=768;human.naturalHeight=1152;
+  for(const mobile of [false,true]){
+    g.c.isMobileTouchDevice=()=>mobile;g.c.canvas=mobile?{width:844,height:390}:{width:1280,height:720};g.state.ultimateTime=570;g.images.length=0;g.geometry.length=0;
+    g.run('drawOblivionCombatPortrait()');const face=g.images.find(call=>call.args[0]===human);assert.ok(face);assert.ok(!g.images.some(call=>call.args[0]===g.c.oblivionCombatArt.monster));
+    const [,x,y,w,h]=face.args;assert.ok(Math.abs(w/h-human.naturalWidth/human.naturalHeight)<1e-12);assert.ok(Math.abs(-x/w-.54)<1e-12);assert.ok(Math.abs(-y/h-.12)<1e-12);
+    const expectedHeight=mobile?95:720*.27;assert.ok(g.geometry.some(p=>p[0]==='lineTo'&&p[1]===g.c.canvas.width&&p[2]===expectedHeight));assert.equal(g.depth(),0);
+  }
+  for(const age of [0,150,151,600]){g.state.ultimateTime=600-age;g.images.length=0;g.run('drawOblivionCombatPortrait()');assert.equal(g.images.length,0,`age ${age}`);}
+  g.state.ultimateTime=451;g.images.length=0;g.run('drawOblivionCombatPortrait()');assert.ok(g.images.some(call=>call.args[0]===human&&call.alpha>0&&call.alpha<.01));
+});
+test('new realm and portrait stop on death, victory, menus, hero changes and inactive ultimates',()=>{
+  const g=scene();g.state.ultimateTime=540;
+  for(const mode of ['home','character','guide','mobileSettings']){g.c.screenMode=mode;assert.equal(g.run('getOblivionCombatRealmProgress()'),0);g.run('drawOblivionCombatRealm();drawOblivionCombatPortrait()');}
+  g.c.screenMode='game';
+  for(const key of ['gameOver','raidVictory']){g.c[key]=true;assert.equal(g.run('getOblivionCombatRealmProgress()'),0);g.run('drawOblivionCombatRealm();drawOblivionCombatPortrait()');g.c[key]=false;}
+  g.c.player.hp=0;assert.equal(g.run('getOblivionCombatRealmProgress()'),0);g.run('drawOblivionCombatRealm();drawOblivionCombatPortrait()');g.c.player.hp=100;
+  g.c.selectedCharacter='mare';assert.equal(g.run('getOblivionCombatRealmProgress()'),0);g.run('drawOblivionCombatRealm();drawOblivionCombatPortrait()');g.c.selectedCharacter='oblivion';
+  g.state.ultimateTime=0;assert.equal(g.run('getOblivionCombatRealmProgress()'),0);g.run('drawOblivionCombatRealm();drawOblivionCombatPortrait()');assert.equal(g.operations(),0);
+  g.state.ultimateTime=540;for(const key of ['paused','choosingUpgrade']){g.c[key]=true;g.run('drawOblivionCombatPortrait()');g.c[key]=false;}assert.equal(g.operations(),0,'cut-in does not cover frozen UI');assert.equal(g.depth(),0);
 });

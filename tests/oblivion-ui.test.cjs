@@ -20,7 +20,7 @@ function scene({width=1280,height=760,mobile=false,loaded=true}={}){
     screenToWorld(){c.mouse.worldX=c.mouse.x/.78+c.camera.x;c.mouse.worldY=c.mouse.y/.78+c.camera.y;},
     killZombie(i,z){const at=c.zombies.indexOf(z);if(at>=0)c.zombies.splice(at,1);},absorbSuncallShield:d=>d-2,
     drawCooldownCover(...args){calls.push({method:'cooldown',args});},drawOblivionCombatPlayer:()=>false,
-    drawOblivionCombatEffects(){count.effects=(count.effects||0)+1;},drawOblivionCombatRealm(){count.realm=(count.realm||0)+1;},drawOblivionCombatPortrait(){count.portrait=(count.portrait||0)+1;}};
+    getOblivionCombatRealmProgress:()=>0,drawOblivionCombatEffects(){count.effects=(count.effects||0)+1;},drawOblivionCombatRealm(){count.realm=(count.realm||0)+1;},drawOblivionCombatPortrait(){count.portrait=(count.portrait||0)+1;}};
   for(const name of ['restart','shoot','reload','update','drawPlayer','drawParticles','drawBackground','draw','drawHUD','drawHealthBar','drawExpBar','drawMobileCharacterResource','getCharacterPreviewSprite','drawHeroUltimateBackdrop','drawHeroUltimatePortrait'])c[name]=()=>{count[name]=(count[name]||0)+1;};
   c.canvas={width,height,addEventListener(type,fn){if(!touchListeners.has(type))touchListeners.set(type,[]);touchListeners.get(type).push(fn);},getBoundingClientRect:()=>({left:0,top:0,width:c.canvas.width,height:c.canvas.height})};
   c.oblivionCombatArt=Object.fromEntries(['panel','hpFrame','xpFrame','joystickBase','joystickThumb','attack','skillFrame'].map(name=>[name,Object.assign(new c.Image(),{src:name})]));c.oblivionCombatArt.skills=[0,1,2,3].map(i=>Object.assign(new c.Image(),{src:'skill-'+i}));
@@ -132,4 +132,20 @@ test('input, pause, restart, shields and renderer wrappers stay isolated to Obli
   g.run('oblivionState.shield=8');assert.equal(g.run('absorbSuncallShield(12)'),4);g.run('drawHeroUltimateBackdrop();drawHeroUltimatePortrait();draw()');assert.equal(g.count.drawHeroUltimateBackdrop,undefined);assert.equal(g.count.drawHeroUltimatePortrait,undefined);assert.equal(g.count.portrait,1);
   g.run('restart()');assert.equal(g.run('oblivionState.ultimateTime'),0);assert.equal(g.run('oblivionState.gauge'),0);
   g.c.selectedCharacter='mare';g.run('shoot();reload();drawHUD();drawHeroUltimateBackdrop();drawHeroUltimatePortrait()');assert.equal(g.count.shoot,1);assert.equal(g.count.reload,1);assert.equal(g.count.drawHUD,1);assert.equal(g.count.drawHeroUltimateBackdrop,1);assert.equal(g.count.drawHeroUltimatePortrait,1);assert.equal(g.run('absorbSuncallShield(12)'),10);
+});
+
+test('ultimate preloads human cut-in and realm, skips only a fully opaque map, and keeps the portrait last',()=>{
+  const g=scene(),requested=[],order=[];
+  g.c.heroUltimateBackdrops={oblivion:{src:'realm'}};
+  g.c.ensureGameImage=(image,priority)=>{requested.push([image.src,priority]);return image;};
+  g.run('player.level=9;activateOblivionR()');assert.equal(requested.length,0);
+  g.run('player.level=10;activateOblivionR()');assert.deepEqual(requested,[['realm','high'],[g.run('oblivionSprite.src'),'high']]);
+  g.run('activateOblivionR()');assert.equal(requested.length,2,'a blocked cast must not repeat presentation requests');
+  g.c.getOblivionCombatRealmProgress=()=>.5;g.run('drawBackground()');assert.equal(g.count.drawBackground,1);assert.equal(g.count.realm,1);
+  g.c.getOblivionCombatRealmProgress=()=>1;g.run('drawBackground()');assert.equal(g.count.drawBackground,1);assert.equal(g.count.realm,2);
+  g.c.getOblivionCombatRealmProgress=()=>0;g.run('drawBackground()');assert.equal(g.count.drawBackground,2);
+  // The wrapped base is lexical; its renderer counter must already advance at cut-in time.
+  g.c.drawOblivionCombatPortrait=()=>{assert.equal(g.count.draw,1);order.push('portrait');};
+  g.run('draw()');assert.deepEqual(order,['portrait']);
+  g.c.selectedCharacter='mare';g.run('drawBackground();draw()');assert.equal(g.count.drawBackground,3);assert.equal(order.length,1);
 });

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v89-oblivion-controls";
+const CACHE_VERSION = "zombie-survival-v90-oblivion-realm";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

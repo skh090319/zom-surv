@@ -298,38 +298,64 @@ function drawOblivionCombatPlayer(){
   if(s.shield>0){ctx.save();ctx.globalAlpha*=visibleBlend*.46;ctx.strokeStyle='#f6ad9d';ctx.lineWidth=1.2;ctx.beginPath();ctx.ellipse(player.x,player.y-20,46,71,-.1,-2.9,-.9);ctx.ellipse(player.x,player.y-20,46,71,-.1,.25,1.7);ctx.stroke();ctx.restore();}
   worldEnd();return true;
 }
-function drawOblivionCombatRealm(){
-  if(selectedCharacter!=='oblivion'||typeof oblivionState==='undefined'||screenMode!=='game')return;
-  const s=oblivionState;if(!(s.ultimateTime>0))return;
-  const age=(s.ultimateMax||600)-s.ultimateTime,fade=oblivionVfxSmooth(age/30)*oblivionVfxSmooth(s.ultimateTime/42),w=canvas.width,h=canvas.height;
+function oblivionCombatPresentationAllowed(){
+  if(typeof selectedCharacter==='undefined'||selectedCharacter!=='oblivion'||typeof screenMode==='undefined'||screenMode!=='game')return false;
+  if(typeof oblivionState==='undefined'||!oblivionState||!(oblivionState.ultimateTime>0))return false;
+  if(typeof player!=='undefined'&&player&&Number.isFinite(player.hp)&&player.hp<=0)return false;
+  if(typeof gameOver!=='undefined'&&gameOver)return false;
+  if(typeof raidVictory!=='undefined'&&raidVictory)return false;
+  return true;
+}
+function getOblivionCombatRealmProgress(){
+  if(!oblivionCombatPresentationAllowed())return 0;
   const im=typeof heroUltimateBackdrops==='undefined'?null:heroUltimateBackdrops.oblivion;
-  ctx.save();ctx.globalAlpha*=fade;
-  if(oblivionVfxReady(im)){
-    const scale=Math.max(w/im.naturalWidth,h/im.naturalHeight),dw=im.naturalWidth*scale,dh=im.naturalHeight*scale;
-    ctx.globalAlpha*=.90;ctx.drawImage(im,(w-dw)/2,(h-dh)/2,dw,dh);ctx.globalAlpha/=.90;
-  }
-  ctx.fillStyle='#08030b';ctx.globalAlpha*=.24;ctx.fillRect(0,0,w,h);ctx.globalAlpha/=.24;
-  // Geometry stays in the outer 12% and below all enemy/boss warning passes.
-  ctx.strokeStyle='#ff5c7959';ctx.lineWidth=1.05;ctx.beginPath();
-  for(let i=0;i<12;i++){
-    const side=i%2,base=w*(side?.98:.02),y=h*((i*.177-age*.00029+2)%1),sg=side?-1:1;
-    ctx.moveTo(base,y-55);ctx.lineTo(base+sg*w*.025,y-18);ctx.lineTo(base+sg*w*.011,y+5);ctx.lineTo(base+sg*w*.061,y+54);ctx.moveTo(base+sg*w*.025,y-18);ctx.lineTo(base+sg*w*.065,y-3);
-  }ctx.stroke();ctx.restore();
+  // Returning zero while loading lets the integration keep drawing the normal map.
+  if(!oblivionVfxReady(im))return 0;
+  const s=oblivionState,max=s.ultimateMax>0?s.ultimateMax:600,age=max-s.ultimateTime;
+  return oblivionVfxSmooth(age/36)*oblivionVfxSmooth(s.ultimateTime/48);
+}
+function drawOblivionCombatRealm(){
+  const alpha=getOblivionCombatRealmProgress();if(alpha<=0)return;
+  const w=canvas.width,h=canvas.height;if(!(w>0&&h>0))return;
+  const s=oblivionState,age=(s.ultimateMax||600)-s.ultimateTime,im=heroUltimateBackdrops.oblivion;
+  const scale=Math.max(w/im.naturalWidth,h/im.naturalHeight)*1.035,dw=im.naturalWidth*scale,dh=im.naturalHeight*scale;
+  // The small overscan keeps every edge covered throughout the simulation-timed drift.
+  const x=(w-dw)/2+Math.sin(age*.0031)*Math.min(w*.009,(dw-w)*.35);
+  const y=(h-dh)/2+Math.sin(age*.0024)*Math.min(h*.006,(dh-h)*.35);
+  ctx.save();ctx.globalAlpha=alpha;ctx.globalCompositeOperation='source-over';
+  ctx.drawImage(im,x,y,dw,dh);
+  // These small edge details stay below every enemy, boss warning and HUD layer.
+  ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ff5c793c';ctx.lineWidth=.9;ctx.beginPath();
+  for(let i=0;i<10;i++){
+    const side=i%2,base=w*(side?.985:.015),py=h*((i*.177-age*.00029+2)%1),sg=side?-1:1;
+    ctx.moveTo(base,py-45);ctx.lineTo(base+sg*w*.020,py-14);ctx.lineTo(base+sg*w*.009,py+4);ctx.lineTo(base+sg*w*.048,py+42);
+  }ctx.stroke();ctx.fillStyle='#ffc0ac';
+  for(let i=0;i<14;i++){
+    const side=i%2,px=w*(side?.974-(i%4)*.018:.026+(i%4)*.018),py=h*((i*.173-age*.00055+2)%1),r=.8+(i%3)*.4;
+    ctx.globalAlpha=alpha*(.20+.12*Math.sin(age*.024+i)**2);ctx.beginPath();ctx.arc(px,py,r,0,OBLIVION_VFX_TAU);ctx.fill();
+  }ctx.restore();
 }
 function drawOblivionCombatPortrait(){
-  if(selectedCharacter!=='oblivion'||typeof oblivionState==='undefined'||screenMode!=='game')return;
-  const s=oblivionState;if(!(s.ultimateTime>0))return;
-  const age=(s.ultimateMax||600)-s.ultimateTime;if(age>=122)return;
-  const alpha=oblivionVfxSmooth(age/14)*(1-oblivionVfxSmooth((age-89)/33)),im=oblivionVfxMonster();if(alpha<=0||!oblivionVfxReady(im))return;
-  const w=canvas.width*.50,h=canvas.height*.27,x=canvas.width-w,slide=(1-oblivionVfxEaseOut(age/20))*w*.28;
-  ctx.save();ctx.translate(slide,0);ctx.globalAlpha*=alpha;
-  ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(canvas.width,0);ctx.lineTo(canvas.width,h);ctx.closePath();ctx.clip();ctx.fillStyle='#0b060eea';ctx.fillRect(x,0,w,h);
+  if(!oblivionCombatPresentationAllowed())return;
+  // A frozen cut-in must not cover pause or upgrade controls drawn by the base loop.
+  if(typeof paused!=='undefined'&&paused||typeof choosingUpgrade!=='undefined'&&choosingUpgrade)return;
+  const s=oblivionState,age=(s.ultimateMax||600)-s.ultimateTime;if(age<0||age>=150)return;
+  const exit=oblivionVfxSmooth((age-112)/38),alpha=oblivionVfxSmooth(age/18)*(1-exit);
+  const im=typeof oblivionSprite==='undefined'?null:oblivionSprite;if(alpha<=0||!oblivionVfxReady(im))return;
+  const mobile=typeof isMobileTouchDevice==='function'&&isMobileTouchDevice();
+  const w=canvas.width*.52,h=Math.min(canvas.height*.27,mobile?95:260);if(!(w>0&&h>0))return;
+  const x=canvas.width-w,slide=((1-oblivionVfxEaseOut(age/22))*.25+exit*.14)*w;
+  ctx.save();ctx.translate(slide,0);ctx.globalAlpha=alpha;ctx.globalCompositeOperation='source-over';
+  ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(canvas.width,0);ctx.lineTo(canvas.width,h);ctx.closePath();ctx.clip();ctx.fillStyle='#130810f5';ctx.fillRect(x,0,w,h);
   const art=typeof heroUltimateBackdrops==='undefined'?null:heroUltimateBackdrops.oblivion;
-  if(oblivionVfxReady(art)){ctx.globalAlpha*=.45;ctx.drawImage(art,x,-h*.10,w,h*1.7);ctx.globalAlpha/=.45;}
-  const sh=im.naturalHeight*.37,sw=Math.min(im.naturalWidth,sh*w/h),sx=(im.naturalWidth-sw)/2;
-  const portraitScale=Math.max(w*.62/sw,h*1.10/sh),portraitW=sw*portraitScale,portraitH=sh*portraitScale;
-  ctx.drawImage(im,sx,0,sw,sh,x+w*.69-portraitW/2,-h*.05,portraitW,portraitH);
-  ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ff667b96';ctx.lineWidth=1;ctx.beginPath();
+  if(oblivionVfxReady(art)){
+    const scale=Math.max(w/art.naturalWidth,h/art.naturalHeight),dw=art.naturalWidth*scale,dh=art.naturalHeight*scale;
+    ctx.globalAlpha=alpha*.65;ctx.drawImage(art,x+(w-dw)/2,(h-dh)/2,dw,dh);ctx.globalAlpha=alpha;
+  }
+  // Preserve the original human face and proportions, facing into the battlefield.
+  const faceX=im.naturalWidth*.54,faceY=im.naturalHeight*.12,scale=h*.65/(im.naturalHeight*.13);
+  ctx.save();ctx.translate(x+w*.81,h*.36);ctx.scale(-1,1);ctx.drawImage(im,-faceX*scale,-faceY*scale,im.naturalWidth*scale,im.naturalHeight*scale);ctx.restore();
+  ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ff667b96';ctx.lineWidth=.9;ctx.beginPath();
   for(let i=0;i<5;i++){const xx=x+w*(.24+i*.06);ctx.moveTo(xx,0);ctx.lineTo(xx+w*.026,h*.12);ctx.lineTo(xx-w*.008,h*.22);ctx.lineTo(xx+w*.08,h*.40);}ctx.stroke();ctx.restore();
-  ctx.save();ctx.translate(slide,0);ctx.globalAlpha*=alpha;ctx.strokeStyle='#fa5474';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(canvas.width,h);ctx.stroke();ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ffd2b5';ctx.lineWidth=.8;ctx.stroke();ctx.restore();
+  ctx.save();ctx.translate(slide,0);ctx.globalAlpha=alpha;ctx.globalCompositeOperation='source-over';ctx.strokeStyle='#fa5474';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(canvas.width,h);ctx.stroke();ctx.globalCompositeOperation='lighter';ctx.strokeStyle='#ffd2b5';ctx.lineWidth=.8;ctx.stroke();ctx.restore();
 }

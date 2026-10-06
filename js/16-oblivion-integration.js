@@ -20,6 +20,16 @@ const oblivionCombatKillBase=killZombie;
 killZombie=function(index,zombie,allowExplosion=true){if(selectedCharacter==='oblivion'&&zombies.includes(zombie))oblivionAwardKill(zombie);return oblivionCombatKillBase(index,zombie,allowExplosion);};
 const oblivionCombatShieldBase=absorbSuncallShield;
 absorbSuncallShield=function(damage){if(selectedCharacter!=='oblivion')return oblivionCombatShieldBase(damage);const absorbed=Math.min(Math.max(0,damage),oblivionState.shield);oblivionState.shield-=absorbed;return damage-absorbed;};
+// Request both presentation images as soon as R succeeds, including a cold start.
+const oblivionCombatUltimateBase=activateOblivionR;
+activateOblivionR=function(){
+  const activated=oblivionCombatUltimateBase();
+  if(activated){
+    if(typeof heroUltimateBackdrops!=='undefined')ensureGameImage(heroUltimateBackdrops.oblivion,'high');
+    if(typeof oblivionSprite!=='undefined')ensureGameImage(oblivionSprite,'high');
+  }
+  return activated;
+};
 const oblivionCombatUpdateBase=update;
 update=function(){
   const active=selectedCharacter==='oblivion'&&screenMode==='game'&&!paused&&!gameOver&&!raidVictory&&!choosingUpgrade&&!isMobilePortraitMode();
@@ -34,7 +44,12 @@ drawPlayer=function(){if(selectedCharacter==='oblivion'&&drawOblivionCombatPlaye
 const oblivionCombatParticlesBase=drawParticles;
 drawParticles=function(){oblivionCombatParticlesBase();if(selectedCharacter==='oblivion')drawOblivionCombatEffects();};
 const oblivionCombatBackgroundBase=drawBackground;
-drawBackground=function(){oblivionCombatBackgroundBase();if(selectedCharacter==='oblivion')drawOblivionCombatRealm();};
+drawBackground=function(){
+  if(selectedCharacter!=='oblivion')return oblivionCombatBackgroundBase();
+  // Only omit the normal map once the loaded realm completely covers it.
+  if(getOblivionCombatRealmProgress()<1)oblivionCombatBackgroundBase();
+  drawOblivionCombatRealm();
+};
 // The replacement backdrop/cut-in owns Oblivion only; Mare keeps the shared renderer.
 const oblivionCombatLegacyBackdropBase=drawHeroUltimateBackdrop;
 drawHeroUltimateBackdrop=function(){if(selectedCharacter!=='oblivion')return oblivionCombatLegacyBackdropBase();};
