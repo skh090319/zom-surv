@@ -76,7 +76,23 @@ test('mobile uses custom joystick, thumb, attack, four framed icons and complete
     assert.ok(text.every(c=>c.args.length===3&&c.args[2]<=height-5));assert.equal(g.run('JSON.stringify(mobileControlSettings)'),before);assert.equal(g.depth(),0);
     g.calls.length=0;g.run('mobileControlSettings.joystickX=.23;mobileControlSettings.joystickY=.67;mobileControlSettings.attackX=.74;mobileControlSettings.attackY=.78;mobileControlSettings.skills.q={x:.42,y:.49,scale:1.35};drawMobileControls()');
     const layout=g.run('getMobileControlLayout()');for(const[name,shape]of[['joystickBase',layout.joystick],['attack',layout.attack]]){const draw=g.calls.find(c=>c.method==='drawImage'&&c.args[0].src===name);assert.deepEqual(draw.args.slice(1),[shape.x-shape.r,shape.y-shape.r,shape.r*2,shape.r*2]);}
-    const q=g.calls.find(c=>c.method==='drawImage'&&c.args[0].src==='skill-0'),sk=layout.skills[0];assert.deepEqual(q.args.slice(1),[sk.x-sk.r,sk.y-sk.r,sk.r*2,sk.r*2]);
+    const q=g.calls.find(c=>c.method==='drawImage'&&c.args[0].src==='skill-0'),sk=layout.skills[0];assert.deepEqual(q.args.slice(1),[sk.x-sk.r,sk.y-sk.r,sk.r*2,sk.r*2]);assert.equal(sk.x,width*.42);assert.equal(sk.y,height*.49);assert.equal(sk.r,Math.max(20,Math.min(28,Math.min(width,height)*.052))*1.35);
+  }
+});
+test('default mobile skill artwork and two-line names never overlap neighboring icons or the resource/EXP HUD',()=>{
+  const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+  for(const[width,height]of[[568,320],[844,390],[1024,768]]){
+    const g=scene({width,height,mobile:true}),skills=g.run('getMobileControlLayout().skills');g.run('drawMobileControls()');
+    const frames=g.calls.filter(c=>c.method==='drawImage'&&c.args[0].src==='skillFrame').map((c,i)=>({key:skills[i].key,x:c.args[1],y:c.args[2],w:c.args[3],h:c.args[4]}));
+    const labels=g.calls.filter(c=>c.method==='fillText').map(c=>{
+      const sk=skills.find(s=>s.x===c.args[1]),fontSize=parseFloat(c.font.match(/[\d.]+px/)[0]),textWidth=[...c.args[0]].reduce((n,ch)=>n+(/[^\x00-\x7f]/.test(ch)?1:.56),0)*fontSize;
+      assert.ok(sk,'each label belongs to a live skill');return{key:sk.key,text:c.args[0],x:c.args[1]-textWidth/2,y:c.args[2]-fontSize,w:textWidth,h:fontSize};
+    });
+    const hud=['resource','exp'].map(id=>{const b=g.run(`getMobileHudLayout('${id}')`);return{id,x:b.x-b.w/2,y:b.y-b.h/2,w:b.w,h:b.h};});
+    for(const frame of frames){inside({x:0,y:0,w:width,h:height},frame,'skill frame');for(const other of frames)if(frame.key!==other.key)assert.equal(overlaps(frame,other),false,`${width}: ${frame.key}/${other.key} frames overlap`);}
+    for(const label of labels){inside({x:0,y:0,w:width,h:height},label,'skill name');for(const frame of frames)if(frame.key!==label.key)assert.equal(overlaps(label,frame),false,`${width}: ${label.key} name ${label.text} overlaps ${frame.key} frame`);}
+    for(const box of[...frames,...labels])for(const h of hud)assert.equal(overlaps(box,h),false,`${width}: ${box.key} ${box.text||'frame'} overlaps ${h.id}`);
+    assert.equal(g.depth(),0);
   }
 });
 test('touch attack is available and all six buttons remain configurable',()=>{

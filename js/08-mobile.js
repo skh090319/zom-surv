@@ -64,7 +64,10 @@ function getMobileControlLayout(){
   const keys=MOBILE_SKILL_KEYS[selectedCharacter]||[];
   const angles=keys.length===1?[-2.15]:keys.length===2?[-2.65,-1.7]:keys.length===3?[-2.85,-2.15,-1.45]:[-3.02,-2.52,-2.02,-1.52];
   const anchorScale=mobileControlSettings.skillAnchorScale,anchorR=Math.max(34,Math.min(48,minSide*.088))*anchorScale;
-  const orbit=anchorR+Math.max(42,Math.min(58,minSide*.09))*anchorScale,baseSkillR=Math.max(20,Math.min(28,minSide*.052));
+  const baseSkillR=Math.max(20,Math.min(28,minSide*.052)),baseOrbit=anchorR+Math.max(42,Math.min(58,minSide*.09))*anchorScale;
+  // Oblivion's metal sockets and two-line names need a wider default arc.
+  // Explicit saved skill positions below continue to take precedence.
+  const orbit=selectedCharacter==='oblivion'?Math.max(baseOrbit,(baseSkillR*2.24+24)*anchorScale/(2*Math.sin(.25))):baseOrbit;
   const anchorX=Math.max(canvas.width*.5+orbit+baseSkillR*anchorScale,Math.min(canvas.width-safe-anchorR,mobileControlSettings.skillAnchorX===null?canvas.width-safe-anchorR:canvas.width*mobileControlSettings.skillAnchorX));
   const maxAnchorY=canvas.height-safe-anchorR;
   const anchorY=Math.max(Math.min(maxAnchorY,118+orbit+baseSkillR*anchorScale),Math.min(maxAnchorY,mobileControlSettings.skillAnchorY===null?maxAnchorY:canvas.height*mobileControlSettings.skillAnchorY));

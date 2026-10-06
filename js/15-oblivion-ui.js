@@ -81,9 +81,9 @@ function getOblivionDesktopHudLayout(){
   const radius=short?22:27;
   return{panel,resource,divider,stacked,compact:short,skills:['q','e','x','r'].map((key,i)=>({key,x:skillX+cell*(i+.5),y:skillY+(short?26:36),r:radius,labelY:skillY+(short?66:85),width:cell-6}))};
 }
-function getOblivionMobileResourceBounds(){const w=Math.min(330,Math.max(216,canvas.width*.40),canvas.width-24);return{x:canvas.width/2,y:canvas.height-102,w,h:60};}
+function getOblivionMobileResourceBounds(){const w=Math.min(330,Math.max(216,canvas.width*.40),canvas.width-24);return{x:canvas.width*(canvas.width<680?.42:.5),y:canvas.height-102,w,h:60};}
 function getOblivionHealthBounds(){return{x:canvas.width/2,y:31,w:Math.max(200,Math.min(540,canvas.width-164)),h:34};}
-function getOblivionExpBounds(){const mobile=isMobileTouchDevice(),w=mobile?Math.min(330,Math.max(164,canvas.width*.38)):Math.min(650,canvas.width-96);return{x:canvas.width/2,y:canvas.height-(mobile?48:21),w,h:22};}
+function getOblivionExpBounds(){const mobile=isMobileTouchDevice(),w=mobile?Math.min(330,Math.max(164,canvas.width*.38)):Math.min(650,canvas.width-96);return{x:canvas.width*(mobile&&canvas.width<680?.42:.5),y:canvas.height-(mobile?48:21),w,h:22};}
 function drawOblivionSkillSocket(sk,mobile=false){
   const {key,x,y,r}=sk,cd=getMobileSkillCooldown(key),locked=key==='r'&&player.level<10,active=key==='x'&&oblivionEmpowered()||key==='r'&&oblivionState.ultimateTime>0;
   ctx.save();ctx.fillStyle='#130913';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
