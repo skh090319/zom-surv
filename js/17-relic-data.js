@@ -77,6 +77,7 @@ const RELIC_SETS = (() => {
 })();
 const RELIC_STORAGE_KEY='zombieSurvivalRelicsV1';
 const RELIC_MAX_INVENTORY=300;
+const RELIC_FEED_XP=Object.freeze({common:30,rare:60,superRare:90,epic:150,legendary:240,cursed:300});
 const RELIC_CHARACTERS=['suncall','yupiter','ren','nightLord','zero','paladin','arc','terra','void','carmilla','vargas','echo','aria','moira','mare','nullZero','astra','oblivion','lush','luminous'];
 let relicStore={version:1,inventory:[],loadouts:{},materials:0,tickets:{standard:0,advanced:0},presets:{},rewardedRuns:{},operations:{}};
 let relicStorageError='';
@@ -98,7 +99,7 @@ function relicCreate(options,rng=Math.random){
   const candidates=Object.keys(RELIC_STATS).filter(stat=>RELIC_STATS[stat].sub&&stat!==mainStat),substats=[];
   for(let i=0;i<count;i++){const at=Math.floor(relicRandom(rng)*candidates.length);substats.push({stat:candidates.splice(at,1)[0],count:0});}
   const id=typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function'?crypto.randomUUID():`relic_${Date.now().toString(36)}_${(++relicIdSequence).toString(36)}_${Math.floor(relicRandom(rng)*0x100000000).toString(36)}`;
-  return {id,setId,slot,rarity,level:0,mainStat,substats,history:[],locked:false};
+  return {id,setId,slot,rarity,level:0,xp:0,mainStat,substats,history:[],locked:false};
 }
 function relicMainValue(item){
   const range=item.mainStat==='shieldDamage'&&item.slot==='boots'?[.10,.24]:RELIC_STATS[item.mainStat].main;
@@ -132,6 +133,7 @@ function relicValidateItem(item){
   const set=RELIC_SETS[item.setId],grade=RELIC_RARITIES[item.rarity],slot=RELIC_SLOTS[item.slot];
   if(!relicOwn(RELIC_SETS,item.setId)||!relicOwn(RELIC_RARITIES,item.rarity)||!relicOwn(RELIC_SLOTS,item.slot)||!set.slots.includes(item.slot)||(item.setId==='D01')!==(item.rarity==='cursed'))return false;
   if(!Number.isInteger(item.level)||item.level<0||item.level>grade.maxLevel||!slot.mains.includes(item.mainStat)||typeof item.locked!=='boolean')return false;
+  if(item.xp!==undefined&&(!Number.isSafeInteger(item.xp)||item.xp<0||(item.level===grade.maxLevel?item.xp!==0:item.xp>=relicEnhanceCost(item))))return false;
   if(!Array.isArray(item.substats)||item.substats.length<grade.minSubs||item.substats.length>grade.maxSubs||!Array.isArray(item.history)||item.history.length!==Math.floor(item.level/3))return false;
   const seen=new Set(),counts={};
   for(const sub of item.substats){
@@ -145,13 +147,14 @@ function relicValidMap(map,byId){
   if(!map||typeof map!=='object'||Array.isArray(map))return false;
   return Object.entries(map).every(([slot,id])=>relicOwn(RELIC_SLOTS,slot)&&typeof id==='string'&&byId.has(id)&&byId.get(id).slot===slot);
 }
-function relicValidateStore(store){
+function relicValidateStore(store,allowLegacySharing=false){
   if(!store||store.version!==1||!Array.isArray(store.inventory)||store.inventory.length>RELIC_MAX_INVENTORY||!store.inventory.every(relicValidateItem))return false;
   const byId=new Map(store.inventory.map(item=>[item.id,item]));if(byId.size!==store.inventory.length)return false;
   if(!Number.isSafeInteger(store.materials)||store.materials<0||store.materials>100000000)return false;
   if(!relicRecord(store.tickets)||!['standard','advanced'].every(key=>Number.isSafeInteger(store.tickets[key])&&store.tickets[key]>=0&&store.tickets[key]<=100000))return false;
   if(!relicRecord(store.loadouts)||!relicRecord(store.presets)||!relicRecord(store.rewardedRuns)||!relicRecord(store.operations))return false;
   for(const [character,map] of Object.entries(store.loadouts))if(!RELIC_CHARACTERS.includes(character)||!relicValidMap(map,byId))return false;
+  if(!allowLegacySharing){const equipped=new Set();for(const map of Object.values(store.loadouts))for(const id of Object.values(map)){if(equipped.has(id))return false;equipped.add(id);}}
   for(const [character,list] of Object.entries(store.presets))if(!RELIC_CHARACTERS.includes(character)||!Array.isArray(list)||list.length>3||!list.every(map=>map===null||relicValidMap(map,byId)))return false;
   if(Object.keys(store.rewardedRuns).length>1000||Object.keys(store.operations).length>200)return false;
   for(const [key,value] of Object.entries(store.rewardedRuns)){
@@ -185,11 +188,12 @@ function relicTransaction(change,allowRun=false){
   relicStore=draft;return result;
 }
 function relicStarterStore(){
-  const store={version:1,inventory:[],loadouts:{},materials:150,tickets:{standard:0,advanced:0},presets:{},rewardedRuns:{},operations:{}};
+  const store={version:1,exclusiveEquipment:true,inventory:[],loadouts:{},materials:150,tickets:{standard:0,advanced:0},presets:{},rewardedRuns:{},operations:{}};
   const mains={core:'atkFlat',armor:'hpFlat',lens:'atkPct',boots:'moveSpeed',emblem:'skillDamage',power:'cooldown'};
   const equipped={};
   for(const slot of Object.keys(RELIC_SLOTS)){const item=relicCreate({setId:RELIC_SLOTS[slot].type==='normal'?'A01':'B01',slot,rarity:'common',mainStat:mains[slot]});store.inventory.push(item);equipped[slot]=item.id;}
-  for(const character of RELIC_CHARACTERS)store.loadouts[character]={...equipped};
+  const character=typeof selectedCharacter!=='undefined'&&RELIC_CHARACTERS.includes(selectedCharacter)?selectedCharacter:'yupiter';
+  store.loadouts[character]=equipped;
   return store;
 }
 function relicLoad(){
@@ -199,8 +203,19 @@ function relicLoad(){
   try{
     if(typeof raw!=='string'||raw.length>3000000)throw new Error('relic save exceeds limit');
     const parsed=JSON.parse(raw);
-    if(!relicValidateStore(parsed))throw new Error('invalid relic save');
-    relicStore=parsed;relicSavedSnapshot=relicClone(parsed);relicStorageBlocked=false;relicStorageError='';return {ok:true,message:'유물을 불러왔습니다.'};
+    const legacy=parsed.exclusiveEquipment===undefined;
+    if(!relicValidateStore(parsed,legacy))throw new Error('invalid relic save');
+    if(legacy){
+      const priority=typeof selectedCharacter!=='undefined'&&RELIC_CHARACTERS.includes(selectedCharacter)?selectedCharacter:'yupiter',seen=new Set();
+      for(const character of [priority,...RELIC_CHARACTERS.filter(id=>id!==priority)])for(const [slot,id] of Object.entries(parsed.loadouts[character]||{})){if(seen.has(id))delete parsed.loadouts[character][slot];else seen.add(id);}
+      for(const item of parsed.inventory)item.xp=item.xp||0;
+      parsed.exclusiveEquipment=true;
+      // Retain a recoverable pre-migration snapshot. No items, levels or currency are discarded.
+      try{const backup=RELIC_STORAGE_KEY+'-before-exclusive';if(localStorage.getItem(backup)===null)localStorage.setItem(backup,raw);}catch(error){relicStorageBlocked=true;relicStorageError='기존 유물 저장 데이터를 백업할 공간이 없어 장착 규칙 변경을 보류했습니다.';return relicFail(relicStorageError);}
+    }
+    relicStore=parsed;relicSavedSnapshot=relicClone(parsed);relicStorageBlocked=false;relicStorageError='';
+    if(legacy){const saved=relicWrite(parsed);if(!saved.ok){relicStorageBlocked=true;return saved;}}
+    return {ok:true,message:'유물을 불러왔습니다.'};
   }catch(error){
     relicStorageBlocked=true;relicStorageError='유물 저장 데이터가 손상되어 원본을 보존했습니다. 저장소를 복구하기 전에는 유물 변경이 잠깁니다.';
     return relicFail(relicStorageError);
@@ -210,9 +225,14 @@ function relicEquippedItems(character){
   const map=relicStore.loadouts[character]||{};
   return Object.keys(RELIC_SLOTS).map(slot=>relicStore.inventory.find(item=>item.id===map[slot])).filter(Boolean);
 }
+function relicOwner(id,store=relicStore){return Object.keys(store.loadouts).find(character=>Object.values(store.loadouts[character]).includes(id))||null;}
+function relicPresetReferences(id,store=relicStore){
+  const refs=[];for(const [character,list] of Object.entries(store.presets))list.forEach((map,index)=>{if(map&&Object.values(map).includes(id))refs.push({character,index});});return refs;
+}
 function relicEquip(character,id){return relicTransaction(draft=>{
   if(!RELIC_CHARACTERS.includes(character))return relicFail('캐릭터를 확인해주세요.');
   const item=draft.inventory.find(entry=>entry.id===id);if(!item)return relicFail('보유하지 않은 유물입니다.');
+  const owner=relicOwner(id,draft);if(owner&&owner!==character)return relicFail('다른 캐릭터가 장착 중입니다. 먼저 해당 캐릭터에서 해제해주세요.');
   if(!draft.loadouts[character])draft.loadouts[character]={};draft.loadouts[character][item.slot]=id;
   return {ok:true,message:`${relicItemName(item)} 장착 완료.`};
 });}
@@ -221,18 +241,38 @@ function relicUnequip(character,slot){return relicTransaction(draft=>{
   if(draft.loadouts[character])delete draft.loadouts[character][slot];
   return {ok:true,message:'유물을 해제했습니다.'};
 });}
+// The old materials balance stays in saved data for recovery; enhancement uses relic items only.
 function relicEnhanceCost(item){return item.level<RELIC_RARITIES[item.rarity].maxLevel?20+10*(item.level+1):0;}
+function relicFeedValue(item){return RELIC_FEED_XP[item.rarity]+Math.floor((20*item.level+5*item.level*(item.level+1)+(item.xp||0))*.8);}
+function relicEnhancePreview(item,gain){
+  const result=relicClone(item),before=result.level;result.xp=(result.xp||0)+Math.max(0,gain);const upgraded=[];
+  while(result.level<RELIC_RARITIES[result.rarity].maxLevel&&result.xp>=relicEnhanceCost(result)){
+    result.xp-=relicEnhanceCost(result);result.level++;
+    if(result.level%3===0){const sub=result.substats[result.history.length%result.substats.length];sub.count++;result.history.push({level:result.level,stat:sub.stat});upgraded.push(sub.stat);}
+  }
+  const overflow=result.level===RELIC_RARITIES[result.rarity].maxLevel?result.xp:0;if(overflow)result.xp=0;
+  return {item:result,gainedLevels:result.level-before,upgraded,overflow};
+}
 function relicEnhance(id,options={}){return relicTransaction(draft=>{
   if(options.requestId&&relicOwn(draft.operations,options.requestId))return {...draft.operations[options.requestId],unchanged:true};
   if(options.requestId&&!relicSafeId(options.requestId))return relicFail('강화 요청을 확인해주세요.');
   const item=draft.inventory.find(entry=>entry.id===id);if(!item)return relicFail('보유하지 않은 유물입니다.');
   if(options.expectedLevel!==undefined&&options.expectedLevel!==item.level)return relicFail('이미 처리된 강화입니다. 현재 레벨을 확인해주세요.');
+  if(options.expectedXp!==undefined&&options.expectedXp!==(item.xp||0))return relicFail('강화 게이지가 변경되었습니다. 다시 확인해주세요.');
   const cost=relicEnhanceCost(item);if(!cost)return relicFail('최대 레벨입니다.');
-  if(draft.materials<cost)return relicFail(`강화 재료가 ${cost-draft.materials} 부족합니다.`);
-  draft.materials-=cost;item.level++;
-  let upgraded=null;
-  if(item.level%3===0){const sub=relicPick(item.substats,options.rng||Math.random);sub.count++;upgraded=sub.stat;item.history.push({level:item.level,stat:sub.stat});}
-  const result={ok:true,message:`Lv.${item.level} 강화 완료${upgraded?` · ${RELIC_STATS[upgraded].name} 증가`:''}`,item:relicClone(item),cost,upgraded};
+  if(!Array.isArray(options.materialIds)||!options.materialIds.length)return relicFail('강화 재료로 사용할 다른 유물을 선택해주세요.');
+  const ids=[...new Set(options.materialIds)],materials=ids.map(key=>draft.inventory.find(entry=>entry.id===key));
+  if(ids.includes(id))return relicFail('강화할 유물 자체는 재료로 사용할 수 없습니다.');
+  if(materials.some(entry=>!entry))return relicFail('선택한 강화 재료가 변경되었습니다. 다시 선택해주세요.');
+  if(materials.some(entry=>entry.locked))return relicFail('잠긴 유물은 강화 재료로 사용할 수 없습니다.');
+  const referenced=materials.filter(entry=>relicOwner(entry.id,draft)||relicPresetReferences(entry.id,draft).length);
+  if(referenced.length&&!options.confirmEquipped)return {...relicFail('장착 중이거나 프리셋에 저장된 유물을 소모합니다. 경고 내용을 확인해주세요.'),requiresConfirmation:true};
+  if(options.expectedMaterials&&(!Array.isArray(options.expectedMaterials)||materials.some(entry=>{const before=options.expectedMaterials.find(value=>value.id===entry.id);return !before||before.level!==entry.level||before.xp!==(entry.xp||0)||before.owner!==relicOwner(entry.id,draft);})))return relicFail('재료의 장착 또는 강화 상태가 변경되었습니다. 다시 확인해주세요.');
+  const gain=materials.reduce((sum,entry)=>sum+relicFeedValue(entry),0),preview=relicEnhancePreview(item,gain),remove=new Set(ids);
+  Object.assign(item,preview.item);draft.inventory=draft.inventory.filter(entry=>!remove.has(entry.id));
+  for(const map of Object.values(draft.loadouts))for(const [slot,key] of Object.entries(map))if(remove.has(key))delete map[slot];
+  for(const list of Object.values(draft.presets))for(const map of list)if(map)for(const [slot,key] of Object.entries(map))if(remove.has(key))delete map[slot];
+  const result={ok:true,message:`유물 ${ids.length}개 소모 · 강화 경험치 +${gain}${preview.gainedLevels?` · Lv.${item.level} 달성`:''}`,item:relicClone(item),gain,consumed:ids,gainedLevels:preview.gainedLevels,upgraded:preview.upgraded,overflow:preview.overflow};
   if(options.requestId){draft.operations[options.requestId]=result;const keys=Object.keys(draft.operations);while(keys.length>200)delete draft.operations[keys.shift()];}
   return result;
 });}
@@ -254,7 +294,7 @@ function relicDismantle(ids){return relicTransaction(draft=>{
   if(items.some(item=>protectedIds.has(item.id)))return relicFail('잠금·장착·프리셋 유물은 분해할 수 없습니다.');
   const materials=items.reduce((sum,item)=>sum+relicDismantleValue(item),0),remove=new Set(unique);
   draft.inventory=draft.inventory.filter(item=>!remove.has(item.id));draft.materials+=materials;
-  return {ok:true,message:`유물 ${items.length}개 분해 · 강화 재료 +${materials}`,count:items.length,materials};
+  return {ok:true,message:`유물 ${items.length}개 분해 완료.`,count:items.length,materials};
 });}
 function relicSavePreset(character,index){return relicTransaction(draft=>{
   if(!RELIC_CHARACTERS.includes(character)||!Number.isInteger(index)||index<0||index>2)return relicFail('프리셋을 확인해주세요.');
@@ -265,6 +305,7 @@ function relicSavePreset(character,index){return relicTransaction(draft=>{
 function relicLoadPreset(character,index){return relicTransaction(draft=>{
   if(!RELIC_CHARACTERS.includes(character)||!Number.isInteger(index)||index<0||index>2)return relicFail('프리셋을 확인해주세요.');
   const map=draft.presets[character]&&draft.presets[character][index];if(!map)return relicFail('저장된 프리셋이 없습니다.');
+  if(Object.values(map).some(id=>{const owner=relicOwner(id,draft);return owner&&owner!==character;}))return relicFail('프리셋 유물 중 다른 캐릭터가 장착한 유물이 있습니다. 먼저 장착을 해제해주세요.');
   draft.loadouts[character]={...map};return {ok:true,message:`프리셋 ${index+1} 적용 완료.`};
 });}
 function relicCraft(options){return relicTransaction(draft=>{
@@ -307,6 +348,6 @@ function relicGrantReward(options){return relicTransaction(draft=>{
   draft.materials+=materials;record.materials+=materials;record.events.push(event);draft.rewardedRuns[runId]=record;
   if(event==='end'){draft.tickets.standard++;if(difficulty==='hard'&&record.events.some(entry=>entry.startsWith('boss:')))draft.tickets.advanced++;}
   const runKeys=Object.keys(draft.rewardedRuns);while(runKeys.length>1000)delete draft.rewardedRuns[runKeys.shift()];
-  return {ok:true,message:`작전 보상 · 유물 ${items.length}개 · 강화 재료 +${materials}${event==='end'?' · 제작권 +1':''}`,item:items[0]||null,items,materials};
+  return {ok:true,message:`작전 보상 · 유물 ${items.length}개${event==='end'?' · 제작권 +1':''}`,item:items[0]||null,items,materials};
 },true);}
 relicLoad();

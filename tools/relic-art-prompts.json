@@ -1,0 +1,702 @@
+{
+  "mode": "built-in image_gen",
+  "normalization": "320x320 transparent WebP, quality 88; circular-safe silhouette; original alpha preserved",
+  "assets": [
+    {
+      "id": "A01-armor",
+      "output": "assets/relics-v2/A01-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-c458ba5f-d749-4b98-81ff-edffee0f8359.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Executioner's Trace set, 'Trace Armor': a wearable empty dark iron executioner breastplate with a single angular shoulder guard, leather straps and a heavy broken chain crossing its front, restrained amber furnace slit at sternum, ash-scored forged metal. Clearly recognizable chest armor, no person."
+    },
+    {
+      "id": "A01-boots",
+      "output": "assets/relics-v2/A01-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-27b9aca0-f93c-4689-94fe-8c2c446de97b.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Executioner's Trace set, 'Silent Pursuit': one heavy executioner boot, dark iron plated toe and shin, black leather, broken chain anklet, narrow amber ember seams and ash-scored edges. Strong boot silhouette, no wearer."
+    },
+    {
+      "id": "A01-core",
+      "output": "assets/relics-v2/A01-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-480af47d-0a67-4ea4-a858-5da0ffbff466.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Executioner's Trace set, 'Execution Wick': a compact brutal dark iron execution axe-head fused into a heart-sized charcoal reliquary core, thick broken chain looped around it, one narrow amber ember slit, ash-scored forged metal, jagged blade silhouette and rivets. Not a generic round gemstone."
+    },
+    {
+      "id": "A01-lens",
+      "output": "assets/relics-v2/A01-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-9c741cf9-4061-4f4b-9924-fb7607f53349.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Executioner's Trace set, 'Hunting Focus': a sinister angular dark iron monocular sight, short amber-glass lens hood shaped like an execution axe notch, leather bracket and small broken chain; ash-scored iron and bronze bolts, compact recognizable optical relic."
+    },
+    {
+      "id": "A02-armor",
+      "output": "assets/relics-v2/A02-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-ed41c4a2-f5f1-4ed3-afa1-2447557065ca.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Arcane Overload Debris set, 'Residual Mana Mantle': an empty compact purple wizard shoulder mantle and high collar, softly draped silk over slender silver clasps, amethyst shards inset at the collar and luminous arcane thread seams. Recognizable mantle silhouette, no person."
+    },
+    {
+      "id": "A02-boots",
+      "output": "assets/relics-v2/A02-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-297e8d0f-dca4-4f92-b6c5-a27fafa1ad41.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Arcane Overload Debris set, 'Blink Echo': one elegant pointed mage boot with folded midnight-violet silk cuff, silver claw-shaped heel and silver trim, a few amethyst crystal shards in ankle clasp. No wearer."
+    },
+    {
+      "id": "A02-core",
+      "output": "assets/relics-v2/A02-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-6f8cede2-1da4-4b64-8235-607bccff6480.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Arcane Overload Debris set, 'Runaway Crystal': a fractured tall amethyst crystal cluster held suspended in a split elegant silver three-pronged cage, silver rune grooves, tiny purple sparks trapped inside cracks. Asymmetric magical crystal silhouette."
+    },
+    {
+      "id": "A02-lens",
+      "output": "assets/relics-v2/A02-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-68b024c3-db80-4800-bcf0-733a9858bb93.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Arcane Overload Debris set, 'Mana Observatory': a beautifully ornate silver three-lobed monocle around a faceted violet lens, hovering small amethyst prisms, silver etched rune grooves. A magic optic, not a sphere."
+    },
+    {
+      "id": "A03-armor",
+      "output": "assets/relics-v2/A03-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-c2f4e500-cbf4-460e-bec6-491aa71d2c9b.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Battlefield Pulse set, 'Mobile Frame': an empty angular gunmetal military exoskeleton chest harness, copper hydraulic pistons at shoulders, red power-cell chest plate, armored segmented ribs and buckles. Compact equipment silhouette, no wearer."
+    },
+    {
+      "id": "A03-boots",
+      "output": "assets/relics-v2/A03-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-ed2e2868-2cf3-4afa-9872-3bfc3fe26a14.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Battlefield Pulse set, 'Sprint Combat Boot': one robust military combat boot with copper mechanical ankle pistons, scarlet energy strip at heel, black rubber tread, gunmetal shin guards and small turbine exhaust. No person."
+    },
+    {
+      "id": "A03-core",
+      "output": "assets/relics-v2/A03-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-d56f5b86-e436-4faa-acc6-0acb16b1d6e2.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Battlefield Pulse set, 'Pulsing Core': a rugged copper and gunmetal six-blade turbine engine heart, scarlet glowing cylinder recessed in mechanical housing, bolts, heat pipes, worn enamel and industrial craftsmanship. Compact hard-edged asymmetrical dynamo."
+    },
+    {
+      "id": "A03-lens",
+      "output": "assets/relics-v2/A03-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-dd1f7ff4-aa87-4b59-83fb-605b131b00a4.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Battlefield Pulse set, 'Battlefield Calculator': a compact military optical rangefinder with twin asymmetrical red lenses, copper mechanical adjustment knobs, angular gunmetal housing and exposed turbine detailing. Not eyewear on a face."
+    },
+    {
+      "id": "A04-armor",
+      "output": "assets/relics-v2/A04-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-cd245457-93e9-46ff-b10d-16427d022701.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Giant Remains set, 'Remains Armor': an empty ancient chestplate sculpted from a giant ivory ribcage over slate stone, broad fossil shoulders, restrained teal mineral cracks, pale weathered bone and coarse stone contrast. No wearer."
+    },
+    {
+      "id": "A04-boots",
+      "output": "assets/relics-v2/A04-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-bdc876ac-1589-488d-b84a-8e7337657df4.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Giant Remains set, 'Earth Treader': one massive ancient greave-boot made of pale fossil bone and gray carved stone, rounded giant toe plates, teal mineral seam, weathered leather binding. Monumental but compact. No wearer."
+    },
+    {
+      "id": "A04-core",
+      "output": "assets/relics-v2/A04-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-5b423a65-630f-4390-b312-94d16738a0b7.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Giant Remains set, 'Giant Bone Shard': a large ivory fossil vertebra fragment, weathered slate stone fused around it, an ancient teal gem trapped inside its hollow, rough bone striations, monumental prehistoric weight. Chunky asymmetrical silhouette."
+    },
+    {
+      "id": "A04-lens",
+      "output": "assets/relics-v2/A04-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-cc30d934-0e6f-449e-b3b1-a1f6f0ac2e90.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Giant Remains set, 'Titan Eye': a single enormous polished pale teal eye-stone held inside a broken ivory fossil eye socket, stony brow ridge and tiny worn bronze bindings. Broad organic optical talisman silhouette."
+    },
+    {
+      "id": "A05-armor",
+      "output": "assets/relics-v2/A05-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-693c6445-1df2-4ace-b3c8-18d9d7d983bc.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Crimson Eclipse set, 'Eclipse Veil': an empty wine-red folded capelet with a high black collar, black crescent clasps, ruby drop pendant at chest, velvety crimson folds and subtle silver embroidery. No wearer."
+    },
+    {
+      "id": "A05-boots",
+      "output": "assets/relics-v2/A05-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-2e549021-9002-477a-a645-667defd7b118.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Crimson Eclipse set, 'Blood Moon Footprint': one graceful black armored boot with a curved crescent heel, rich crimson inset panels, ruby droplet ankle clasp and subtle dark silver filigree. No wearer."
+    },
+    {
+      "id": "A05-core",
+      "output": "assets/relics-v2/A05-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-f42a3978-2dd9-464c-a4f4-44f2f547a365.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Crimson Eclipse set, 'Crimson Pulse': a translucent ruby heart jewel encircled by two unequal black crescent blades and delicate dark silver arteries, gleaming ruby interior like suspended healing lifeblood. Rich red crystal against black metal."
+    },
+    {
+      "id": "A05-lens",
+      "output": "assets/relics-v2/A05-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-a5348c78-6864-4fc0-96b2-7061b4127518.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Crimson Eclipse set, 'Red Observatory': a deep ruby glass monocle mounted in a sharp black crescent bracket, elegant tiny dark silver veins around the glass, one crimson crystal teardrop. Compact distinctive crescent optic."
+    },
+    {
+      "id": "A06-armor",
+      "output": "assets/relics-v2/A06-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-ea307006-5061-4ce9-8992-3abeb11e12eb.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Gravity Collapse Records set, 'Gravitic Shell': an empty dense black breastplate built from overlapping curved orbital plates with antique-gold rims bent inward toward a tiny blue central singularity socket. Weighty smooth glossy armor, no wearer."
+    },
+    {
+      "id": "A06-boots",
+      "output": "assets/relics-v2/A06-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-eafb093c-8760-4ce9-8bac-f5d5f0b5a846.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Gravity Collapse Records set, 'Falling Trajectory': one broad dense black plated gravity boot, antique-gold split orbital ring around ankle, electric-blue thin sole glow, downward-curved heavy metal segments. No wearer."
+    },
+    {
+      "id": "A06-core",
+      "output": "assets/relics-v2/A06-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-ef56a427-5f2b-4a62-96b5-7e0630e8fbf5.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Gravity Collapse Records set, 'Collapse Center': a miniature pitch-black singularity sphere contained between three warped dense antique-gold orbital discs, thin electric blue accretion fissure along compressed horizon, dark polished metal and gravitational distortion expressed as curved geometry. Object only no background vortex."
+    },
+    {
+      "id": "A06-lens",
+      "output": "assets/relics-v2/A06-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-9afe0daa-9206-4db0-86d3-fd526ca16094.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Gravity Collapse Records set, 'Distortion Observatory': a thick black convex gravitational lens floating within two warped antique-gold crescent brackets, electric-blue thin refraction edge and nested curved mechanical segments. Clear optical relic silhouette."
+    },
+    {
+      "id": "A07-armor",
+      "output": "assets/relics-v2/A07-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-fe6b3be1-6cef-45a1-994d-c081f3a297b4.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Crusher Legacy set, 'Rift Armor': an empty brutal chipped steel chestplate with chunky squared shoulder tooth, impact craters, three bright orange fissures and reinforced rivet bands. Hard armor silhouette, no wearer."
+    },
+    {
+      "id": "A07-boots",
+      "output": "assets/relics-v2/A07-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-cc3f00c0-662e-464e-845d-44213c9f19b4.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Crusher Legacy set, 'Surging Step': one brutal chipped steel armored crusher boot with oversized squared toe, toothed tread and orange fissures along shin plate, dark leather and rusty bolts. Heavy compact silhouette, no wearer."
+    },
+    {
+      "id": "A07-core",
+      "output": "assets/relics-v2/A07-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-b7ff6344-136e-4228-ba27-7846f3e250dc.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Crusher Legacy set, 'Crushing Heart': a compact brutal hammer-head relic whose chipped steel teeth enclose an orange-hot cracked core, rusted heavy bolts and worn squared metal, industrial destructive silhouette, not a generic jewel."
+    },
+    {
+      "id": "A07-lens",
+      "output": "assets/relics-v2/A07-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-21f78ab3-a859-45b8-8ec0-13ea47fd89e6.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Crusher Legacy set, 'Crusher Vision': a squat chipped steel optical visor relic with a single narrow horizontal orange glass slit, chunky toothed brow and asymmetrical impact dents, rugged bolts and hot crack glow."
+    },
+    {
+      "id": "A08-armor",
+      "output": "assets/relics-v2/A08-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-9ff7c165-eeae-4b7c-b403-414f991a7bf6.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Tracker Beyond the Rift set, 'Rift Camouflage': an empty stealth scout shoulder cloak of layered black angular plates and folded dark fabric, teal crystalline clasp, emerald thin seam cuts, asymmetrical lightweight tactical silhouette. No wearer."
+    },
+    {
+      "id": "A08-boots",
+      "output": "assets/relics-v2/A08-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-571683cc-6f54-49cf-81be-b7ec0322677e.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Tracker Beyond the Rift set, 'Tracker Trajectory': one slender black stealth boot with faceted teal ankle fins, pointed emerald crystal heel spur, angular ceramic toe armor and dark folded fabric. Lightweight scout silhouette, no wearer."
+    },
+    {
+      "id": "A08-core",
+      "output": "assets/relics-v2/A08-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-d3a18c9f-c77c-4e1e-9706-f986953e2fb1.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Tracker Beyond the Rift set, 'Tracking Core': a sharp angular teal crystalline spatial shard held in a black scouting device with a triangular split frame, thin emerald energy slit, polished dark ceramic and prismatic teal facets. Distinct triangular compact relic."
+    },
+    {
+      "id": "A08-lens",
+      "output": "assets/relics-v2/A08-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-203d18f8-aa9e-493d-b11b-1b259cb41d1f.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Tracker Beyond the Rift set, 'Weakpoint Observer': a sleek angular black scouting scope with triangular teal glass, offset emerald aiming prism, dark ceramic folding fins and cutout geometric silhouette. Single compact relic, no text."
+    },
+    {
+      "id": "B01-emblem",
+      "output": "assets/relics-v2/B01-emblem.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-d068f167-04bd-46bb-bc0f-7fbe1f8c4bbd.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Orbit That Swallowed a Star set, 'Star-Devouring Ring': a precious antique-gold astronomical armillary ring emblem, nested crossing gold arcs surrounding a deep sapphire dead-star jewel, tiny engraved star notches, compact sculptural dimensional insignia. No round UI border."
+    },
+    {
+      "id": "B01-power",
+      "output": "assets/relics-v2/B01-power.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-38c5df9d-44ce-4853-8af3-1e5f67ddaa5c.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Orbit That Swallowed a Star set, 'Axis of Afterglow': an elegant antique-gold dynamo spindle containing a dying sapphire star between two articulated gold solar jaws, rich blue crystal with a tiny white hot core, precision celestial machinery. A vertical power artifact distinct from a ring."
+    },
+    {
+      "id": "B02-emblem",
+      "output": "assets/relics-v2/B02-emblem.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-9a86cfaf-09c2-4f95-8e27-c0174159e433.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Before the Storm set, 'Storm Seal': a bright silver angular lightning insignia with swept wing-like prongs, inset translucent teal thunder crystal, clean chiseled silver, small electric arcs contained tightly within the object. Dimensional physical brooch not a flat logo."
+    },
+    {
+      "id": "B02-power",
+      "output": "assets/relics-v2/B02-power.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-7a5485c7-7fc4-4393-8691-c4ff758e01b5.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Before the Storm set, 'Eve Capacitor': a compact silver and dark-teal cylindrical capacitor battery, exposed teal lightning captured in thick crystal glass between polished silver end caps and coiled contacts, compact mechanical energy cell."
+    },
+    {
+      "id": "B03-emblem",
+      "output": "assets/relics-v2/B03-emblem.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-71c97a00-25b2-4a52-a18e-6039c491c281.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Immortal Oath set, 'Oath Seal': a majestic ivory and warm-gold phoenix-shaped dimensional seal, wings curling protectively around a small opal heart, feather reliefs and heirloom craftsmanship. Physical relic not a flat logo."
+    },
+    {
+      "id": "B03-power",
+      "output": "assets/relics-v2/B03-power.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-929d414d-a906-4ca3-aa84-691ad47923f2.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Immortal Oath set, 'Immortal Heart': a luminous opal-white heart reliquary, ivory arched ribs and gold phoenix-wing clasps around its heart-shaped crystal, soft golden living light within, refined sacred physical artifact."
+    },
+    {
+      "id": "B04-emblem",
+      "output": "assets/relics-v2/B04-emblem.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-c6096f5f-5e1b-483f-9464-a00451c7038d.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Hunter Clock set, 'Hunting Coordinates': a weathered brass targeting compass insignia with four sharp red enamel pointers, exposed micro-gears and a ruby central aiming lens, asymmetrical engraved mechanical details. Distinct scout compass physical relic."
+    },
+    {
+      "id": "B04-power",
+      "output": "assets/relics-v2/B04-power.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-e8d2-7ab3-8a65-fd469c334de6\\exec-7e4a2d2d-f3c5-41cb-8ccb-9ab8c00f4ca9.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create exactly ONE isolated object, polished hand-painted 3D game art with sculpted volume, exquisite material definition, crisp readable silhouette, luminous jewel accents but restrained bloom. Square 1:1 canvas, transparent background with genuine alpha. The COMPLETE object centered, its farthest points fitting inside an imaginary circle of diameter 78% of canvas; ample empty transparent margin. Three-quarter product view, dramatic cool top-left highlights. No character, hands, platform, environment, icon frame, UI border, text, numerals, logos, watermark, or giant surrounding glow. Hunter Clock set, 'Clock of Pursuit': an intricate antique-brass pocketwatch with a partly open lid, ruby-red clock crystal, visible precise gears and two striking red hands, short attached chain curled close. No written numbers or text."
+    },
+    {
+      "id": "C01-armor",
+      "output": "assets/relics-v2/C01-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-1dfd3230-0f26-4b04-a032-e75296689a24.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Frost Circuit Armor: an empty chest cuirass with sculpted frosted-glass blue plates over navy metal, six pointed crystalline shoulder fins, thin silver snowflake circuit channels and a small cyan chest reactor. Only the chest armor, no person."
+    },
+    {
+      "id": "C01-boots",
+      "output": "assets/relics-v2/C01-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-f5e45bd4-c1f9-414c-9d82-5e9278aceb15.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Frost Circuit Boots: one matching pair of compact navy armored boots, frosted translucent blue toe plates, angular silver heels and snowflake circuit channels, small ice crystal ankle fins. Pair staggered diagonally."
+    },
+    {
+      "id": "C01-core",
+      "output": "assets/relics-v2/C01-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-3e7aad1d-e914-47de-a0c4-be2d452b266f.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Frost Circuit Core: a thick faceted ice-blue hexagonal crystal reactor, its six silver fins interlocking like a snowflake, delicate cyan lightning circuits trapped inside the translucent ice, dark navy sockets."
+    },
+    {
+      "id": "C01-lens",
+      "output": "assets/relics-v2/C01-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-1b49afee-9caf-43f2-8804-8a2fa4687614.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Frost Circuit Lens: one floating angular hexagonal monocle lens, pale cyan glass filled with crystalline frost branches, silver six-fin snowflake housing, dark navy adjustable bracket, thin electric-blue circuit inlays."
+    },
+    {
+      "id": "C02-armor",
+      "output": "assets/relics-v2/C02-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-de24c38f-68ef-4767-8118-6c8c695314b5.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Trinity Armament Armor: one empty geometric gold-and-emerald chest cuirass with three asymmetric weapon-storage facets on its shoulders and breast, compact triangular emerald prism at center, premium angular gold edges, emerald enamel. No wearer."
+    },
+    {
+      "id": "C02-boots",
+      "output": "assets/relics-v2/C02-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-8aa8c262-b8b1-4b87-95c8-975644684e36.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Trinity Armament Boots: a matched pair of emerald enamel and antique gold mechanical combat boots, triple-faceted shin plates, triangular joints and segmented gold soles, elegant angular weapon-inspired construction. Staggered diagonal pair."
+    },
+    {
+      "id": "C02-core",
+      "output": "assets/relics-v2/C02-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-ad528371-3f82-46f7-8f69-0cb787dc3153.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Trinity Armament Core: three interlocked distinct emerald-gold weapon fragments, sword point, spear point and gun barrel, arranged into a compact triangular mechanical relic around a bright green prism. Geometric polished gold arms and deep emerald enamel."
+    },
+    {
+      "id": "C02-lens",
+      "output": "assets/relics-v2/C02-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-66d68118-8396-455b-a570-f59a013096fd.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Trinity Armament Lens: a triangular emerald targeting scope, three folding gold sight vanes projecting from its three corners, deep green optical glass and an articulated angular weapon mount. No crosshair floating outside."
+    },
+    {
+      "id": "C03-armor",
+      "output": "assets/relics-v2/C03-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-9f5675a3-a9e8-4507-8307-71a963e9ef5b.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Thousand Shadows Armor: an empty black dragon-scale chest vest with folded wing-shaped shoulder guards, dark layered cloth trailing only slightly, violet amethyst clasp, ebony scales and silver hooks, elegant compact silhouette. No wearer."
+    },
+    {
+      "id": "C03-boots",
+      "output": "assets/relics-v2/C03-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-50573599-4067-45fc-9b75-bcf363c60f88.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Thousand Shadows Boots: a pair of black dragon-scale stealth boots with short curved talon toes, violet shadow seams, silver buckles and wing-shaped folded ankle guards, supple ebony leather. Pair fully visible."
+    },
+    {
+      "id": "C03-core",
+      "output": "assets/relics-v2/C03-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-dcf1e293-124a-49dd-8ee0-b8ff58062f23.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Thousand Shadows Core: a compact black dragon hatchling-shaped carved relic coiling around an amethyst ember, unmistakable horned dragon head and tail, obsidian scales with thin violet highlights, silver shadow filigree, no living character."
+    },
+    {
+      "id": "C03-lens",
+      "output": "assets/relics-v2/C03-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-467de796-cb40-4a58-9138-7ce2facf4a50.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Thousand Shadows Lens: a single dragon-eye monocle, violet slit-pupil crystal glass inside a carved black dragon head crescent housing, two sweeping obsidian horns and a tiny silver chain, polished scales. Compact icon."
+    },
+    {
+      "id": "C04-armor",
+      "output": "assets/relics-v2/C04-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-8c8da4de-c229-47fa-8f04-f128bd476dea.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Black Moon Fragment Armor: an empty indigo-black crescent plated chest armor with asymmetric sweeping moon-arc pauldrons, one crimson ruby inset, sleek black layered metal and dark red lining, strongly readable moon motif. No wearer."
+    },
+    {
+      "id": "C04-boots",
+      "output": "assets/relics-v2/C04-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-21ba21e0-8089-41a8-933d-4ffa3f74182d.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Black Moon Fragment Boots: matched indigo-black leather boots with sweeping crescent blade ankle guards, crimson inner seams and ruby clasps, moon-arc silver edged toes, lean stealth silhouette. Pair staggered."
+    },
+    {
+      "id": "C04-core",
+      "output": "assets/relics-v2/C04-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-1e14e94c-d6a3-48c7-a333-fdeedb689eb6.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Black Moon Fragment Core: a thick broken black crescent moon stone clasping a deep crimson ruby drop, indigo polished metal serrations and a narrow red fissure, stylized crescent silhouette, clean dark-silver highlights."
+    },
+    {
+      "id": "C04-lens",
+      "output": "assets/relics-v2/C04-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-8bff4882-6b5e-41d6-b4dc-0cb24687092c.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Black Moon Fragment Lens: a circular deep red optical glass disk partly concealed by a thick black crescent shutter, indigo metal engraved moon-phase ticks without letters, narrow silver highlights and two curved mounting hooks."
+    },
+    {
+      "id": "C05-armor",
+      "output": "assets/relics-v2/C05-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-cf1789f5-2e8e-4f19-97b9-b3cc834f0075.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Infinite Blade Armor: an empty silver chest cuirass assembled from interlocking sword-sheath plates, crossed blue and red sword channels at the breast, cool blue left shoulder and warm red right trim, elegant polished steel. No wearer."
+    },
+    {
+      "id": "C05-boots",
+      "output": "assets/relics-v2/C05-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-8eb4476d-0f38-44c2-bdfa-ca50951d70f2.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Infinite Blade Boots: matched silver steel duelist boots with layered scabbard-like shin armor, blue enamel accents on one and crimson enamel on the other, sharp steel heel guards, compact high-quality pair."
+    },
+    {
+      "id": "C05-core",
+      "output": "assets/relics-v2/C05-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-d6b9a259-45b2-4fa4-a120-f6cfcd3d7bf3.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Infinite Blade Core: two short crossed sword fragments, one icy blue and one ruby red, locked in a compact circular silver sword-heart mechanism, central diamond crystal, premium etched silver and contrasting radiant blade edges, no handles held."
+    },
+    {
+      "id": "C05-lens",
+      "output": "assets/relics-v2/C05-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-6e8b0752-3030-43bb-ae59-3492467b91ae.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Infinite Blade Lens: one silver diamond-shaped prism viewing lens, intersecting red and blue blade-shaped brackets crossing behind the optical glass, crisp beveled steel, clean small double-colored glint. Single compact object."
+    },
+    {
+      "id": "C06-armor",
+      "output": "assets/relics-v2/C06-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-8596b230-c87a-4a79-b32c-afb3c1146173.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. True Name Holy Sword Armor: an empty ivory and burnished-gold paladin breastplate, raised sacred sword relief at center with sapphire gem, modest wing-shaped golden shoulders, layered white enamel plates, heroic holy design. No wearer."
+    },
+    {
+      "id": "C06-boots",
+      "output": "assets/relics-v2/C06-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-25d604d2-2489-4168-9492-08097b654e54.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. True Name Holy Sword Boots: pair of ivory enamel paladin greaves and boots, gold sword-shaped shin ridges, sapphire clasps, small golden wing ankle guards and polished gold toe caps. Fully visible matching pair."
+    },
+    {
+      "id": "C06-core",
+      "output": "assets/relics-v2/C06-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-40e6d2cd-f821-41bd-8b75-3514676d4850.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. True Name Holy Sword Core: an ivory sword-shaped sacred seal embedded upright in a compact golden winged reliquary, sapphire central crystal, rich ivory enamel and warm gold, three small blue stones, solemn holy design."
+    },
+    {
+      "id": "C06-lens",
+      "output": "assets/relics-v2/C06-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-eafb8aa0-f615-4b60-8961-f9744b1fb6cb.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. True Name Holy Sword Lens: a single luminous pale-blue sapphire optical lens in an ivory-and-gold winged frame, tiny upright sword finial and clean polished golden hinges, sacred elegant silhouette."
+    },
+    {
+      "id": "C07-armor",
+      "output": "assets/relics-v2/C07-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-01642814-4a96-48ef-bf2b-397b46278854.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Solar Furnace Armor: an empty heavy brass-and-charcoal forge chest cuirass with ribbed furnace heat sinks, compact orange molten vent at its center, curved copper shoulder plates with soot patina and glowing narrow seams. No wearer."
+    },
+    {
+      "id": "C07-boots",
+      "output": "assets/relics-v2/C07-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-abbfc658-70a4-4c90-8e8a-fbf44ae6cf96.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Solar Furnace Boots: matched chunky copper-brass forge boots with charcoal iron soles, ribbed heat-sink shin guards, orange furnace slit vents and sturdy rivets, warm molten highlights confined to seams. Pair staggered."
+    },
+    {
+      "id": "C07-core",
+      "output": "assets/relics-v2/C07-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-84895e6f-3e77-477a-8016-db45fe605901.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Solar Furnace Core: a compact spherical brass furnace with three thick heat-sink rings, orange molten fire visible through triangular vents, black iron bolts and burnished copper edges, a small intense sun-like center, not a generic crystal."
+    },
+    {
+      "id": "C07-lens",
+      "output": "assets/relics-v2/C07-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-9e7aef79-bcac-4f7c-a11c-87f1e2f5154f.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Solar Furnace Lens: a stout brass foundry viewing monocle with orange heat-resistant glass, heavy copper iris blades, three chunky dark iron clamps and little ribbed heat sinks, warm controlled glow inside."
+    },
+    {
+      "id": "C08-armor",
+      "output": "assets/relics-v2/C08-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-42375931-ef5c-478f-8015-5f97847e554b.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Buried Earth Pulse Armor: an empty chest cuirass of overlapping stratified basalt plates, rough earth stone shoulders, warm amber central geode, jade veins and root-like bronze bindings, broad grounded silhouette. No wearer."
+    },
+    {
+      "id": "C08-boots",
+      "output": "assets/relics-v2/C08-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-b3bb9bc9-bf41-4144-8004-24fc1213f142.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Buried Earth Pulse Boots: a pair of rugged stone-armored boots, layered basalt shale shin plates, amber geode clasps and jade seams, thick dark leather bindings and blunt grounded soles, compact pair."
+    },
+    {
+      "id": "C08-core",
+      "output": "assets/relics-v2/C08-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-35532cdd-4ce6-42d8-80d3-0cb0387ad525.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Buried Earth Pulse Core: an irregular stratified dark stone geode split open around a bright amber heart, jade mineral veins and rough basalt outer shell, compact ancient earth relic with visible stacked geological layers."
+    },
+    {
+      "id": "C08-lens",
+      "output": "assets/relics-v2/C08-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-9594567e-a028-42ce-b41c-d86b2fdfcc28.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Buried Earth Pulse Lens: a polished amber lens shaped like an eye within a rugged layered basalt ring, jade mineral inlays and small ancient bronze clamps, visible cross-sections of stone strata."
+    },
+    {
+      "id": "C09-armor",
+      "output": "assets/relics-v2/C09-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-2401fba4-3283-41d0-907b-2136da9594fc.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Event Horizon Armor: an empty black obsidian cuirass with inward-bent floating plate segments arranged into a chest shape, a dark void at the breast bounded by a thin violet ring, angular shoulders, glossy black facets and purple edge light. No wearer."
+    },
+    {
+      "id": "C09-boots",
+      "output": "assets/relics-v2/C09-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-8dc3c054-0dc8-4316-8b79-5d81588354e4.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Event Horizon Boots: a matching pair of angular black obsidian boots with slightly separated floating plate segments, thin violet gravity rings around the ankles, inward-curved facets and compact strong silhouette. Pair staggered."
+    },
+    {
+      "id": "C09-core",
+      "output": "assets/relics-v2/C09-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-fc72a046-3682-4e47-898e-f525f5507156.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Event Horizon Core: a dense black obsidian gravitational nucleus surrounded by three broken levitating angular stone arcs bent inward, narrow violet accretion ring hugging the core, glossy black facets with bright purple edges. Compact unmistakable void relic."
+    },
+    {
+      "id": "C09-lens",
+      "output": "assets/relics-v2/C09-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-4c30-77d2-9117-ff680c57253c\\exec-58fb900b-cf84-42b6-91e4-3f4129612178.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark-fantasy action RPG inventory relic icon. Create a SINGLE new isolated item, polished painterly 3D rendering with exquisite materials, crisp chunky readable silhouette and dramatic sculpted highlights. Square 1:1 composition, three-quarter view, centered inside the central 78% of a circle with generous transparent margins. Genuinely transparent alpha background. No scene, no floor, no UI frame, no text, no letters, no numbers, no logo, no watermark. No huge glow, no particle cloud, no characters, no collage. All contours fully visible. Event Horizon Lens: one convex violet gravitational glass lens inside an asymmetrical black obsidian oval housing, a tight warped double ring visible inside the glass, three angular floating stone clamps, compact dark mystical scope."
+    },
+    {
+      "id": "C10-armor",
+      "output": "assets/relics-v2/C10-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-06a7ab57-8edf-417d-ab64-74f8b7b57028.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Crimson Chalice set: vampire ceremonial chest mantle, deep burgundy layered velvet cloak around elegant black breastplate; silver bat-wing collar, ruby clasp and silver thorn filigree, compact torso only."
+    },
+    {
+      "id": "C10-boots",
+      "output": "assets/relics-v2/C10-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-1d8151ca-25ad-418d-a58e-7b47921e0e3d.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Crimson Chalice set: matched pair of elegant burgundy vampire boots with silver thorn-traced armor, pointed toes, tiny bat-wing ankle guards and ruby clasps; paired footwear."
+    },
+    {
+      "id": "C10-core",
+      "output": "assets/relics-v2/C10-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-827c797d-fecb-48a2-94d6-5bb629e4724d.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Crimson Chalice set: a gothic vampire chalice with a crimson ruby heart suspended in translucent blood-red crystal bowl; antique silver bat-wing handles and thorn stem, elegant sharply identifiable goblet silhouette."
+    },
+    {
+      "id": "C10-lens",
+      "output": "assets/relics-v2/C10-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-6dbbf5aa-32e9-4e14-987e-c360269d82ba.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Crimson Chalice set: gothic round crimson glass monocle mounted in bat-wing shaped silver frame; ruby teardrop beneath and delicate short silver chain, unmistakable optical lens."
+    },
+    {
+      "id": "C11-armor",
+      "output": "assets/relics-v2/C11-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-41ca45ed-8c69-4841-9ad6-2663824dd9dd.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Giant Marrow set: hulking torso-only ribcage chest armor made of overlapping ivory giant bones and charcoal organic sinew; crimson marrow nodes at sternum, massive beast silhouette, non-gory."
+    },
+    {
+      "id": "C11-boots",
+      "output": "assets/relics-v2/C11-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-13833400-dc8e-4320-b985-86c29bc7aaff.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Giant Marrow set: matched pair of giant hoof-shaped armored boots sculpted from ivory bone plates, charcoal hoof toes, interwoven crimson vein channels and robust bone ankle spurs, non-gory."
+    },
+    {
+      "id": "C11-core",
+      "output": "assets/relics-v2/C11-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-05ea8bdd-75a4-4889-b31b-2691a19ef43e.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Giant Marrow set: ancient giant vertebra relic with ivory curved bone arches enclosing luminous crimson marrow heart; powerful organic fossil form and subtle living red veins, non-gory."
+    },
+    {
+      "id": "C11-lens",
+      "output": "assets/relics-v2/C11-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-9d8c5966-8547-4db4-901b-de8c38ca49c5.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Giant Marrow set: large dark amethyst glossy eye lens held in uneven ivory bone orbit like fossil beast socket; crimson vein channels and tiny marrow crystal, non-gory magical optical relic."
+    },
+    {
+      "id": "C12-armor",
+      "output": "assets/relics-v2/C12-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-c03a64fb-153f-4f7b-92c8-c7798ca114a8.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Dimensional Tailor set: torso-only silver-and-blue tailored mage vest made from impossible folded prismatic cloth panels, sharp asymmetrical silver seams and sapphire thread stitching; elegant folded paper-like geometry."
+    },
+    {
+      "id": "C12-boots",
+      "output": "assets/relics-v2/C12-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-a18b60dc-626b-4d22-a273-8e93823a71d7.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Dimensional Tailor set: matched pair of elegant silver-and-blue folded-fabric boots, angular prismatic heels, impossible origami folds and sapphire stitched seams, compact distinctive geometric footwear."
+    },
+    {
+      "id": "C12-core",
+      "output": "assets/relics-v2/C12-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-17645760-5746-431e-95ba-3b64ef1cb2e1.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Dimensional Tailor set: polished silver sewing needle piercing a folded impossible blue-prismatic fabric knot; suspended angular glass folded space fragments, sapphire thread wound around needle. Compact diagonal needle silhouette."
+    },
+    {
+      "id": "C12-lens",
+      "output": "assets/relics-v2/C12-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-8705ee8b-5a7c-4e21-a4bb-72c999afb12d.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Dimensional Tailor set: faceted angular optical monocle of folded silver wire and blue prismatic glass, two offset translucent planar lenses, sapphire thread seam trailing briefly, dimensional tailor motif."
+    },
+    {
+      "id": "C13-armor",
+      "output": "assets/relics-v2/C13-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-f99c5404-d864-43ad-bfae-1b3b53cf6e7d.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Eternal Blossom set: torso-only chest armor woven from layered pearlescent pink flower petals and jade leaves, rose-gold vine clasp around blooming seed at sternum, elegant botanical silhouette."
+    },
+    {
+      "id": "C13-boots",
+      "output": "assets/relics-v2/C13-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-40bcaf05-03fa-4aaa-a8b1-11fe2b4dbcd5.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Eternal Blossom set: matched pair of jade leaf boots crowned by soft pink blossom-petal cuffs, rose-gold vine fasteners and elegant petal-overlap toes, botanical paired footwear."
+    },
+    {
+      "id": "C13-core",
+      "output": "assets/relics-v2/C13-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-cac3168b-a28e-4e68-b8a8-e8f7f8d0fbde.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Eternal Blossom set: large luminous jade seed enclosed by layered translucent pink cherry-blossom petals, delicate rose-gold root tendrils, clear organic bud silhouette with soft golden center."
+    },
+    {
+      "id": "C13-lens",
+      "output": "assets/relics-v2/C13-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-78c8ed44-72d1-44dd-84ef-42e32c5895aa.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Eternal Blossom set: circular pale pink crystal viewing lens ringed by a five-petal blooming flower and curling jade leaves; tiny rose-gold vine handle; botanical optical relic."
+    },
+    {
+      "id": "C14-armor",
+      "output": "assets/relics-v2/C14-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-1a12e1de-e010-4f2a-9921-6ca375085e60.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Red Fate Spindle set: torso-only ivory porcelain puppet chest shell with dark polished wooden shoulder plates and fine brass ball joints, tightly laced scarlet fate threads crossing cracks, elegant eerie marionette relic."
+    },
+    {
+      "id": "C14-boots",
+      "output": "assets/relics-v2/C14-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-c31c75f3-58c4-44e9-b90a-207685256aed.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Red Fate Spindle set: matched pair of ivory porcelain marionette boots with dark wooden soles, brass ball-jointed ankles, scarlet thread lacing and ribbon knots; eerie refined puppet footwear."
+    },
+    {
+      "id": "C14-core",
+      "output": "assets/relics-v2/C14-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-8686a4b1-fb17-4611-8c72-625e93aa89bf.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Red Fate Spindle set: ornate small dark wooden spindle holding luminous scarlet thread wound around a porcelain heart, two sculpted porcelain puppet-hand brackets and tiny brass joints; no living body."
+    },
+    {
+      "id": "C14-lens",
+      "output": "assets/relics-v2/C14-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-df3e3fae-17b6-43ec-9585-40aa9d2bbc18.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Red Fate Spindle set: dark red optical lens mounted in ivory porcelain marionette-eye frame, scarlet thread knot crossing outer rim, polished wood hinge and brass screw; single eerie doll-like monocle."
+    },
+    {
+      "id": "C15-armor",
+      "output": "assets/relics-v2/C15-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-4db3d55d-03c5-4fa7-b8fe-721d3219eeff.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Ocean King set: torso-only flowing aqua breastplate sculpted from mother-of-pearl shell scales, gold wave filigree, central luminous pearl, fin-shaped shoulders and elegant sea-king armor silhouette."
+    },
+    {
+      "id": "C15-boots",
+      "output": "assets/relics-v2/C15-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-3f3ca995-2137-4464-b9c7-840c287c77a2.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Ocean King set: matched pair of aqua armored boots with overlapping mother-of-pearl shell scales, gold curling wave clasps and translucent fin-like ankle cuffs, royal marine footwear."
+    },
+    {
+      "id": "C15-core",
+      "output": "assets/relics-v2/C15-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-ec466679-298a-4a8d-bb14-6e813b96cad0.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Ocean King set: lustrous enormous aqua pearl nestled in an open spiraled mother-of-pearl nautilus shell, gold trident-like prongs and tiny turquoise droplets attached close to object, royal marine relic."
+    },
+    {
+      "id": "C15-lens",
+      "output": "assets/relics-v2/C15-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-41ebdeb1-0347-4809-99a6-638658760e2b.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Ocean King set: aqua glass pressure-observation lens in spiraled mother-of-pearl nautilus frame with gold wave mounts, tiny luminous pearl and delicate compass-like markings without readable text."
+    },
+    {
+      "id": "C16-armor",
+      "output": "assets/relics-v2/C16-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-3d01ceae-d781-476e-a78e-41fae6b9b29b.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Root Access Virus set: torso-only angular black armored isolation frame, neon mint circuit seams around magenta corrupted central chip, asymmetric floating metal collar panels kept compact, futuristic infected chest armor."
+    },
+    {
+      "id": "C16-boots",
+      "output": "assets/relics-v2/C16-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-1a523239-604e-40bf-8c0d-1b800a5d4050.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Root Access Virus set: matched pair of angular black cybernetic boots, mint neon circuitry, magenta corrupted heel fragments and segmented metal ankle frame, aggressive futuristic footwear."
+    },
+    {
+      "id": "C16-core",
+      "output": "assets/relics-v2/C16-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-1ddabe7f-a056-4467-bc5e-144f1093c086.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Root Access Virus set: black faceted electronic processor cube split open around a neon mint central chip, magenta corrupted crystal edge fragments and intricate metallic circuitry, aggressive cyber relic."
+    },
+    {
+      "id": "C16-lens",
+      "output": "assets/relics-v2/C16-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-e28ee322-3953-4606-bb49-47190ee8225e.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Root Access Virus set: angular black cybernetic monocle with square neon mint optical aperture and magenta fractured pixel-like glass edges; compact metallic circuit arm and tiny processor nodes, no text."
+    },
+    {
+      "id": "C17-armor",
+      "output": "assets/relics-v2/C17-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-1e3aa1e9-81f9-4b34-8bd4-7dcad023cfc0.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Stellar End set: torso-only midnight-blue nebula chest mantle, sapphire celestial breastplate, white-gold constellation filigree and star clasp; two elegant orbital arc pauldrons, luxurious astronomical armor."
+    },
+    {
+      "id": "C17-boots",
+      "output": "assets/relics-v2/C17-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-70aa8b4b-fc67-4e1c-b9bb-06d04f70b761.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Stellar End set: matched pair of midnight sapphire armored boots with white-gold constellation tracery, sculpted comet-tail ankle fins and tiny star-shaped clasps, elegant celestial footwear."
+    },
+    {
+      "id": "C17-core",
+      "output": "assets/relics-v2/C17-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-3a566f85-a328-4b36-873b-49ebba5849aa.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Stellar End set: fallen sapphire star crystal with molten white-gold nucleus, elegant gold orbital arcs close around it, a compact deep blue nebula inside crystal facets, astronomical relic."
+    },
+    {
+      "id": "C17-lens",
+      "output": "assets/relics-v2/C17-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-6fb2ec4d-3bdf-45b7-91ad-2821bf205efb.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Stellar End set: deep sapphire astronomical observation lens mounted in intricate gold orrery rings and tiny pointed stars, nebula visible through circular glass, compact golden telescope-like monocle."
+    },
+    {
+      "id": "C18-armor",
+      "output": "assets/relics-v2/C18-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-621d892b-2719-49b9-a0c5-e23a161004f6.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Golden Ledger set: torso-only rich emerald velvet and black formal vest breastplate with thick gilded lapels, small jade diamond casino gem centerpiece, engraved golden playing-card suit ornaments, luxurious wealth armor."
+    },
+    {
+      "id": "C18-boots",
+      "output": "assets/relics-v2/C18-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-4d4fbcf0-72f3-4bc4-a73a-605ac6897db5.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Golden Ledger set: matched pair of emerald-black formal armored boots with thick gold heel caps, jade diamond casino buckles and lavish embossed gold trim; luxurious gambler footwear."
+    },
+    {
+      "id": "C18-core",
+      "output": "assets/relics-v2/C18-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-68253bae-bdb3-428f-9177-c528d44d46ab.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Golden Ledger set: antique small gilded ledger closed around glowing jade casino crystal, embossed blank gold cover with playing-card diamond symbol, luxurious gold clasps and tiny stacked coins integrated at base; no lettering."
+    },
+    {
+      "id": "C18-lens",
+      "output": "assets/relics-v2/C18-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-88007d55-9099-47c8-a202-a4b7eeefa224.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Golden Ledger set: jade-green crystal valuation monocle inside ornate thick gold coin-shaped frame, small playing-card diamond motif on mount and short gold chain; no letters, no numerical denomination."
+    },
+    {
+      "id": "D01-armor",
+      "output": "assets/relics-v2/D01-armor.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-8a366b29-298c-4f48-8cdd-42a793eab079.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Cursed Black Sun set: torso-only angular obsidian chest armor with scarlet molten cracks and a black solar disk at sternum, jagged eclipse-ray shoulder spikes, solemn corrupted volcanic armor."
+    },
+    {
+      "id": "D01-boots",
+      "output": "assets/relics-v2/D01-boots.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-3ccbbe87-c3d1-4719-9ccf-5cde121fddb0.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Cursed Black Sun set: matched pair of brutal obsidian armored boots with jagged eclipse-ray ankle crowns, molten scarlet fissures and glossy volcanic plated toes; dark cursed footwear."
+    },
+    {
+      "id": "D01-core",
+      "output": "assets/relics-v2/D01-core.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-5f8d483f-6d1d-4a0e-88cb-72c8a98e860d.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Cursed Black Sun set: jagged obsidian solar disk split by scarlet molten fissures, black central orb enclosed by uneven red-edged eclipse spikes, ominous cursed artifact with polished volcanic glass highlights."
+    },
+    {
+      "id": "D01-lens",
+      "output": "assets/relics-v2/D01-lens.webp",
+      "source": "C:\\Users\\lg\\.codex\\generated_images\\01a11c5a-8ceb-78f2-8d66-e9a2e83c5c46\\exec-5be30566-7cd5-468d-ad26-2985652320cc.png",
+      "prompt": "Use case: stylized-concept. Asset type: premium dark fantasy action RPG inventory relic icon. 1:1 square, genuinely transparent RGBA background. One isolated collectible object at three-quarter view, centered inside 78% of canvas diameter, full silhouette with generous transparent padding. Rich painterly 3D game-item rendering, finely crafted materials, luminous clean highlights and readable form at thumbnail scale, restrained tiny emissive accents. No person, no hands, no letters, no text, no numbers, no logo, no watermark, no UI frame, no scene, no ground, no giant bloom.  Subject: Cursed Black Sun set: opaque black glass lens encircled by jagged obsidian eclipse spikes, molten scarlet rim and fissures, eerie blind optical relic, compact single monocle."
+    }
+  ]
+}

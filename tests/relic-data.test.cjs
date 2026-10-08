@@ -11,7 +11,7 @@ function near(actual,expected){assert.ok(Math.abs(actual-expected)<1e-10,`${actu
 test('six requested rarities, 31 sets, fixed slots and a six-piece starter loadout',()=>{
   const g=game();assert.deepEqual(plain(g.run('Object.values(RELIC_RARITIES).map(r=>[r.name,r.color])')),[['일반','#a1a8b3'],['희귀','#55d68a'],['초희귀','#579dff'],['에픽','#b783ff'],['전설','#f4d35e'],['저주','#ff5869']]);
   assert.equal(g.run('Object.keys(RELIC_SETS).length'),31);assert.equal(g.run('relicStore.inventory.length'),6);assert.equal(g.run('relicStore.materials'),150);
-  assert.equal(g.run("relicEquippedItems('astra').length"),6);assert.equal(g.run("relicEquippedItems('lush').length"),6);
+  assert.equal(g.run("relicEquippedItems('yupiter').length"),6);assert.equal(g.run("relicEquippedItems('astra').length"),0);assert.equal(g.run("relicEquippedItems('lush').length"),0);
   assert.equal(g.run('Object.values(RELIC_STATS).filter(s=>s.sub).length'),13);
   assert.equal(g.run('Object.values(RELIC_SETS).every(s=>s.names.length===s.slots.length)'),true);
 });
@@ -26,14 +26,15 @@ test('main interpolation, rarity factor and boots shield exception remain unroun
   g.run('lens.level=15;boots.level=15');near(g.run('relicMainValue(lens)'),.324);near(g.run('relicMainValue(boots)'),.24);
   g.run("lens.level=9;lens.rarity='superRare'");near(g.run('relicMainValue(lens)'),(.15+(.324-.15)*.6)*.775);
 });
-test('enhancement keeps original substats, grows every three levels and stores deterministic retry results',()=>{
+test('item-fed enhancement keeps original substats, grows deterministically and stores retry results',()=>{
   const g=game();g.run("relicStore.inventory=[relicCreate({setId:'A07',slot:'lens',rarity:'legendary',mainStat:'shieldDamage'},()=>.99)];relicStore.loadouts={};relicStore.materials=2000;relicSave();let target=relicStore.inventory[0].id;let originalSubs=relicStore.inventory[0].substats.map(s=>s.stat)");
-  assert.equal(g.run("relicEnhance(target,{expectedLevel:0,requestId:'first',rng:()=>0}).ok"),true);
-  assert.equal(g.run("relicEnhance(target,{expectedLevel:0,requestId:'first',rng:()=>.99}).unchanged"),true);
-  assert.equal(g.run('relicStore.inventory[0].level'),1);assert.equal(g.run('relicStore.materials'),1970);
+  g.run("let fodder=relicCreate({setId:'A01',slot:'core'});relicStore.inventory.push(fodder);relicSave()");
+  assert.equal(g.run("relicEnhance(target,{materialIds:[fodder.id],expectedLevel:0,requestId:'first'}).ok"),true);
+  assert.equal(g.run("relicEnhance(target,{materialIds:[fodder.id],expectedLevel:0,requestId:'first'}).unchanged"),true);
+  assert.equal(g.run('relicStore.inventory[0].level'),1);assert.equal(g.run('relicStore.materials'),2000);
   assert.equal(g.run('relicEnhance(target,{expectedLevel:0}).ok'),false);
-  g.run('for(let level=1;level<15;level++)relicEnhance(target,{rng:()=>0})');
-  assert.equal(g.run('relicStore.materials'),500);assert.equal(g.run('relicStore.inventory[0].history.length'),5);assert.equal(g.run('relicStore.inventory[0].substats[0].count'),5);
+  g.run("let fodders=Array.from({length:49},()=>relicCreate({setId:'A01',slot:'core'}));relicStore.inventory.push(...fodders);relicSave();Math.random=()=>{throw new Error('enhancement must not roll')};relicEnhance(target,{materialIds:fodders.map(item=>item.id)})");
+  assert.equal(g.run('relicStore.materials'),2000);assert.equal(g.run('relicStore.inventory[0].level'),15);assert.equal(g.run('relicStore.inventory[0].history.length'),5);assert.deepEqual(plain(g.run('relicStore.inventory[0].substats.map(s=>s.count)')),[2,2,1]);
   assert.deepEqual(plain(g.run('relicStore.inventory[0].substats.map(s=>s.stat)')),plain(g.run('originalSubs')));
   assert.equal(g.run('relicEnhance(target).ok'),false);
   const saved=g.storage.get('zombieSurvivalRelicsV1'),loaded=game(saved);assert.deepEqual(plain(loaded.run('relicStore.inventory[0]')),plain(g.run('relicStore.inventory[0]')));
@@ -64,10 +65,61 @@ test('locked, equipped and preset-referenced items cannot be dismantled, duplica
   assert.equal(g.run('relicDismantle([b.id,b.id]).count'),1);assert.equal(g.run('relicStore.materials'),170);
 });
 test('quota failure rolls back all currency, inventory and upgrade changes',()=>{
-  const g=game(),before=g.storage.get('zombieSurvivalRelicsV1');g.c.quota=true;
-  assert.equal(g.run('relicEnhance(relicStore.inventory[0].id).ok'),false);assert.equal(g.run('relicStore.inventory[0].level'),0);assert.equal(g.run('relicStore.materials'),150);
-  assert.equal(g.run("relicGrantReward({runId:'quota_run',kind:'end'}).ok"),false);assert.equal(g.run('relicStore.inventory.length'),6);assert.equal(g.storage.get('zombieSurvivalRelicsV1'),before);
-  g.c.quota=false;assert.equal(g.run('relicEnhance(relicStore.inventory[0].id).ok'),true);
+  const g=game();g.run("let fodder=relicCreate({setId:'A02',slot:'armor'});relicStore.inventory.push(fodder);relicSave()");const before=g.storage.get('zombieSurvivalRelicsV1');g.c.quota=true;
+  assert.equal(g.run('relicEnhance(relicStore.inventory[0].id,{materialIds:[fodder.id]}).ok'),false);assert.equal(g.run('relicStore.inventory[0].level'),0);assert.equal(g.run('relicStore.materials'),150);
+  assert.equal(g.run("relicGrantReward({runId:'quota_run',kind:'end'}).ok"),false);assert.equal(g.run('relicStore.inventory.length'),7);assert.equal(g.storage.get('zombieSurvivalRelicsV1'),before);
+  g.c.quota=false;assert.equal(g.run('relicEnhance(relicStore.inventory[0].id,{materialIds:[fodder.id]}).ok'),true);
+});
+
+test('rarity increases feed XP, residual XP persists, and duplicate material IDs only count once',()=>{
+  const g=game();assert.deepEqual(plain(g.run('Object.values(RELIC_FEED_XP)')),[30,60,90,150,240,300]);
+  g.run("let target=relicStore.inventory[0].id;let feeds=Array.from({length:3},()=>relicCreate({setId:'A02',slot:'core'}));relicStore.inventory.push(...feeds);relicSave();relicEnhance(target,{materialIds:[feeds[0].id,feeds[0].id]});relicEnhance(target,{materialIds:[feeds[1].id]})");
+  assert.equal(g.run('relicStore.inventory[0].level'),1);assert.equal(g.run('relicStore.inventory[0].xp'),30);assert.equal(g.run('relicStore.inventory.length'),7);
+  const loaded=game(g.storage.get('zombieSurvivalRelicsV1'));assert.equal(loaded.run('relicStore.inventory[0].xp'),30);
+  g.run('relicEnhance(target,{materialIds:[feeds[2].id]})');assert.equal(g.run('relicStore.inventory[0].level'),2);assert.equal(g.run('relicStore.inventory[0].xp'),20);
+  assert.equal(g.run('relicEnhance(target,{materialIds:[target]}).ok'),false);assert.equal(g.run('relicEnhance(target,{materialIds:[]}).ok'),false);
+});
+
+test('equipped feed requires warning acknowledgment and removes owner and preset references atomically',()=>{
+  const g=game();g.run("let target=relicStore.inventory[0].id;let material=relicStore.inventory[1].id;relicSavePreset('yupiter',0)");
+  const before=g.storage.get('zombieSurvivalRelicsV1');assert.equal(g.run('relicEnhance(target,{materialIds:[material]}).requiresConfirmation'),true);assert.equal(g.storage.get('zombieSurvivalRelicsV1'),before);
+  g.run('relicToggleLock(material)');assert.equal(g.run('relicEnhance(target,{materialIds:[material],confirmEquipped:true}).ok'),false);g.run('relicToggleLock(material)');
+  assert.equal(g.run('relicEnhance(target,{materialIds:[material],confirmEquipped:true}).ok'),true);
+  assert.equal(g.run('relicOwner(material)'),null);assert.equal(g.run('relicPresetReferences(material).length'),0);assert.equal(g.run('relicStore.inventory.some(item=>item.id===material)'),false);assert.equal(g.run('relicValidateStore(relicStore)'),true);
+});
+
+test('exclusive equipment blocks other heroes and conflicting presets without switching the owner',()=>{
+  const g=game();g.run("let id=relicStore.inventory[0].id;relicStore.presets.astra=[{core:id},null,null];relicSave()");
+  assert.equal(g.run("relicEquip('astra',id).ok"),false);assert.equal(g.run("relicLoadPreset('astra',0).ok"),false);assert.equal(g.run('relicOwner(id)'),'yupiter');
+  g.run("relicUnequip('yupiter','core')");assert.equal(g.run("relicEquip('astra',id).ok"),true);assert.equal(g.run('relicOwner(id)'),'astra');
+  g.run("relicStore.loadouts.lush={core:id}");assert.equal(g.run('relicValidateStore(relicStore)'),false);
+});
+
+test('legacy shared equipment migrates with an original backup and without deleting inventory or levels',()=>{
+  const old=JSON.parse(game().storage.get('zombieSurvivalRelicsV1'));delete old.exclusiveEquipment;for(const item of old.inventory)delete item.xp;old.loadouts.astra={...old.loadouts.yupiter};old.loadouts.lush={...old.loadouts.yupiter};
+  const raw=JSON.stringify(old),g=game(raw);assert.equal(g.run('relicStorageBlocked'),false);assert.equal(g.run('relicStore.inventory.length'),6);assert.equal(g.run("relicEquippedItems('yupiter').length"),6);assert.equal(g.run("relicEquippedItems('astra').length"),0);assert.equal(g.storage.get('zombieSurvivalRelicsV1-before-exclusive'),raw);assert.equal(g.run('relicValidateStore(relicStore)'),true);
+});
+
+test('stale enhancement confirmation cannot consume changed materials or apply twice below a level',()=>{
+  const g=game();g.run("let target=relicStore.inventory[0].id;let fodder=relicCreate({setId:'A01',slot:'armor'});relicStore.inventory.push(fodder);relicSave();let request={materialIds:[fodder.id],expectedLevel:0,expectedXp:0,expectedMaterials:[{id:fodder.id,level:0,xp:0,owner:null}]};relicEquip('astra',fodder.id)");
+  assert.equal(g.run('relicEnhance(target,{...request,confirmEquipped:true}).ok'),false);assert.equal(g.run('relicStore.inventory.length'),7);
+});
+
+test('migration cannot overwrite the original save if its recovery backup cannot be stored',()=>{
+  const g=game(),legacy=JSON.parse(g.storage.get('zombieSurvivalRelicsV1'));
+  delete legacy.exclusiveEquipment;legacy.loadouts.astra={...legacy.loadouts.yupiter};
+  const original=JSON.stringify(legacy);g.storage.set('zombieSurvivalRelicsV1',original);g.c.quota=true;
+  assert.equal(g.run('relicLoad().ok'),false);assert.equal(g.run('relicStorageBlocked'),true);
+  assert.equal(g.storage.get('zombieSurvivalRelicsV1'),original);assert.equal(g.run("relicEquip('astra',relicStore.inventory[0].id).ok"),false);
+});
+
+test('new-format duplicate ownership is rejected and XP above a level cap is explicitly reported',()=>{
+  const g=game(),duplicate=JSON.parse(g.storage.get('zombieSurvivalRelicsV1'));
+  duplicate.loadouts.astra={...duplicate.loadouts.yupiter};
+  const loaded=game(JSON.stringify(duplicate));assert.equal(loaded.run('relicStorageBlocked'),true);
+  g.run('let capped=relicEnhancePreview(relicStore.inventory[0],500)');
+  assert.equal(g.run('capped.item.level'),6);assert.equal(g.run('capped.item.xp'),0);
+  assert.equal(g.run('capped.overflow'),170);assert.equal(g.run('relicValidateItem(capped.item)'),true);
 });
 test('corrupted, future-version and invalid data are preserved without destructive overwrite',()=>{
   const good=game().storage.get('zombieSurvivalRelicsV1'),modified=JSON.parse(good);modified.inventory[0].substats.push(modified.inventory[0].substats[0]);

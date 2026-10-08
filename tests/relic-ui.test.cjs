@@ -14,12 +14,13 @@ function scene(saved){
   const run=expression=>vm.runInContext(expression,c);
   function click(action){c.button={dataset:{action},disabled:false};run('onRelicUiClick({target:{closest:()=>button}})');}
   function clickSlot(slot){c.button={dataset:{slot},disabled:false};run('onRelicUiClick({target:{closest:()=>button}})');}
-  return {c,nodes,storage,drawCalls,run,click,clickSlot,element};
+  function clickFeed(id){c.button={dataset:{feedItem:id},disabled:false};run('onRelicUiClick({target:{closest:()=>button}})');}
+  return {c,nodes,storage,drawCalls,run,click,clickSlot,clickFeed,element};
 }
 
 test('equipment screen consumes actual model data and restores its navigation origin',()=>{
   const g=scene();g.run('openRelicInventory()');assert.equal(g.c.screenMode,'relics');assert.equal(g.c.mouse.down,false);
-  assert.match(g.element('relic-wallet').innerHTML,/150/);assert.match(g.element('relic-collection').innerHTML,/처형의 심지/);assert.match(g.element('relic-detail').innerHTML,/메인 속성/);
+  assert.match(g.element('relic-wallet').innerHTML,/보유 유물.*6/);assert.match(g.element('relic-collection').innerHTML,/처형의 심지/);assert.match(g.element('relic-detail').innerHTML,/메인 속성/);
   g.click('close');assert.equal(g.c.screenMode,'home');g.c.screenMode='guide';g.run('openRelicInventory()');g.click('close');assert.equal(g.c.screenMode,'guide');
   g.c.screenMode='game';g.run('openRelicInventory()');assert.equal(g.c.screenMode,'game');
 });
@@ -28,9 +29,11 @@ test('slot, rarity and Korean option search combine while filtering leaves inven
   assert.equal(g.run('relicFilteredItems().length'),1);assert.match(g.element('relic-collection').innerHTML,/종말 관측경/);assert.equal(g.run('relicStore.inventory.length'),7);
   g.run("relicView.query='없는검색';renderRelicCollection()");assert.match(g.element('relic-collection').innerHTML,/조건에 맞는 유물이 없습니다/);
 });
-test('UI enhancement persists and a full storage failure reports error without deducting material',()=>{
-  const g=scene();g.run('openRelicInventory()');g.click('enhance');assert.equal(g.run('relicStore.inventory[0].level'),1);assert.equal(g.run('relicStore.materials'),120);
-  const before=g.storage.get('zombieSurvivalRelicsV1');g.c.quota=true;g.click('enhance');assert.equal(g.run('relicStore.materials'),120);assert.equal(g.run('relicStore.inventory[0].level'),1);assert.equal(g.storage.get('zombieSurvivalRelicsV1'),before);assert.match(g.element('relic-toast').textContent,/저장하지 못했습니다/);
+test('UI enhancement previews feed XP and confirms consumption; failed storage preserves material relics',()=>{
+  const g=scene();g.run("let feeds=Array.from({length:2},()=>relicCreate({setId:'A02',slot:'core'}));relicStore.inventory.push(...feeds);relicSave();openRelicInventory()");g.click('enhance');g.clickFeed(g.run('feeds[0].id'));
+  assert.match(g.element('relic-feed').innerHTML,/Lv\.0.*Lv\.1/);assert.doesNotMatch(g.element('relic-detail').innerHTML,/성공률|확률/);assert.equal(g.run('relicStore.inventory.length'),8);
+  g.click('feed-apply');assert.equal(g.element('relic-confirm').hidden,false);g.click('confirm');assert.equal(g.run('relicStore.inventory[0].level'),1);assert.equal(g.run('relicStore.inventory.length'),7);assert.equal(g.run('relicStore.materials'),150);
+  const before=g.storage.get('zombieSurvivalRelicsV1');g.c.quota=true;g.clickFeed(g.run('feeds[1].id'));g.click('feed-apply');g.click('confirm');assert.equal(g.run('relicStore.inventory.length'),7);assert.equal(g.run('relicStore.inventory[0].xp'),0);assert.equal(g.storage.get('zombieSurvivalRelicsV1'),before);assert.match(g.element('relic-toast').textContent,/저장하지 못했습니다/);
 });
 test('preset overwrite requires confirmation; cancellation and repeated confirmation do not mutate',()=>{
   const g=scene();g.run('openRelicInventory()');g.click('save-preset');assert.equal(g.element('relic-confirm').hidden,false);assert.equal(g.run('relicStore.presets.astra'),undefined);
@@ -38,11 +41,17 @@ test('preset overwrite requires confirmation; cancellation and repeated confirma
   const saved=g.storage.get('zombieSurvivalRelicsV1');g.click('confirm');assert.equal(g.storage.get('zombieSurvivalRelicsV1'),saved);
   g.click('equip');assert.equal(g.run("relicEquippedItems('astra').length"),5);g.click('load-preset');assert.equal(g.run("relicEquippedItems('astra').length"),6);
 });
-test('dismantle confirmation reports materials and cannot remove protected presets or other loadouts',()=>{
-  const g=scene();g.run("let spare=relicCreate({setId:'A02',slot:'core'});relicStore.inventory.push(spare);relicSave();relicView.selected=spare.id;renderRelicInventory()");
-  g.click('dismantle');assert.equal(g.run('relicStore.inventory.length'),7);assert.match(g.element('relic-confirm-copy').textContent,/경험치 20/);g.click('cancel');assert.equal(g.run('relicStore.inventory.length'),7);
-  g.click('dismantle');g.click('confirm');assert.equal(g.run('relicStore.inventory.length'),6);assert.equal(g.run('relicStore.materials'),170);
-  g.run("relicView.selected=relicStore.inventory[0].id;relicUnequip('astra','core');renderRelicInventory()");assert.match(g.element('relic-detail').innerHTML,/data-action="dismantle" disabled/);g.click('dismantle');g.click('confirm');assert.equal(g.run('relicStore.inventory.length'),6);
+test('equipped material warns before consumption and cancellation retains equipment and presets',()=>{
+  const g=scene();g.run("openRelicInventory();relicSavePreset('astra',0)");g.click('enhance');g.clickFeed(g.run('relicStore.inventory[1].id'));g.click('feed-apply');
+  assert.match(g.element('relic-confirm-title').textContent,/장착 유물 소모 경고/);assert.match(g.element('relic-confirm-copy').textContent,/장착된 유물.*아스트라.*장착 해제.*영구적/);assert.match(g.element('relic-confirm-copy').textContent,/프리셋/);
+  g.click('cancel');assert.equal(g.run('relicStore.inventory.length'),6);assert.equal(g.run("relicEquippedItems('astra').length"),6);
+  g.click('feed-apply');g.click('confirm');assert.equal(g.run('relicStore.inventory.length'),5);assert.equal(g.run("relicEquippedItems('astra').length"),5);g.click('confirm');assert.equal(g.run('relicStore.inventory.length'),5);
+});
+
+test('inventory owner badge identifies other characters and their equipment cannot be equipped twice',()=>{
+  const g=scene();g.run("let id=relicStore.inventory[0].id;relicUnequip('astra','core');relicEquip('lush',id);relicView.selected=id;openRelicInventory()");
+  assert.match(g.element('relic-collection').innerHTML,/class="relic-owner"[^>]+LusH 장착 중/);assert.match(g.element('relic-collection').innerHTML,/assets\/test\/lush-body.webp/);
+  assert.match(g.element('relic-detail').innerHTML,/data-action="equip" disabled/);g.click('equip');assert.equal(g.run('relicOwner(id)'),'lush');assert.equal(g.run("relicEquippedItems('astra').some(item=>item.id===id)"),false);
 });
 test('craft choices use correct slot allowlist and cursed crafting requires explicit confirmation',()=>{
   const g=scene();g.run("relicStore.tickets={standard:2,advanced:1};relicView.craftSet='B01';relicView.craftSlot='core';renderRelicInventory()");
@@ -90,8 +99,8 @@ test('relic archive lists only owned sets and has no unowned art requests when e
   assert.match(text,/처형자의 흔적/);assert.match(text,/별을 삼킨 궤도/);assert.doesNotMatch(text,/마력 폭주의 잔해|별의 종말을 목격한 자|검은 태양의 성약/);
   g.drawCalls.length=0;g.run("relicStore.inventory.push(relicCreate({setId:'C17',slot:'lens'}));drawRelicGuide()");
   text=g.drawCalls.filter(call=>call.kind==='fillText').map(call=>call.args[0]).join('');assert.match(text,/별의 종말을 목격한 자/);
-  assert.equal(g.run("relicGuideImages.has('assets/relics-v1/C17-lens.webp')"),true,'archive art comes from the owned piece');
-  assert.equal(g.run("relicGuideImages.has('assets/relics-v1/C17-core.webp')"),false,'an unowned core is not shown as a set illustration');
+  assert.equal(g.run("relicGuideImages.has('assets/relics-v2/C17-lens.webp')"),true,'archive art comes from the owned piece');
+  assert.equal(g.run("relicGuideImages.has('assets/relics-v2/C17-core.webp')"),false,'an unowned core is not shown as a set illustration');
   g.drawCalls.length=0;g.run('relicStore.inventory=[];relicGuideImages.clear();drawRelicGuide()');
   assert.equal(g.run('relicGuideImages.size'),0);
   text=g.drawCalls.filter(call=>call.kind==='fillText').map(call=>call.args[0]).join('');assert.match(text,/보유|소지|획득/);assert.doesNotMatch(text,/처형자의 흔적|별을 삼킨 궤도|별의 종말을 목격한 자/);
@@ -105,4 +114,14 @@ test('filter changes reconcile detail selection and clicking a slot clears unrel
   g.clickSlot('armor');assert.equal(g.run('relicView.slot'),'armor');assert.equal(g.run('relicView.rarity'),'');assert.equal(g.run('relicView.query'),'');
   assert.equal(g.run('relicStore.inventory.find(item=>item.id===relicView.selected).slot'),'armor');
   g.clickSlot('armor');assert.equal(g.run('relicView.slot'),'armor','repeated slot click stays in that slot rather than showing all pieces');
+});
+
+test('every set and slot has an independent art path, including special and cursed pieces',()=>{
+  const g=scene();
+  const paths=g.run('Object.values(RELIC_SETS).flatMap(set=>set.slots.map(slot=>relicArtPath({setId:set.id,slot})))');
+  assert.equal(paths.length,116);
+  assert.equal(new Set(paths).size,116);
+  assert.equal(g.run("relicArtPath({setId:'B01',slot:'emblem'})"),'assets/relics-v2/B01-emblem.webp');
+  assert.equal(g.run("relicArtPath({setId:'D01',slot:'armor'})"),'assets/relics-v2/D01-armor.webp');
+  assert.equal(g.run("relicArtPath({setId:'C17',slot:'core',rarity:'legendary'})"),g.run("relicArtPath({setId:'C17',slot:'core',rarity:'common'})"),'rarity rims do not replace or tint set identity');
 });

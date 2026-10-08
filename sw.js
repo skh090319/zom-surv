@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v92-relic-orbit";
+const CACHE_VERSION = "zombie-survival-v93-relic-art";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -7,12 +7,13 @@ const CORE_ASSETS = [
   "./index.html",
   "./style.css",
   "./relics.css",
-  "./assets/relics-v1/A01-core.webp",
-  "./assets/relics-v1/A01-armor.webp",
-  "./assets/relics-v1/A01-lens.webp",
-  "./assets/relics-v1/A01-boots.webp",
-  "./assets/relics-v1/emblem.webp",
-  "./assets/relics-v1/power.webp",
+  // Only the six starter pieces are preloaded. Other owned art is cached on demand.
+  "./assets/relics-v2/A01-core.webp",
+  "./assets/relics-v2/A01-armor.webp",
+  "./assets/relics-v2/A01-lens.webp",
+  "./assets/relics-v2/A01-boots.webp",
+  "./assets/relics-v2/B01-emblem.webp",
+  "./assets/relics-v2/B01-power.webp",
   "./studio-intro.css",
   "./manifest.webmanifest",
   "./background.webp",
