@@ -104,7 +104,7 @@ function updateBullets() {
       const hitDx = b.x - z.x;
       const hitDy = b.y - z.y;
       if (hitDx * hitDx + hitDy * hitDy < hitRadius * hitRadius) {
-        z.hp -= b.damage;
+        if(typeof relicTagTarget==='function')relicTagTarget(z,b,{});z.hp -= b.damage;
         b.hitIds.push(z.id);
 
         if (b.sourceCharacter === "suncall" && Math.random() < 0.1) {
@@ -188,7 +188,7 @@ function updateCrescentBlades() {
       if (Math.hypot(blade.x - zombie.x, blade.y - zombie.y) >= blade.r + zombie.r) continue;
 
       hitIds.push(zombie.id);
-      zombie.hp -= blade.damage;
+      if(typeof relicTagTarget==='function')relicTagTarget(zombie,blade,{area:true});zombie.hp -= blade.damage;
       if (player.crescentMartialLawLevel > 0) {
         const forceX = blade.returning ? player.x - zombie.x : blade.vx;
         const forceY = blade.returning ? player.y - zombie.y : blade.vy;
@@ -238,7 +238,7 @@ function updateCrescentBlades() {
           for (let j = zombies.length - 1; j >= 0; j--) {
             const zombie = zombies[j];
             if (Math.hypot(zombie.x - player.x, zombie.y - player.y) > 190 + zombie.r) continue;
-            zombie.hp -= scaledDamage(player.damage * 2.5);
+            if(typeof relicTagTarget==='function')relicTagTarget(zombie,blade,{area:true});zombie.hp -= scaledDamage(player.damage * 2.5);
             if (zombie.hp <= 0) killZombie(j, zombie);
           }
           for (let p = 0; p < 54; p++) {
@@ -338,7 +338,7 @@ function updateZombies() {
       z.bleedTime--;
       z.bleedTick = (z.bleedTick || 1) - 1;
       if (z.bleedTick <= 0) {
-        z.hp -= Math.max(1, enemyMaxHpDamage(z, 0.004));
+        if(typeof relicTagTarget==='function')relicTagTarget(z,z,{kind:"skill",dot:true,canCrit:false});z.hp -= Math.max(1, enemyMaxHpDamage(z, 0.004));
         z.bleedTick = 30;
         if (z.hp <= 0) { killZombie(i, z); continue; }
       }
@@ -398,7 +398,7 @@ function updateZombies() {
             ? getRaidBossMinionDamage()
             : (player.crownLevel > 0 ? 20 : 10) * getZombieDifficultyDamageMultiplier();
           const carmillaFatalGuard = selectedCharacter === "carmilla" && player.carmillaBloodMoonTime > 0 && transcended.carmillaFeast;
-          let remainingDamage=incomingDamage;
+          let remainingDamage=typeof relicIncomingDamage==='function'?relicIncomingDamage(incomingDamage):incomingDamage;
           if(typeof absorbSuncallShield==='function')remainingDamage=absorbSuncallShield(remainingDamage);
           if(selectedCharacter==="vargas"&&player.vargasShield>0){const absorbed=Math.min(player.vargasShield,remainingDamage);player.vargasShield-=absorbed;remainingDamage-=absorbed;}
           player.hp -= carmillaFatalGuard ? Math.min(remainingDamage, Math.max(0, player.hp - 1)) : remainingDamage;
@@ -451,7 +451,7 @@ function updateDaggers() {
         const z = zombies[i];
 
         if (Math.hypot(z.x - x, z.y - y) < z.r + 9) {
-          z.hp -= dagger.damage;
+          if(typeof relicTagTarget==='function')relicTagTarget(z,dagger,{kind:"augment",area:true});z.hp -= dagger.damage;
           dagger.cooldown = 20;
 
           if (z.hp <= 0) {

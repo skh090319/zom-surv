@@ -59,6 +59,7 @@ function spawnNullZeroPacket(angle, damageScale = 1, infection = 1, offset = 0) 
     angle: a,
     damage: scaledDamage(player.damage * damageScale),
     infection,
+    relicReplica: offset !== 0,
     life: 56,
     maxLife: 56,
     hitIds: []
@@ -142,7 +143,7 @@ function updateNullZero() {
       if (packet.hitIds.includes(zombie.id) || Math.hypot(packet.x - zombie.x, packet.y - zombie.y) > zombie.r + 18) continue;
       packet.hitIds.push(zombie.id);
       infectNullZero(zombie, packet.infection, packet.x, packet.y);
-      nullZeroDamage(zombie, packet.damage);
+      nullZeroDamage(zombie, packet.damage, packet, {codeReplica:!!packet.relicReplica});
       nullZeroEffects.push({ type: "packetHit", x: packet.x, y: packet.y, life: 22, maxLife: 22 });
       removed = true; break;
     }
@@ -156,7 +157,7 @@ function updateNullZero() {
         if (zombie.hp <= 0 || Math.hypot(zombie.x - zone.x, zombie.y - zone.y) > zone.r + zombie.r) continue;
         zombie.slowTime = Math.max(zombie.slowTime || 0, 40);
         infectNullZero(zombie, 1, zone.x, zone.y);
-        nullZeroDamage(zombie, scaledDamage(player.damage * (.28 + (player.nullZeroQuarantineLevel || 0) * .05)));
+        nullZeroDamage(zombie, scaledDamage(player.damage * (.28 + (player.nullZeroQuarantineLevel || 0) * .05)), zone, {kind:"skill",area:true,dot:true,canCrit:false});
       }
     }
     if (zone.life <= 0) nullZeroZones.splice(i, 1);

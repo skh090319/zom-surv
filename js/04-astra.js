@@ -354,7 +354,7 @@ function updateAstraMeteors() {
     const hits = m.kind === "orbit" ? (m.returning ? m.returnHits : m.outwardHits) : (m.hits ||= new Set());
     for (const z of [...zombies]) {
       if (remove || z.hp <= 0 || hits.has(z) || astraSegmentDistance(z.x, z.y, px, py, m.x, m.y) > z.r + m.r) continue;
-      hits.add(z); astraDamage(z, m.damage); astraImpact("starHit", z.x, z.y, m.kind === "orbit" ? 58 : 27);
+      hits.add(z); astraDamage(z, m.damage, m); astraImpact("starHit", z.x, z.y, m.kind === "orbit" ? 58 : 27);
     }
     if (m.kind === "orbit" && arrived) {
       if (m.returning) { astraImpact("catch", m.x, m.y, 34); remove = true; }
@@ -378,11 +378,11 @@ function updateAstraWells() {
     }
     if (pulling && --w.tick <= 0) {
       w.tick = transcended.astraHorizon ? 14 : 18;
-      for (const z of [...zombies]) if (z.hp > 0 && Math.hypot(z.x - w.x, z.y - w.y) <= w.r + z.r) astraDamage(z, astraScaledDamage(player.damage * (.22 + (player.astraHorizonLevel || 0) * .035)));
+      for (const z of [...zombies]) if (z.hp > 0 && Math.hypot(z.x - w.x, z.y - w.y) <= w.r + z.r) astraDamage(z, astraScaledDamage(player.damage * (.22 + (player.astraHorizonLevel || 0) * .035)), w, {kind:"skill",area:true,dot:true,canCrit:false});
     }
     if (w.life <= 0) {
       astraImpact("collapse", w.x, w.y, w.r);
-      for (const z of [...zombies]) if (z.hp > 0 && Math.hypot(z.x - w.x, z.y - w.y) < w.r + z.r) astraDamage(z, astraScaledDamage(player.damage * (1.5 + (player.astraHorizonLevel || 0) * .18)));
+      for (const z of [...zombies]) if (z.hp > 0 && Math.hypot(z.x - w.x, z.y - w.y) < w.r + z.r) astraDamage(z, astraScaledDamage(player.damage * (1.5 + (player.astraHorizonLevel || 0) * .18)), w, {kind:"skill",area:true,dot:false,canCrit:true});
       astraWells.splice(i, 1);
     }
   }

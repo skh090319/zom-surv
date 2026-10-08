@@ -117,7 +117,7 @@ function updateArc() {
       const z = zombies[j];
       if (Math.hypot(z.x - p.x, z.y - p.y) > z.r + p.r) continue;
       const blastRadius = 82 * arcAreaScale();
-      const hits = damageArcArea(p.x, p.y, blastRadius, p.damage, true);
+      const hits = damageArcArea(p.x, p.y, blastRadius, p.damage, true, 0, p, {area:true});
       addArcHeat(Math.min(20, hits * 4));
       remove = true;
       arcEffects.push({ type: "burst", x: p.x, y: p.y, r: blastRadius, life: 18, maxLife: 18 });
@@ -129,7 +129,7 @@ function updateArc() {
     const zone = arcZones[i]; zone.life--; zone.tick--;
     if (zone.tick <= 0) {
       zone.tick = zone.type === "sun" ? 18 : 24;
-      damageArcArea(zone.x, zone.y, zone.r, scaledDamage(player.damage * (zone.type === "sun" ? 0.42 : 0.3)), zone.type === "sun");
+      damageArcArea(zone.x, zone.y, zone.r, scaledDamage(player.damage * (zone.type === "sun" ? 0.42 : 0.3)), zone.type === "sun", 0, zone, {kind:"skill",area:true,dot:true,canCrit:false});
       for (const z of zombies) if (zone.type === "sun" && Math.hypot(z.x - zone.x, z.y - zone.y) < zone.r) { z.x += (zone.x - z.x) * 0.035; z.y += (zone.y - z.y) * 0.035; }
     }
     if (zone.life <= 0) arcZones.splice(i, 1);
@@ -139,8 +139,8 @@ function updateArc() {
     const effect = arcEffects[i];
     if (effect.type === "meteor" && effect.delay-- === 0) {
       const doubleBurst = effect.doubleBurst;
-      damageArcArea(effect.x, effect.y, effect.r, scaledDamage(player.damage * 4.2), true, 0.06);
-      if (doubleBurst) damageArcArea(effect.x, effect.y, effect.r * 1.08, scaledDamage(player.damage * 2.2), true, 0.03);
+      damageArcArea(effect.x, effect.y, effect.r, scaledDamage(player.damage * 4.2), true, 0.06, effect, {area:true});
+      if (doubleBurst) damageArcArea(effect.x, effect.y, effect.r * 1.08, scaledDamage(player.damage * 2.2), true, 0.03, effect, {area:true});
       if (effect.highHeat) arcZones.push({ x: effect.x, y: effect.y, r: effect.r * 0.68, life: 180, tick: 0, type: "burn" });
     }
     effect.life--;

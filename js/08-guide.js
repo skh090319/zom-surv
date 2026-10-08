@@ -1,4 +1,4 @@
-// 홈 화면 증강 도감과 기본 게임 가이드
+// 증강, 몬스터와 추가 수집 정보를 한곳에서 확인하는 통합 도감.
 
 let guidePage = "augment";
 let guideAugmentTab = "support";
@@ -6,10 +6,23 @@ let guideExclusiveCharacter = "yupiter";
 let guideScrollY = 0;
 let guideScrollMax = 0;
 let guideContentTop = 162;
+let guideSectionTop = 153;
 let guideBackRect = { x: 0, y: 0, w: 150, h: 48 };
 let guideTopModeRects = [];
 let guideTabRects = [];
 let guideCharacterRects = [];
+
+const guideSections = [
+  { id:"augment", label:"증강", color:"#d5b264", subtitle:"AUGMENT ARCHIVE · 실제 게임의 모든 증강 효과", draw:drawAugmentGuide },
+  { id:"monsters", label:"몬스터", color:"#f27989", subtitle:"THREAT ARCHIVE · 감염체와 보스 대응 정보", draw:drawMonsterGuide }
+];
+
+function registerGuideSection(section) {
+  if (!section?.id || typeof section.draw !== "function") return;
+  const index = guideSections.findIndex(entry => entry.id === section.id);
+  if (index >= 0) guideSections[index] = section;
+  else guideSections.push(section);
+}
 
 const exclusiveAugmentOwners = {
   suncallCrystal:'suncall',suncallCircuit:'suncall',suncallGuard:'suncall',
@@ -33,14 +46,6 @@ const exclusiveAugmentOwners = {
 
 const guideCharacterOrder = ["suncall","yupiter","ren","nightLord","zero","paladin","arc","terra","void","carmilla","vargas","echo","aria","moira","mare","nullZero","astra"];
 
-const basicGuideSections = [
-  { icon:"⌨", title:"조작법", color:"#62ddff", lines:["WASD · 캐릭터 이동","마우스 · 조준 / 좌클릭 · 기본 공격","Q · E · X · 캐릭터 스킬","R · 궁극기 또는 재장전","우측 상단 Ⅱ 버튼 · 일시정지"] },
-  { icon:"✦", title:"성장과 증강", color:"#ffd45e", lines:["경험치 구슬을 모으면 레벨이 오릅니다.","일반 레벨에는 보조 증강이 등장합니다.","5레벨마다 전투 증강을 하나 선택합니다.","같은 보조 증강을 4회 선택하면 초월합니다.","캐릭터 전용 증강은 해당 캐릭터에게만 등장합니다."] },
-  { icon:"☣", title:"몬스터", color:"#ff6b83", lines:["일반 좀비는 플레이어를 추적해 접촉 피해를 줍니다.","큰 좀비는 더 높은 체력과 충돌 범위를 가집니다.","처치한 적은 경험치 또는 회복·자석 아이템을 남깁니다.","붉은 X 표식은 처형 가능한 적을 뜻합니다."] },
-  { icon:"♛", title:"보스전", color:"#c27aff", lines:["2분·4분·6분에 보스가 등장합니다.","등장 5초 전 화면에 경고가 표시됩니다.","보스전 동안 생존 타이머와 잡몹 생성이 멈춥니다.","보스는 이동 방해 면역 · 아스트라의 E·R 중력은 예외입니다.","첫 보스만 제한 전투 영역을 생성합니다."] },
-  { icon:"◆", title:"아이템과 생존", color:"#61e5ac", lines:["회복 아이템은 잃은 체력을 회복합니다.","자석은 맵에 남은 경험치 구슬을 끌어옵니다.","체력이 0이 되면 게임이 종료됩니다.","불사 증강을 보유하면 한 번 부활할 수 있습니다.","캐릭터별 자원과 스킬 상태는 하단 전용 UI에서 확인합니다."] }
-];
-
 const monsterGuideEntries = [
   { name:"일반 좀비", tag:"COMMON INFECTED", color:"#73e36f", sprite:"zombie", spriteIndex:0, desc:"가장 흔한 감염체. 플레이어를 끈질기게 추적해 접촉 피해를 줍니다.", tips:["빠른 처치로 포위를 방지", "경험치 구슬을 남김"] },
   { name:"대형 좀비", tag:"HEAVY INFECTED", color:"#ff665f", sprite:"zombie", spriteIndex:1, desc:"높은 체력과 큰 충돌 범위를 지닌 강화 감염체입니다.", tips:["처형 표식을 적극 활용", "일반 좀비보다 높은 보상"] },
@@ -50,9 +55,12 @@ const monsterGuideEntries = [
   { name:"녹스", tag:"BOSS 03 · ABYSS EXECUTOR", color:"#795cff", sprite:"boss", spriteIndex:2, desc:"어둠 구체와 연속 낙뢰를 사용하며, 붉은 예고 영역 끝까지 세 차례 즉사 돌진합니다.", tips:["낙뢰 원에서 즉시 이탈", "붉은 대시 영역은 즉사"] }
 ];
 
-function openGuideScreen(page) {
-  guidePage = page;
+function openGuideScreen(page = guidePage) {
+  guidePage = guideSections.some(section => section.id === page) ? page : "augment";
   guideScrollY = 0;
+  guideScrollMax = 0;
+  guideTabRects = [];
+  guideCharacterRects = [];
   screenMode = "guide";
   mouse.down = false;
 }
@@ -82,32 +90,44 @@ function drawGuideAugmentCard(u,x,y,w,h) {
 }
 
 function drawGuideHeader(title, subtitle) {
-  drawMenuBackdrop(.3);ctx.save();const g=ctx.createLinearGradient(0,0,canvas.width,0);g.addColorStop(0,"rgba(6,9,18,.98)");g.addColorStop(.5,"rgba(20,18,38,.96)");g.addColorStop(1,"rgba(6,9,18,.98)");ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,94);ctx.textAlign="center";ctx.fillStyle="#f4f7ff";ctx.shadowColor="#8d6cff";ctx.shadowBlur=18;ctx.font=`900 ${Math.min(38,canvas.width*.048)}px Arial`;ctx.fillText(title,canvas.width/2,42);ctx.shadowBlur=0;ctx.fillStyle="#9eabc2";ctx.font="12px Arial";ctx.fillText(subtitle,canvas.width/2,66);
-  guideBackRect={x:22,y:22,w:132,h:44};drawGuidePill(guideBackRect,"← 홈으로",false,"#8d7cff");
-  guideTopModeRects=[];ctx.restore();
+  const compact=typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&canvas.width>canvas.height&&canvas.height<520;
+  drawMenuBackdrop(.3);ctx.save();const g=ctx.createLinearGradient(0,0,canvas.width,0);g.addColorStop(0,"rgba(6,9,18,.98)");g.addColorStop(.5,"rgba(20,18,38,.96)");g.addColorStop(1,"rgba(6,9,18,.98)");ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,compact?59:94);ctx.textAlign="center";ctx.fillStyle="#f4f7ff";ctx.shadowColor="#8d6cff";ctx.shadowBlur=compact?10:18;ctx.font=`900 ${compact?26:Math.min(38,canvas.width*.048)}px Arial`;ctx.fillText(title,canvas.width/2,compact?27:42);ctx.shadowBlur=0;ctx.fillStyle="#9eabc2";ctx.font=compact?"11px Arial":"12px Arial";ctx.fillText(subtitle,canvas.width/2,compact?48:66);
+  guideBackRect=compact?{x:16,y:10,w:108,h:36}:{x:22,y:22,w:132,h:44};drawGuidePill(guideBackRect,"← 홈으로",false,"#8d7cff");
+  const gap=10,count=guideSections.length,width=Math.min(174,(canvas.width-44-gap*(count-1))/count),startX=(canvas.width-count*width-gap*(count-1))/2;
+  guideTopModeRects=guideSections.map((section,index)=>({x:startX+index*(width+gap),y:compact?65:101,w:width,h:compact?34:38,page:section.id}));
+  guideSections.forEach((section,index)=>drawGuidePill(guideTopModeRects[index],section.label,guidePage===section.id,section.color));
+  guideSectionTop=compact?110:153;
+  ctx.restore();
 }
 
 function drawAugmentGuide() {
-  const navY=105,navW=Math.min(150,(canvas.width-64)/3),navGap=10,startX=canvas.width/2-(navW*3+navGap*2)/2;guideTabRects=[{x:startX,y:navY,w:navW,h:42,tab:"support"},{x:startX+navW+navGap,y:navY,w:navW,h:42,tab:"combat"},{x:startX+(navW+navGap)*2,y:navY,w:navW,h:42,tab:"exclusive"}];
+  const navY=guideSectionTop,navW=Math.min(150,(canvas.width-64)/3),navGap=10,startX=canvas.width/2-(navW*3+navGap*2)/2;guideTabRects=[{x:startX,y:navY,w:navW,h:42,tab:"support"},{x:startX+navW+navGap,y:navY,w:navW,h:42,tab:"combat"},{x:startX+(navW+navGap)*2,y:navY,w:navW,h:42,tab:"exclusive"}];
   drawGuidePill(guideTabRects[0],"보조",guideAugmentTab==="support","#ffd45e");drawGuidePill(guideTabRects[1],"전투",guideAugmentTab==="combat","#47dcec");drawGuidePill(guideTabRects[2],"전용",guideAugmentTab==="exclusive","#c27aff");
-  let contentTop=162;guideCharacterRects=[];
+  const contentTop=navY+57;
+  const size=78,characterGap=10,characterCols=Math.max(3,Math.min(7,Math.floor((canvas.width-40)/(size+characterGap)))),characterRows=Math.ceil(guideCharacterOrder.length/characterCols);
+  const characterHeaderH=guideAugmentTab==="exclusive"?characterRows*96+8:0;
+  guideCharacterRects=[];guideContentTop=contentTop;
+  const items=getGuideAugments(),gap=16,cols=Math.max(2,Math.min(4,Math.floor((canvas.width-52)/220))),cardW=Math.min(230,(canvas.width-44-gap*(cols-1))/cols),cardH=302,totalRows=Math.ceil(items.length/cols),contentH=characterHeaderH+Math.max(0,totalRows*(cardH+gap)-gap);
+  guideScrollMax=Math.max(0,contentH-(canvas.height-contentTop-20));guideScrollY=Math.min(guideScrollY,guideScrollMax);
+  const rowW=cols*cardW+(cols-1)*gap,sx=canvas.width/2-rowW/2;
+  ctx.save();ctx.beginPath();ctx.rect(0,contentTop-5,canvas.width,canvas.height-contentTop+5);ctx.clip();
   if(guideAugmentTab==="exclusive"){
-    const size=78,gap=10,cols=Math.max(3,Math.min(7,Math.floor((canvas.width-40)/(size+gap)))),rows=Math.ceil(guideCharacterOrder.length/cols);
-    guideCharacterOrder.forEach((id,i)=>{const row=Math.floor(i/cols),count=Math.min(cols,guideCharacterOrder.length-row*cols),sx=canvas.width/2-(count*size+(count-1)*gap)/2,col=i%cols;const rect={x:sx+col*(size+gap),y:160+row*96,w:size,h:90,id};guideCharacterRects.push(rect);const active=id===guideExclusiveCharacter,color=characterSkillGuide[id].color,hover=pointInRect(mouse.x,mouse.y,rect);ctx.save();ctx.shadowColor=active||hover?color:"transparent";ctx.shadowBlur=active?18:(hover?11:0);drawRoundedRect(rect.x,rect.y,size,size,15,active?`${color}30`:(hover?`${color}16`:"rgba(255,255,255,.045)"),active?color:(hover?`${color}aa`:"rgba(255,255,255,.2)"),active?3:(hover?2:1));ctx.restore();const img=getCharacterPreviewSprite(id,true);if(img?.complete&&img.naturalWidth){const sc=Math.min((size-10)/img.naturalWidth,(size-10)/img.naturalHeight);ctx.drawImage(img,rect.x+(size-img.naturalWidth*sc)/2,rect.y+(size-img.naturalHeight*sc)/2,img.naturalWidth*sc,img.naturalHeight*sc);}ctx.fillStyle=active?color:(hover?"#ffffff":"#c2ccdc");ctx.font="bold 12px Arial";ctx.textAlign="center";ctx.fillText(characterSkillGuide[id].name,rect.x+size/2,rect.y+89);});contentTop=168+rows*96;
+    guideCharacterOrder.forEach((id,i)=>{
+      const row=Math.floor(i/characterCols),count=Math.min(characterCols,guideCharacterOrder.length-row*characterCols),rowX=canvas.width/2-(count*size+(count-1)*characterGap)/2,col=i%characterCols;
+      const rect={x:rowX+col*(size+characterGap),y:contentTop+row*96-guideScrollY,w:size,h:90,id};
+      if(rect.y+rect.h<contentTop||rect.y>canvas.height)return;
+      guideCharacterRects.push(rect);
+      const active=id===guideExclusiveCharacter,color=characterSkillGuide[id].color,hover=mouse.y>=contentTop&&pointInRect(mouse.x,mouse.y,rect);
+      ctx.save();ctx.shadowColor=active||hover?color:"transparent";ctx.shadowBlur=active?18:(hover?11:0);drawRoundedRect(rect.x,rect.y,size,size,15,active?`${color}30`:(hover?`${color}16`:"rgba(255,255,255,.045)"),active?color:(hover?`${color}aa`:"rgba(255,255,255,.2)"),active?3:(hover?2:1));ctx.restore();
+      const img=getCharacterPreviewSprite(id,true);if(img?.complete&&img.naturalWidth){const sc=Math.min((size-10)/img.naturalWidth,(size-10)/img.naturalHeight);ctx.drawImage(img,rect.x+(size-img.naturalWidth*sc)/2,rect.y+(size-img.naturalHeight*sc)/2,img.naturalWidth*sc,img.naturalHeight*sc);}
+      ctx.fillStyle=active?color:(hover?"#ffffff":"#c2ccdc");ctx.font="bold 12px Arial";ctx.textAlign="center";ctx.fillText(characterSkillGuide[id].name,rect.x+size/2,rect.y+89);
+    });
   }
-  guideContentTop=contentTop;
-  const items=getGuideAugments(),gap=16,cols=Math.max(2,Math.min(4,Math.floor((canvas.width-52)/220))),cardW=Math.min(230,(canvas.width-44-gap*(cols-1))/cols),cardH=302,totalRows=Math.ceil(items.length/cols),contentH=totalRows*(cardH+gap)-gap;guideScrollMax=Math.max(0,contentH-(canvas.height-contentTop-20));guideScrollY=Math.min(guideScrollY,guideScrollMax);const rowW=cols*cardW+(cols-1)*gap,sx=canvas.width/2-rowW/2;
-  ctx.save();ctx.beginPath();ctx.rect(0,contentTop-5,canvas.width,canvas.height-contentTop+5);ctx.clip();items.forEach((u,i)=>{const x=sx+(i%cols)*(cardW+gap),y=contentTop+Math.floor(i/cols)*(cardH+gap)-guideScrollY;if(y+cardH>=contentTop&&y<=canvas.height)drawGuideAugmentCard(u,x,y,cardW,cardH);});ctx.restore();
-}
-
-function drawBasicGuide() {
-  const top=108,gap=18,cols=canvas.width<760?1:2,cardW=Math.min(500,(canvas.width-54-gap*(cols-1))/cols),cardH=214,totalRows=Math.ceil(basicGuideSections.length/cols),contentH=totalRows*(cardH+gap)-gap;guideScrollMax=Math.max(0,contentH-(canvas.height-top-20));guideScrollY=Math.min(guideScrollY,guideScrollMax);const sx=canvas.width/2-(cols*cardW+(cols-1)*gap)/2;
-  guideContentTop=top;
-  ctx.save();ctx.beginPath();ctx.rect(0,top-5,canvas.width,canvas.height-top+5);ctx.clip();basicGuideSections.forEach((section,i)=>{const x=sx+(i%cols)*(cardW+gap),y=top+Math.floor(i/cols)*(cardH+gap)-guideScrollY;const grad=ctx.createLinearGradient(x,y,x+cardW,y+cardH);grad.addColorStop(0,`${section.color}16`);grad.addColorStop(1,"rgba(7,9,17,.97)");drawRoundedRect(x,y,cardW,cardH,18,grad,`${section.color}88`,1.5);ctx.fillStyle=section.color;ctx.font="bold 26px Arial";ctx.textAlign="center";ctx.fillText(section.icon,x+35,y+42);ctx.textAlign="left";ctx.fillStyle="#f2f5fc";ctx.font="bold 20px Arial";ctx.fillText(section.title,x+65,y+39);ctx.strokeStyle=`${section.color}55`;ctx.beginPath();ctx.moveTo(x+18,y+57);ctx.lineTo(x+cardW-18,y+57);ctx.stroke();ctx.font="13px Arial";section.lines.forEach((line,j)=>{ctx.fillStyle=section.color;ctx.fillText("•",x+22,y+84+j*24);ctx.fillStyle="#c6d0df";ctx.fillText(line,x+38,y+84+j*24);});});ctx.restore();
+  items.forEach((u,i)=>{const x=sx+(i%cols)*(cardW+gap),y=contentTop+characterHeaderH+Math.floor(i/cols)*(cardH+gap)-guideScrollY;if(y+cardH>=contentTop&&y<=canvas.height)drawGuideAugmentCard(u,x,y,cardW,cardH);});ctx.restore();
 }
 
 function drawMonsterGuide() {
-  const top=108,gap=16;
+  const top=guideSectionTop,gap=16;
   const normalEntries=monsterGuideEntries.filter(entry=>entry.sprite==="zombie"||entry.tag==="BOSS MINION");
   const bossEntries=monsterGuideEntries.filter(entry=>entry.tag.startsWith("BOSS 0"));
   const normalCols=canvas.width<720?1:(canvas.width<1080?2:3),normalW=Math.min(350,(canvas.width-48-gap*(normalCols-1))/normalCols),normalH=242;
@@ -134,17 +154,19 @@ function drawMonsterGuide() {
 }
 
 function drawGuideScreen() {
-  const title=guidePage==="augment"?"증강 도감":guidePage==="monsters"?"몬스터 도감":"기본 게임 가이드";
-  const subtitle=guidePage==="augment"?"AUGMENT ARCHIVE · 실제 게임의 모든 증강 효과":guidePage==="monsters"?"THREAT ARCHIVE · 감염체와 보스 대응 정보":"SURVIVOR HANDBOOK · 생존에 필요한 핵심 정보";
-  drawGuideHeader(title,subtitle);
-  if(guidePage==="augment")drawAugmentGuide();else if(guidePage==="monsters")drawMonsterGuide();else drawBasicGuide();
+  const section=guideSections.find(entry=>entry.id===guidePage)||guideSections[0];
+  guidePage=section.id;
+  drawGuideHeader("도감",section.subtitle||section.label);
+  section.draw();
   if(guideScrollMax>0){const top=guideContentTop,trackH=canvas.height-top-18,thumbH=Math.max(45,trackH*trackH/(trackH+guideScrollMax)),thumbY=top+(trackH-thumbH)*guideScrollY/guideScrollMax;drawRoundedRect(canvas.width-12,top,5,trackH,3,"rgba(255,255,255,.08)");drawRoundedRect(canvas.width-12,thumbY,5,thumbH,3,"rgba(190,145,255,.7)");}
 }
 
 function handleGuideClick(x,y) {
   if(pointInRect(x,y,guideBackRect)){screenMode="home";guideScrollY=0;return;}
-  for(const rect of guideTopModeRects)if(pointInRect(x,y,rect)){guidePage=rect.page;guideScrollY=0;return;}
+  for(const rect of guideTopModeRects)if(pointInRect(x,y,rect)){openGuideScreen(rect.page);return;}
+  const section=guideSections.find(entry=>entry.id===guidePage);
+  if(typeof section?.onClick==="function"){section.onClick(x,y);return;}
   if(guidePage!=="augment")return;
   for(const rect of guideTabRects)if(pointInRect(x,y,rect)){guideAugmentTab=rect.tab;guideScrollY=0;return;}
-  if(guideAugmentTab==="exclusive")for(const rect of guideCharacterRects)if(pointInRect(x,y,rect)){guideExclusiveCharacter=rect.id;guideScrollY=0;return;}
+  if(guideAugmentTab==="exclusive"&&y>=guideContentTop)for(const rect of guideCharacterRects)if(pointInRect(x,y,rect)){guideExclusiveCharacter=rect.id;return;}
 }

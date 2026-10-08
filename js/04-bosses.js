@@ -200,6 +200,7 @@ function raidPlayerDamage(ratio, lethal = false, source = null) {
   }
   if (player.invincibleTime > 0 || tryDodgeAttack()) return;
   let damage = player.maxHp * ratio;
+  if(typeof relicIncomingDamage==='function')damage=relicIncomingDamage(damage);
   if(typeof absorbSuncallShield==='function')damage=absorbSuncallShield(damage);
   if (selectedCharacter === "vargas" && player.vargasShield > 0) {
     const absorbed = Math.min(player.vargasShield, damage);
@@ -439,7 +440,7 @@ function updateRaidBossSystem() {
   if (player.bossSlowTime > 0) player.bossSlowTime--;
   if (raidArena) raidArena.pulse += 0.025;
   clampPlayerToRaidArena();
-  if (raidIntroTime <= 0) {
+  if (raidIntroTime <= 0 && !(boss.relicInterruptTime > 0)) {
     if (boss.pattern === null) {
       boss.cooldown--;
       if (boss.cooldown <= 0) pickRaidPattern(boss);
@@ -454,7 +455,7 @@ function updateRaidBossSystem() {
   }
   boss.facing = player.x < boss.x ? -1 : 1;
   const contactDistance = boss.r + player.r + (boss.raidIndex === 0 ? 8 : 14);
-  if (Math.hypot(player.x - boss.x, player.y - boss.y) < contactDistance) {
+  if (!(boss.relicInterruptTime > 0) && Math.hypot(player.x - boss.x, player.y - boss.y) < contactDistance) {
     raidPlayerDamage(getRaidBossDamageRatio("contact", boss.raidIndex), false, boss);
     const pushAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
     player.x += Math.cos(pushAngle) * 18;

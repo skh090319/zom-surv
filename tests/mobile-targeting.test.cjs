@@ -39,7 +39,7 @@ function game() {
     characterSkillGuide:{yupiter:{name:'유피테르',color:'#64ef91'}}, getCharacterPreviewSprite:()=>null,
     drawMenuBackdrop(){}, drawLobbyBackdrop(){}, drawLobbyPanel(){}, drawBloodiedLobbyTitle(){}, drawRoundedRect(){},
     difficultyLabel:()=> 'MEDIUM', drawHomeDifficultyPicker(){},
-    homeStartRect:{},homeCharacterRect:{},homeAugmentGuideRect:{},homeGameGuideRect:{},homeMonsterGuideRect:{},
+    homeStartRect:{},homeCharacterRect:{},homeCodexRect:{},homeRelicRect:{},
     homeSettingsRect:{x:0,y:0,w:0,h:0},homeDifficultyRect:{x:0,y:0,w:0,h:0},homeDifficultyOpen:false,homeDifficultyChoiceRects:[],selectedDifficulty:'medium',
     pauseButtonRect:{x:0,y:0,w:0,h:0}
   };
@@ -332,14 +332,91 @@ test('dragging Mare ultimate sets the actual whale summon angle on release',()=>
   assert.equal(g.context.player.mareUltimateTime,420);
 });
 
-test('settings stay below controls and on screen on small phones and tablets, and open via touch',()=>{
+test('settings stay below the codex and on screen on small phones and tablets, and open via touch',()=>{
   for(const [width,height] of [[568,280],[667,320],[844,390],[1024,768],[1366,1024]]){
     const g=game();Object.assign(g.context.canvas,{width,height});g.context.screenMode='home';g.context.selectedCharacter='yupiter';
-    g.run('drawMobileHomeScreen()');const button=g.run('mobileSettingsHomeRect'),guide=g.context.homeGameGuideRect;
+    g.run('drawMobileHomeScreen()');const button=g.run('mobileSettingsHomeRect'),guide=g.context.homeCodexRect;
     assert.ok(button.y>=guide.y+guide.h);assert.ok(button.y+button.h<=height-5);
     g.touch('touchstart',3,button.x+button.w/2,button.y+button.h/2);g.touch('touchend',3,button.x+button.w/2,button.y+button.h/2);
     assert.equal(g.context.screenMode,'mobileSettings');
   }
+});
+
+test('the unified codex and relic inventory are distinct tappable home entries with a full-width difficulty row',()=>{
+  for(const [width,height] of [[568,280],[667,320],[844,390],[1366,1024]]){
+    const g=game();Object.assign(g.context.canvas,{width,height});g.context.screenMode='home';g.context.selectedCharacter='yupiter';
+    let guideOpened=0,relicOpened=0;
+    g.context.openGuideScreen=()=>{guideOpened++;};g.context.openRelicInventory=()=>{relicOpened++;};
+    g.run('drawMobileHomeScreen()');
+    const labels=g.draws.filter(call=>call[0]==='fillText').map(call=>call[1]);
+    assert.equal(labels.filter(label=>label==='도감').length,1);
+    for(const removed of ['증강 도감','몬스터 도감','게임 가이드','기본 조작법'])assert.ok(!labels.includes(removed));
+    for(const [id,rect] of [[71,g.context.homeCodexRect],[72,g.context.homeRelicRect]]){
+      g.touch('touchstart',id,rect.x+rect.w/2,rect.y+rect.h/2);g.touch('touchend',id,rect.x+rect.w/2,rect.y+rect.h/2);
+    }
+    assert.equal(guideOpened,1);assert.equal(relicOpened,1);
+    const difficulty=g.context.homeDifficultyRect,start=g.context.homeStartRect,settings=g.context.homeSettingsRect;
+    assert.equal(difficulty.x,start.x);assert.equal(difficulty.w,start.w);
+    assert.ok(difficulty.y>=settings.y+settings.h);assert.ok(difficulty.y+difficulty.h<=height-5);
+  }
+});
+
+function loadCodex(g){
+  Object.assign(g.context,{upgrades:[],zombieSpriteAtlas:{complete:false},raidBossImages:[],wrapTextLeft(){},wrapTextClamped(){},drawAugmentIcon(){}});
+  g.run(fs.readFileSync(path.join(root,'js','08-guide.js'),'utf8'));
+}
+
+test('codex tabs switch actual content, clear scroll, support an added collection and return home',()=>{
+  const g=game();loadCodex(g);g.run('openGuideScreen();drawGuideScreen()');
+  const tap=rect=>{g.touch('touchstart',81,rect.x+rect.w/2,rect.y+rect.h/2);g.touch('touchend',81,rect.x+rect.w/2,rect.y+rect.h/2);};
+  tap(g.run('guideTopModeRects.find(rect=>rect.page==="monsters")'));
+  g.run('drawGuideScreen()');assert.equal(g.run('guidePage'),'monsters');assert.ok(g.run('guideScrollMax>0'));
+  assert.ok(g.draws.some(call=>call[0]==='fillText'&&call[1]==='일반 좀비'));
+  g.run('guideScrollY=guideScrollMax');tap(g.run('guideTopModeRects.find(rect=>rect.page==="augment")'));
+  assert.equal(g.run('guideScrollY'),0);assert.equal(g.run('guidePage'),'augment');
+  g.run('registerGuideSection({id:"relics",label:"유물",color:"#aabbcc",draw(){guideContentTop=guideSectionTop;guideScrollMax=0;},onClick(){mouse.worldX=123;}});drawGuideScreen()');
+  tap(g.run('guideTopModeRects.find(rect=>rect.page==="relics")'));g.run('drawGuideScreen()');
+  assert.equal(g.run('guidePage'),'relics');tap({x:400,y:250,w:20,h:20});assert.equal(g.context.mouse.worldX,123);
+  tap(g.run('guideBackRect'));assert.equal(g.context.screenMode,'home');
+  g.run('openGuideScreen("basic")');assert.equal(g.run('guidePage'),'augment');
+  g.context.dispatchEvent({type:'keydown',key:'Escape'});assert.equal(g.context.screenMode,'home');
+});
+
+test('short-screen exclusive codex scrolls character selection and augment cards together',()=>{
+  const g=game();loadCodex(g);Object.assign(g.context.canvas,{width:667,height:320});
+  g.run('guideCharacterOrder.forEach(id=>characterSkillGuide[id]={name:id,color:"#aabbcc"});upgrades=[{id:"recall",category:"support",name:"검"}];openGuideScreen();guideAugmentTab="exclusive"');
+  const cards=[];g.context.drawGuideAugmentCard=(u,x,y,w,h)=>cards.push({id:u.id,x,y,w,h});
+  g.run('drawGuideScreen()');assert.ok(g.run('guideContentTop<canvas.height'));assert.ok(g.run('guideScrollMax>0'));
+  assert.equal(cards.length,0,'cards initially sit below the character list');
+  g.run('setMobileScroll(guideScrollMax);drawGuideScreen()');
+  assert.equal(cards.length,1);assert.equal(cards[0].id,'recall');
+  assert.ok(cards[0].y+cards[0].h<=g.context.canvas.height);
+  g.run('guideCharacterRects=[{x:300,y:guideContentTop-30,w:80,h:120,id:"ren"}];handleGuideClick(340,guideContentTop-1)');
+  assert.equal(g.run('guideExclusiveCharacter'),'yupiter','clipped characters cannot receive clicks above the content viewport');
+});
+
+test('landscape phone codex keeps home and all section tabs above the compact content start',()=>{
+  for(const [width,height] of [[568,320],[844,390]]){
+    const g=game();loadCodex(g);Object.assign(g.context.canvas,{width,height});
+    g.run('registerGuideSection({id:"relics",label:"유물",color:"#aabbcc",draw(){guideContentTop=guideSectionTop;guideScrollMax=0;}})');
+    for(const page of ['augment','monsters','relics']){
+      g.run(`openGuideScreen('${page}');drawGuideScreen()`);
+      assert.equal(g.run('guideSectionTop'),110);
+      const back=g.run('guideBackRect'),tabs=g.run('guideTopModeRects');
+      assert.ok(back.y>=0&&back.y+back.h<=tabs[0].y);
+      assert.ok(tabs.every(tab=>tab.y+tab.h<g.run('guideSectionTop')));
+      assert.ok(g.run('guideContentTop>=guideSectionTop'));
+    }
+    g.context.navigator.maxTouchPoints=0;g.run('drawGuideScreen()');
+    assert.equal(g.run('guideSectionTop'),153,'desktop retains its original header height');
+  }
+});
+
+test('the monster codex requests boss and zombie artwork on its first visit',()=>{
+  const g=game();loadCodex(g);g.run(fs.readFileSync(path.join(root,'js','00-assets.js'),'utf8'));
+  g.run('const codexBossImage=setGameImageSource({},"assets/bosses/example.webp"),codexZombieImage=setGameImageSource({},"assets/zombies.webp");openGuideScreen("monsters");prepareGameImages()');
+  assert.equal(g.run('codexBossImage.src'),'assets/bosses/example.webp');
+  assert.equal(g.run('codexZombieImage.src'),'assets/zombies.webp');
 });
 
 test('control edits save and restore, and size controls actually change radii',()=>{

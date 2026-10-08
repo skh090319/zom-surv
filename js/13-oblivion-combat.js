@@ -196,7 +196,7 @@ function oblivionUpdateProjectiles() {
     for (const z of targets) {
       if (z.hp <= 0 || p.hits.has(z) || oblivionSegmentDistance(z.x, z.y, old.x, old.y, p.x, p.y) > p.r + (z.r || 0)) continue;
       p.hits.add(z);
-      if (oblivionDamage(z, p.damage)) oblivionEffect('hit', z.x, z.y, 30, { a: p.a, life: 18, maxLife: 18 });
+      if (oblivionDamage(z, p.damage, p)) oblivionEffect('hit', z.x, z.y, 30, { a: p.a, life: 18, maxLife: 18 });
     }
     if (p.life <= 0 || p.distance >= p.range) s.projectiles.splice(i, 1);
   }
@@ -208,13 +208,13 @@ function oblivionUpdateCasts() {
     if (c.kind === 'tear' || c.kind === 'finale') {
       if (!c.closed && c.age >= c.closeAt) {
         c.closed = true;
-        oblivionHitLines(c.lines, c.width, (c.kind === 'finale' ? OBLIVION_POWER.finaleClose : c.empowered ? OBLIVION_POWER.empoweredTearClose : OBLIVION_POWER.tearClose) * c.power);
+        oblivionHitLines(c.lines, c.width, (c.kind === 'finale' ? OBLIVION_POWER.finaleClose : c.empowered ? OBLIVION_POWER.empoweredTearClose : OBLIVION_POWER.tearClose) * c.power, c);
         oblivionEffect('tearClose', c.x, c.y, c.length, { a: c.a, length: c.length, width: c.width, empowered: c.empowered, echo: c.echo });
         if (c.empowered && c.kind !== 'finale') {
           const tips = c.lines.map(l => ({ x: l.x2, y: l.y2 })), radius = 170;
           // End explosions overlap visually, but still share one damage budget.
           const amount = oblivionPower(OBLIVION_POWER.implosion * c.power);
-          for (const z of [...zombies]) if (tips.some(t => Math.hypot(z.x - t.x, z.y - t.y) <= radius + (z.r || 0))) oblivionDamage(z, amount);
+          for (const z of [...zombies]) if (tips.some(t => Math.hypot(z.x - t.x, z.y - t.y) <= radius + (z.r || 0))) oblivionDamage(z, amount, c, {kind:"skill",area:true});
           for (const t of tips) oblivionEffect('implosion', t.x, t.y, radius, { a: c.a, echo: c.echo, life: 42, maxLife: 42 });
         }
       }
@@ -231,11 +231,11 @@ function oblivionUpdateCasts() {
         }
       }
       if (!c.impacted && c.age >= c.impactAt) {
-        c.impacted = true; oblivionHitCircle(c.x, c.y, c.r, (c.empowered ? OBLIVION_POWER.empoweredGrasp : OBLIVION_POWER.grasp) * c.power);
+        c.impacted = true; oblivionHitCircle(c.x, c.y, c.r, (c.empowered ? OBLIVION_POWER.empoweredGrasp : OBLIVION_POWER.grasp) * c.power, c);
         oblivionEffect('graspImpact', c.x, c.y, c.r, { a: c.a, empowered: c.empowered, echo: c.echo, life: 40, maxLife: 40 });
       }
       if (c.empowered && !c.overhead && c.age >= c.overheadAt) {
-        c.overhead = true; oblivionHitCircle(c.x, c.y, c.r, OBLIVION_POWER.overhead * c.power);
+        c.overhead = true; oblivionHitCircle(c.x, c.y, c.r, OBLIVION_POWER.overhead * c.power, c);
         oblivionEffect('overhead', c.x, c.y, c.r, { a: c.a, empowered: true, echo: c.echo, life: 42, maxLife: 42 });
       }
     }

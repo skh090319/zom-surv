@@ -84,7 +84,7 @@ function lushUpdateRicochet(c){
     c.a=Math.atan2(c.target.y-c.y,c.target.x-c.x);const step=Math.min(c.speed,Math.hypot(c.target.x-c.x,c.target.y-c.y));
     c.x+=Math.cos(c.a)*step;c.y+=Math.sin(c.a)*step;c.distance+=step;
     if(lushSegmentDistance(c.target,old,c)<=(c.target.r||0)+c.radius){
-      if(lushDamage(c.target,c.damage))lushFx('hit',c.x,c.y,30);
+      if(lushDamage(c.target,c.damage,c,{cardDirect:true}))lushFx('hit',c.x,c.y,30);
       return false;
     }
   }
@@ -216,7 +216,7 @@ function lushUpdateRoyalBursts(){
   const s=lushState;
   for(let i=s.qBursts.length-1;i>=0;i--){const b=s.qBursts[i];
     if(b.age%7===0&&b.next<5){const rank=b.next++;
-      lushSpawnCard(b.x,b.y,b.a,{kind:'royal',rank,suit:rank%4,castId:b.castId,replica:b.replica,power:(rank===4?3.8:1.65)*b.power,markPower:b.power,radius:34,speed:25,range:1100,homing:.14,seekUntilHit:true,homingLocked:false,life:65});}
+      lushSpawnCard(b.x,b.y,b.a,{relicAttack:b.relicAttack,kind:'royal',rank,suit:rank%4,castId:b.castId,replica:b.replica,power:(rank===4?3.8:1.65)*b.power,markPower:b.power,radius:34,speed:25,range:1100,homing:.14,seekUntilHit:true,homingLocked:false,life:65});}
     b.age++;if(b.next===5)s.qBursts.splice(i,1);
   }
 }
@@ -238,10 +238,10 @@ function lushUpdateCards(){
       if(c.kind==='royal'&&c.rank<4){z.lushMarks=Math.min(8,marks+1);z.lushMarkUntil=s.frame+180;lushFx('royalMark',z.x,z.y,42,{rank:c.rank,count:z.lushMarks,life:28,maxLife:28});}
       if(c.kind==='royal'&&c.rank===4&&marks){
         z.lushMarks=0;z.lushMarkUntil=0;const power=c.markPower||1;
-        hit=lushDamage(z,lushPower(c.power+marks*1.9*power));lushCircle(z.x,z.y,115+marks*9,marks*1.15*power);
+        hit=lushDamage(z,lushPower(c.power+marks*1.9*power),c,{cardDirect:true});lushCircle(z.x,z.y,115+marks*9,marks*1.15*power);
         lushFx('royalDetonate',z.x,z.y,115+marks*9,{count:marks,life:56,maxLife:56});
       }else{
-        const damage=lushPower(c.power);hit=lushDamage(z,damage);
+        const damage=lushPower(c.power);hit=lushDamage(z,damage,c,{cardDirect:true});
         if(hit&&c.ricochetEligible&&!c.ricochetUsed){c.ricochetUsed=true;ricochets.push({source:c,origin:z,damage});}
       }
       if(hit&&c.seekUntilHit)c.homingLocked=true;
@@ -256,10 +256,10 @@ function lushUpdateDice(){
   const s=lushState;
   for(let i=s.dice.length-1;i>=0;i--){const d=s.dice[i];d.age++;
     if(d.travel<d.range){const old={x:d.x,y:d.y},step=Math.min(d.speed,d.range-d.travel);d.travel+=step;d.x+=Math.cos(d.a)*step;d.y+=Math.sin(d.a)*step;
-      for(const z of [...zombies])if(!d.hits.has(z)&&lushSegmentDistance(z,old,d)<=(z.r||0)+36){d.hits.add(z);lushDamage(z,lushPower(2*d.power));}
+      for(const z of [...zombies])if(!d.hits.has(z)&&lushSegmentDistance(z,old,d)<=(z.r||0)+36){d.hits.add(z);lushDamage(z,lushPower(2*d.power),d);}
       if(d.travel>=d.range)d.landedAt=d.age;
     }else if((d.age-d.landedAt)%10===0){
-      const radius=160+d.pulses*10;lushCircle(d.x,d.y,radius,d.power);lushFx('pulse',d.x,d.y,radius,{golden:d.golden,eye:d.eye});d.pulses++;
+      const radius=160+d.pulses*10;lushCircle(d.x,d.y,radius,d.power,d,{kind:"skill",area:true});lushFx('pulse',d.x,d.y,radius,{golden:d.golden,eye:d.eye});d.pulses++;
       if(d.pulses>=d.eye){if(d.eye===6){const loaded=upgradeCount.lushLoaded||0;lushCircle(d.x,d.y,280,3.8*d.power*(loaded>0&&loaded<3?.8:1));lushFx('six',d.x,d.y,280,{golden:true,life:70,maxLife:70});}s.dice.splice(i,1);}
     }
   }
@@ -269,7 +269,7 @@ function lushUpdateChipStorms(){
   for(let i=s.chipStorms.length-1;i>=0;i--){const c=s.chipStorms[i],previous=c.currentRadius;
     c.x=player.x;c.y=player.y;c.age++;c.phase=c.age<=36?'out':'in';c.currentRadius=c.radius*Math.sin(Math.min(1,c.age/72)*Math.PI);
     const hitSet=c.phase==='out'?c.hitsOut:c.hitsIn,lo=Math.min(previous,c.currentRadius)-28,hi=Math.max(previous,c.currentRadius)+28;
-    for(const z of [...zombies]){const distance=Math.hypot(z.x-c.x,z.y-c.y);if(!hitSet.has(z)&&distance+(z.r||0)>=lo&&distance-(z.r||0)<=hi){hitSet.add(z);lushDamage(z,lushPower(c.power));lushFx('hit',z.x,z.y,28);}}
+    for(const z of [...zombies]){const distance=Math.hypot(z.x-c.x,z.y-c.y);if(!hitSet.has(z)&&distance+(z.r||0)>=lo&&distance-(z.r||0)<=hi){hitSet.add(z);lushDamage(z,lushPower(c.power),c,{kind:"skill",area:true});lushFx('hit',z.x,z.y,28);}}
     if(c.age>=c.life)s.chipStorms.splice(i,1);
   }
 }
@@ -288,7 +288,7 @@ function lushUpdateUltimate(){
 function lushUpdateFinishers(){
   const s=lushState;
   for(let i=s.finishers.length-1;i>=0;i--){const f=s.finishers[i];f.age++;
-    if(f.age>=0&&!f.triggered){f.triggered=true;lushCircle(f.x,f.y,f.radius,f.power);lushFx(f.type==='die'?'six':'cascade',f.x,f.y,f.radius,{life:70,maxLife:70,golden:true});}
+    if(f.age>=0&&!f.triggered){f.triggered=true;lushCircle(f.x,f.y,f.radius,f.power,f,{kind:"skill",area:true});lushFx(f.type==='die'?'six':'cascade',f.x,f.y,f.radius,{life:70,maxLife:70,golden:true});}
     if(f.age>=f.life)s.finishers.splice(i,1);
   }
 }

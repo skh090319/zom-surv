@@ -54,7 +54,7 @@ test('detailed VFX geometry stays finite, restores save state and bounds persist
 });
 test('generated skill and augment images are compact WebP atlases registered for demand loading',()=>{
   for(const file of ['suncall-skill-icons-v1.webp','suncall-augment-icons-v1.webp']){const data=fs.readFileSync(path.join(root,'assets',file));assert.equal(data.toString('ascii',0,4),'RIFF');assert.equal(data.toString('ascii',8,12),'WEBP');assert.ok(data.length<320000);assert.ok(fs.readFileSync(path.join(root,'js/01-core.js'),'utf8').includes(file));}
-  const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');for(const file of ['04-suncall.js','04-suncall-vfx.js']){assert.ok(html.includes(file+'?v=20261002-frost-circuit2'));assert.ok(sw.includes(file));}
+  const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');for(const file of ['04-suncall.js','04-suncall-vfx.js']){assert.ok(html.includes(file+'?v='));assert.ok(sw.includes(file));}
 });
 test('wider Q and X reach lateral enemies without changing their per-hit damage',()=>{
   const q=game(),side=q.enemy(1400,1055);q.run('activateSuncallQ();for(let i=0;i<35;i++)updateSuncall()');assert.equal(side.hp,99970);

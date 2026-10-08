@@ -170,7 +170,7 @@ function updateYupiterWeapons() {
       if (relative < previousSweep || relative > currentSweep) continue;
       slash.hitIds.push(zombie.id);
       const shouldExecute = player.severingUltimateTime > 0 && zombie.hp / zombie.maxHp < 0.2;
-      zombie.hp -= scaledDamage(Math.floor(player.damage * 1.15));
+      if(typeof relicTagTarget==='function')relicTagTarget(zombie,slash,{area:true});zombie.hp -= scaledDamage(Math.floor(player.damage * 1.15));
       if (shouldExecute && !zombie.isRaidBoss) zombie.hp = 0;
       if (slash.fullCircle) { zombie.bleedTime = 240; zombie.bleedTick = 30; zombie.slowTime = 240; }
       if (zombie.hp <= 0) killZombie(j, zombie);
@@ -192,7 +192,7 @@ function updateYupiterWeapons() {
       const zombie = zombies[j];
       if (shot.hitIds.includes(zombie.id)) continue;
       if (Math.hypot(shot.x - zombie.x, shot.y - zombie.y) >= shot.r + zombie.r) continue;
-      zombie.hp -= shot.damage;
+      if(typeof relicTagTarget==='function')relicTagTarget(zombie,shot,{});zombie.hp -= shot.damage;
       zombie.flameMarked = true;
       shot.hitIds.push(zombie.id);
       for (let p = 0; p < 8; p++) {
@@ -265,7 +265,7 @@ function updateFlameUltimate() {
     shot.x += dx / distance * Math.min(speed, distance);
     shot.y += dy / distance * Math.min(speed, distance);
     if (distance <= speed + target.r) {
-      target.hp -= scaledDamage(player.damage * 0.9);
+      if(typeof relicTagTarget==='function')relicTagTarget(target,shot,{kind:"skill"});target.hp -= scaledDamage(player.damage * 0.9);
       target.flameMarked = true;
       const targetIndex = zombies.indexOf(target);
       if (target.hp <= 0 && targetIndex >= 0) killZombie(targetIndex, target);

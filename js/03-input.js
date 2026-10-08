@@ -151,18 +151,13 @@ canvas.addEventListener("mousedown", event => {
       return;
     }
 
-    if (pointInRect(mouse.x, mouse.y, homeAugmentGuideRect)) {
-      openGuideScreen("augment");
+    if (pointInRect(event.clientX, event.clientY, homeCodexRect)) {
+      openGuideScreen();
       return;
     }
 
-    if (pointInRect(mouse.x, mouse.y, homeGameGuideRect)) {
-      openGuideScreen("basic");
-      return;
-    }
-
-    if (pointInRect(mouse.x, mouse.y, homeMonsterGuideRect)) {
-      openGuideScreen("monsters");
+    if (pointInRect(event.clientX, event.clientY, homeRelicRect)) {
+      if (typeof openRelicInventory === "function") openRelicInventory();
       return;
     }
 

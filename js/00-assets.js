@@ -69,7 +69,7 @@ function prepareGameImages() {
     if (playing) needed ||= group === "world" || group === "boss" || group === selected || group === "augment";
     if (screenMode === "character" && modal) needed ||= group === modal;
     if (screenMode === "guide") {
-      if (page === "monster") needed ||= group === "boss" || group === "world";
+      if (page === "monsters") needed ||= group === "boss" || group === "world";
       if (page === "augment") needed ||= group === "augment" || (tab === "exclusive" && group === exclusive);
     }
     if (needed) ensureGameImage(image, group === "lobby" ? "high" : "auto");

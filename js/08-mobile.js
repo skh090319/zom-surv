@@ -401,23 +401,17 @@ function drawMobileHomeScreen(){
   drawLobbyPanel(homeStartRect,"#d94a50",{primary:true});
   drawMobileLobbyEmblem(outerX+(short?22:27),top+startH/2,short?14:18,"#d94a50","▶");
   ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.2)";ctx.shadowBlur=4;ctx.font=`${short?18:23}px ${MOBILE_LOBBY_BUTTON_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("작전 시작",outerX+menuW/2,top+startH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
-  const cards=[["#9874c4","◆","캐릭터"],["#b99a55","✦","증강 도감"],["#5d9b84","?","기본 조작법"],["#a64e59","☣","몬스터 도감"]];
+  const cards=[["#9874c4","◆","캐릭터"],["#b99a55","✦","도감"],["#c79764","◈","유물"],["#568da1","⚙","조작 설정"],["#b86a51","▲","난이도"]];
   const rects=[];
   for(let i=0;i<cards.length;i++){
-    const rect={x:outerX+(i%2)*(cardW+gap),y:cardY+Math.floor(i/2)*(cardH+gap),w:cardW,h:cardH};
+    const rect={x:outerX+(i%2)*(cardW+gap),y:cardY+Math.floor(i/2)*(cardH+gap),w:i===cards.length-1?menuW:cardW,h:cardH};
     rects.push(rect);
     const [color,icon,label]=cards[i];drawLobbyPanel(rect,color);
     drawMobileLobbyEmblem(rect.x+(short?19:24),rect.y+cardH/2,short?12:15,color,icon);
     ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=3;ctx.font=`${short?13:17}px ${MOBILE_LOBBY_BUTTON_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
   }
-  [homeCharacterRect,homeAugmentGuideRect,homeGameGuideRect,homeMonsterGuideRect]=rects;
-  homeSettingsRect=mobileSettingsHomeRect={x:outerX,y:cardY+2*(cardH+gap),w:cardW,h:cardH};
-  homeDifficultyRect={x:outerX+cardW+gap,y:homeSettingsRect.y,w:cardW,h:cardH};
-  const bottomCards=[[homeSettingsRect,"#568da1","⚙","조작 설정"],[homeDifficultyRect,"#b86a51","▲","난이도"]];
-  for(const [rect,color,icon,label] of bottomCards){
-    drawLobbyPanel(rect,color);drawMobileLobbyEmblem(rect.x+(short?19:24),rect.y+cardH/2,short?12:15,color,icon);
-    ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#fff";ctx.font=`${short?13:17}px ${MOBILE_LOBBY_BUTTON_FONT}`;ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH/2+1);ctx.textBaseline="alphabetic";
-  }
+  [homeCharacterRect,homeCodexRect,homeRelicRect,homeSettingsRect,homeDifficultyRect]=rects;
+  mobileSettingsHomeRect=homeSettingsRect;
   ctx.restore();drawHomeDifficultyPicker();
 }
 

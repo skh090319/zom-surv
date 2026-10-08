@@ -117,7 +117,7 @@ function updateSuncall(){
     const s=suncallShots[i],a={x:s.x,y:s.y},speed=Math.hypot(s.vx,s.vy),step=Math.min(speed,s.remaining);
     s.x+=s.vx/speed*step;s.y+=s.vy/speed*step;s.remaining-=step;s.trail.push(a);if(s.trail.length>7)s.trail.shift();
     if(s.spear&&!s.relayPlanted&&s.remaining<=s.totalRange*.5){s.relayPlanted=true;const overshoot=s.totalRange*.5-s.remaining;suncallPlant(s.x-s.vx/speed*overshoot,s.y-s.vy/speed*overshoot);}
-    for(const z of [...zombies])if(z.hp>0&&!s.hits.has(z)&&suncallDistanceToSegment(z,a,s)<=z.r+s.width){s.hits.add(z);suncallCold(z,s.spear?3:1);suncallDamage(z,s.damage);if(!s.spear){s.remaining=0;break;}}
+    for(const z of [...zombies])if(z.hp>0&&!s.hits.has(z)&&suncallDistanceToSegment(z,a,s)<=z.r+s.width){s.hits.add(z);suncallCold(z,s.spear?3:1);suncallDamage(z,s.damage,s);if(!s.spear){s.remaining=0;break;}}
     if(s.remaining<=0){if(s.spear)suncallPlant(s.x,s.y);suncallShots.splice(i,1);}
   }
   for(let i=suncallCrystals.length-1;i>=0;i--){if(--suncallCrystals[i].life<=0)suncallCrystals.splice(i,1);}

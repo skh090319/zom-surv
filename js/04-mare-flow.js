@@ -20,7 +20,7 @@ updateMare=function(){
       for(const z of [...zombies])if(!player.mareChargeHitIds.has(z.id)&&Math.hypot(z.x-player.x,z.y-player.y)<105+z.r){player.mareChargeHitIds.add(z.id);mareDamage(z,scaledDamage(player.damage*1.7));}
       if(--player.mareChargeTime===0)addMareCurrent(player.mareChargeStartX,player.mareChargeStartY,a,true);
     }
-    for(let i=mareCurrents.length-1;i>=0;i--){const c=mareCurrents[i];c.phase+=.025;if(--c.life<=0){mareCurrents.splice(i,1);continue}if(c.life%4===0)for(const z of zombies)if(marePointInCurrent(z,c)){const speed=c.strong?3.1:1.8;z.x+=Math.cos(c.a)*speed;z.y+=Math.sin(c.a)*speed;z.slowTime=Math.max(z.slowTime||0,5);if(!z.mareFlowTick||z.mareFlowTick<=0){mareDamage(z,scaledDamage(player.damage*(c.strong?.16:.1)));z.mareFlowTick=24}}}
+    for(let i=mareCurrents.length-1;i>=0;i--){const c=mareCurrents[i];c.phase+=.025;if(--c.life<=0){mareCurrents.splice(i,1);continue}if(c.life%4===0)for(const z of zombies)if(marePointInCurrent(z,c)){const speed=c.strong?3.1:1.8;z.x+=Math.cos(c.a)*speed;z.y+=Math.sin(c.a)*speed;z.slowTime=Math.max(z.slowTime||0,5);if(!z.mareFlowTick||z.mareFlowTick<=0){mareDamage(z,scaledDamage(player.damage*(c.strong?.16:.1)),c,{dot:true,area:true,canCrit:false});z.mareFlowTick=24}}}
     for(const z of zombies)if(z.mareFlowTick>0)z.mareFlowTick--;
     if(player.mareUltimateTime>0&&player.mareChargeTime<=0){
       const mobileWhale=typeof isMobileTouchDevice==="function"&&isMobileTouchDevice(),move=mobileWhale&&typeof getMobileMoveVector==="function"?getMobileMoveVector():null;

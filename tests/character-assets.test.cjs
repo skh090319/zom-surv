@@ -78,7 +78,7 @@ test('exclusive augment and monster guides preload their actual images', () => {
   const g=loader();
   g.run(`var skill=setGameImageSource(new Image(),'assets/ren-augment-afterimage.webp');var boss=setGameImageSource(new Image(),'assets/bosses/venom-bloom.webp');screenMode='guide';guideAugmentTab='exclusive';guideExclusiveCharacter='ren';prepareGameImages();`);
   assert.ok(g.run('skill.src'));assert.equal(g.run('boss.src'),undefined);
-  g.run(`guidePage='monster';prepareGameImages()`);assert.ok(g.run('boss.src'));
+  g.run(`guidePage='monsters';prepareGameImages()`);assert.ok(g.run('boss.src'));
 });
 
 test('control editor loads selected skill icons without loading every character', () => {

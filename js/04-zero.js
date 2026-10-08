@@ -162,6 +162,7 @@ function updateZero() {
       for (let z = zombies.length - 1; z >= 0; z--) {
         const zombie = zombies[z];
         if (Math.hypot(zombie.x - effect.x, zombie.y - effect.y) > effect.radius + zombie.r) continue;
+        if(typeof relicTagTarget==='function')relicTagTarget(zombie,effect,{kind:'skill',area:true,dot:true,canCrit:false});
         zombie.hp -= scaledDamage(player.damage * (0.55 + player.zeroJudgmentLevel * 0.08) * getZeroLevelMultiplier()) + enemyMaxHpDamage(zombie, 0.008);
         if (zombie.hp <= 0) killZombie(z, zombie);
       }

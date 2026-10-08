@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v90-oblivion-realm";
+const CACHE_VERSION = "zombie-survival-v91-relic-archive";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -6,6 +6,13 @@ const CORE_ASSETS = [
   "./",
   "./index.html",
   "./style.css",
+  "./relics.css",
+  "./assets/relics-v1/A01-core.webp",
+  "./assets/relics-v1/A01-armor.webp",
+  "./assets/relics-v1/A01-lens.webp",
+  "./assets/relics-v1/A01-boots.webp",
+  "./assets/relics-v1/emblem.webp",
+  "./assets/relics-v1/power.webp",
   "./studio-intro.css",
   "./manifest.webmanifest",
   "./background.webp",
@@ -81,6 +88,9 @@ const CORE_ASSETS = [
   "./js/14-oblivion-vfx.js",
   "./js/15-oblivion-ui.js",
   "./js/16-oblivion-integration.js",
+  "./js/17-relic-data.js",
+  "./js/18-relic-combat.js",
+  "./js/19-relic-ui.js",
   "./js/pwa.js"
 ];
 

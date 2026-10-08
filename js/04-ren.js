@@ -254,7 +254,7 @@ function updateRen() {
       effect.applied = true;
       const target = zombies.find(zombie => zombie.id === effect.targetId);
       if (target) {
-        target.hp -= effect.damage;
+        if(typeof relicTagTarget==='function')relicTagTarget(target,effect,{clone:!!effect.shadow});target.hp -= effect.damage;
         const index = zombies.indexOf(target);
         if (target.hp <= 0 && index >= 0) killZombie(index, target);
       }
@@ -328,7 +328,7 @@ function updateRenShadowFields() {
       for (let zombieIndex = zombies.length - 1; zombieIndex >= 0; zombieIndex--) {
         const zombie = zombies[zombieIndex];
         if (Math.hypot(zombie.x - field.x, zombie.y - field.y) > field.r + zombie.r) continue;
-        zombie.hp -= scaledDamage(player.damage * 0.38);
+        if(typeof relicTagTarget==='function')relicTagTarget(zombie,field,{kind:"augment",area:true,dot:true,canCrit:false});zombie.hp -= scaledDamage(player.damage * 0.38);
         zombie.slowTime = Math.max(zombie.slowTime || 0, 35);
         if (zombie.hp <= 0) killZombie(zombieIndex, zombie);
       }
