@@ -13,11 +13,11 @@ function relicUiMutation(fn){const result=fn();renderRelicInventory();relicUiToa
 function ensureRelicScreen(){
   let root=document.getElementById('relic-screen');if(root)return root;
   root=document.createElement('section');root.id='relic-screen';root.hidden=true;root.setAttribute('aria-label','유물 장비 설정');
-  root.innerHTML=`<header class="relic-top"><button data-action="close">← 홈으로</button><div><small>RELIC ARCHIVE / LOADOUT</small><h1>출격 전, 여섯 개의 선택</h1></div><div class="relic-wallet" id="relic-wallet"></div></header><div class="relic-shell" id="relic-content"></div><div id="relic-toast" role="status" aria-live="polite" hidden></div><div id="relic-confirm" hidden role="dialog" aria-modal="true" aria-label="유물 변경 확인"><div><h2 id="relic-confirm-title"></h2><p id="relic-confirm-copy"></p><div class="buttons"><button data-action="cancel">취소</button><button class="danger" data-action="confirm">확인</button></div></div></div>`;
+  root.innerHTML=`<header class="relic-top"><button data-action="close">← 홈으로</button><div><small>CHARACTER LOADOUT</small><h1>유물 장착</h1></div><div class="relic-wallet" id="relic-wallet"></div></header><div class="relic-shell" id="relic-content"></div><div id="relic-toast" role="status" aria-live="polite" hidden></div><div id="relic-confirm" hidden role="dialog" aria-modal="true" aria-label="유물 변경 확인"><div><h2 id="relic-confirm-title"></h2><p id="relic-confirm-copy"></p><div class="buttons"><button data-action="cancel">취소</button><button class="danger" data-action="confirm">확인</button></div></div></div>`;
   document.body.append(root);
   root.addEventListener('click',onRelicUiClick);
   root.addEventListener('change',onRelicUiChange);
-  root.addEventListener('input',event=>{if(event.target.id==='relic-search'){relicView.query=event.target.value;renderRelicCollection();}});
+  root.addEventListener('input',event=>{if(event.target.id==='relic-search'){relicView.query=event.target.value;relicSyncSelection();renderRelicCollection();renderRelicDetail();}});
   root.addEventListener('keydown',event=>{
     const dialog=document.getElementById('relic-confirm');
     if(event.key==='Escape'){event.stopPropagation();if(!dialog.hidden)closeRelicConfirm();else closeRelicInventory();}
@@ -44,16 +44,43 @@ function renderRelicCollection(){
   const host=document.getElementById('relic-collection');if(!host)return;const equipped=new Set(relicEquippedItems(selectedCharacter).map(item=>item.id));
   host.innerHTML=relicFilteredItems().map(item=>{const rarity=RELIC_RARITIES[item.rarity];return `<button class="relic-item ${relicView.selected===item.id?'active':''}" data-select="${relicEscape(item.id)}" style="--rarity:${rarity.color}" aria-label="${relicEscape(relicUiName(item))} ${rarity.name} 레벨 ${item.level}"><span class="badge">${item.locked?'잠금 ':''}${equipped.has(item.id)?'장착':''}</span><img loading="lazy" src="${relicArtPath(item)}" alt=""><strong>${relicEscape(relicUiName(item))}</strong><small>${rarity.name} · ${RELIC_SLOTS[item.slot].name} · Lv.${item.level}</small></button>`;}).join('')||'<p class="relic-empty">조건에 맞는 유물이 없습니다.<br>필터를 바꾸거나 제작권으로 원하는 부위를 제작하세요.</p>';
 }
+function relicHeroPortrait(){
+  const preview=typeof getCharacterPreviewSprite==='function'?getCharacterPreviewSprite(selectedCharacter,false):null;
+  return preview?.assetSource||preview?.currentSrc||preview?.src||'';
+}
+function relicOwnedSets(){
+  const owned=new Set(relicStore.inventory.map(item=>item.setId));
+  return Object.values(RELIC_SETS).filter(set=>owned.has(set.id));
+}
+function relicSyncSelection(equipped=relicEquippedItems(selectedCharacter)){
+  const items=relicFilteredItems();
+  if(!items.some(item=>item.id===relicView.selected))relicView.selected=items.find(item=>equipped.some(worn=>worn.id===item.id))?.id||items[0]?.id||null;
+}
+function renderRelicStage(equipped,hero){
+  const portrait=relicHeroPortrait(),color=characterSkillGuide[selectedCharacter]?.color||'#86bded';
+  const positions={core:[23,17],armor:[77,17],lens:[18,78],boots:[82,78],emblem:[43,42],power:[58,64]};
+  return `<section class="relic-stage" aria-label="캐릭터와 장착 유물" style="--hero-color:${relicEscape(color)}">
+    <div class="relic-hero"><div class="relic-hero-halo" aria-hidden="true"></div>${portrait?`<img class="relic-hero-image" src="${relicEscape(portrait)}" alt="${relicEscape(hero)}" decoding="async" fetchpriority="high">`:''}<div class="relic-hero-caption"><small>SELECTED SURVIVOR</small><h2>${relicEscape(hero)}</h2><p>장착 ${equipped.length} / 6</p></div></div>
+    <div class="relic-equipment"><div class="relic-orbit" aria-label="유물 장착 슬롯 6개"><div class="relic-orbit-rings" aria-hidden="true"></div>${Object.keys(RELIC_SLOTS).map(slot=>{
+      const item=equipped.find(it=>it.slot===slot),rarity=item?RELIC_RARITIES[item.rarity]:null,[x,y]=positions[slot];
+      return `<button class="relic-slot ${relicView.slot===slot?'active':''} ${item?'':'empty'}" data-slot="${slot}" style="--rarity:${rarity?.color||'#71869e'};--slot-x:${x}%;--slot-y:${y}%" aria-label="${RELIC_SLOTS[slot].name} · ${item?rarity.name+' · '+relicUiName(item)+' · 강화 '+item.level:'미장착'}" title="${item?relicEscape(relicUiName(item))+' · '+rarity.name:'보유 유물에서 선택'}"><span class="relic-slot-disc">${item?`<img src="${relicArtPath(item)}" alt=""><span class="relic-slot-level">+${item.level}</span>`:'<span class="relic-slot-empty" aria-hidden="true">+</span>'}</span><strong>${RELIC_SLOTS[slot].name}</strong>${!item?'<span class="relic-slot-state">미장착</span>':''}</button>`;
+    }).join('')}</div><p class="relic-orbit-hint">슬롯을 눌러 보유 유물을 장착하세요</p></div>
+  </section>`;
+}
 function renderRelicInventory(){
-  const root=ensureRelicScreen(),equipped=relicEquippedItems(selectedCharacter),summary=relicStatsForItems(equipped),slots=Object.keys(RELIC_SLOTS),hero=characterSkillGuide[selectedCharacter]?.name||selectedCharacter;
-  if(!relicStore.inventory.some(item=>item.id===relicView.selected))relicView.selected=equipped[0]?.id||relicStore.inventory[0]?.id||null;
+  ensureRelicScreen();
+  const equipped=relicEquippedItems(selectedCharacter),summary=relicStatsForItems(equipped),slots=Object.keys(RELIC_SLOTS),hero=characterSkillGuide[selectedCharacter]?.name||selectedCharacter;
+  relicSyncSelection(equipped);
   document.getElementById('relic-wallet').innerHTML=`강화 경험치 <b>${Math.floor(relicStore.materials).toLocaleString()}</b><small>제작권 ${relicStore.tickets?.standard||0} · 고급 ${relicStore.tickets?.advanced||0} / 보관 ${relicStore.inventory.length}/300</small>`;
-  document.getElementById('relic-content').innerHTML=`<p class="relic-notice">${relicEscape(hero)}의 출격 장비 · 일반 4부위 + 특수 2부위. 전투 중 장비는 변경할 수 없습니다.<br>이 브라우저에 자동 저장됩니다. 다른 기기와 동기화되지 않으며 브라우저 데이터를 삭제하면 장비도 지워집니다.</p><div class="relic-loadout">${slots.map(slot=>{const item=equipped.find(it=>it.slot===slot),rarity=item?RELIC_RARITIES[item.rarity]:null;return `<button class="relic-slot ${relicView.slot===slot?'active':''}" style="--rarity:${rarity?.color||'#7c8da1'}" data-slot="${slot}"><img src="${item?relicArtPath(item):'assets/relics-v1/'+slot+'.webp'}" alt=""><strong>${RELIC_SLOTS[slot].name}</strong><span>${item?rarity.name+' · Lv.'+item.level:'미장착'}</span></button>`;}).join('')}</div><div class="relic-config"><strong>${relicEscape(hero)}</strong><span class="grow"></span><label>프리셋 <select id="relic-preset">${[0,1,2].map(n=>`<option value="${n}" ${n===relicView.preset?'selected':''}>${n+1}</option>`).join('')}</select></label><button data-action="save-preset">현재 장비 저장</button><button data-action="load-preset">불러오기</button><button data-action="catalog">유물 도감</button></div><div class="relic-sets">${summary.activeSets.filter(set=>set.two).map(set=>`<span class="relic-set-pill">${relicEscape(set.name)} · ${set.count}/${set.type==='special'?2:4}</span>`).join('')||'<span class="relic-notice">같은 세트 2개 또는 4개를 장착하면 세트 효과가 활성화됩니다.</span>'}</div><div class="relic-workspace"><div><div class="relic-filter"><select id="relic-slot-filter" aria-label="부위 필터"><option value="">모든 부위</option>${slots.map(slot=>`<option value="${slot}" ${slot===relicView.slot?'selected':''}>${RELIC_SLOTS[slot].name}</option>`).join('')}</select><select id="relic-rarity-filter" aria-label="등급 필터"><option value="">모든 등급</option>${Object.entries(RELIC_RARITIES).map(([id,r])=>`<option value="${id}" ${id===relicView.rarity?'selected':''}>${r.name}</option>`).join('')}</select><select id="relic-sort" aria-label="정렬">${[['level','레벨순'],['rarity','등급순'],['set','세트순']].map(([id,label])=>`<option value="${id}" ${id===relicView.sort?'selected':''}>${label}</option>`).join('')}</select><input id="relic-search" placeholder="이름·메인·보조 속성 검색" aria-label="유물 검색" value="${relicEscape(relicView.query)}"></div><div class="relic-collection" id="relic-collection"></div><div class="relic-craft" id="relic-craft"></div></div><aside class="relic-detail" id="relic-detail" aria-label="유물 상세"></aside></div>`;
+  document.getElementById('relic-content').innerHTML=`${renderRelicStage(equipped,hero)}
+    <div class="relic-config"><div class="relic-sets">${summary.activeSets.filter(set=>set.two).map(set=>`<span class="relic-set-pill">${relicEscape(set.name)} · ${set.count}/${set.type==='special'?2:4}</span>`).join('')||'<span class="relic-notice">같은 세트 2개 또는 4개로 세트 효과 활성화</span>'}</div><span class="grow"></span><label>프리셋 <select id="relic-preset">${[0,1,2].map(n=>`<option value="${n}" ${n===relicView.preset?'selected':''}>${n+1}</option>`).join('')}</select></label><button data-action="save-preset">저장</button><button data-action="load-preset">불러오기</button><button data-action="catalog">유물 도감</button></div>
+    <div class="relic-workspace" id="relic-workspace"><div><div class="relic-collection-heading"><h2>보유 유물 <span>${relicStore.inventory.length}</span></h2><p>보유한 유물만 표시됩니다</p></div><div class="relic-filter"><select id="relic-slot-filter" aria-label="부위 필터"><option value="">모든 부위</option>${slots.map(slot=>`<option value="${slot}" ${slot===relicView.slot?'selected':''}>${RELIC_SLOTS[slot].name}</option>`).join('')}</select><select id="relic-rarity-filter" aria-label="등급 필터"><option value="">모든 등급</option>${Object.entries(RELIC_RARITIES).map(([id,r])=>`<option value="${id}" ${id===relicView.rarity?'selected':''}>${r.name}</option>`).join('')}</select><select id="relic-sort" aria-label="정렬">${[['level','레벨순'],['rarity','등급순'],['set','세트순']].map(([id,label])=>`<option value="${id}" ${id===relicView.sort?'selected':''}>${label}</option>`).join('')}</select><input id="relic-search" placeholder="이름·메인·보조 속성 검색" aria-label="유물 검색" value="${relicEscape(relicView.query)}"></div><div class="relic-collection" id="relic-collection"></div><details class="relic-craft-disclosure"><summary>유물 제작 · 설계도</summary><div class="relic-craft" id="relic-craft"></div></details></div><aside class="relic-detail" id="relic-detail" aria-label="유물 상세"></aside></div>
+    <p class="relic-notice relic-save-note">출격 전 장비만 변경할 수 있습니다. 이 브라우저에 자동 저장되며 다른 기기와 동기화되지 않습니다.</p>`;
   renderRelicCollection();renderRelicDetail();renderRelicCraft();
   if(relicStorageError){const warning=document.createElement('p');warning.className='relic-alert';warning.textContent=relicStorageError;document.getElementById('relic-content').prepend(warning);}
 }
 function renderRelicDetail(){
-  const host=document.getElementById('relic-detail'),item=relicStore.inventory.find(it=>it.id===relicView.selected);if(!item){host.innerHTML='<p>유물을 선택하세요.</p>';return;}
+  const host=document.getElementById('relic-detail'),item=relicStore.inventory.find(it=>it.id===relicView.selected);if(!item){host.innerHTML='<p>이 조건에 맞는 보유 유물이 없습니다.<br>다른 부위를 선택하거나 출격 보상으로 유물을 획득하세요.</p>';return;}
   const rarity=RELIC_RARITIES[item.rarity],set=RELIC_SETS[item.setId],equipped=relicEquippedItems(selectedCharacter),old=equipped.find(it=>it.slot===item.slot),isEquipped=old?.id===item.id,count=equipped.filter(it=>it.setId===item.setId).length;
   const main=relicMainValue(item),cost=relicEnhanceCost(item),next=item.level<rarity.maxLevel?relicMainValue({...item,level:item.level+1}):main;
   host.style.setProperty('--rarity',rarity.color);
@@ -71,7 +98,7 @@ function onRelicUiChange(event){const map={'relic-slot-filter':'slot','relic-rar
 function onRelicUiClick(event){
   const button=event.target.closest('button');if(!button||button.disabled)return;
   if(button.dataset.select){relicView.selected=button.dataset.select;renderRelicCollection();renderRelicDetail();return;}
-  if(button.dataset.slot){relicView.slot=relicView.slot===button.dataset.slot?'':button.dataset.slot;const equipped=relicEquippedItems(selectedCharacter).find(it=>it.slot===button.dataset.slot);if(equipped)relicView.selected=equipped.id;renderRelicInventory();return;}
+  if(button.dataset.slot){relicView.slot=button.dataset.slot;relicView.rarity='';relicView.query='';const equipped=relicEquippedItems(selectedCharacter).find(it=>it.slot===button.dataset.slot);relicView.selected=equipped?.id||relicFilteredItems()[0]?.id||null;renderRelicInventory();document.getElementById('relic-workspace')?.scrollIntoView?.({block:'start'});return;}
   const item=relicStore.inventory.find(it=>it.id===relicView.selected);
   switch(button.dataset.action){
     case 'close':closeRelicInventory();break;
@@ -91,16 +118,16 @@ const relicUiDrawBase=draw;
 draw=function(){if(screenMode==='relics'){ctx.fillStyle='#080d16';ctx.fillRect(0,0,canvas.width,canvas.height);return;}relicUiDrawBase();};
 
 const relicGuideImages=new Map();let relicGuideEquipRect=null;
-function relicGuideImage(set){const item={setId:set.id,slot:set.slots[0]},path=set.type==='special'?`assets/relics-v1/${set.id}-set.webp`:relicArtPath(item);if(!relicGuideImages.has(path)){const im=new Image();im.src=path;relicGuideImages.set(path,im);}return relicGuideImages.get(path);}
+function relicGuideImage(set){const item=relicStore.inventory.find(owned=>owned.setId===set.id);if(!item)return null;const path=relicArtPath(item);if(!relicGuideImages.has(path)){const im=new Image();im.src=path;relicGuideImages.set(path,im);}return relicGuideImages.get(path);}
 function drawRelicGuide(){
   const mobile=typeof isMobileTouchDevice==='function'&&isMobileTouchDevice(),margin=mobile?22:Math.max(40,canvas.width*.065),width=canvas.width-margin*2;
   const start=guideSectionTop||153;guideContentTop=start;
   ctx.save();
   function lines(text,maxWidth,font){ctx.font=font;const result=[];let line='';for(const ch of text){if(ctx.measureText(line+ch).width>maxWidth&&line){result.push(line);line='';}line+=ch;}if(line)result.push(line);return result;}
   const intro=lines('6부위 장착 · 메인 1개 · 보조 1~3개 · 강화 시 기존 속성만 성장',width,'13px Arial');
-  const note=lines('비저주 세트에는 패널티가 없습니다. 유물은 출격 전 장비 화면에서 설정합니다.',width,'12px Arial');
+  const note=lines('보유한 유물의 세트만 표시합니다. 유물은 출격 전 장비 화면에서 설정합니다.',width,'12px Arial');
   const columns=width>=1050?3:width>=680?2:1,cardWidth=(width-(columns-1)*14)/columns;
-  const cards=Object.values(RELIC_SETS).map(set=>{const title=lines(set.name,cardWidth-100,'bold 16px Arial'),two=lines('2세트 · '+set.two,cardWidth-30,'13px Arial'),four=set.four?lines('4세트 · '+set.four,cardWidth-30,'13px Arial'):[];return{set,title,two,four,h:Math.max(210,93+Math.max(0,title.length-1)*20+(two.length+four.length)*19+(four.length?12:0)+20)};});
+  const cards=relicOwnedSets().map(set=>{const title=lines(set.name,cardWidth-100,'bold 16px Arial'),two=lines('2세트 · '+set.two,cardWidth-30,'13px Arial'),four=set.four?lines('4세트 · '+set.four,cardWidth-30,'13px Arial'):[];return{set,title,two,four,h:Math.max(210,93+Math.max(0,title.length-1)*20+(two.length+four.length)*19+(four.length?12:0)+20)};});
   const equipTop=start+18+48+intro.length*19+note.length*18+12,cardStart=equipTop+56;
   let bottom=cardStart;for(let i=0;i<cards.length;i+=columns){const height=Math.max(...cards.slice(i,i+columns).map(card=>card.h));for(let j=i;j<Math.min(i+columns,cards.length);j++){cards[j].top=bottom;cards[j].rowH=height;}bottom+=height+14;}
   guideScrollMax=Math.max(0,bottom+26-canvas.height);guideScrollY=Math.max(0,Math.min(guideScrollY,guideScrollMax));
@@ -111,10 +138,11 @@ function drawRelicGuide(){
   y+=48;ctx.textAlign='left';ctx.fillStyle='#b7cbdc';ctx.font='13px Arial';for(const line of intro){ctx.fillText(line,margin,y);y+=19;}
   ctx.fillStyle='#869ab0';ctx.font='12px Arial';for(const line of note){ctx.fillText(line,margin,y);y+=18;}
   relicGuideEquipRect={x:margin,y:equipTop-guideScrollY,w:Math.min(230,width),h:38};drawRoundedRect(margin,relicGuideEquipRect.y,relicGuideEquipRect.w,38,7,'#244454','#6fcbdc',1);ctx.fillStyle='#e7fcff';ctx.font='bold 14px Arial';ctx.fillText('유물 장비 · 보관함 열기  →',margin+14,relicGuideEquipRect.y+24);
+  if(!cards.length){ctx.fillStyle='#b7cbdc';ctx.font='14px Arial';ctx.fillText('보유한 유물이 없습니다. 출격 보상으로 유물을 획득하세요.',margin,cardStart+24-guideScrollY);}
   for(let index=0;index<cards.length;index++){
     const card=cards[index],set=card.set,x=margin+(index%columns)*(cardWidth+14),cy=card.top-guideScrollY;if(cy+card.rowH<start||cy>canvas.height)continue;
     const color=set.id==='D01'?RELIC_RARITIES.cursed.color:'#62bfd4';drawRoundedRect(x,cy,cardWidth,card.rowH,10,'#101c2bef',color+'77',1);
-    const im=relicGuideImage(set);if(im.complete&&im.naturalWidth)ctx.drawImage(im,x+14,cy+12,58,58);
+    const im=relicGuideImage(set);if(im?.complete&&im.naturalWidth)ctx.drawImage(im,x+14,cy+12,58,58);
     ctx.fillStyle='#829bb0';ctx.font='11px Arial';ctx.fillText(set.id+' · '+(set.type==='special'?'특수 2부위':set.hero?(characterSkillGuide[set.hero]?.name||set.hero)+' 특화':'일반 4부위'),x+84,cy+28);
     ctx.fillStyle='#eef5fc';ctx.font='bold 16px Arial';card.title.forEach((line,i)=>ctx.fillText(line,x+84,cy+52+i*20));
     let ty=cy+93+Math.max(0,card.title.length-1)*20;ctx.font='13px Arial';ctx.fillStyle='#a0dde6';for(const line of card.two){ctx.fillText(line,x+15,ty);ty+=19;}
