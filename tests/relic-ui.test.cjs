@@ -1,5 +1,12 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.join(__dirname,'..');
+test('portrait enhancement panels stack in normal flow and notices stay above the modal',()=>{
+  const css=fs.readFileSync(path.join(root,'relics.css'),'utf8'),portrait=css.slice(css.indexOf('@media(orientation:portrait) and (max-width:620px)'));
+  assert.match(portrait,/\.relic-feed-body\{display:block;overflow:auto\}/);
+  assert.match(portrait,/\.relic-feed-materials\{display:block;min-height:0\}/);
+  const layer=id=>Number(css.match(new RegExp('#'+id+'\\{[^}]*z-index:(\\d+)'))?.[1]);
+  assert.ok(layer('relic-toast')>layer('relic-confirm'));assert.ok(layer('relic-confirm')>layer('relic-feed'));
+});
 function scene(saved){
   const nodes=new Map(),storage=new Map(saved===undefined?[]:[['zombieSurvivalRelicsV1',saved]]),drawCalls=[],c={console,Math:Object.create(Math),screenMode:'home',selectedCharacter:'astra',paused:false,mouse:{down:true},characterSkillGuide:{astra:{name:'아스트라'},lush:{name:'LusH'},oblivion:{name:'오블리비언'}}};
   function element(id){if(!nodes.has(id))nodes.set(id,{id,hidden:true,innerHTML:'',textContent:'',children:[],prepend(child){this.children.unshift(child);},style:{setProperty(){}},dataset:{},isConnected:true,addEventListener(){},setAttribute(){},focus(){c.document.activeElement=this;},querySelector(){return element(id+'-close');}});return nodes.get(id);}
