@@ -135,6 +135,20 @@ test('rewards are idempotent across reload and keep per-run material total withi
   const loaded=game(g.storage.get('zombieSurvivalRelicsV1'));assert.equal(loaded.run("relicGrantReward({runId:'test_run',kind:'end',difficulty:'hard'}).duplicate"),true);assert.equal(loaded.run('relicStore.materials'),400);
   assert.equal(loaded.run("relicGrantReward({runId:'test_run',kind:'boss',bossIndex:2}).ok"),false);assert.equal(loaded.run("relicGrantReward({runId:'__proto__',kind:'end'}).ok"),false);
 });
+test('reward grades improve from easy to medium to hard while keeping other grade shares and cursed rewards',()=>{
+  for(const [difficulty,legendary,epic] of [['easy',3,27],['medium',7,23],['hard',12,18]]){
+    const g=game(),counts={common:0,rare:0,superRare:0,epic:0,legendary:0};
+    for(let i=0;i<100;i++){
+      g.c.rewardRoll=(i+.5)/100;
+      const result=g.run(`relicGrantReward({runId:'odds_${i}',kind:'end',difficulty:'${difficulty}',rng:()=>rewardRoll})`);
+      assert.equal(result.ok,true);counts[result.items[0].rarity]++;
+    }
+    assert.deepEqual(counts,{common:20,rare:25,superRare:25,epic,legendary});
+    const cursed=g.run(`relicGrantReward({runId:'curse',kind:'deep',difficulty:'${difficulty}',rng:()=>.99})`);
+    assert.equal(cursed.items[0].rarity,'cursed');
+  }
+});
+
 test('crafting spends only earned tickets and advanced tickets fix the chosen main',()=>{
   const g=game();assert.equal(g.run("relicCraft({setId:'C17',slot:'lens',mainStat:'critChance'}).ok"),false);
   g.run("relicGrantReward({runId:'craft_run',kind:'boss',difficulty:'hard'});relicGrantReward({runId:'craft_run',kind:'end',difficulty:'hard'})");

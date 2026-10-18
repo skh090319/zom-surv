@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v94-relic-art";
+const CACHE_VERSION = "zombie-survival-v95-relic-odds";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

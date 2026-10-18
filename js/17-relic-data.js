@@ -342,7 +342,8 @@ function relicGrantReward(options){return relicTransaction(draft=>{
   const items=[];
   for(const id of sets){
     if(draft.inventory.length>=RELIC_MAX_INVENTORY){draft.tickets.standard++;continue;}
-    const set=RELIC_SETS[id],roll=relicRandom(rng),rarity=id==='D01'?'cursed':roll<(difficulty==='hard'?.12:.03)?'legendary':roll<.30?'epic':roll<.55?'superRare':roll<.80?'rare':'common';
+    const legendaryChance=difficulty==='hard'?.12:difficulty==='medium'?.07:.03;
+    const set=RELIC_SETS[id],roll=relicRandom(rng),rarity=id==='D01'?'cursed':roll<legendaryChance?'legendary':roll<.30?'epic':roll<.55?'superRare':roll<.80?'rare':'common';
     const item=relicCreate({setId:id,slot:relicPick(set.slots,rng),rarity},rng);draft.inventory.push(item);items.push(item);
   }
   draft.materials+=materials;record.materials+=materials;record.events.push(event);draft.rewardedRuns[runId]=record;
