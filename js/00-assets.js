@@ -4,6 +4,7 @@ const characterThumbnailImages = new Map();
 let preparedImageScreen = "";
 
 function gameImageGroup(source) {
+  if(source.includes('/worlds-v1/'))return 'stage';
   const file = source.split("/").pop();
   if (source.includes("/bosses/")) return "boss";
   if (file.startsWith("lobby-")) return "lobby";
@@ -48,7 +49,8 @@ function prepareGameImages() {
   const detail = typeof characterDetailId === "string" ? characterDetailId : "";
   const settings = typeof mobileSettingsPage === "string" ? mobileSettingsPage : "";
   const upgrade = typeof choosingUpgrade !== "undefined" && choosingUpgrade;
-  const key = [screenMode, selectedCharacter, page, tab, owner, detail, settings, upgrade].join("/");
+  const world=typeof selectedWorld==='number'?selectedWorld:1;
+  const key = [screenMode, selectedCharacter, world, page, tab, owner, detail, settings, upgrade].join("/");
   if (key === preparedImageScreen) return;
   preparedImageScreen = key;
   const assetOwner = id => id === "nightLord" ? "night-lord" : (id === "nullZero" ? "null-zero" : id);
@@ -57,6 +59,7 @@ function prepareGameImages() {
   const exclusive = assetOwner(owner);
   const modal = assetOwner(detail);
   const playing = screenMode === "game" || (screenMode === "mobileSettings" && settings === "view");
+  if((playing||screenMode==='home')&&typeof getWorldBackgroundImage==='function')getWorldBackgroundImage();
   for (const image of gameImageRegistry) {
     const group = image.assetGroup;
     let needed = image.assetSource === "background.webp";

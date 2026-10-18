@@ -23,12 +23,13 @@ function drawBackground() {
   ctx.fillStyle = "#101010";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  if (backgroundLoaded) {
-    const sx = camera.x / WORLD.width * backgroundImage.naturalWidth;
-    const sy = camera.y / WORLD.height * backgroundImage.naturalHeight;
-    const sw = getCameraViewWidth() / WORLD.width * backgroundImage.naturalWidth;
-    const sh = getCameraViewHeight() / WORLD.height * backgroundImage.naturalHeight;
-    ctx.drawImage(backgroundImage, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  const mapImage=typeof getWorldBackgroundImage==='function'?getWorldBackgroundImage():backgroundImage;
+  if (mapImage===backgroundImage?backgroundLoaded:(mapImage.complete && mapImage.naturalWidth && mapImage.naturalHeight)) {
+    const sx = camera.x / WORLD.width * mapImage.naturalWidth;
+    const sy = camera.y / WORLD.height * mapImage.naturalHeight;
+    const sw = getCameraViewWidth() / WORLD.width * mapImage.naturalWidth;
+    const sh = getCameraViewHeight() / WORLD.height * mapImage.naturalHeight;
+    ctx.drawImage(mapImage, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   } else {
     ctx.fillStyle = "#101010";
     ctx.fillRect(0, 0, canvas.width, canvas.height);

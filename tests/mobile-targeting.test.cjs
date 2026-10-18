@@ -9,6 +9,7 @@ function game() {
   const listeners = {}, globalListeners = {}, storage = new Map(), draws = [];
   const context = {
     console, URLSearchParams, Math, performance, setTimeout, clearTimeout,
+    Image:class{constructor(){this.complete=true;this.naturalWidth=1536;this.naturalHeight=1024;}},backgroundImage:{complete:true,naturalWidth:1280,naturalHeight:853},setGameImageSource:(image,src)=>Object.assign(image,{assetSource:src}),ensureGameImage:image=>image,
     navigator: {maxTouchPoints: 1}, matchMedia: () => ({matches: true}), location: {search: ''},
     localStorage: {getItem: k => storage.get(k), setItem: (k,v) => storage.set(k,v)},
     requestAnimationFrame: () => 1, cancelAnimationFrame() {},
@@ -48,7 +49,7 @@ function game() {
     dispatchEvent:event=>(listeners[event.type]||[]).forEach(fn=>fn(event))};
   vm.createContext(context);
   const load=file=>vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
-  load('03-input.js');
+  load('00-worlds.js');load('03-input.js');
   // Load the real entry-point order, including overrides of the original casts.
   for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','04-null-zero.js','04-suncall.js','04-astra-constellations.js','04-astra.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
   return {context,draws,storage,run:code=>vm.runInContext(code,context),touch(type,id,x,y){context.canvas.dispatchEvent({type,preventDefault(){},changedTouches:[{identifier:id,clientX:x,clientY:y}]});}};
@@ -433,6 +434,18 @@ test('control size has no upper limit',()=>{
   assert.equal(g.run('clampMobileControlScale(2.5)'),2.5);
   assert.equal(g.run('clampMobileControlScale(8)'),8);
   assert.equal(g.run('clampMobileControlScale(.1)'),.72);
+});
+
+test('world selector exposes nine separate on-screen stages on phone, tablet and desktop',()=>{
+  const source=fs.readFileSync(path.join(root,'js/08-ui.js'),'utf8');
+  for(const [width,height] of [[568,320],[844,390],[1180,820],[1280,720]]){
+    const g=game();g.context.canvas.width=width;g.context.canvas.height=height;g.context.screenMode='home';g.context.homeDifficultyOpen=true;
+    g.run(source.slice(source.indexOf('function difficultyLabel('),source.indexOf('function drawMenuButton(')));
+    g.run('drawHomeDifficultyPicker()');const choices=g.run('homeDifficultyChoiceRects');assert.equal(choices.length,9);
+    for(const choice of choices){assert.ok(choice.x>=0&&choice.y>=0&&choice.x+choice.w<=width&&choice.y+choice.h<=height);assert.ok(choice.w>=100&&choice.h>=28);}
+    for(const choice of choices){g.touch('touchstart',42,choice.x+choice.w/2,choice.y+choice.h/2);g.touch('touchend',42,choice.x+choice.w/2,choice.y+choice.h/2);assert.equal(g.run('getWorldStageLabel()'),`${choice.world}-${['easy','medium','hard'].indexOf(choice.value)+1}`);assert.equal(g.context.selectedDifficulty,choice.world===2?choice.value:'easy');assert.equal(g.context.homeDifficultyOpen,true);}
+    const close=g.run('homeWorldCloseRect');g.touch('touchstart',42,close.x+32,close.y+14);g.touch('touchend',42,close.x+32,close.y+14);assert.equal(g.context.homeDifficultyOpen,false);
+  }
 });
 
 for(const input of ['mouse','touch']){

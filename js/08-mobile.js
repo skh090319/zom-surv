@@ -401,7 +401,7 @@ function drawMobileHomeScreen(){
   drawLobbyPanel(homeStartRect,"#d94a50",{primary:true});
   drawMobileLobbyEmblem(outerX+(short?22:27),top+startH/2,short?14:18,"#d94a50","▶");
   ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.2)";ctx.shadowBlur=4;ctx.font=`${short?18:23}px ${MOBILE_LOBBY_BUTTON_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("작전 시작",outerX+menuW/2,top+startH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
-  const cards=[["#9874c4","◆","캐릭터"],["#b99a55","✦","도감"],["#c79764","◈","유물"],["#568da1","⚙","조작 설정"],["#b86a51","▲","난이도"]];
+  const cards=[["#9874c4","◆","캐릭터"],["#b99a55","✦","도감"],["#c79764","◈","유물"],["#568da1","⚙","조작 설정"],["#b86a51","▲",`세계 선택 · ${difficultyLabel()}`]];
   const rects=[];
   for(let i=0;i<cards.length;i++){
     const rect={x:outerX+(i%2)*(cardW+gap),y:cardY+Math.floor(i/2)*(cardH+gap),w:i===cards.length-1?menuW:cardW,h:cardH};

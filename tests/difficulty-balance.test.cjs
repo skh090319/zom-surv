@@ -22,6 +22,7 @@ function bossGame(difficulty = 'easy') {
     worldStart() {}, worldEnd() {}, ctx: new Proxy({}, { get: () => () => {} })
   };
   vm.createContext(context);
+  vm.runInContext(fs.readFileSync(path.join(root, 'js', '00-worlds.js'), 'utf8'), context);
   vm.runInContext(fs.readFileSync(path.join(root, 'js', '04-bosses.js'), 'utf8'), context);
   return { context, run: code => vm.runInContext(code, context) };
 }
@@ -39,6 +40,17 @@ test('boss health matches the revised table while movement stays unchanged', () 
       assert.equal(game.run('activeRaidBoss.maxHp'), hp);
       assert.ok(Math.abs(game.run('activeRaidBoss.speed') - speed) < 1e-9);
     });
+  }
+});
+
+test('new-world stages keep the full easy boss profile, including hard-labelled third stages',()=>{
+  const game=bossGame('hard');
+  for(const world of [1,3])for(const tier of ['easy','medium','hard']){
+    game.run(`selectWorldStage(${world},'${tier}')`);
+    for(const [index,hp] of [37500,150000,600000].entries()){game.run(`startRaidBoss(${index})`);assert.equal(game.run('activeRaidBoss.maxHp'),hp);}
+    game.run('startRaidBoss(0);raidBossProjectiles.length=0;firePoisonVolley(activeRaidBoss)');assert.equal(game.run('raidBossProjectiles.length'),3);
+    game.run('startRaidBoss(1);summonReaperMinions(activeRaidBoss)');assert.equal(game.run('zombies.filter(z=>z.isBossMinion).length'),5);
+    assert.equal(game.run("getRaidBossDamageRatio('lightning')"),.8);
   }
 });
 

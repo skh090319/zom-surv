@@ -824,27 +824,37 @@ function drawLobbyEmblem(cx,cy,r,color,glyph){
   ctx.fillStyle="#f3f7ff";ctx.shadowColor=color;ctx.shadowBlur=5;ctx.font=`bold ${Math.max(14,r*.92)}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(glyph,0,1);ctx.restore();ctx.textBaseline="alphabetic";
 }
 
-function difficultyLabel(value=selectedDifficulty){return value==="easy"?"EASY":value==="hard"?"HARD":"MEDIUM";}
+function difficultyLabel(value=selectedStageDifficulty){return getWorldStageLabel(selectedWorld,value);}
 
 const LOBBY_DISPLAY_FONT='"Black Han Sans", "Arial Black", "Malgun Gothic", sans-serif';
 const LOBBY_BUTTON_FONT='"Do Hyeon", "Malgun Gothic", sans-serif';
 
 function drawHomeDifficultyPicker(){
-  if(!homeDifficultyOpen){homeDifficultyChoiceRects=[];return;}
+  if(!homeDifficultyOpen){homeDifficultyChoiceRects=[];homeWorldCloseRect=null;return;}
   ctx.save();ctx.fillStyle="rgba(0,2,6,.78)";ctx.fillRect(0,0,canvas.width,canvas.height);
-  const w=Math.min(520,canvas.width*.78),h=Math.min(280,canvas.height*.76),x=(canvas.width-w)/2,y=(canvas.height-h)/2;
+  const w=Math.min(1040,canvas.width*.95),h=Math.min(600,canvas.height*.94),x=(canvas.width-w)/2,y=(canvas.height-h)/2;
   const shell=ctx.createLinearGradient(x,y,x,y+h);shell.addColorStop(0,"rgba(31,38,45,.99)");shell.addColorStop(1,"rgba(5,9,13,.99)");
   drawRoundedRect(x,y,w,h,9,shell,"rgba(173,188,198,.7)",1.5);ctx.fillStyle="#d94a50";ctx.fillRect(x+1,y+1,w-2,4);
-  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font=`20px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("위협 단계 설정",x+24,y+38);
-  ctx.fillStyle="rgba(205,215,222,.62)";ctx.font="11px Arial";ctx.fillText("선택 즉시 적용 · 빈 공간을 눌러 닫기",x+24,y+59);
-  const gap=10,pad=24,choiceY=y+82,choiceH=h-106,choiceW=(w-pad*2-gap*2)/3;
-  homeDifficultyChoiceRects=["easy","medium","hard"].map((value,index)=>({value,x:x+pad+index*(choiceW+gap),y:choiceY,w:choiceW,h:choiceH}));
-  const details={easy:["EASY","생존 준비","#69d8a5"],medium:["MEDIUM","표준 위협","#e0b04f"],hard:["HARD","극한 경계","#e45b62"]};
-  for(const rect of homeDifficultyChoiceRects){
-    const [label,sub,color]=details[rect.value],selected=rect.value===selectedDifficulty;
-    drawLobbyPanel(rect,color,{hover:selected});ctx.textAlign="center";ctx.fillStyle=color;ctx.font=`${choiceW<120?14:17}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(label,rect.x+rect.w/2,rect.y+rect.h*.43);
-    ctx.fillStyle="rgba(226,233,238,.68)";ctx.font="10px Arial";ctx.fillText(sub,rect.x+rect.w/2,rect.y+rect.h*.65);
-    if(selected){ctx.fillStyle=color;ctx.font="900 10px Arial";ctx.fillText("SELECTED",rect.x+rect.w/2,rect.y+rect.h-13);}
+  const compact=canvas.height<500,pad=compact?12:24,gap=compact?8:14,top=compact?64:82;
+  ctx.textAlign="left";ctx.fillStyle="#fff";ctx.font=`${compact?18:23}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText("세계 선택",x+pad,y+(compact?27:36));
+  ctx.fillStyle="#a9b8c9";ctx.font=`${compact?10:12}px Arial`;ctx.fillText(`현재 ${getWorldStageLabel()} · 단계 선택 후 바깥을 눌러 닫기`,x+pad,y+(compact?46:59));
+  homeWorldCloseRect={x:x+w-pad-64,y:y+12,w:64,h:28};drawRoundedRect(homeWorldCloseRect.x,homeWorldCloseRect.y,64,28,5,'#172432','#6b7a8c',1);ctx.textAlign='center';ctx.fillStyle='#dce6ef';ctx.font='12px Arial';ctx.fillText('닫기 ×',homeWorldCloseRect.x+32,homeWorldCloseRect.y+19);
+  const cardW=(w-pad*2-gap*2)/3,cardH=h-top-pad;
+  homeDifficultyChoiceRects=[];
+  for(const world of GAME_WORLDS){
+    const cx=x+pad+(world.id-1)*(cardW+gap),cy=y+top,color=world.color,active=world.id===selectedWorld;
+    drawRoundedRect(cx,cy,cardW,cardH,7,'#0c1520',active?color:'#3b4b5c',active?2:1);
+    const image=getWorldBackgroundImage(world.id),imageH=Math.min(150,cardH*(compact?.23:.34)),inset=8;
+    if(image.complete&&image.naturalWidth){ctx.save();ctx.beginPath();ctx.rect(cx+inset,cy+inset,cardW-inset*2,imageH);ctx.clip();const scale=Math.max((cardW-inset*2)/image.naturalWidth,imageH/image.naturalHeight),dw=image.naturalWidth*scale,dh=image.naturalHeight*scale;ctx.drawImage(image,cx+(cardW-dw)/2,cy+inset+(imageH-dh)/2,dw,dh);ctx.restore();}
+    ctx.textAlign='left';ctx.fillStyle=color;ctx.font=`${compact?12:17}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(`${world.id}세계 · ${world.name}`,cx+inset,cy+imageH+(compact?25:32),cardW-inset*2);
+    ctx.fillStyle='#b2c0ce';ctx.font=`${compact?9:11}px Arial`;
+    const storyY=cy+imageH+(compact?41:53),lineH=compact?13:17;
+    world.story.forEach((line,i)=>ctx.fillText(line,cx+inset,storyY+i*lineH,cardW-inset*2));
+    const buttonTop=storyY+lineH+(compact?12:23),buttonGap=compact?5:9,buttonH=(cy+cardH-inset-buttonTop-buttonGap*2)/3;
+    ['easy','medium','hard'].forEach((value,i)=>{
+      const rect={world:world.id,value,x:cx+inset,y:buttonTop+i*(buttonH+buttonGap),w:cardW-inset*2,h:buttonH},selected=active&&value===selectedStageDifficulty;
+      homeDifficultyChoiceRects.push(rect);drawLobbyPanel(rect,color,{hover:selected});ctx.textAlign='center';ctx.fillStyle=selected?'#fff':color;ctx.font=`${compact?14:21}px ${LOBBY_BUTTON_FONT}`;ctx.textBaseline='middle';ctx.fillText(`${world.id}-${i+1}${selected?'  ✓':''}`,rect.x+rect.w/2,rect.y+rect.h/2);ctx.textBaseline='alphabetic';
+    });
   }
   ctx.restore();
 }
@@ -954,7 +964,7 @@ function drawHomeScreen() {
   const gap=10,cardY=startY+86,cardH=98,cardCols=2,cardW=(menuW-gap)/2;
   const cardRect=i=>({x:leftX+(i%cardCols)*(cardW+gap),y:cardY+Math.floor(i/cardCols)*(cardH+gap),w:cardW,h:cardH});
   homeCharacterRect=cardRect(0);homeCodexRect=cardRect(1);homeRelicRect=cardRect(2);homeSettingsRect=cardRect(3);homeDifficultyRect={...cardRect(4),w:menuW};mobileSettingsHomeRect=homeSettingsRect;
-  const cards=[[homeCharacterRect,"#9874c4","◆","캐릭터","01"],[homeCodexRect,"#b99a55","✦","도감","02"],[homeRelicRect,"#c79764","◈","유물","03"],[homeSettingsRect,"#568da1","⚙","조작 설정","04"],[homeDifficultyRect,"#b86a51","▲","난이도","05"]];
+  const cards=[[homeCharacterRect,"#9874c4","◆","캐릭터","01"],[homeCodexRect,"#b99a55","✦","도감","02"],[homeRelicRect,"#c79764","◈","유물","03"],[homeSettingsRect,"#568da1","⚙","조작 설정","04"],[homeDifficultyRect,"#b86a51","▲",`세계 선택 · ${difficultyLabel()}`,"05"]];
   for(const [rect,color,glyph,label,no] of cards){
     const hover=pointInRect(mouse.x,mouse.y,rect),cy=drawLobbyPanel(rect,color,{hover});
     drawLobbyEmblem(rect.x+28,cy+rect.h/2,18,color,glyph);
