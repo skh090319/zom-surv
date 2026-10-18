@@ -69,6 +69,8 @@ function prepareGameImages() {
     if (screenMode === "home" && selected === "astra") needed ||= image.assetSource === "assets/astra-ultimate-nebula-v1.webp" || image.assetSource === "assets/astra-ultimate-portrait-v1.webp";
     if (screenMode === "home" && selected === "oblivion") needed ||= image.assetSource.startsWith("assets/oblivion-v4/");
     if (screenMode === "home" && group === selected) needed ||= image.assetSource.includes('/ultimate-backgrounds-v1/');
+    // Prewarm only the selected Aria's cut-in and realm, not every hero's lobby.
+    if (screenMode === "home" && selected === "aria") needed ||= image.assetSource.startsWith('assets/aria-v2/ultimate-');
     if (screenMode === "mobileSettings" && settings === "controls") needed ||= group === selected;
     if (playing) needed ||= group === "world" || group === "boss" || group === selected || group === "augment";
     if (screenMode === "character" && modal) needed ||= group === modal;

@@ -1,0 +1,20 @@
+{
+  "mode": "built-in image_gen",
+  "created": "2026-10-19",
+  "assets": [
+    {
+      "asset": "ultimate-background.webp",
+      "prompt": "Use case: stylized-concept.\nAsset type: 16:9 landscape background for Aria's World Tree ultimate in a high-quality fantasy action game.\nInput image: reference for the World Tree's materials, colors, and botanical identity only.\nPrimary request: A magnificent magical World Tree sanctuary appearing during a rose queen's ultimate. Huge ivory and rose-gold roots curl along the edges of a dark emerald clearing; an enormous luminous pink-blossom and jade-leaf canopy fills the upper distance. Gold hanging seed lights, rose petals suspended in mist, rich layered forest depth, ancient bark with emerald sap. Sophisticated painterly fantasy game environment, extraordinarily polished, intricate but controlled.\nComposition: wide panoramic environment, no character. Keep the middle and lower-center 60 percent an open, subdued dark teal forest floor for readable top-down gameplay; spectacular flowers, roots and light are concentrated along the perimeter and upper canopy. Strong foreground/background depth without large foreground objects hiding combat. Emerald, pink, ivory and antique gold palette matching the reference. Soft moonlight and warm saplight; majestic, not horror.\nConstraints: no text, no UI, no logos, no watermark, no people, no animals. Fill entire rectangular frame, opaque background. Not a framed illustration, not a sprite.",
+      "reference": "world-tree.webp",
+      "source": "exec-86aa1c16-9b0a-493c-81e1-aee2c3eb5d60.png",
+      "optimization": "WebP quality 86, effort 6; retain native dimensions"
+    },
+    {
+      "asset": "ultimate-portrait.webp",
+      "prompt": "Use case: identity-preserve.\nAsset type: Cinematic landscape ultimate portrait illustration for a top-right triangular game HUD cut-in.\nInput image: the existing Aria character is the identity and costume reference. Keep her exact pink flowing hair, turquoise-green eyes, mature elegant face, black rose and rose-gold thorn crown, emerald drop earrings, black high collar and rose-gold botanical costume details.\nPrimary request: create a magnificent close-up portrait of this same rose queen casting her World Tree ultimate, her hair and pink petals sweeping toward the left, confident serene but powerful expression. Extremely polished premium anime fantasy game splash illustration, clean anatomy and detailed eyes. Soft emerald magic illuminates the face, rimlight pink and antique gold.\nComposition: landscape 3:2; head and face centered at 72 percent of image width and 31 percent height. Show entire crown above face and upper shoulders, face large and readable; sweeping hair trails into the left half. Right-top triangular crop will be applied in code: preserve face and crown entirely inside upper-right portion. Dark emerald botanical bokeh background with fine pink petals, no bright clutter over face.\nConstraints: preserve her recognizable identity, no other characters, no text, no UI, no logos, no watermark. Opaque painted background, no border or triangle drawn into the image. Do not redesign clothing or hair color.",
+      "reference": "character.webp",
+      "source": "exec-c50f5380-7dc3-49ba-b50f-64fa464ab36a.png",
+      "optimization": "1280px wide WebP quality 88, effort 6"
+    }
+  ]
+}
