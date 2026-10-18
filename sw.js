@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v96-worlds";
+const CACHE_VERSION = "zombie-survival-v97-selection-skins";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

@@ -71,6 +71,11 @@
 }
 @media(prefers-reduced-motion:reduce){#relic-screen *{scroll-behavior:auto!important;transition:none!important}}
 
+/* Full-card rarity colors, shared by inventory and enhancement materials. */
+.relic-item .badge:empty{display:none}
+#relic-screen .relic-item,#relic-screen .relic-feed-choice{background:linear-gradient(145deg,color-mix(in srgb,var(--rarity) 52%,#17202c),color-mix(in srgb,var(--rarity) 32%,#0b1420))!important;border-color:color-mix(in srgb,var(--rarity) 72%,#2c3a4c)!important;text-shadow:0 1px 3px #000b}
+#relic-screen .relic-item:hover,#relic-screen .relic-feed-choice:hover{background:linear-gradient(145deg,color-mix(in srgb,var(--rarity) 62%,#17202c),color-mix(in srgb,var(--rarity) 40%,#0b1420))!important}
+#relic-screen .relic-feed-choice.selected{outline:2px solid #fff8;outline-offset:-3px}
 /* Equipment identity and deterministic item-fed enhancement. */
 .relic-owner{position:absolute;right:7px;bottom:7px;width:30px;height:30px;display:grid;place-items:center;overflow:hidden;border-radius:50%;border:1px solid #e5cf91;background:#1b2639;box-shadow:0 2px 8px #000b;pointer-events:none;z-index:1}
 #relic-screen .relic-owner img{display:block;position:absolute;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center 20%;margin:0;border-radius:0}
@@ -88,3 +93,4 @@
   #relic-feed{padding:6px}.relic-feed-window{height:calc(100dvh - 12px);border-radius:7px}.relic-feed-window>header,.relic-feed-window>footer{padding:7px 12px;gap:8px}.relic-feed-window>header h2{font-size:19px}.relic-feed-window>header small{display:none}.relic-feed-window>footer strong{font-size:12px}.relic-feed-window>footer p{font-size:10px;margin-top:2px}.relic-feed-body{grid-template-columns:190px minmax(0,1fr)}.relic-feed-target{padding:10px}.relic-feed-art{width:78px;height:78px;margin-bottom:4px}.relic-feed-target h3{font-size:16px}.relic-feed-target .relic-feed-level{font-size:20px;margin:6px 0}.relic-feed-materials{padding:10px}.relic-feed-materials h3{font-size:14px;margin-bottom:6px}.relic-feed-rarities{font-size:9px;gap:4px 8px}.relic-feed-materials>.relic-history{font-size:9px;margin:5px 0}#relic-feed-items{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px}.relic-feed-choice-art{width:55px;height:55px}#relic-screen .relic-feed-choice{min-height:154px}.relic-feed-choice strong{font-size:11px}
 }
 @media(orientation:portrait) and (max-width:620px){.relic-feed-body{display:block;overflow:auto}.relic-feed-target{border-right:0;border-bottom:1px solid #39516b;overflow:visible}.relic-feed-materials{display:block;min-height:0}#relic-feed-items{overflow:visible}.relic-feed-window>footer{padding:10px}}
+#relic-screen .relic-item.relic-legendary,#relic-screen .relic-feed-choice.relic-legendary{box-shadow:inset 0 0 0 1px #ffe9a94d,inset 0 0 18px #ffd34718,0 0 9px #ffd3474d,0 0 19px #ffd34720}

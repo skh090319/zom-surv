@@ -853,7 +853,9 @@ function drawHomeDifficultyPicker(){
     const buttonTop=storyY+lineH+(compact?12:23),buttonGap=compact?5:9,buttonH=(cy+cardH-inset-buttonTop-buttonGap*2)/3;
     ['easy','medium','hard'].forEach((value,i)=>{
       const rect={world:world.id,value,x:cx+inset,y:buttonTop+i*(buttonH+buttonGap),w:cardW-inset*2,h:buttonH},selected=active&&value===selectedStageDifficulty;
-      homeDifficultyChoiceRects.push(rect);drawLobbyPanel(rect,color,{hover:selected});ctx.textAlign='center';ctx.fillStyle=selected?'#fff':color;ctx.font=`${compact?14:21}px ${LOBBY_BUTTON_FONT}`;ctx.textBaseline='middle';ctx.fillText(`${world.id}-${i+1}${selected?'  ✓':''}`,rect.x+rect.w/2,rect.y+rect.h/2);ctx.textBaseline='alphabetic';
+      homeDifficultyChoiceRects.push(rect);drawLobbyPanel(rect,color,{hover:selected});
+      if(selected){const tint=ctx.createLinearGradient(0,rect.y,0,rect.y+rect.h);tint.addColorStop(0,color+'88');tint.addColorStop(1,color+'48');drawRoundedRect(rect.x+6,rect.y+3,rect.w-12,rect.h-9,4,tint,color+'dc',1.5);}
+      ctx.textAlign='center';ctx.fillStyle=selected?'#fff':color;ctx.font=`${compact?14:21}px ${LOBBY_BUTTON_FONT}`;ctx.textBaseline='middle';ctx.fillText(`${world.id}-${i+1}`,rect.x+rect.w/2,rect.y+rect.h/2);ctx.textBaseline='alphabetic';
     });
   }
   ctx.restore();
