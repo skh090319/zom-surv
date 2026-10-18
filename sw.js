@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v97-selection-skins";
+const CACHE_VERSION = "zombie-survival-v98-relic-frame-intro";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -7,6 +7,7 @@ const CORE_ASSETS = [
   "./index.html",
   "./style.css",
   "./relics.css",
+  "./assets/relic-card-frame-v1.webp",
   // Only the six starter pieces are preloaded. Other owned art is cached on demand.
   "./assets/relics-v2/A01-core.webp",
   "./assets/relics-v2/A01-armor.webp",

@@ -19,13 +19,21 @@
   height: 100%;
   object-fit: contain;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity .25s ease;
 }
+#studio-intro[data-playing="true"] video { opacity: 1; }
+#studio-intro-start[hidden] { display: none; }
+#studio-intro-status { color: #bcc3d2; font: 13px/1.5 sans-serif; text-align: center; }
 
 .studio-intro-controls {
   position: absolute;
   right: max(20px, env(safe-area-inset-right));
   bottom: max(18px, env(safe-area-inset-bottom));
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 10px;
   padding-left: env(safe-area-inset-left);
 }

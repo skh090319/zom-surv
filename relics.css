@@ -73,6 +73,12 @@
 
 /* Full-card rarity colors, shared by inventory and enhancement materials. */
 .relic-item .badge:empty{display:none}
+/* Generated transparent metal hardware, nine-sliced to preserve corner detail. */
+#relic-screen .relic-item::after,#relic-screen .relic-feed-choice::after{
+ content:"";position:absolute;inset:-1px;pointer-events:none;z-index:2;
+ border:13px solid transparent;
+ border-image:url("assets/relic-card-frame-v1.webp") 90 / 15px / 0 stretch;
+}
 #relic-screen .relic-item,#relic-screen .relic-feed-choice{background:linear-gradient(145deg,color-mix(in srgb,var(--rarity) 52%,#17202c),color-mix(in srgb,var(--rarity) 32%,#0b1420))!important;border-color:color-mix(in srgb,var(--rarity) 72%,#2c3a4c)!important;text-shadow:0 1px 3px #000b}
 #relic-screen .relic-item:hover,#relic-screen .relic-feed-choice:hover{background:linear-gradient(145deg,color-mix(in srgb,var(--rarity) 62%,#17202c),color-mix(in srgb,var(--rarity) 40%,#0b1420))!important}
 #relic-screen .relic-feed-choice.selected{outline:2px solid #fff8;outline-offset:-3px}
