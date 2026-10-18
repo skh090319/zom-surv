@@ -138,7 +138,17 @@ test('C10 blood moon attacks and real heals; C11 boosts shield creation but does
 });
 test('C12 knots and closing rifts, C13 garden and bloom use their actual damage paths',()=>{
   const e=game('echo',{C12:4}),z=e.enemy(100);e.run('echoRifts.push({x1:player.x,y1:player.y,x2:player.x+200,y2:player.y});replayEchoMemory()');near(damage(e,z),35*1.25*1.2);
-  const a=game('aria',{C13:4}),b=a.enemy(100);a.run('createAriaSoil(player.x+100,player.y);createAriaSoil(player.x+200,player.y);activateAriaE()');near(damage(a,b),35*(2.1+2*.22)*1.35);
+  const a=game('aria',{C13:4}),b=a.enemy(100);a.run('activateAriaE()');near(damage(a,b),35*3.5*1.35);
+  const before=b.hp;a.run('for(let n=0;n<30;n++)updateAria()');near(before-b.hp,35*1.5*1.35);
+});
+test('Aria delayed waves keep skill and DOT equipment bonuses without inheriting burst criticals',()=>{
+  for(const [key,ticks,initial,pulse] of [['E',30,3.5,1.5],['X',18,2,1.2],['R',45,8,2.4]]){
+    const g=game('aria',{}, {skillDamage:.1,dotDamage:.5,critChance:1}),e=g.enemy(0);
+    g.run(`mouse.worldX=player.x;mouse.worldY=player.y;activateAria${key}()`);
+    near(damage(g,e),35*initial*1.1*1.5);
+    const before=e.hp;g.run(`for(let n=0;n<${ticks};n++)updateAria()`);
+    near(before-e.hp,35*pulse*1.6);
+  }
 });
 test('C14 stores up to 120 percent pain but release bonus never feeds the doll again',()=>{
   const g=game('moira',{C14:4}),e=g.enemy();g.run('activateMoiraE();moiraAddLink(newEnemy);moiraDamage(newEnemy,10000)');near(g.player.moiraStoredPain,35*35*1.2);

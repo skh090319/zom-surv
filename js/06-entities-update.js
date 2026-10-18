@@ -32,8 +32,9 @@ function updatePlayer() {
   const nightLordRageSpeed = selectedCharacter === "nightLord" ? 1 + getNightLordRage() * 0.3 : 1;
   const zeroUltimateSpeed = selectedCharacter === "zero" && player.zeroUltimateTime > 0 ? 1.35 : 1;
   const bossSlowMultiplier = player.bossSlowTime > 0 ? 0.55 : 1;
-  player.x += dx * moveStrength * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier;
-  player.y += dy * moveStrength * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier;
+  const ariaStormSpeed = typeof getAriaMoveMultiplier==="function" ? getAriaMoveMultiplier() : 1;
+  player.x += dx * moveStrength * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier * ariaStormSpeed;
+  player.y += dy * moveStrength * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier * ariaStormSpeed;
 
   player.x = Math.max(player.r, Math.min(WORLD.width - player.r, player.x));
   player.y = Math.max(player.r, Math.min(WORLD.height - player.r, player.y));

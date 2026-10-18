@@ -67,7 +67,8 @@ function getMobileControlLayout(){
   const baseSkillR=Math.max(20,Math.min(28,minSide*.052)),baseOrbit=anchorR+Math.max(42,Math.min(58,minSide*.09))*anchorScale;
   // Oblivion's metal sockets and two-line names need a wider default arc.
   // Explicit saved skill positions below continue to take precedence.
-  const orbit=selectedCharacter==='oblivion'?Math.max(baseOrbit,(baseSkillR*2.24+24)*anchorScale/(2*Math.sin(.25))):baseOrbit;
+  const ornamentSpacing=selectedCharacter==='oblivion'?baseSkillR*2.24+24:selectedCharacter==='aria'?baseSkillR*2.46+18:0;
+  const orbit=ornamentSpacing?Math.max(baseOrbit,ornamentSpacing*anchorScale/(2*Math.sin(.25))):baseOrbit;
   const anchorX=Math.max(canvas.width*.5+orbit+baseSkillR*anchorScale,Math.min(canvas.width-safe-anchorR,mobileControlSettings.skillAnchorX===null?canvas.width-safe-anchorR:canvas.width*mobileControlSettings.skillAnchorX));
   const maxAnchorY=canvas.height-safe-anchorR;
   const anchorY=Math.max(Math.min(maxAnchorY,118+orbit+baseSkillR*anchorScale),Math.min(maxAnchorY,mobileControlSettings.skillAnchorY===null?maxAnchorY:canvas.height*mobileControlSettings.skillAnchorY));
@@ -310,7 +311,7 @@ function getMobileSkillName(key){
     arc:{q:"일륜",e:"홍염 파동",x:"태양 낙하",r:"초신성"},terra:{q:"단층 붕괴",e:"암벽 융기",x:"지각 압축",r:"대륙 분쇄"},
     void:{q:"심층 포식",e:"대지 방출",x:"지반 붕괴",r:"제어 불능"},carmilla:{q:"피의 회수"},
     vargas:{q:"생명 포식",e:"혈육 갑주",x:"거신 강타",r:"불멸의 형상"},echo:{q:"절단",e:"위상 전환",r:"세계선 붕괴"},
-    aria:{q:"가시 성장",e:"만개",x:"정원 이동",r:"영원한 봄"},moira:{q:"조종",e:"대리 인형",x:"고통 전이",r:"꼭두각시 극장"},
+    aria:{q:"가시 성장",e:"개화의 심판",x:"꽃잎 폭풍",r:"세계수 강림"},moira:{q:"조종",e:"대리 인형",x:"고통 전이",r:"꼭두각시 극장"},
     mare:{q:player.mareUltimateTime>0?'고래 돌진':"밀물",e:player.mareUltimateTime>0?'심해 흡입':"소용돌이 핵",x:"수압",r:"세계를 삼킨 바다"},nullZero:{q:"데이터 절단",e:"격리 구역",x:"코드 복제",r:"커널 패닉"},astra:{q:astraQFlights().length?"공전성 회수":"성궤 투사",e:"중력 붕괴",x:"궤도 가속",r:"만유인력 역전"}
   };
   if(selectedCharacter==="yupiter"){if(key==="q")return"남은 공격 수";const weapon=["반월검","절단검","화염포"][player.yupiterWeapon]||"무기";return key==="e"?`${weapon} 강화`:`${weapon} 궁극기`;}
@@ -471,6 +472,9 @@ function drawMobileControls(){
   }else if(selectedCharacter==='mare'){
     drawMareControlIcon(joystick.x,joystick.y,joystick.r,'joystick',mobileJoystickTouchId!==null,mobileStickX,mobileStickY);
     drawMareControlIcon(attack.x,attack.y,attack.r,'attack',attackGlow);
+  }else if(selectedCharacter==='aria'){
+    drawAriaControlIcon(joystick.x,joystick.y,joystick.r,'joystick',mobileJoystickTouchId!==null,mobileStickX,mobileStickY);
+    drawAriaControlIcon(attack.x,attack.y,attack.r,'attack',attackGlow);
   }else if(selectedCharacter!=='astra'){
   ctx.globalAlpha=.86;ctx.fillStyle="rgba(8,16,29,.68)";ctx.strokeStyle="rgba(123,220,255,.58)";ctx.lineWidth=2;ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle="rgba(123,220,255,.16)";ctx.beginPath();ctx.arc(joystick.x,joystick.y,joystick.r*.68,0,Math.PI*2);ctx.stroke();
   const knobR=joystick.r*.37,kx=joystick.x+mobileStickX,ky=joystick.y+mobileStickY;ctx.fillStyle="rgba(103,218,255,.45)";ctx.shadowColor="#53d9ff";ctx.shadowBlur=mobileJoystickTouchId===null?8:18;ctx.beginPath();ctx.arc(kx,ky,knobR,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#b6f2ff";ctx.stroke();ctx.shadowBlur=0;
@@ -481,10 +485,8 @@ function drawMobileControls(){
   }
   for(const skill of skills){
     if(selectedCharacter==="yupiter"&&skill.key==="q"){
-      drawMobileIcon(getMobileSkillIcon("q"),skill.x,skill.y,skill.r);
-      ctx.fillStyle="rgba(3,10,18,.8)";ctx.fillRect(skill.x-skill.r,skill.y-12,skill.r*2,24);
-      ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 19px Arial";
-      ctx.fillText(String(player.yupiterAttacksRemaining??50),skill.x,skill.y);
+      drawYupiterAttackMeter(skill.x,skill.y,skill.r,getMobileSkillIcon("q").image,player.yupiterAttacksRemaining??50);
+      ctx.fillStyle="#d9edf2";ctx.textAlign="center";ctx.textBaseline="middle";
       ctx.font="bold 10px Arial";ctx.fillText("남은 공격 수",skill.x,skill.y+skill.r+12);
       continue;
     }
@@ -506,6 +508,10 @@ function drawMobileControls(){
       drawMareSkillFrame(skill.x,skill.y,skill.r);
       const lines=skill.key==='r'?['세계를 삼킨','바다']:[skillName];
       lines.forEach((label,i)=>ctx.fillText(label,skill.x,skill.y+skill.r+13+i*10,skill.r*2+10));
+    }else if(selectedCharacter==='aria'){
+      drawAriaSkillFrame(skill.x,skill.y,skill.r);
+      ctx.fillStyle='#fff1df';ctx.shadowColor='#061c16';ctx.shadowBlur=3;
+      ctx.fillText(skillName,skill.x,skill.y+skill.r+14,skill.r*2+14);ctx.shadowBlur=0;
     }else ctx.fillText(skillName,skill.x,skill.y+skill.r+12);
   }
   ctx.restore();

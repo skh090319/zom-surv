@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v101-yupiter-uses";
+const CACHE_VERSION = "zombie-survival-v102-aria-royal";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -94,6 +94,8 @@ const CORE_ASSETS = [
   "./js/17-relic-data.js",
   "./js/18-relic-combat.js",
   "./js/19-relic-ui.js",
+  "./js/20-aria-vfx.js",
+  "./js/20-aria-prestige.js",
   "./js/pwa.js"
 ];
 

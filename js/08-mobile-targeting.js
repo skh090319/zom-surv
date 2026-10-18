@@ -50,8 +50,9 @@ function getMobileAimedSkillTargetSpec(key){
     case "echo":
       return key==="e"&&echoKnots.length?target(520,24,{snap:"knot"}):null;
     case "aria":
-      // The cast chooses an existing garden, with no arbitrary distance cap.
-      return (key==="e"||key==="x")&&ariaSoils.length?target(Math.max(310,...ariaSoils.map(s=>Math.hypot(s.x-player.x,s.y-player.y))),24,{snap:key==="e"?"garden":"soil",hideRange:true}):null;
+      if(key==="e")return target(ARIA_E_RANGE,ariaJudgmentRadius(),{clampAriaWorld:true,label:"5초간 개화 · 마지막 심판"});
+      if(key==="r")return target(ARIA_R_RANGE,ARIA_WORLD_TREE_RADIUS,{clampAriaWorld:true,label:"세계수 소환 · 12초간 생명의 영역"});
+      return null;
     case "moira":
       if(key==="q")return target(360,0);
       return key==="e"?target(330,24):null;
@@ -123,7 +124,7 @@ function getMobileSkillTargetSpec(key){
       return status(key==="r"?"매듭 3개 필요":"이동할 매듭 필요");
     case "aria":
       if(key==="q")return effects(ariaSoils.map(s=>circle(s,(transcended.ariaThorn?90:78)+s.stage*12)),"가시 성장 범위");
-      if(key!=="r")return status("정원 필요");
+      if(key==="x")return effects([circle(player,ariaPetalStormRadius())],"꽃잎 폭풍 · 이동속도 +25%");
       break;
     case "moira":
       if(key==="x")return effects(marked(moiraLinks),"고통 전이 대상");
@@ -176,6 +177,7 @@ function getMobileAttackTargetSpec(){
 function getMobileAimPoint(state,spec){
   const distance=Math.max(spec.minRange||0,spec.range*(spec.variable?state.strength:1)),angle=state.angle||0;
   const point={x:player.x+Math.cos(angle)*distance,y:player.y+Math.sin(angle)*distance};
+  if(spec.clampAriaWorld)return ariaClampPoint(point.x,point.y);
   return spec.clampWorld?astraClampPosition(point.x,point.y):point;
 }
 

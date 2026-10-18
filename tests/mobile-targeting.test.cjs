@@ -51,9 +51,22 @@ function game() {
   const load=file=>vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),context);
   load('00-worlds.js');load('03-input.js');
   // Load the real entry-point order, including overrides of the original casts.
-  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','04-null-zero.js','04-suncall.js','04-astra-constellations.js','04-astra.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
+  for(const file of ['04-mare.js','04-mare-polish.js','04-mare-skills-polish.js','04-mare-flow.js','04-mare-whale.js','04-null-zero.js','04-suncall.js','04-astra-constellations.js','04-astra.js','04-aria.js','08-mobile.js','08-mobile-settings.js','08-mobile-targeting.js'])load(file);
   return {context,draws,storage,run:code=>vm.runInContext(code,context),touch(type,id,x,y){context.canvas.dispatchEvent({type,preventDefault(){},changedTouches:[{identifier:id,clientX:x,clientY:y}]});}};
 }
+
+test('Aria ornamental skill circles have breathing room without overwriting edited positions',()=>{
+  const g=game();g.context.selectedCharacter='aria';
+  for(const [width,height] of [[844,390],[568,320],[1024,768]]){
+    g.context.canvas.width=width;g.context.canvas.height=height;
+    const {skills}=g.run('getMobileControlLayout()');
+    for(let i=0;i<skills.length;i++)for(let j=i+1;j<skills.length;j++)assert.ok(Math.hypot(skills[i].x-skills[j].x,skills[i].y-skills[j].y)>(skills[i].r+skills[j].r)*1.23+5);
+  }
+  g.context.canvas.width=844;g.context.canvas.height=390;
+  g.run("mobileControlSettings.skills.e={x:.7,y:.55,scale:1.4}");
+  const edited=g.run("getMobileControlLayout().skills.find(s=>s.key==='e')");
+  assert.equal(edited.x,844*.7);assert.equal(edited.y,390*.55);
+});
 
 test('every HUD element moves and scales independently, round-trips through storage and remains uncapped',()=>{
   const g=game();g.run("openMobileSettings();mobileSettingsPage='controls';mobileSettingsEditGroup='hud'");
@@ -167,7 +180,7 @@ test('marker and released Mare core use the same position, even while moving and
 
 test('buffs, recall and automatic casts show effects without changing aim',()=>{
   const g=game();
-  const noAim={suncall:['x','r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','r'],moira:['x','r'],mare:['x']};
+  const noAim={suncall:['x','r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','x'],moira:['x','r'],mare:['x']};
   for(const [character,keys] of Object.entries(noAim))for(const key of keys){
     g.context.selectedCharacter=character;
     assert.equal(g.run(`getMobileSkillTargetSpec('${key}').aim`),false,character+' '+key);

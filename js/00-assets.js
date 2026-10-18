@@ -4,6 +4,7 @@ const characterThumbnailImages = new Map();
 let preparedImageScreen = "";
 
 function gameImageGroup(source) {
+  if(source.includes('/aria-v2/'))return 'aria';
   if(source.includes('/worlds-v1/'))return 'stage';
   const file = source.split("/").pop();
   if (source.includes("/bosses/")) return "boss";
@@ -36,7 +37,7 @@ function getCharacterThumbnail(id) {
   if (!characterThumbnailImages.has(fileId)) {
     const redesigned = ["suncall", "luminous", "yupiter", "ren", "night-lord", "zero", "paladin", "arc", "null-zero", "astra"].includes(fileId);
     const swappedPortraitRevision = fileId === "zero" || fileId === "paladin" ? "?v=20260928-swap1" : "";
-    const source = fileId==='mare'?'assets/character-thumbs-v1/mare-mature-v1.webp':redesigned ? `assets/characters-original-v2/${fileId}-thumb.webp${swappedPortraitRevision}` : `assets/character-thumbs-v1/${fileId}.webp`;
+    const source = fileId==='aria'?'assets/aria-v2/thumb.webp':fileId==='mare'?'assets/character-thumbs-v1/mare-mature-v1.webp':redesigned ? `assets/characters-original-v2/${fileId}-thumb.webp${swappedPortraitRevision}` : `assets/character-thumbs-v1/${fileId}.webp`;
     characterThumbnailImages.set(fileId, setGameImageSource(new Image(), source));
   }
   return ensureGameImage(characterThumbnailImages.get(fileId));

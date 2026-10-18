@@ -243,7 +243,7 @@ function drawPlayer() {
     if (selectedCharacter === "mare" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "nullZero" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
     if (selectedCharacter === "astra" && Math.cos(mouseAngle) > 0) ctx.scale(-1, 1);
-    if(selectedCharacter==='oblivion'){const h=size*1.24,w=h*activeSprite.naturalWidth/activeSprite.naturalHeight;ctx.drawImage(activeSprite,-w/2,-h*.65,w,h);}else ctx.drawImage(activeSprite, -size / 2, -size / 2 - 18, size, size);
+    if(selectedCharacter==='oblivion'||selectedCharacter==='aria'){const h=size*1.24,w=h*activeSprite.naturalWidth/activeSprite.naturalHeight;ctx.drawImage(activeSprite,-w/2,-h*.65,w,h);}else ctx.drawImage(activeSprite, -size / 2, -size / 2 - 18, size, size);
     ctx.restore();
   } else {
     ctx.fillStyle = "#4da3ff";

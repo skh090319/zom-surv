@@ -153,15 +153,7 @@ function drawYupiterInterface() {
   ctx.fillText(`이동속도: ${displayedSpeed.toFixed(1)}`, statsX, cy + 15);
 
   const weaponSprites = [crescentBladeSprite, severingBladeSprite, flameCannonSprite];
-  drawYupiterHudIcon(weaponX, cy, radius, weaponSprites[player.yupiterWeapon], true);
-  ctx.save();
-  ctx.fillStyle = "rgba(3,10,18,.8)";
-  ctx.fillRect(weaponX - radius, cy - 15, radius * 2, 30);
-  ctx.fillStyle = "#ffffff";
-  ctx.textAlign = "center";
-  ctx.font = "bold 22px Arial";
-  ctx.fillText(String(player.yupiterAttacksRemaining ?? 50), weaponX, cy + 1);
-  ctx.restore();
+  drawYupiterAttackMeter(weaponX, cy, radius, weaponSprites[player.yupiterWeapon], player.yupiterAttacksRemaining ?? 50);
   drawSkillHudLabel(weaponX, panelY + 103, "남은 공격 수", "", "#ffffff");
 
   const skillCooldown = player.yupiterSkillCooldowns[player.yupiterWeapon];
@@ -472,6 +464,78 @@ function roundedRectPath(x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, radius);
   ctx.arcTo(x, y, x + w, y, radius);
   ctx.closePath();
+}
+
+function drawYupiterAttackMeter(x, y, radius, image, remaining) {
+  const count = Math.max(0, Math.min(50, Math.ceil(remaining)));
+  const ratio = count / 50;
+  const low = count <= 10;
+  const accent = low ? "#ffd58a" : "#9bf7ff";
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.globalAlpha = 1;
+  ctx.lineCap = "round";
+
+  // A metal socket and a separate charge ring keep the count readable at touch size.
+  const metal = ctx.createLinearGradient(-radius, -radius, radius, radius);
+  metal.addColorStop(0, "#e8d7ae");
+  metal.addColorStop(.26, "#70858c");
+  metal.addColorStop(.52, "#172d3e");
+  metal.addColorStop(.76, "#aa9871");
+  metal.addColorStop(1, "#dfcc9e");
+  ctx.fillStyle = metal;
+  ctx.shadowColor = "rgba(0,0,0,.75)";
+  ctx.shadowBlur = radius * .2;
+  ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  const face = ctx.createRadialGradient(-radius * .25, -radius * .4, 0, 0, 0, radius);
+  face.addColorStop(0, "#214354");
+  face.addColorStop(.55, "#0c2333");
+  face.addColorStop(1, "#050c18");
+  ctx.fillStyle = face;
+  ctx.beginPath(); ctx.arc(0, 0, radius * .94, 0, Math.PI * 2); ctx.fill();
+
+  ctx.strokeStyle = "rgba(119,167,184,.24)";
+  ctx.lineWidth = Math.max(2.5, radius * .09);
+  ctx.beginPath(); ctx.arc(0, 0, radius * .84, 0, Math.PI * 2); ctx.stroke();
+  if (count > 0) {
+    ctx.strokeStyle = accent;
+    ctx.shadowColor = low ? "#f7a940" : "#4cd9ef";
+    ctx.shadowBlur = radius * .2;
+    ctx.beginPath(); ctx.arc(0, 0, radius * .84, -Math.PI / 2, -Math.PI / 2 + ratio * Math.PI * 2); ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+  ctx.lineWidth = Math.max(.8, radius * .022);
+  for (let i = 0; i < 10; i++) {
+    const angle = i * Math.PI / 5 - Math.PI / 2;
+    const c = Math.cos(angle), s = Math.sin(angle);
+    ctx.strokeStyle = i * 5 < count ? "#e4d4af" : "#415361";
+    ctx.beginPath(); ctx.moveTo(c * radius * .92, s * radius * .92); ctx.lineTo(c * radius * .98, s * radius * .98); ctx.stroke();
+  }
+  ctx.strokeStyle = "rgba(167,221,228,.19)";
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(0, 0, radius * .73, 0, Math.PI * 2); ctx.stroke();
+
+  if (image && image.complete && image.naturalWidth > 0) {
+    const side = radius * .62;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(0, -radius * .42, radius * .29, 0, Math.PI * 2); ctx.clip();
+    ctx.globalAlpha = .86;
+    ctx.drawImage(image, -side / 2, -radius * .42 - side / 2, side, side);
+    ctx.restore();
+  }
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#f4fcff";
+  ctx.shadowColor = "#020812";
+  ctx.shadowBlur = 5;
+  ctx.font = `900 ${Math.max(16, radius * .68)}px Arial`;
+  ctx.fillText(String(count), 0, radius * .19);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = low ? "#f2c984" : "#91b4c3";
+  ctx.font = `bold ${Math.max(7, radius * .22)}px Arial`;
+  ctx.fillText("/ 50", 0, radius * .58);
+  ctx.restore();
 }
 
 function drawYupiterHudIcon(x, y, radius, image, ready, fillCrop = false) {
