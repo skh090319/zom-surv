@@ -1,6 +1,6 @@
 // Stage identity is separate from its current combat/reward balance profile.
 const GAME_WORLDS = Object.freeze([
-  {id:1,name:'몰락한 시가지',color:'#d6aa73',background:'background.webp',story:['모든 것은 이 거리에서 시작됐다.','감염의 흔적을 따라 격리선으로 향한다.']},
+  {id:1,name:'몰락한 거리',color:'#d6aa73',background:'background.webp',story:['모든 것은 이 거리에서 시작됐다.','감염의 흔적을 따라 격리선으로 향한다.']},
   {id:2,name:'봉쇄된 격리구역',color:'#71cbb3',background:'assets/worlds-v1/world-2-quarantine.webp',story:['도시 밖 격리선은 이미 무너졌다.','남겨진 수송로가 발원지로 이어진다.']},
   {id:3,name:'심연의 발원지',color:'#b59aef',background:'assets/worlds-v1/world-3-origin.webp',story:['수송로 끝 지하 시설에서','재앙의 심장을 마주한다.']}
 ]);

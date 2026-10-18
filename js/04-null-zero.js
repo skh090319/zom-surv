@@ -25,7 +25,7 @@ function infectNullZero(zombie, amount = 1, sourceX = player.x, sourceY = player
   zombie.nullZeroInfection = Math.min(capacity, (zombie.nullZeroInfection || 0) + amount);
   zombie.nullZeroInfectionTime = 390;
   nullZeroEffects.push({ type: "infect", x: zombie.x, y: zombie.y, life: 24, maxLife: 24, stacks: zombie.nullZeroInfection, sourceX, sourceY });
-  if (zombie.nullZeroInfection >= capacity) detonateNullZeroInfection(zombie, capacity);
+  if (zombie.nullZeroInfection >= NULL_ZERO_MAX_STACKS) detonateNullZeroInfection(zombie, capacity);
 }
 
 function detonateNullZeroInfection(zombie, capacity = NULL_ZERO_MAX_STACKS) {
@@ -42,7 +42,7 @@ function detonateNullZeroInfection(zombie, capacity = NULL_ZERO_MAX_STACKS) {
   const spread = transcended.nullZeroPacket ? 3 : 2;
   for (const other of [...zombies]) {
     if (other === zombie || other.hp <= 0 || Math.hypot(other.x - zombie.x, other.y - zombie.y) > radius + other.r) continue;
-    other.nullZeroInfection = Math.min(capacity - 1, (other.nullZeroInfection || 0) + spread);
+    other.nullZeroInfection = Math.min(NULL_ZERO_MAX_STACKS - 1, (other.nullZeroInfection || 0) + spread);
     other.nullZeroInfectionTime = 390;
     nullZeroEffects.push({ type: "link", x: zombie.x, y: zombie.y, x2: other.x, y2: other.y, life: 18, maxLife: 18 });
   }
@@ -59,6 +59,7 @@ function spawnNullZeroPacket(angle, damageScale = 1, infection = 1, offset = 0) 
     angle: a,
     damage: scaledDamage(player.damage * damageScale),
     infection,
+    piercing: player.nullZeroForkTime > 0,
     relicReplica: offset !== 0,
     life: 56,
     maxLife: 56,
@@ -119,7 +120,7 @@ function activateNullZeroR() {
   let order = 0;
   for (const zombie of [...zombies].sort((a, b) => Math.hypot(a.x - player.x, a.y - player.y) - Math.hypot(b.x - player.x, b.y - player.y))) {
     if (zombie.hp <= 0 || Math.hypot(zombie.x - player.x, zombie.y - player.y) > radius + zombie.r) continue;
-    zombie.nullZeroInfection = NULL_ZERO_MAX_STACKS + (player.nullZeroPacketLevel || 0);
+    zombie.nullZeroInfection = NULL_ZERO_MAX_STACKS;
     zombie.nullZeroInfectionTime = 390;
     const bossDamage = zombie.isRaidBoss ? enemyMaxHpDamage(zombie, .055 + (player.nullZeroForkLevel || 0) * .008) : 0;
     nullZeroEffects.push({ type: "kernelTarget", x: zombie.x, y: zombie.y, delay: order * 3, life: 46 + order * 3, maxLife: 46 + order * 3 });
@@ -140,12 +141,12 @@ function updateNullZero() {
     packet.x += packet.vx; packet.y += packet.vy; packet.life--;
     let removed = packet.life <= 0;
     if (!removed) for (const zombie of [...zombies]) {
-      if (packet.hitIds.includes(zombie.id) || Math.hypot(packet.x - zombie.x, packet.y - zombie.y) > zombie.r + 18) continue;
+      if (zombie.hp <= 0 || packet.hitIds.includes(zombie.id) || Math.hypot(packet.x - zombie.x, packet.y - zombie.y) > zombie.r + 18) continue;
       packet.hitIds.push(zombie.id);
       infectNullZero(zombie, packet.infection, packet.x, packet.y);
       nullZeroDamage(zombie, packet.damage, packet, {codeReplica:!!packet.relicReplica});
       nullZeroEffects.push({ type: "packetHit", x: packet.x, y: packet.y, life: 22, maxLife: 22 });
-      removed = true; break;
+      if (!packet.piercing) { removed = true; break; }
     }
     if (removed) nullZeroProjectiles.splice(i, 1);
   }
