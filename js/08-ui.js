@@ -90,7 +90,7 @@ function drawHUD() {
     const cooldown = player.yupiterSkillCooldowns[player.yupiterWeapon];
     const cooldownText = cooldown > 0 ? `${(cooldown / 60).toFixed(1)}초` : "준비됨";
     ctx.fillStyle = cooldown > 0 ? "#c7c7d8" : "#7dffb2";
-    ctx.fillText(`Q: 무기 변경 · E: 고유 기술 (${cooldownText})`, x, y);
+    ctx.fillText(`남은 공격: ${player.yupiterAttacksRemaining ?? 50} · E: 고유 기술 (${cooldownText})`, x, y);
     ctx.fillStyle = "white";
     y += gap;
   }
