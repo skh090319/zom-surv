@@ -220,7 +220,7 @@ canvas.addEventListener("touchstart",event=>{
     if(pointInRect(p.x,p.y,pauseButtonRect)){dispatchMobileCanvasClick(p);continue;}
     // Also allow a second finger to tap X while the skill finger stays held.
     if(mobileSkillOverCancel(p)){cancelMobileSkillAim();continue;}
-    const skill=layout.skills.find(button=>pointInCircle(p,{...button,r:button.r*1.48}));if(skill&&mobileSkillAim===null){mobileSkillAim={touchId:touch.identifier,key:skill.key,startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};updateMobileAttackAim(true);continue;}
+    const skill=layout.skills.find(button=>!(selectedCharacter==="yupiter"&&button.key==="q")&&pointInCircle(p,{...button,r:button.r*1.48}));if(skill&&mobileSkillAim===null){mobileSkillAim={touchId:touch.identifier,key:skill.key,startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};updateMobileAttackAim(true);continue;}
     if(mobileAttackTouchId===null&&pointInCircle(p,{...layout.attack,r:layout.attack.r*1.42})){mobileAttackTouchId=touch.identifier;mobileAttackAim={startX:p.x,startY:p.y,currentX:p.x,currentY:p.y,dragged:false};mouse.down=true;updateMobileAttackAim();continue;}
     const nearJoystick=pointInCircle(p,{...layout.joystick,r:layout.joystick.r*2.25})||(p.x<canvas.width*.38&&p.y>canvas.height*.42);
     if(mobileJoystickTouchId===null&&nearJoystick){const r=layout.joystick.r,safe=14;mobileJoystickOrigin={x:Math.max(safe+r,Math.min(canvas.width*.42-r,p.x)),y:Math.max(canvas.height*.42+r,Math.min(canvas.height-safe-r,p.y))};mobileJoystickTouchId=touch.identifier;updateMobileJoystick(p.x,p.y);continue;}
@@ -313,7 +313,7 @@ function getMobileSkillName(key){
     aria:{q:"가시 성장",e:"만개",x:"정원 이동",r:"영원한 봄"},moira:{q:"조종",e:"대리 인형",x:"고통 전이",r:"꼭두각시 극장"},
     mare:{q:player.mareUltimateTime>0?'고래 돌진':"밀물",e:player.mareUltimateTime>0?'심해 흡입':"소용돌이 핵",x:"수압",r:"세계를 삼킨 바다"},nullZero:{q:"데이터 절단",e:"격리 구역",x:"코드 복제",r:"커널 패닉"},astra:{q:astraQFlights().length?"공전성 회수":"성궤 투사",e:"중력 붕괴",x:"궤도 가속",r:"만유인력 역전"}
   };
-  if(selectedCharacter==="yupiter"){if(key==="q")return"무기 전환";const weapon=["반월검","절단검","화염포"][player.yupiterWeapon]||"무기";return key==="e"?`${weapon} 강화`:`${weapon} 궁극기`;}
+  if(selectedCharacter==="yupiter"){if(key==="q")return"남은 공격 수";const weapon=["반월검","절단검","화염포"][player.yupiterWeapon]||"무기";return key==="e"?`${weapon} 강화`:`${weapon} 궁극기`;}
   return names[selectedCharacter]?.[key]||"스킬";
 }
 
@@ -480,6 +480,14 @@ function drawMobileControls(){
     drawAstraControlIcon(attack.x,attack.y,attack.r,'attack',attackGlow);
   }
   for(const skill of skills){
+    if(selectedCharacter==="yupiter"&&skill.key==="q"){
+      drawMobileIcon(getMobileSkillIcon("q"),skill.x,skill.y,skill.r);
+      ctx.fillStyle="rgba(3,10,18,.8)";ctx.fillRect(skill.x-skill.r,skill.y-12,skill.r*2,24);
+      ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 19px Arial";
+      ctx.fillText(String(player.yupiterAttacksRemaining??50),skill.x,skill.y);
+      ctx.font="bold 10px Arial";ctx.fillText("남은 공격 수",skill.x,skill.y+skill.r+12);
+      continue;
+    }
     const skillName=getMobileSkillName(skill.key);
     ctx.fillStyle="rgba(9,12,24,.88)";ctx.strokeStyle="#c8d5ed";ctx.lineWidth=2;ctx.shadowColor="#7b8fff";ctx.shadowBlur=10;
     ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;

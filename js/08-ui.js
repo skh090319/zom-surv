@@ -154,7 +154,15 @@ function drawYupiterInterface() {
 
   const weaponSprites = [crescentBladeSprite, severingBladeSprite, flameCannonSprite];
   drawYupiterHudIcon(weaponX, cy, radius, weaponSprites[player.yupiterWeapon], true);
-  drawSkillHudLabel(weaponX, panelY + 103, YUPITER_WEAPON_NAMES[player.yupiterWeapon], "Q", "#ffffff");
+  ctx.save();
+  ctx.fillStyle = "rgba(3,10,18,.8)";
+  ctx.fillRect(weaponX - radius, cy - 15, radius * 2, 30);
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.font = "bold 22px Arial";
+  ctx.fillText(String(player.yupiterAttacksRemaining ?? 50), weaponX, cy + 1);
+  ctx.restore();
+  drawSkillHudLabel(weaponX, panelY + 103, "남은 공격 수", "", "#ffffff");
 
   const skillCooldown = player.yupiterSkillCooldowns[player.yupiterWeapon];
   drawYupiterHudIcon(skillX, cy, radius, yupiterESkillIcons[player.yupiterWeapon], skillCooldown <= 0, true);
@@ -983,7 +991,7 @@ function drawHomeScreen() {
 
 const characterSkillGuide = {
   suncall:{name:'썬콜',color:'#48d8ff',passive:'냉기 3중첩으로 일반 적을 빙결시킵니다. 빙결된 적과 얼음 결정은 번개의 연결점이 됩니다. 보스와 이동 방해 면역 소환수는 빙결 대신 추가 피해를 받습니다. 탄창과 재장전이 없습니다.',skills:[['기본 공격 · 서리 파편','얼음 파편으로 냉기를 1중첩 쌓습니다.'],['Q · 서리창','넓은 관통 얼음 창으로 냉기를 3중첩 쌓고, 중간 지점과 끝에 12초 동안 얼음 결정을 남깁니다. 중간 결정이 원거리 회로를 이어줍니다. 기본 최대 6개.'],['E · 뇌전 회로','주변 결정과 냉기가 가득 찬 적을 번개로 연결해 넓은 경로와 연결점 주변을 타격합니다. 연결점이 없으면 조준 방향으로 긴 번개를 쏩니다.'],['X · 결정 회수','주변 결정을 넓게 폭파해 피해를 주고, 회수한 결정 수에 비례하는 보호막을 얻습니다.'],['R · 백야의 뇌폭','10레벨부터 사용 가능. 주변에 얼음 결정 6개를 펼치고, 캐릭터를 천천히 따라오는 넓은 폭풍이 6초간 눈보라와 회로 낙뢰로 적을 공격합니다. 마지막에 결정을 폭발시키며 거대한 냉기 충격파를 방출합니다.']]},
-  yupiter:{name:"유피테르",color:"#64ef91",passive:"Q로 반월검·절단검·화염포를 전환하며 각 무기마다 E와 R이 달라집니다.",skills:[["Q 무기 전환","반월검·절단검·화염포를 교체하며 각 무기의 기본 공격을 확인합니다."],["E 반월검 증식","반월검을 4개로 늘려 한 번의 공격으로 더 큰 피해를 줍니다."],["E 절단검 가속","공격속도를 폭발적으로 높여 연속 참격을 가합니다."],["E 화염포 폭파","화염포 표식이 묻은 적들을 한꺼번에 폭발시킵니다."],["R 반월검 궁극기","10레벨부터 10개의 반월검이 점점 넓게 공전하며 적을 공격합니다."],["R 절단검 궁극기","10레벨부터 이동속도·공격 범위가 증가하고 낮은 체력의 적을 처형합니다."],["R 화염포 궁극기","10레벨부터 에너지 구체 적중 지점에서 모든 적에게 화염탄을 퍼뜨립니다."]]},
+  yupiter:{name:"유피테르",color:"#64ef91",passive:"각 무기는 공격 50회 후 반월검·절단검·화염포 순서로 자동 전환됩니다. E는 남은 횟수에서 10회를 소모하며 10회 미만이어도 사용할 수 있습니다. R은 횟수를 소모하지 않습니다.",skills:[["E 반월검 증식","반월검을 4개로 늘려 한 번의 공격으로 더 큰 피해를 줍니다."],["E 절단검 가속","공격속도를 폭발적으로 높여 연속 참격을 가합니다."],["E 화염포 폭파","화염포 표식이 묻은 적들을 한꺼번에 폭발시킵니다."],["R 반월검 궁극기","10레벨부터 10개의 반월검이 점점 넓게 공전하며 적을 공격합니다."],["R 절단검 궁극기","10레벨부터 이동속도·공격 범위가 증가하고 낮은 체력의 적을 처형합니다."],["R 화염포 궁극기","10레벨부터 에너지 구체 적중 지점에서 모든 적에게 화염탄을 퍼뜨립니다."]]},
   ren:{name:"렌",color:"#ff496f",passive:"그림자 조각을 흡수해 공격력을 높이고 분신을 강화합니다.",skills:[["Q 분신 배치","분신을 커서 방향의 제한 거리까지 내보냅니다."],["X 그림자 이동","가장 최근 분신 위치로 순간이동합니다."],["E 분신 습격","분신이 적을 찾아 강하게 습격합니다."],["R 그림자 지대","10레벨부터 거대한 마법진을 펼쳐 적을 둔화하고 지속 피해를 줍니다."]]},
   nightLord:{name:"나이트 로드",color:"#a855f7",passive:"잃은 체력에 비례해 공격력이 증가하며 처형과 흡혈로 역전합니다.",skills:[["Q 그림자 추격","적에게 파고들어 베고 잠시 공격속도가 증가합니다."],["E 광란","현재 체력을 대가로 연속 참격을 사용합니다."],["X 처형","기준 이하 체력의 적을 마무리합니다."],["R 불사의 밤","10레벨부터 체력이 1 아래로 내려가지 않는 강화 상태가 됩니다."]]},
   zero:{name:"제로",color:"#ffd85a",passive:"평타 적중으로 Q·E·X의 쿨타임을 줄이며 후반으로 갈수록 검술 피해가 증가합니다.",skills:[["Q 참격","짧게 돌진해 전방의 적을 찌릅니다."],["E 급소","평타를 강화하고 다음 강화 평타를 적중할 때까지 보존합니다."],["X 심판","원형 지역에 다수의 칼을 쏟아붓습니다."],["R 검의 왈츠","10레벨부터 가까운 적부터 연속으로 빠르게 베어냅니다."]]},
@@ -1005,7 +1013,7 @@ function getCharacterPreviewSprite(id, thumbnail = false){if(thumbnail)return ge
 
 const characterSkillVideoKeys = {
   suncall:[], // Old gun/reload videos no longer describe Frost Circuit.
-  yupiter:["q","e-crescent","e-severing","e-flame","r-crescent","r-severing","r-flame"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
+yupiter:["e-crescent","e-severing","e-flame","r-crescent","r-severing","r-flame"], ren:["q","x","e","r"], nightLord:["q","e","x","r"],
   zero:["q","e","x","r"], paladin:["q","e","x","r"], arc:["q","e","x","r"],
   terra:["q","e","x","r"], void:["q","e","x","r"], carmilla:["attack","q"],vargas:["attack","q","e","x","r"],echo:["attack","close","phase","r"],aria:["attack","q","e","x","r"],moira:["attack","q","e","x","r"],mare:["attack","q","e","x","r"]
 };

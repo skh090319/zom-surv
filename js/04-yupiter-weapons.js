@@ -6,16 +6,22 @@ const YUPITER_ULTIMATE_COOLDOWN = 3600;
 const YUPITER_ULTIMATE_DURATION = 600;
 
 function switchYupiterWeapon() {
-  const attackHeld = mouse.down;
   player.yupiterWeapon = (player.yupiterWeapon + 1) % 3;
-  player.fireCooldown = 0;
-  if (attackHeld) attackWithYupiterWeapon();
+  player.yupiterAttacksRemaining = 50;
+}
+
+function consumeYupiterAttacks(amount) {
+  player.yupiterAttacksRemaining = Math.max(0, (player.yupiterAttacksRemaining ?? 50) - amount);
+  if (player.yupiterAttacksRemaining === 0) switchYupiterWeapon();
 }
 
 function attackWithYupiterWeapon() {
+  if (player.fireCooldown > 0) return;
   if (player.yupiterWeapon === 0) throwCrescentBlade();
   else if (player.yupiterWeapon === 1) slashWithSeveringBlade();
   else fireFlameCannon();
+  // A returning crescent can block a new attack; only a real attack costs a use.
+  if (player.fireCooldown > 0) consumeYupiterAttacks(1);
 }
 
 function activateYupiterSkill() {
@@ -31,6 +37,7 @@ function activateYupiterSkill() {
   }
 
   player.yupiterSkillCooldowns[weapon] = YUPITER_SKILL_COOLDOWNS[weapon];
+  consumeYupiterAttacks(10);
 }
 
 function activateYupiterUltimate() {

@@ -396,6 +396,7 @@ const player = {
   timeRewindTimer: 1200,
   timeRewindEffectTime: 0,
   yupiterWeapon: 0,
+  yupiterAttacksRemaining: 50,
   yupiterSkillCooldowns: [0, 0, 0],
   yupiterUltimateCooldown: 0,
   crescentUltimateTime: 0,

@@ -180,6 +180,7 @@ function restart() {
   player.timeRewindTimer = 1200;
   player.timeRewindEffectTime = 0;
   player.yupiterWeapon = 0;
+  player.yupiterAttacksRemaining = 50;
   player.yupiterSkillCooldowns = [0, 0, 0];
   player.yupiterUltimateCooldown = 0;
   player.crescentUltimateTime = 0;

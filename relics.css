@@ -75,7 +75,7 @@
 .relic-item .badge:empty{display:none}
 /* Generated transparent metal hardware, nine-sliced to preserve corner detail. */
 #relic-screen .relic-item::after,#relic-screen .relic-feed-choice::after{
- content:"";position:absolute;inset:-1px;pointer-events:none;z-index:2;
+ content:"";position:absolute;inset:1px;box-sizing:border-box;pointer-events:none;z-index:2;border-radius:inherit;
  border:13px solid transparent;
  border-image:url("assets/relic-card-frame-v1.webp") 90 / 15px / 0 stretch;
 }

@@ -31,7 +31,6 @@ addEventListener("keydown", e => {
     if(selectedCharacter==='suncall'){
       if(key==='q')activateSuncallQ();if(key==='e')activateSuncallE();if(key==='x')activateSuncallX();if(key==='r')activateSuncallR();
     }
-    if (key === "q" && selectedCharacter === "yupiter") switchYupiterWeapon();
     if (key === "e" && selectedCharacter === "yupiter") activateYupiterSkill();
     if (key === "r" && selectedCharacter === "yupiter") activateYupiterUltimate();
     if (key === "q" && selectedCharacter === "ren") deployRenShadow();
