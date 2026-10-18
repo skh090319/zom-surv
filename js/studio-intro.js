@@ -24,20 +24,23 @@
       prompt("영상을 불러오는 중입니다. 연결을 확인하고 다시 재생해 주세요.");
     }, 12000);
   }
-  function play() {
+  function play(silent = false) {
     if (done || document.hidden) return;
     const token = ++attempt;
-    video.muted = false;
-    video.defaultMuted = false;
+    video.muted = silent;
+    video.defaultMuted = silent;
     video.volume = 1;
     start.hidden = true;
     status.textContent = started ? "" : "오프닝을 불러오는 중…";
     watchLoading();
     function failed(error) {
       if (token !== attempt || done || document.hidden) return;
-      prompt(error && error.name === "NotAllowedError"
-        ? "소리와 함께 오프닝을 재생하려면 터치해 주세요."
-        : "영상 재생을 시작하지 못했습니다. 다시 시도해 주세요.", "터치하여 재생");
+      // Audible autoplay may be denied. Start immediately without a gesture.
+      if (!silent && error && error.name === "NotAllowedError") {
+        play(true);
+        return;
+      }
+      prompt("영상 재생을 시작하지 못했습니다. 다시 시도해 주세요.");
     }
     try {
       const result = video.play();

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v98-relic-frame-intro";
+const CACHE_VERSION = "zombie-survival-v99-intro-autoplay";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

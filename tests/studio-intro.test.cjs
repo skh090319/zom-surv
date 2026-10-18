@@ -34,7 +34,7 @@ function intro({ storage = new Map(), now = 100000, playError, missing = false, 
   overlay.contains = node => [video, sound, skip, overlay].includes(node);
   video.attributes.set('src', 'assets/intro/semicolon-gloss-v1.mp4');
   Object.assign(video, { duration: 6, currentTime: 0, paused: true, plays: 0, pauses: 0, loads: 0,
-    play() { this.plays++; this.paused = false; return playError ? Promise.reject(playError) : Promise.resolve(); },
+    play() { this.plays++; this.paused = false; return playError && !this.muted ? Promise.reject(playError) : Promise.resolve(); },
     pause() { this.pauses++; this.paused = true; },
     load() { this.loads++; }
   });
@@ -87,8 +87,10 @@ test('autoplay rejection, errors and loading watchdog never skip the opening', a
   const i = intro({playError: Object.assign(new Error('blocked'), {name: 'NotAllowedError'})});
   await Promise.resolve();
   assert.equal(i.api.active, true);
-  assert.equal(i.sound.hidden, false);
-  assert.match(i.skip.textContent, /소리/);
+  assert.equal(i.sound.hidden, true);
+  assert.equal(i.video.plays, 2);
+  assert.equal(i.video.muted, true);
+  assert.doesNotMatch(i.skip.textContent, /터치/);
   i.video.emit('error');
   assert.equal(i.api.active, true);
   const stalled = intro();
