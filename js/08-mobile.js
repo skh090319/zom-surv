@@ -311,7 +311,7 @@ function getMobileSkillName(key){
     arc:{q:"일륜",e:"홍염 파동",x:"태양 낙하",r:"초신성"},terra:{q:"단층 붕괴",e:"암벽 융기",x:"지각 압축",r:"대륙 분쇄"},
     void:{q:"심층 포식",e:"대지 방출",x:"지반 붕괴",r:"제어 불능"},carmilla:{q:"피의 회수"},
     vargas:{q:"생명 포식",e:"혈육 갑주",x:"거신 강타",r:"불멸의 형상"},echo:{q:"절단",e:"위상 전환",r:"세계선 붕괴"},
-    aria:{q:"가시 성장",e:"개화의 심판",x:"꽃잎 폭풍",r:"세계수 강림"},moira:{q:"조종",e:"대리 인형",x:"고통 전이",r:"꼭두각시 극장"},
+    aria:{q:"가시의 칙령",e:"기생화",x:"생명의 수확",r:"에덴의 여왕"},moira:{q:"조종",e:"대리 인형",x:"고통 전이",r:"꼭두각시 극장"},
     mare:{q:player.mareUltimateTime>0?'고래 돌진':"밀물",e:player.mareUltimateTime>0?'심해 흡입':"소용돌이 핵",x:"수압",r:"세계를 삼킨 바다"},nullZero:{q:"데이터 절단",e:"격리 구역",x:"코드 복제",r:"커널 패닉"},astra:{q:astraQFlights().length?"공전성 회수":"성궤 투사",e:"중력 붕괴",x:"궤도 가속",r:"만유인력 역전"}
   };
   if(selectedCharacter==="yupiter"){if(key==="q")return"남은 공격 수";const weapon=["반월검","절단검","화염포"][player.yupiterWeapon]||"무기";return key==="e"?`${weapon} 강화`:`${weapon} 궁극기`;}

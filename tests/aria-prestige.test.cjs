@@ -11,9 +11,10 @@ function scene({width=1280,height=760,mobile=false,loaded=true}={}){
   }});}
   class Surface{constructor(w,h){this.width=w;this.height=h;this.ctx=context({},[],[]);surfaces.push(this);}getContext(){return this.ctx;}}
   class Image{constructor(){this.complete=loaded;this.naturalWidth=loaded?512:0;this.naturalHeight=loaded?512:0;images.push(this);}}
-  const c={Math,Image,OffscreenCanvas:Surface,canvas:{width,height},ctx:context(state,calls,stack),selectedCharacter:'aria',screenMode:'game',wave:2,player:{hp:75,maxHp:100,exp:10,expNeed:50,level:10,damage:20,kills:8,ariaUltimateTime:0,ariaQCooldown:15,ariaECooldown:30,ariaXCooldown:45,ariaRCooldown:90},ariaSoils:[{stage:1},{stage:2}],ariaJudgments:[],ariaPetalStorm:null,ariaWorldTree:null,ariaGardenCount:()=>1,ARIA_Q_CD:270,ARIA_E_CD:420,ARIA_X_CD:540,ARIA_R_CD:1500,ariaSkillIconAtlas:new Image(),characterSkillGuide:{},characterSkillVideoKeys:{},mobileControlSettings:{hud:{}},
+  const c={Math,Image,OffscreenCanvas:Surface,canvas:{width,height},ctx:context(state,calls,stack),selectedCharacter:'aria',screenMode:'game',wave:2,player:{hp:75,maxHp:100,exp:10,expNeed:50,level:10,damage:20,kills:8,ariaUltimateTime:0,ariaQCooldown:15,ariaECooldown:30,ariaXCooldown:45,ariaRCooldown:90},ariaGrowth:{essence:75,stage:0},ariaGrowthView:{essence:75,stage:0,name:'씨앗',next:100,ratio:.75,damageBonus:.1125},ariaWorldTree:null,ARIA_Q_CD:270,ARIA_E_CD:420,ARIA_X_CD:540,ARIA_R_CD:1500,ariaSkillIconAtlas:new Image(),characterSkillGuide:{},characterSkillVideoKeys:{},mobileControlSettings:{hud:{}},
     addEventListener(){},setGameImageSource(im,source){im.assetSource=source;return im;},ensureGameImage(im){if(im)im.assetRequested=true;return im;},isMobileTouchDevice:()=>mobile,drawMobileIcon(...args){calls.push({method:'icon',args});},drawCooldownCover(...args){calls.push({method:'cooldown',args});}};
   for(const name of ['updateAria','drawAriaInterface','drawHealthBar','drawExpBar','drawMobileCharacterResource','drawHUD','drawCharacterGameplayPreview'])c[name]=(...args)=>calls.push({method:'base:'+name,args});
+  c.getAriaGrowthProgress=()=>c.ariaGrowthView;
   c.getMobileHudBounds=id=>({x:640,y:30,w:520,h:32,id});
   vm.createContext(c);vm.runInContext(fs.readFileSync(path.join(root,'js/08-mobile-settings.js'),'utf8'),c);vm.runInContext(fs.readFileSync(path.join(root,'js/20-aria-prestige.js'),'utf8'),c);
   return{c,calls,images,surfaces,state,stack,run:s=>vm.runInContext(s,c)};
@@ -55,9 +56,9 @@ test('sap fills clamp to health, cache one texture and restore all canvas state'
   assert.equal(g.surfaces.length,1);assert.deepEqual(g.state,before);assert.equal(g.stack.length,0);g.run('updateAria()');assert.equal(g.run('ariaHudFrame'),1);
 });
 test('unloaded assets have finite fallback controls and never modify combat state',()=>{
-  const g=scene({loaded:false}),before=g.run('JSON.stringify({player,ariaSoils,ariaJudgments,ariaPetalStorm,ariaWorldTree})'),canvasBefore={...g.state};
+  const g=scene({loaded:false}),before=g.run('JSON.stringify({player,ariaGrowth,ariaWorldTree})'),canvasBefore={...g.state};
   g.run('drawAriaControlIcon(70,310,45,"joystick",true,900,-500);drawAriaControlIcon(770,310,34,"attack",true);drawAriaInterface();drawHealthBar();drawExpBar();drawAriaMobileResource()');
-  assert.equal(g.run('JSON.stringify({player,ariaSoils,ariaJudgments,ariaPetalStorm,ariaWorldTree})'),before);assert.equal(g.stack.length,0);assert.deepEqual(g.state,canvasBefore);assert.ok(g.calls.some(c=>c.method==='fill'));
+  assert.equal(g.run('JSON.stringify({player,ariaGrowth,ariaWorldTree})'),before);assert.equal(g.stack.length,0);assert.deepEqual(g.state,canvasBefore);assert.ok(g.calls.some(c=>c.method==='fill'));
 });
 test('statistics text stays inside the transparent center between the actual filigree rails',()=>{
   for(const height of [760,320]){
@@ -68,7 +69,29 @@ test('statistics text stays inside the transparent center between the actual fil
   }
 });
 test('guide uses new character and skill art for all five entries without obsolete recordings',()=>{
-  const g=scene();assert.deepEqual(Array.from(g.run('characterSkillVideoKeys.aria')),[]);assert.match(g.run('characterSkillGuide.aria.skills[4][0]'),/세계수/);
+  const g=scene();assert.deepEqual(Array.from(g.run('characterSkillVideoKeys.aria')),[]);assert.match(g.run('characterSkillGuide.aria.skills[4][0]'),/에덴의 여왕/);assert.match(g.run('characterSkillGuide.aria.passive'),/맵 중앙/);assert.match(g.run('characterSkillGuide.aria.passive'),/100·300·600·1200/);
   for(let index=0;index<5;index++)g.run(`drawCharacterGameplayPreview("aria",${index},"아리아 스킬",10,20,400,300,"#fff")`);
   assert.equal(g.calls.filter(c=>c.method==='base:drawCharacterGameplayPreview').length,0);assert.equal(g.calls.filter(c=>c.method==='icon').length,4);assert.ok(g.calls.some(c=>c.method==='drawImage'&&c.args[0].assetSource.endsWith('/portrait.webp')));assert.equal(g.stack.length,0);
+});
+test('growth resources show all stages, exact essence and stage progress inside the unchanged mobile panel',()=>{
+  const stages=[{essence:0,stage:0,name:'생명의 씨앗',next:100,ratio:0},{essence:100,stage:1,name:'새싹의 수호',next:300,ratio:0},{essence:450,stage:2,name:'뿌리의 연결',next:600,ratio:.5},{essence:900,stage:3,name:'영혼의 성목',next:1200,ratio:.5},{essence:1200,stage:4,name:'완전한 에덴',next:null,ratio:1}];
+  for(const view of stages){
+    const g=scene({width:568,height:320,mobile:true});g.c.ariaGrowthView={...view,damageBonus:view.essence*.0015};const bounds=g.run('getAriaMobileResourceBounds()');g.run('drawAriaMobileResource()');const rows=g.calls.filter(c=>c.method==='fillText');assert.equal(rows.length,2);assert.equal(rows[0].args[0],`${view.name} · ${view.stage+1}단계`);assert.match(rows[1].args[0],new RegExp(`정수 ${view.essence}`));assert.match(rows[1].args[0],new RegExp(`${Math.round(view.ratio*100)}%`));assert.equal(rows[0].args[2],bounds.y-9);assert.equal(rows[1].args[2],bounds.y+9);assert.equal(g.stack.length,0);
+  }
+});
+test('desktop shows the new four skill names and growth gauge independently of ultimate time',()=>{
+  const g=scene();g.run('drawAriaInterface()');const names=g.calls.filter(c=>c.method==='fillText').map(c=>c.args[0]);for(const name of ['가시의 칙령','기생화','생명의 수확','에덴의 여왕'])assert.ok(names.includes(name));assert.ok(names.some(text=>text.includes('씨앗 1단계')&&text.includes('75 / 100')));assert.ok(names.some(text=>text.includes('성장 75%')));
+  const b=g.run('getAriaDesktopHudLayout()');assert.ok(g.calls.some(c=>c.method==='rect'&&c.args[0]===b.text.x&&c.args[1]===b.text.y+62&&c.args[2]===b.text.w*.75));
+});
+
+test('Aria augment descriptions match their stable level fields and four-pick transcend behavior',()=>{
+  const g=scene();g.run(fs.readFileSync(path.join(root,'js/02-upgrades.js'),'utf8'));
+  const expected=[['ariaSoil','ariaSoilLevel','정수','25%'],['ariaThorn','ariaThornLevel','표식','3%'],['ariaNight','ariaNightLevel','감염','5명']];
+  for(const [id,field,description,transcendDescription] of expected){
+    g.c.player[field]=0;g.run(`var testedUpgrade=upgrades.find(upgrade=>upgrade.id==='${id}')`);
+    assert.match(g.run('testedUpgrade.desc'),new RegExp(description));assert.match(g.run('testedUpgrade.transcendDesc'),new RegExp(transcendDescription));assert.equal(g.run('testedUpgrade.requires()'),true);
+    g.run('testedUpgrade.apply();testedUpgrade.apply();testedUpgrade.apply()');assert.equal(g.c.player[field],3);assert.equal(g.run(`transcended.${id}`),false);
+    g.run('testedUpgrade.apply()');assert.equal(g.c.player[field],3);assert.equal(g.run(`transcended.${id}`),true);
+    g.c.selectedCharacter='mare';assert.equal(g.run('testedUpgrade.requires()'),false);g.c.selectedCharacter='aria';
+  }
 });

@@ -135,20 +135,48 @@ test('C10 blood moon attacks and real heals; C11 boosts shield creation but does
   g.player.hp=50;g.run('player.hp+=1');assert.equal(g.run('relicBuff("bloodHeal")'),true);
   const v=game('vargas',{C11:4});const hp=v.player.maxHp;v.run('addVargasMaxHp(10);activateVargasE()');near(v.player.maxHp,hp+10);near(v.player.vargasShield,(hp+10)*.25*1.15);
   const s=game('suncall',{C11:4});s.run('activateSuncallX()');near(s.player.suncallShield,100*.12*1.15);
+  const a=game('aria',{C11:4});a.run('activateAriaX()');near(a.run('ariaGrowth.shield'),100*.2*1.15);
 });
-test('C12 knots and closing rifts, C13 garden and bloom use their actual damage paths',()=>{
+test('C12 knots and closing rifts, C13 world-tree roots and infection use their actual damage paths',()=>{
   const e=game('echo',{C12:4}),z=e.enemy(100);e.run('echoRifts.push({x1:player.x,y1:player.y,x2:player.x+200,y2:player.y});replayEchoMemory()');near(damage(e,z),35*1.25*1.2);
-  const a=game('aria',{C13:4}),b=a.enemy(100);a.run('activateAriaE()');near(damage(a,b),35*3.5*1.35);
-  const before=b.hp;a.run('for(let n=0;n<30;n++)updateAria()');near(before-b.hp,35*1.5*1.35);
+  const a=game('aria',{C13:4}),b=a.enemy(100);a.run('ariaGrowth.treeTick=10000;activateAriaE()');near(damage(a,b),35*2.8*1.15);
+  const before=b.hp;a.run('for(let n=0;n<30;n++)updateAria()');near(before-b.hp,35*.8*1.15);
+  const tree=game('aria',{C13:4}),rootTarget=tree.enemy(100);tree.run('ariaTreeAttack()');near(damage(tree,rootTarget),35*2.2*1.2);
 });
-test('Aria delayed waves keep skill and DOT equipment bonuses without inheriting burst criticals',()=>{
-  for(const [key,ticks,initial,pulse] of [['E',30,3.5,1.5],['X',18,2,1.2],['R',45,8,2.4]]){
-    const g=game('aria',{}, {skillDamage:.1,dotDamage:.5,critChance:1}),e=g.enemy(0);
-    g.run(`mouse.worldX=player.x;mouse.worldY=player.y;activateAria${key}()`);
-    near(damage(g,e),35*initial*1.1*1.5);
-    const before=e.hp;g.run(`for(let n=0;n<${ticks};n++)updateAria()`);
-    near(before-e.hp,35*pulse*1.6);
-  }
+test('Aria infection keeps skill and DOT equipment bonuses without inheriting burst criticals',()=>{
+  const g=game('aria',{}, {skillDamage:.1,dotDamage:.5,critChance:1}),e=g.enemy(0);
+  g.run('ariaGrowth.treeTick=10000;mouse.worldX=player.x;mouse.worldY=player.y;activateAriaE()');
+  near(damage(g,e),35*2.8*1.1*1.5);
+  const before=e.hp;g.run('for(let n=0;n<30;n++)updateAria()');near(before-e.hp,35*.8*1.6);
+});
+test('Aria harvest is a single skill hit and awakened roots are skill hits rather than DOT',()=>{
+  const x=game('aria',{}, {skillDamage:.1,dotDamage:.5,critChance:1}),harvest=x.enemy(0);
+  x.run('ariaGrowth.treeTick=10000;activateAriaX()');near(damage(x,harvest),35*4.5*1.1*1.5);
+  const before=harvest.hp;x.run('for(let n=0;n<18;n++)updateAria()');near(harvest.hp,before);
+  const r=game('aria',{}, {skillDamage:.1,dotDamage:.5,critChance:1}),root=r.enemy(0);
+  r.run('activateAriaR()');near(damage(r,root),0);
+  r.run('updateAria()');near(damage(r,root),35*2.2*1.1*1.5);
+  const first=root.hp;r.run('for(let n=0;n<18;n++)updateAria()');near(first-root.hp,35*2.2*1.1*1.5);
+});
+test('Aria delayed petals retain one basic attack ID and basic equipment bonuses throughout flight',()=>{
+  const g=game('aria',{}, {basicDamage:.2,skillDamage:.7}),e=g.enemy(120);
+  g.run('ariaGrowth.treeTick=10000;attackWithAria()');near(damage(g,e),0);
+  assert.equal(g.run('new Set(ariaBolts.map(b=>b.relicAttack.id)).size'),1);
+  assert.equal(g.run('ariaBolts.every(b=>b.relicAttack.kind==="basic")'),true);
+  g.run('for(let n=0;n<12;n++)updateAria()');near(damage(g,e),3*35*1.2*1.2);
+  const stacked=game('aria',{A01:4}),target=stacked.enemy(120);
+  stacked.run('ariaGrowth.treeTick=10000;attackWithAria();for(let n=0;n<12;n++)updateAria()');
+  assert.ok(damage(stacked,target)>0);assert.equal(stacked.run('relicRun.basicStacks'),1);
+});
+test('Aria active casts count once while autonomous roots, infection and spirits never count as casts',()=>{
+  const g=game('aria',{A02:4,B01:2});g.enemy(100);
+  g.run('activateAriaE();activateAriaE()');assert.equal(g.run('relicRun.casts'),1);
+  g.run('activateAriaX()');assert.equal(g.run('relicRun.casts'),2);
+  g.run('activateAriaR()');assert.equal(g.run('relicRun.casts'),0);assert.equal(g.run('relicBuff("orbit")'),true);
+  assert.equal(g.run('Array.from(relicRun.attacks.values()).filter(a=>a.castCounted).length'),3);
+  g.run('ariaGrowth.essence=600;ariaSpawnBolt(player,zombies[0],0,1,ariaMakeSource({secondary:true}),"spirit");for(let n=0;n<120;n++)updateAria()');
+  assert.equal(g.run('relicRun.casts'),0);
+  assert.equal(g.run('Array.from(relicRun.attacks.values()).filter(a=>a.castCounted).length'),3);
 });
 test('C14 stores up to 120 percent pain but release bonus never feeds the doll again',()=>{
   const g=game('moira',{C14:4}),e=g.enemy();g.run('activateMoiraE();moiraAddLink(newEnemy);moiraDamage(newEnemy,10000)');near(g.player.moiraStoredPain,35*35*1.2);
@@ -246,6 +274,7 @@ test('every hero basic attack reaches a raid shield through its real damage path
   for(const hero of ['suncall','yupiter','ren','nightLord','zero','paladin','arc','terra','void','carmilla','vargas','echo','aria','moira','mare','nullZero','astra','lush','oblivion']) {
     const g=game(hero,{}, {shieldDamage:.2,critChance:1}),boss=g.enemy(120,0,100000,{isRaidBoss:true,boss:true,raidIndex:0,r:65});
     const hp=boss.hp,shield=boss.relicShield;
+    if(hero==='aria')g.run('ariaGrowth.treeTick=10000');
     // This combat-only fixture omits the separate Lush/Oblivion UI integration
     // dispatchers, so invoke every hero's actual basic directly and consistently.
     const attack=hero==='yupiter'?'attackWithYupiterWeapon':`attackWith${hero[0].toUpperCase()+hero.slice(1)}`;

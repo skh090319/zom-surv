@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v103-aria-ultimate";
+const CACHE_VERSION = "zombie-survival-v104-aria-growth";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

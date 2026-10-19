@@ -50,8 +50,8 @@ function getMobileAimedSkillTargetSpec(key){
     case "echo":
       return key==="e"&&echoKnots.length?target(520,24,{snap:"knot"}):null;
     case "aria":
-      if(key==="e")return target(ARIA_E_RANGE,ariaJudgmentRadius(),{clampAriaWorld:true,label:"5초간 개화 · 마지막 심판"});
-      if(key==="r")return target(ARIA_R_RANGE,ARIA_WORLD_TREE_RADIUS,{clampAriaWorld:true,label:"세계수 소환 · 12초간 생명의 영역"});
+      if(key==="q")return line(ariaQRange(),ARIA_Q_WIDTH,{capsule:true,label:"관통 가시 · 칙령 표식"});
+      if(key==="e")return target(ARIA_E_RANGE,ariaInfectionRadius(),{clampAriaWorld:true,label:"기생 화원 · 감염과 전염"});
       return null;
     case "moira":
       if(key==="q")return target(360,0);
@@ -123,8 +123,14 @@ function getMobileSkillTargetSpec(key){
       }
       return status(key==="r"?"매듭 3개 필요":"이동할 매듭 필요");
     case "aria":
-      if(key==="q")return effects(ariaSoils.map(s=>circle(s,(transcended.ariaThorn?90:78)+s.stage*12)),"가시 성장 범위");
-      if(key==="x")return effects([circle(player,ariaPetalStormRadius())],"꽃잎 폭풍 · 이동속도 +25%");
+      if(key==="x")return effects([circle(player,ARIA_HARVEST_RADIUS)],"주변 수확 · 모든 표식·감염 대상 포함");
+      if(key==="r"){
+        const tree=getAriaTreePosition(),dx=tree.x-player.x,dy=tree.y-player.y,distance=Math.hypot(dx,dy),reach=Math.min(200,distance),shapes=[circle(tree,ARIA_WORLD_TREE_RADIUS),circle(player,ARIA_HARVEST_RADIUS)];
+        // A short arrow points to the fixed tree even when its actual finale
+        // circle is off screen. Dragging never relocates the tree or changes aim.
+        if(distance>1)shapes.push(segment(player,{x:player.x+dx/distance*reach,y:player.y+dy/distance*reach},24));
+        return effects(shapes,"중앙 세계수 각성 · 종료 시 표식·감염 심판");
+      }
       break;
     case "moira":
       if(key==="x")return effects(marked(moiraLinks),"고통 전이 대상");
@@ -160,7 +166,7 @@ function getMobileAttackTargetSpec(){
     case "vargas":return cone((player.vargasUltimateTime>0?205:155)*(transcended.vargasSkeleton?1.25:1),1.45);
     case "terra":return (player.terraAttackCounter+1)%3===0?cone(410,Math.PI*.42):{type:"offsetCircle",range:72,radius:92+(player.terraResonanceLevel||0)*5};
     case "void":return target(360,84+(player.voidTerrainLevel||0)*8);
-    case "aria":return target(310,60);
+    case "aria":return {type:"direction",range:ARIA_BASIC_RANGE,width:24,label:"꽃잎 발사 방향 · 적 자동 추적"};
     case "moira":return line(330+(player.moiraThreadLevel||0)*16,24);
     case "echo":return line(215+(player.echoAfterimageLevel||0)*18,48);
     case "mare":return {type:"rect",range:player.mareUltimateTime>0?340:285,width:player.mareUltimateTime>0?216:172,startWidth:player.mareUltimateTime>0?75.6:60.2};
@@ -186,13 +192,6 @@ function resolveMobilePreviewTarget(spec,point){
     let best=null,score=Infinity;
     for(const k of echoKnots){const distance=Math.hypot(k.x-player.x,k.y-player.y),s=Math.hypot(k.x-point.x,k.y-point.y)+distance*.25;if(distance<520&&s<score){best=k;score=s;}}
     return best?{x:best.x,y:best.y,radius:24}:null;
-  }
-  if(spec.snap==="soil"||spec.snap==="garden"){
-    if(!ariaSoils.length)return null;
-    const nearest=ariaSoils.reduce((a,b)=>Math.hypot(b.x-point.x,b.y-point.y)<Math.hypot(a.x-point.x,a.y-point.y)?b:a);
-    if(spec.snap==="soil")return {...nearest,radius:24};
-    const near=ariaSoils.filter(s=>Math.hypot(s.x-nearest.x,s.y-nearest.y)<230+(player.ariaSoilLevel||0)*20);
-    return {x:near.reduce((v,s)=>v+s.x,0)/near.length,y:near.reduce((v,s)=>v+s.y,0)/near.length,radius:145+near.length*18};
   }
   return {...point,radius:spec.radius};
 }

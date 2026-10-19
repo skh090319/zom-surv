@@ -4,7 +4,7 @@ const characterThumbnailImages = new Map();
 let preparedImageScreen = "";
 
 function gameImageGroup(source) {
-  if(source.includes('/aria-v2/'))return 'aria';
+  if(source.includes('/aria-v2/')||source.includes('/aria-v3/'))return 'aria';
   if(source.includes('/worlds-v1/'))return 'stage';
   const file = source.split("/").pop();
   if (source.includes("/bosses/")) return "boss";
@@ -70,7 +70,7 @@ function prepareGameImages() {
     if (screenMode === "home" && selected === "oblivion") needed ||= image.assetSource.startsWith("assets/oblivion-v4/");
     if (screenMode === "home" && group === selected) needed ||= image.assetSource.includes('/ultimate-backgrounds-v1/');
     // Prewarm only the selected Aria's cut-in and realm, not every hero's lobby.
-    if (screenMode === "home" && selected === "aria") needed ||= image.assetSource.startsWith('assets/aria-v2/ultimate-');
+    if (screenMode === "home" && selected === "aria") needed ||= image.assetSource.startsWith('assets/aria-v2/ultimate-')||image.assetSource.startsWith('assets/aria-v3/ultimate-');
     if (screenMode === "mobileSettings" && settings === "controls") needed ||= group === selected;
     if (playing) needed ||= group === "world" || group === "boss" || group === selected || group === "augment";
     if (screenMode === "character" && modal) needed ||= group === modal;

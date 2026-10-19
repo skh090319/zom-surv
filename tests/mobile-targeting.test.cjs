@@ -180,7 +180,7 @@ test('marker and released Mare core use the same position, even while moving and
 
 test('buffs, recall and automatic casts show effects without changing aim',()=>{
   const g=game();
-  const noAim={suncall:['x','r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['q','x'],moira:['x','r'],mare:['x']};
+  const noAim={suncall:['x','r'],yupiter:['q','e','r'],ren:['x','e'],nightLord:['e','x','r'],zero:['e','r'],paladin:['q','r'],terra:['x'],void:['x'],carmilla:['q'],vargas:['e','r'],echo:['q','r'],aria:['x','r'],moira:['x','r'],mare:['x']};
   for(const [character,keys] of Object.entries(noAim))for(const key of keys){
     g.context.selectedCharacter=character;
     assert.equal(g.run(`getMobileSkillTargetSpec('${key}').aim`),false,character+' '+key);
@@ -191,6 +191,57 @@ test('buffs, recall and automatic casts show effects without changing aim',()=>{
     g.run(`applyMobileDragAim(mobileSkillAim,getMobileSkillTargetSpec('${key}'))`);
     assert.equal(g.context.mouse.worldX,1789);assert.equal(g.context.mouse.worldY,654);
   }
+});
+
+test('Aria Q and E use their actual upgraded line and ground-cast geometry',()=>{
+  const g=game();g.context.selectedCharacter='aria';
+  Object.assign(g.context.player,{damage:100,maxHp:200,ariaThornLevel:3,ariaNightLevel:2});
+  const q=g.run('getMobileSkillTargetSpec("q")'),e=g.run('getMobileSkillTargetSpec("e")');
+  assert.equal(q.type,'line');assert.equal(q.range,870);assert.equal(q.range,g.run('ariaQRange()'));
+  assert.equal(q.width,g.run('ARIA_Q_WIDTH'));assert.notEqual(q.aim,false);
+  assert.equal(e.type,'target');assert.equal(e.range,g.run('ARIA_E_RANGE'));
+  assert.equal(e.radius,270);assert.equal(e.radius,g.run('ariaInfectionRadius()'));
+  assert.equal(e.variable,true);assert.equal(e.clampAriaWorld,true);
+  g.run('mobileSkillAim={key:"q",dragged:true,angle:.6,strength:.2};applyMobileDragAim(mobileSkillAim,getMobileSkillTargetSpec("q"));activateAriaQ()');
+  const thorn=g.run('ariaEffects.find(effect=>effect.type==="thornLance")');
+  assert.ok(Math.abs(thorn.angle-.6)<1e-9);assert.equal(thorn.length,q.range);assert.equal(thorn.width,q.width);
+  g.context.player.x=30;g.context.player.y=30;
+  g.run('mobileSkillAim={key:"e",dragged:true,angle:-Math.PI*.75,strength:.7}');
+  const point=g.run('getMobileAimPoint(mobileSkillAim,getMobileSkillTargetSpec("e"))');
+  assert.equal(point.x,20);assert.equal(point.y,20);
+  g.run('applyMobileDragAim(mobileSkillAim,getMobileSkillTargetSpec("e"));activateAriaE()');
+  const field=g.run('ariaBlooms[0]');assert.equal(field.x,point.x);assert.equal(field.y,point.y);assert.equal(field.r,e.radius);
+});
+
+test('Aria harvest and queen previews stay self/fixed-center based and never relocate the tree',()=>{
+  const g=game();g.context.selectedCharacter='aria';
+  const x=g.run('getMobileSkillTargetSpec("x")');
+  assert.equal(x.aim,false);assert.equal(x.shapes[0].x,g.context.player.x);assert.equal(x.shapes[0].r,g.run('ARIA_HARVEST_RADIUS'));
+  assert.match(x.label,/모든 표식·감염/);
+  g.context.player.x=700;g.context.player.y=900;
+  const r=g.run('getMobileSkillTargetSpec("r")'),tree=g.run('getAriaTreePosition()');
+  assert.equal(r.aim,false);assert.equal(r.shapes[0].x,tree.x);assert.equal(r.shapes[0].y,tree.y);assert.equal(r.shapes[0].r,g.run('ARIA_WORLD_TREE_RADIUS'));
+  assert.equal(r.shapes[1].x,700);assert.equal(r.shapes[1].y,900);assert.equal(r.shapes[1].r,650);
+  const pointer=r.shapes[2];assert.equal(pointer.type,'segment');
+  assert.ok(Math.abs(Math.atan2(pointer.y2-pointer.y1,pointer.x2-pointer.x1)-Math.atan2(tree.y-900,tree.x-700))<1e-9);
+  assert.ok(Math.hypot(pointer.x2-pointer.x1,pointer.y2-pointer.y1)<=200.000001);
+  g.context.mouse.worldX=1234;g.context.mouse.worldY=567;
+  g.run('mobileSkillAim={key:"r",dragged:true,angle:-2.1,strength:1};applyMobileDragAim(mobileSkillAim,getMobileSkillTargetSpec("r"));activateAriaR()');
+  assert.equal(g.context.mouse.worldX,1234);assert.equal(g.context.mouse.worldY,567);
+  const actual=g.run('ariaWorldTree');assert.equal(actual.x,tree.x);assert.equal(actual.y,tree.y);
+  g.context.player.x=tree.x;g.context.player.y=tree.y;
+  assert.equal(g.run('getMobileSkillTargetSpec("r").shapes.length'),2,'no zero-length direction arrow at the tree');
+});
+
+test('all Aria previews require drag and hide on cancel; basic preview describes homing petals',()=>{
+  const g=game();g.context.selectedCharacter='aria';
+  assert.deepEqual(Array.from(g.run('["q","e","x","r"].map(getMobileSkillName)')),['가시의 칙령','기생화','생명의 수확','에덴의 여왕']);
+  for(const key of ['q','e','x','r']){
+    g.draws.length=0;g.run(`mobileSkillAim={key:'${key}',dragged:false,angle:.3,strength:.6};drawMobileTargetingIndicator()`);assert.equal(g.draws.length,0);
+    g.run('mobileSkillAim.dragged=true;drawMobileTargetingIndicator()');assert.ok(g.draws.length>0,key+' preview');
+    g.draws.length=0;g.run('mobileSkillAim.cancelHover=true;drawMobileTargetingIndicator()');assert.equal(g.draws.length,0);
+  }
+  const attack=g.run('getMobileAttackTargetSpec()');assert.equal(attack.type,'direction');assert.equal(attack.range,g.run('ARIA_BASIC_RANGE'));assert.match(attack.label,/자동 추적/);
 });
 
 test('Frost Circuit mobile skills use generated icons, real cooldowns and a level-ten ultimate',()=>{

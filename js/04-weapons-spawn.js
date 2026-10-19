@@ -301,6 +301,7 @@ function bombAllNearbyZombies() {
 function killZombie(index, zombie, allowExplosion = true) {
   // Reward only an enemy still in the encounter, even when chain attacks share it.
   if (zombies[index] !== zombie) { index = zombies.indexOf(zombie); if (index < 0) return; }
+  if (typeof onAriaEnemyKilled === "function") onAriaEnemyKilled(zombie);
   if (typeof onAstraEnemyKilled === "function") onAstraEnemyKilled(zombie);
   if (zombie.isRaidBoss) {
     zombies.splice(index, 1);

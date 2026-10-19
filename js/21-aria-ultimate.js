@@ -1,6 +1,6 @@
 // World-tree realm and a brief upper-right portrait; all timing follows the cast.
 function ariaUltimateAsset(name){
-  const image=setGameImageSource(new Image(),`assets/aria-v2/ultimate-${name}.webp`);
+  const image=setGameImageSource(new Image(),`assets/aria-${name==='background'?'v3':'v2'}/ultimate-${name}.webp`);
   image.assetGroup='aria';return image;
 }
 const ariaUltimateArt={background:ariaUltimateAsset('background'),portrait:ariaUltimateAsset('portrait')};

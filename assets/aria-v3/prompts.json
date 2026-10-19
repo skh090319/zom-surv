@@ -1,0 +1,36 @@
+{
+  "mode": "built-in image_gen",
+  "created": "2026-10-19",
+  "assets": [
+    {
+      "key": "background",
+      "name": "ultimate-background.webp",
+      "prompt": "Use case: stylized-concept. Asset type: 16:9 opaque fantasy game ultimate background.\nPrimary request: a quiet, dark enchanted garden clearing at midnight, designed specifically to make a separately rendered luminous World Tree stand out during combat. Premium detailed painterly game environment.\nComposition: panoramic elevated view of a broad EMPTY clearing. The central 80% is a low-contrast deep blue-green slate and moss floor, subtly textured, no centerpiece. Distant shadowy trunks and delicate climbing vines appear only along extreme left and right margins; a very faint mist at the far edge. Tiny scattered rose petals limited to corners. Quiet moonlit depth, restrained elegance.\nPalette: desaturated midnight teal, charcoal blue, subtle dusty mauve, dim silver moonlight. Low luminance across entire frame; readable details, never pure black. No luminous giant tree, no huge flowers, no waterfalls, no gold lamps, no crystal clusters, no bright canopy, no hero, no UI, no text, no watermark. Do NOT place a tree in the center: the actual growing tree will be rendered there separately in game.",
+      "source": "exec-9460743f-8f08-4618-91d3-d0642467ef27.png"
+    },
+    {
+      "key": "skills",
+      "name": "skill-icons.webp",
+      "prompt": "Use case: stylized-concept. Asset type: production game skill icon sprite atlas, exact 2 columns x 2 rows of equal square tiles, square image.\nInput image: style/palette reference only. Create four NEW distinct premium fantasy ability icons for Aria, a pink-rose and emerald World Tree queen. Detailed glossy botanical materials, restrained brilliant highlights, high contrast silhouette at 48px. Each entire subject inside the central 72% circle of its cell, all cells precisely aligned with NO gutters, NO borders, NO labels.\nTop-left Q: one imposing rose-gold thorn spear pointing diagonally upward-right, sharp straight spearhead of pink crystal, emerald vine coiling shaft, crown-shaped magical mark behind.\nTop-right E: an open pink parasitic rose rooted into a dark emerald heart-shaped seed, fine curling roots visibly draining green motes; ominous elegant living bloom.\nBottom-left X: a graceful armored feminine palm harvesting THREE emerald luminous seeds into a protective rose-gold crescent shield; clear central hand and collected seeds, NOT a spinning vortex.\nBottom-right R: a majestic radiant ivory World Tree with pink blossoms and emerald sap, massive root base and a hovering rose-gold crown. Visually strongest ultimate icon.\nAll backgrounds: dark emerald/charcoal with localized magic. Crisp polish, fine etched botanical detailing; legible objects, not a mass of particles. No typography, numbers, letters, logos, watermarks, frames or separator lines.",
+      "source": "exec-7f8c00a4-e9f5-4cd8-b067-ef5778899593.png"
+    },
+    {
+      "key": "augments",
+      "name": "augment-icons.webp",
+      "prompt": "Use case: stylized-concept. Asset type: exact 3 columns x 2 rows equal-square game augment sprite atlas, image ratio3:2.\nInput image: visual style reference only. Six NEW richly polished icons for a growing World Tree queen, detailed pink crystal/emerald/ivory wood/rose-gold materials, dark backgrounds, readable central subject with 12% safe margin for circular crop. No gutters or divider lines. Column identities must match between top and bottom rows.\nTop-left: emerald seed encased in ivory tree roots with two pink flower buds, representing LIFE ESSENCE AND GROWTH.\nTop-middle: single rose-gold thorn crown around a pink spearhead, representing THORN MARK AND SHARED DAMAGE.\nTop-right: three parasitic pink roses connected by emerald root veins, representing BLOOM SPREAD AND HARVEST.\nBottom-left: ascended version of seed: floating luminous emerald heart seed with magnificent small branching ivory World Tree and golden leaf halo.\nBottom-middle: ascended thorn crown: elaborate black-rose and rose-gold royal crown, with THREE pink crystal spearheads projecting from it and elegant linked root arcs.\nBottom-right: ascended parasitic bloom: large saturated pink eternal rose above an emerald protective heart shield, smaller roses connected by luminous fine roots at its sides.\nEvery subject centered within central72% circle of cell. All six distinct, no text, no UI, no border, no letters, no numbers, no watermarks. Maintain premium fantasy game item-icon quality, crisp silhouette rather than excessive bloom.",
+      "source": "exec-738dab78-4f9d-40db-8e09-3e39b6a64b94.png"
+    },
+    {
+      "key": "growth",
+      "name": "tree-growth.webp",
+      "prompt": "Use case: stylized-concept. Asset type: transparent sprite atlas of THREE World Tree growth stages, exactly3columns by1row, ratio3:1, equal square cells.\nInput image: reference for the SAME World Tree's ivory twisted wood, rose-gold filigree roots, emerald luminous sap, jade leaves and pink blossoms. Show its three YOUNGER forms.\nLeft cell: juvenile seedling with a slender small twisted ivory trunk, 3 branching twigs, sparse jade leaves and two pink buds, elegant luminous emerald core.\nMiddle cell: sapling with a clear upright trunk, 7 spreading branches, modest jade foliage and scattered pink blossoms, increasingly intricate root base.\nRight cell: young tree with broad layered branching silhouette, fuller jade leaves and pink blossoms, recognizable predecessor of the mature reference, still less full than reference.\nEach full tree entirely isolated in its own cell, root base centered horizontally at y92% of its cell. Equal 8% transparent bottom padding; top at8%; no clipping, no overlap, consistent orthographic frontal game sprite view, each fills~80%height ofcell. High-quality hand-painted premium fantasy artwork, detailed bark and clean branches, tangible materials and dimensional shading. No groundplane, no scenery, no shared shadows, no frames or labels. TRUE transparent alpha background, preserve leaf gaps as transparency; no checkerboard baked in. Fine clean edges, no large aura clouds. Three visibly DIFFERENT branching silhouettes, not copies at different scales.",
+      "source": "exec-d6dda23d-2e0c-4f0b-acd9-378949883fc6.png"
+    }
+  ],
+  "optimization": {
+    "skills": "768x768 WebP",
+    "augments": "1152x768 WebP",
+    "background": "native size WebP quality 84",
+    "growth": "Crop at transparent gutters x620/x1332; trim alpha; repack into three 512px cells with root base at y471 (92%). Genuine alpha retained."
+  }
+}

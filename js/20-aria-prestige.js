@@ -5,7 +5,7 @@ function ariaPrestigeAsset(name){
   image.assetGroup='aria';return image;
 }
 const ariaPrestigeArt={portrait:ariaPrestigeAsset('portrait'),panel:ariaPrestigeAsset('panel'),frame:ariaPrestigeAsset('skill-frame')};
-const ARIA_PRESTIGE_NAMES={q:'가시 성장',e:'개화의 심판',x:'꽃잎 폭풍',r:'세계수 강림'};
+const ARIA_PRESTIGE_NAMES={q:'가시의 칙령',e:'기생화',x:'생명의 수확',r:'에덴의 여왕'};
 const ARIA_PRESTIGE_KEYS=['q','e','x','r'];
 let ariaHudFrame=0,ariaSapTexture=null;
 const ariaPrestigeUpdateBase=updateAria;
@@ -108,9 +108,8 @@ function drawAriaBar(bounds,ratio,label,kind){
 }
 function getAriaMobileResourceBounds(){return{x:canvas.width/2,y:canvas.height-111,w:Math.min(390,Math.max(240,canvas.width*.44),canvas.width-24),h:68};}
 function ariaHudStatus(){
-  if(player.ariaUltimateTime>0)return `세계수 현현  ·  ${(player.ariaUltimateTime/60).toFixed(1)}초`;
-  if(typeof ariaPetalStorm!=='undefined'&&ariaPetalStorm)return `꽃잎 폭풍  ·  ${(ariaPetalStorm.life/60).toFixed(1)}초`;
-  return `몽환 토양 ${ariaSoils.length}  ·  연결 화원 ${ariaGardenCount()}`;
+  const growth=getAriaGrowthProgress(),essence=Math.floor(growth.essence);
+  return `${growth.name} ${growth.stage+1}단계 · 정수 ${essence}${growth.next?' / '+growth.next:' · 완전체'}`;
 }
 function getAriaDesktopHudLayout(){
   const w=Math.min(860,canvas.width-28),stacked=w<730,h=stacked?166:126,x=(canvas.width-w)/2,y=Math.max(63,canvas.height-62-h),cell=stacked?(w-40)/4:84,skillStart=stacked?x+20:x+w-358;
@@ -118,10 +117,10 @@ function getAriaDesktopHudLayout(){
 }
 drawAriaInterface=function(){
   if(selectedCharacter!=='aria'||screenMode!=='game'||(typeof isMobileTouchDevice==='function'&&isMobileTouchDevice()))return;
-  const box=getAriaDesktopHudLayout(),text=box.text,ultimate=player.ariaUltimateTime>0;ctx.save();drawAriaPanelBackground(box.x,box.y,box.w,box.h);drawAriaPortrait(box.portrait.x,box.portrait.y,box.portrait.r);
-  ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#f6e8dc';ariaHudText(ultimate?'아리아 · 세계수의 현신':'아리아 · 몽환의 화원사',text.x,text.y,text.w,21,17,true);
+  const box=getAriaDesktopHudLayout(),text=box.text,ultimate=player.ariaUltimateTime>0,growth=getAriaGrowthProgress();ctx.save();drawAriaPanelBackground(box.x,box.y,box.w,box.h);drawAriaPortrait(box.portrait.x,box.portrait.y,box.portrait.r);
+  ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#f6e8dc';ariaHudText(ultimate?'아리아 · 에덴의 여왕':'아리아 · 세계수의 화원사',text.x,text.y,text.w,21,17,true);
   ctx.fillStyle='#a8e4bf';ariaHudText(ariaHudStatus(),text.x,text.y+24,text.w,12,11,true);
-  if(!box.stacked){ctx.fillStyle='#bfaaaf';ariaHudText(ultimate?'만개한 화원 · 생명의 맥동':'가시를 피우고, 세계수를 깨우세요',text.x,text.y+46,text.w,11,10);if(ultimate)drawAriaSapFlow(text.x,text.y+62,text.w,4,player.ariaUltimateTime/720);}
+  if(!box.stacked){ctx.fillStyle='#bfaaaf';ariaHudText(`${ultimate?'여왕 '+(player.ariaUltimateTime/60).toFixed(1)+'초 · ':''}성장 ${Math.round(growth.ratio*100)}% · 피해 +${(growth.damageBonus*100).toFixed(1)}%`,text.x,text.y+46,text.w,11,10);drawAriaSapFlow(text.x,text.y+62,text.w,4,growth.ratio);}
   const dividerX=box.stacked?box.x+22:box.x+box.w-369,dividerY=box.stacked?box.y+76:box.y+18;ctx.strokeStyle='rgba(183,155,115,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(dividerX,dividerY);ctx.lineTo(box.stacked?box.x+box.w-22:dividerX,box.stacked?dividerY:box.y+box.h-18);ctx.stroke();
   const cooldowns=[ARIA_Q_CD,ARIA_E_CD,ARIA_X_CD,ARIA_R_CD];ariaPrestigeReady(ariaSkillIconAtlas);
   for(let i=0;i<box.skills.length;i++){
@@ -134,8 +133,8 @@ drawAriaInterface=function(){
   drawAriaPanelFrame(box.x,box.y,box.w,box.h);ctx.restore();
 };
 function drawAriaMobileResource(){
-  const b=getAriaMobileResourceBounds(),x=b.x-b.w/2,y=b.y-b.h/2;ctx.save();drawAriaPanelBackground(x,y,b.w,b.h);drawAriaPortrait(x+34,b.y,20);ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#eff2d9';ariaHudText(ariaHudStatus(),x+66,b.y-9,b.w-94,11,10,true);ctx.fillStyle='#b9c8b1';
-  const fields=typeof ariaJudgments!=='undefined'?ariaJudgments.length:0;ariaHudText(`토양 ${ariaSoils.length}  ·  심판 ${fields}${typeof ariaPetalStorm!=='undefined'&&ariaPetalStorm?'  ·  폭풍 활성':''}`,x+66,b.y+9,b.w-94,10,10);
+  const b=getAriaMobileResourceBounds(),x=b.x-b.w/2,y=b.y-b.h/2,growth=getAriaGrowthProgress();ctx.save();drawAriaPanelBackground(x,y,b.w,b.h);drawAriaPortrait(x+34,b.y,20);ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#eff2d9';ariaHudText(`${growth.name} · ${growth.stage+1}단계`,x+66,b.y-9,b.w-94,11,10,true);ctx.fillStyle='#b9c8b1';
+  ariaHudText(`정수 ${Math.floor(growth.essence)}${growth.next?'/'+growth.next:' · 완전체'} · ${Math.round(growth.ratio*100)}%`,x+66,b.y+9,b.w-94,10,10);
   // A short two-line resource card needs shallower rails than the desktop panel.
   drawAriaPanelFrame(x,y,b.w,b.h,18);ctx.restore();
 }
@@ -154,16 +153,16 @@ drawHUD=function(){
   // The artwork's upper/lower filigree occupies 28 px at this size. Keep all
   // three text rows in the clear center, including the long score line.
   if(compact)ariaHudText(`WAVE ${wave}   ·   처치 ${player.kills}`,x+inset,y+h/2,w-inset*2,9,9,true);
-  else{ariaHudText('ARIA  /  몽환의 화원',x+inset,y+38,w-inset*2,11,11,true);ctx.fillStyle='#9cceac';ariaHudText(`WAVE ${wave}   ·   처치 ${player.kills}`,x+inset,y+60,w-inset*2,11,11);ctx.fillStyle='#c2aab7';ariaHudText(`공격력 ${Math.floor(player.damage)}   ·   점수 ${player.score||0}`,x+inset,y+82,w-inset*2,11,10);}
+  else{ariaHudText('ARIA  /  세계수의 화원',x+inset,y+38,w-inset*2,11,11,true);ctx.fillStyle='#9cceac';ariaHudText(`WAVE ${wave}   ·   처치 ${player.kills}`,x+inset,y+60,w-inset*2,11,11);ctx.fillStyle='#c2aab7';ariaHudText(`공격력 ${Math.floor(player.damage)}   ·   점수 ${player.score||0}`,x+inset,y+82,w-inset*2,11,10);}
   drawAriaPanelFrame(x,y,w,h);ctx.restore();
 };
 
-characterSkillGuide.aria={name:'아리아',color:'#b7d7a1',passive:'공격한 자리에 몽환 토양을 남깁니다. 반복 공격으로 꽃이 3단계까지 성장하고 가까운 토양은 화원으로 연결됩니다. 세계수의 영역에서는 꽃이 최대 단계로 만개하며 사라지지 않습니다.',skills:[
-  ['기본 공격 · 개화','조준한 위치에 꽃을 피워 원형 피해를 주고 토양을 최대 3단계까지 성장시킵니다. 세계수가 머무는 동안 다른 토양에서도 메아리 개화가 일어납니다.'],
-  ['Q · 가시 성장','모든 토양에서 가시가 솟아 주변 적을 공격하고 둔화시킵니다. 성장한 꽃일수록 더 넓고 강하게 공격합니다.'],
-  ['E · 개화의 심판','지정한 위치에 거대한 심판의 화원을 피웁니다. 주변 토양을 성장시키고 5초 동안 반복 피해를 준 뒤, 마지막 만개로 강력한 광역 피해를 줍니다.'],
-  ['X · 꽃잎 폭풍','6초 동안 아리아를 따라다니는 날카로운 꽃잎 폭풍을 두릅니다. 주변 적을 빠르게 베고 둔화시키며 이동속도가 25% 증가합니다.'],
-  ['R · 세계수 강림','10레벨부터 사용 가능. 지정한 위치에 거대한 세계수를 12초 동안 소환합니다. 넓은 영역의 토양을 3단계로 만개시키고 생명의 파동으로 적을 반복 공격합니다. 마지막에는 거대한 꽃잎 폭발과 적 최대 체력에 비례한 추가 피해를 줍니다.']
+characterSkillGuide.aria={name:'아리아',color:'#b7d7a1',passive:'전투 시작부터 맵 중앙에 세계수가 뿌리내립니다. 일반 적 처치로 생명 정수 1, 보스 처치로 50을 얻으며 보스 직접 적중 8회마다 3을 추가로 얻습니다. 정수 100·300·600·1200에서 세계수가 성장하고, 정수마다 이번 전투의 피해가 0.15%씩 제한 없이 증가합니다. 세계수는 아리아 또는 나무 주변의 적을 자동 공격하며 성장 단계마다 공격 대상이 늘어납니다. 정수 600부터 처치한 적에게서 추적하는 영혼 꽃잎이 태어납니다.',skills:[
+  ['기본 공격 · 추적하는 꽃잎','조준 방향으로 적을 추적하는 꽃잎 3개를 발사합니다. 정수 100부터 꽃잎이 4개가 되고 적 2명을 관통하며, 300부터 3명을 관통하고 공유 뿌리 피해가 이어집니다.'],
+  ['Q · 가시의 칙령','전방으로 긴 관통 가시를 뻗어 강한 피해를 주고 8초 동안 칙령 표식을 남깁니다. 표식이 새겨진 적은 모든 아리아 공격에 25% 더 큰 피해를 받습니다. 가시 장미 증강으로 사거리·피해·표식 위력이 증가합니다.'],
+  ['E · 기생화','지정한 위치에 3초간 기생 화원을 피웁니다. 적에게 6초간 반복 피해와 둔화를 주는 감염을 남기고 감염이 끝나면 폭발합니다. 감염된 적이 죽으면 폭발과 감염이 주변으로 퍼지며 최대 3대까지 전염됩니다. 보스의 감염이 끝나면 생명 정수 8을 얻습니다.'],
+  ['X · 생명의 수확','반경 650의 적과 거리에 관계없이 모든 표식·감염 대상을 강하게 수확합니다. 표식과 감염은 유지되며 각각 수확 피해가 35% 증가합니다. 4초 동안 최대 체력의 20% 보호막을 얻고 이동속도가 25% 증가합니다. 기생의 화원 증강으로 수확 피해와 보호막이 강화됩니다.'],
+  ['R · 에덴의 여왕','10레벨부터 12초 동안 중앙 세계수를 각성시킵니다. 세계수의 공격 주기가 0.9초에서 0.3초가 되고 공격 대상이 1명 늘어나며 평타와 Q가 메아리칩니다. 종료 시 아리아·세계수 주변과 모든 표식·감염 대상을 심판하고 보스에게 최대 체력 비례 피해를 줍니다. 정수 1200부터 마지막 심판에 연쇄 개화가 추가됩니다.']
 ]};
 // None of the old recordings reflect Aria's new character art and effects.
 characterSkillVideoKeys.aria=[];
@@ -174,5 +173,5 @@ drawCharacterGameplayPreview=function(id,skillIndex,skillName,x,y,w,h,color){
   const cx=x+w/2,cy=y+h*.43,r=Math.min(w*.26,h*.26),glow=ctx.createRadialGradient(cx,cy,2,cx,cy,r*1.8);glow.addColorStop(0,'rgba(137,214,162,.23)');glow.addColorStop(1,'rgba(130,55,104,0)');ctx.fillStyle=glow;ctx.fillRect(x,y,w,h);
   if(skillIndex===0)drawAriaPortrait(cx,cy,r);
   else{ariaPrestigeReady(ariaSkillIconAtlas);drawMobileIcon({atlas:ariaSkillIconAtlas,index:Math.max(0,Math.min(3,skillIndex-1))},cx,cy,r);drawAriaSkillFrame(cx,cy,r);}
-  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#f4e8da';ariaHudText(skillName,cx,y+h*.79,w-30,20,16,true);ctx.fillStyle='#a7c7ae';ariaHudText(['몽환의 화원 · 3단계 개화','모든 토양에서 솟아오르는 가시','심판의 화원 · 5초','추적하는 꽃잎 폭풍 · 6초','세계수의 영역 · 12초'][skillIndex]||'세계수의 화원',cx,y+h*.87,w-30,12,10);ctx.restore();drawAriaPanelFrame(x,y,w,h);
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#f4e8da';ariaHudText(skillName,cx,y+h*.79,w-30,20,16,true);ctx.fillStyle='#a7c7ae';ariaHudText(['추적 꽃잎 · 정수로 강화','관통 가시 · 칙령 표식','기생 화원 · 감염과 전염','표식·감염 수확 · 보호막','중앙 세계수 각성 · 12초'][skillIndex]||'세계수의 화원',cx,y+h*.87,w-30,12,10);ctx.restore();drawAriaPanelFrame(x,y,w,h);
 };
