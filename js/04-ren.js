@@ -18,7 +18,7 @@ function getRenCloneCount() {
 }
 
 function getRenAttackMultiplier() {
-  return 1 + player.renShards * 0.01;
+  return 1 + player.renShards * 0.005;
 }
 
 function attackWithRen() {
@@ -270,23 +270,21 @@ function updateRen() {
 
 function onRenZombieKilled(zombie) {
   if (selectedCharacter !== "ren") return;
-  if (Math.random() < 0.2) {
-    // 고정 좌표 버킷으로 묶어, 처치할 때마다 모든 조각을 검색하지 않게 한다.
-    const bucketKey = `${Math.floor(zombie.x / 64)},${Math.floor(zombie.y / 64)}`;
-    const nearbyStack = renShadowShardBuckets.get(bucketKey);
-    if (nearbyStack) {
-      const amount = nearbyStack.amount || 1;
-      nearbyStack.x = (nearbyStack.x * amount + zombie.x) / (amount + 1);
-      nearbyStack.y = (nearbyStack.y * amount + zombie.y) / (amount + 1);
-      nearbyStack.amount = amount + 1;
-      nearbyStack.phase = Math.random() * Math.PI * 2;
-    } else {
-      const shard = { x: zombie.x, y: zombie.y, r: 14, amount: 1, phase: Math.random() * Math.PI * 2, bucketKey };
-      renShadowShards.push(shard);
-      renShadowShardBuckets.set(bucketKey, shard);
-    }
-    createRenBurst(zombie.x, zombie.y, "#c93666", 8);
+  // Every eligible kill drops one shard; nearby drops still share one render stack.
+  const bucketKey = `${Math.floor(zombie.x / 64)},${Math.floor(zombie.y / 64)}`;
+  const nearbyStack = renShadowShardBuckets.get(bucketKey);
+  if (nearbyStack) {
+    const amount = nearbyStack.amount || 1;
+    nearbyStack.x = (nearbyStack.x * amount + zombie.x) / (amount + 1);
+    nearbyStack.y = (nearbyStack.y * amount + zombie.y) / (amount + 1);
+    nearbyStack.amount = amount + 1;
+    nearbyStack.phase = Math.random() * Math.PI * 2;
+  } else {
+    const shard = { x: zombie.x, y: zombie.y, r: 14, amount: 1, phase: Math.random() * Math.PI * 2, bucketKey };
+    renShadowShards.push(shard);
+    renShadowShardBuckets.set(bucketKey, shard);
   }
+  createRenBurst(zombie.x, zombie.y, "#c93666", 8);
   if (player.renReaperFootstepsLevel > 0) {
     if (renShadowFields.length >= 5) renShadowFields.shift();
     renShadowFields.push({ x: zombie.x, y: zombie.y, r: 96, life: 150, tick: 1 });
