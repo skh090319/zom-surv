@@ -730,7 +730,11 @@ function drawAstraCapturedBody(b, detail = true) {
     ctx.globalCompositeOperation = "source-over"; ctx.save(); ctx.translate(b.x, b.y);
     ctx.rotate(b.state === "flight" ? b.a + Math.PI / 2 : Math.sin(b.a) * .32);
     const size = b.r * (b.zombie.boss ? 2.75 : 3.05);
-    if (zombieSpriteAtlas.complete && zombieSpriteAtlas.naturalWidth) {
+    const worldSprite = b.zombie.worldMonsterType && typeof getWorldMonsterImage === "function" ? getWorldMonsterImage(b.zombie.worldMonsterType) : null;
+    if (worldSprite?.complete && worldSprite.naturalWidth) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(worldSprite, -size / 2, -size * .57, size, size);
+    } else if (zombieSpriteAtlas.complete && zombieSpriteAtlas.naturalWidth) {
       const sw = zombieSpriteAtlas.naturalWidth / 2, sh = zombieSpriteAtlas.naturalHeight;
       ctx.drawImage(zombieSpriteAtlas, b.zombie.boss ? sw : 0, 0, sw, sh, -size / 2, -size * .57, size, size);
     } else { ctx.fillStyle = "#668ca0"; ctx.beginPath(); ctx.arc(0, 0, b.r, 0, ASTRA_TAU); ctx.fill(); }

@@ -185,7 +185,7 @@ function spawnZombie() {
 
   const boss = wave >= 5 && Math.random() < 0.08;
 
-  zombies.push({
+  const zombie = {
     id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()),
     x,
     y,
@@ -194,7 +194,9 @@ function spawnZombie() {
     hp: boss ? 240 + wave * 35 : 75 + wave * 12,
     maxHp: boss ? 240 + wave * 35 : 75 + wave * 12,
     boss
-  });
+  };
+  if(typeof attachWorldMonster==='function')attachWorldMonster(zombie);
+  zombies.push(zombie);
 }
 
 function spawnItem() {
@@ -244,6 +246,9 @@ function bombAllNearbyZombies() {
     const z = zombies[i];
 
     if (Math.hypot(z.x - player.x, z.y - player.y) < radius) {
+      // Item bombs strike the whole body, not the player's facing side. Only
+      // new-world species need this tag; World 2 keeps its original hit context.
+      if (z.worldMonsterType && typeof relicTagTarget === "function") relicTagTarget(z, null, { kind: "augment", area: true });
       if (z.isRaidBoss) {
         z.hp -= enemyMaxHpDamage(z, 0.05);
         if (z.hp <= 0) killZombie(i, z);
@@ -266,6 +271,7 @@ function bombAllNearbyZombies() {
   }
 
   for (const z of killedZombies) {
+    if (typeof onWorldMonsterKilled === "function") onWorldMonsterKilled(z);
     if (typeof onAstraEnemyKilled === "function") onAstraEnemyKilled(z);
     player.score += z.boss ? 100 : 20;
     player.kills++;
@@ -301,6 +307,7 @@ function bombAllNearbyZombies() {
 function killZombie(index, zombie, allowExplosion = true) {
   // Reward only an enemy still in the encounter, even when chain attacks share it.
   if (zombies[index] !== zombie) { index = zombies.indexOf(zombie); if (index < 0) return; }
+  if (typeof onWorldMonsterKilled === "function") onWorldMonsterKilled(zombie);
   if (typeof onAriaEnemyKilled === "function") onAriaEnemyKilled(zombie);
   if (typeof onAstraEnemyKilled === "function") onAstraEnemyKilled(zombie);
   if (zombie.isRaidBoss) {

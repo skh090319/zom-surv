@@ -54,6 +54,7 @@ let raidWarningPulse = 0;
 let raidRewardChoicesPending = 0;
 
 function resetRaidBossSystem() {
+  if(typeof resetWorldRaidBosses==='function')resetWorldRaidBosses();
   survivalFrames = 0;
   nextRaidBossIndex = 0;
   activeRaidBoss = null;
@@ -118,6 +119,7 @@ function startRaidBoss(index) {
     anim: 0, flash: 0, lastHp: bossHp,
     dashVx: 0, dashVy: 0, queuedVolley: false
   };
+  if(typeof initializeWorldRaidBoss==='function')initializeWorldRaidBoss(activeRaidBoss);
   zombies.push(activeRaidBoss);
   raidBossProjectiles.length = 0;
   raidBossZones.length = 0;
@@ -125,12 +127,13 @@ function startRaidBoss(index) {
   raidIntroTime = 150;
   for (let i = 0; i < 54; i++) {
     const a = Math.random() * Math.PI * 2;
-    raidBossEffects.push({ type: "spawn", x: spawnX, y: spawnY, angle: a, r: 40 + Math.random() * 210, life: 55 + Math.random() * 35, maxLife: 90 });
+    raidBossEffects.push({ type: "spawn", x: spawnX, y: spawnY, angle: a, r: 40 + Math.random() * 210, life: 55 + Math.random() * 35, maxLife: 90, ...(activeRaidBoss.isWorldRaidBoss?{worldRaidColor:activeRaidBoss.worldRaidColor}:{}) });
   }
 }
 
 function enforceImmobileRaidBoss() {
   if (!activeRaidBoss) return;
+  if(typeof enforceWorldRaidBossPosition==='function'&&enforceWorldRaidBossPosition(activeRaidBoss))return;
   if (activeRaidBoss.raidIndex === 0) {
     activeRaidBoss.x = activeRaidBoss.anchorX;
     activeRaidBoss.y = activeRaidBoss.anchorY;
@@ -148,13 +151,14 @@ function enforceImmobileRaidBoss() {
 
 function defeatRaidBoss(boss) {
   if (!activeRaidBoss || boss !== activeRaidBoss) return;
+  if(boss.isWorldRaidBoss&&typeof resetWorldRaidBosses==='function')resetWorldRaidBosses();
   const index = boss.raidIndex;
   zombies = zombies.filter(z => z !== boss && !z.isBossMinion);
   raidBossProjectiles.length = 0;
   raidBossZones.length = 0;
   for (let i = 0; i < 80; i++) {
     const a = Math.random() * Math.PI * 2;
-    raidBossEffects.push({ type: "death", x: boss.x, y: boss.y, angle: a, speed: 2 + Math.random() * 9, life: 65 + Math.random() * 35, maxLife: 100 });
+    raidBossEffects.push({ type: "death", x: boss.x, y: boss.y, angle: a, speed: 2 + Math.random() * 9, life: 65 + Math.random() * 35, maxLife: 100, ...(boss.isWorldRaidBoss?{worldRaidColor:boss.worldRaidColor}:{}) });
   }
   player.score += 1200 * (index + 1);
   player.hp = Math.min(player.maxHp, player.hp + player.maxHp * 0.35);
@@ -441,7 +445,8 @@ function updateRaidBossSystem() {
   if (player.bossSlowTime > 0) player.bossSlowTime--;
   if (raidArena) raidArena.pulse += 0.025;
   clampPlayerToRaidArena();
-  if (raidIntroTime <= 0 && !(boss.relicInterruptTime > 0)) {
+  const worldRaidHandled=typeof updateWorldRaidBoss==='function'&&updateWorldRaidBoss(boss,raidIntroTime<=0&&!(boss.relicInterruptTime>0));
+  if (!worldRaidHandled && raidIntroTime <= 0 && !(boss.relicInterruptTime > 0)) {
     if (boss.pattern === null) {
       boss.cooldown--;
       if (boss.cooldown <= 0) pickRaidPattern(boss);
@@ -456,7 +461,9 @@ function updateRaidBossSystem() {
   }
   boss.facing = player.x < boss.x ? -1 : 1;
   const contactDistance = boss.r + player.r + (boss.raidIndex === 0 ? 8 : 14);
-  if (!(boss.relicInterruptTime > 0) && Math.hypot(player.x - boss.x, player.y - boss.y) < contactDistance) {
+  if (!(boss.relicInterruptTime > 0) && !(boss.isWorldRaidBoss&&boss.worldRaidGrace>0) &&
+      !(typeof worldRaidSuppressesContact==='function'&&worldRaidSuppressesContact(boss)) &&
+      Math.hypot(player.x - boss.x, player.y - boss.y) < contactDistance) {
     raidPlayerDamage(getRaidBossDamageRatio("contact", boss.raidIndex), false, boss);
     const pushAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
     player.x += Math.cos(pushAngle) * 18;
@@ -464,12 +471,14 @@ function updateRaidBossSystem() {
   }
   updateRaidBossProjectiles();
   updateRaidBossZones();
+  if(boss.isWorldRaidBoss&&typeof updateWorldRaidHazards==='function')updateWorldRaidHazards(boss);
   boss.frameX = boss.x;
   boss.frameY = boss.y;
   for (let i = raidBossEffects.length - 1; i >= 0; i--) if (--raidBossEffects[i].life <= 0) raidBossEffects.splice(i, 1);
 }
 
 function drawRaidArena() {
+  if(typeof drawWorldRaidArena==='function'&&drawWorldRaidArena())return;
   if (!raidArena) return;
   worldStart();
   const pulse = Math.sin(raidArena.pulse) * 7;
@@ -485,6 +494,7 @@ function drawRaidArena() {
 
 function drawRaidBossZones() {
   worldStart();
+  if(typeof drawWorldRaidZones==='function')drawWorldRaidZones();
   for (const z of raidBossZones) {
     ctx.save();
     if (z.type === "poison") {
@@ -531,6 +541,7 @@ function traceMorsScytheBlade() {
 
 function drawRaidBossProjectiles() {
   worldStart();
+  if(typeof drawWorldRaidProjectiles==='function')drawWorldRaidProjectiles();
   for (const p of raidBossProjectiles) {
     ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.spin);
     if (p.astraAbsorb) {
@@ -578,6 +589,7 @@ function drawRaidBossProjectiles() {
 
 function drawRaidBoss() {
   if (!activeRaidBoss) return;
+  if(typeof drawWorldRaidBoss==='function'&&drawWorldRaidBoss(activeRaidBoss))return;
   const b=activeRaidBoss,img=raidBossImages[b.raidIndex];
   worldStart();ctx.save();ctx.translate(b.x,b.y);
   const attackPulse=b.pattern!==null?Math.sin(b.patternTime*.22)*.055:0;
@@ -594,9 +606,10 @@ function drawRaidBoss() {
 
 function drawRaidBossEffects() {
   worldStart();
+  if(typeof drawWorldRaidEffects==='function')drawWorldRaidEffects();
   for(const e of raidBossEffects){const p=1-e.life/e.maxLife;ctx.save();ctx.globalAlpha=Math.max(0,1-p);ctx.translate(e.x,e.y);
-    if(e.type==="spawn"){ctx.rotate(e.angle);ctx.strokeStyle="#b74cff";ctx.shadowColor="#8b2cff";ctx.shadowBlur=12;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(e.r*(1-p),0);ctx.lineTo(e.r,0);ctx.stroke();}
-    else if(e.type==="death"){ctx.rotate(e.angle);ctx.fillStyle="#d78bff";ctx.shadowColor="#8d2cff";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(e.speed*p*8,0,5*(1-p)+1,0,Math.PI*2);ctx.fill();}
+    if(e.type==="spawn"){ctx.rotate(e.angle);ctx.strokeStyle=e.worldRaidColor||"#b74cff";ctx.shadowColor=e.worldRaidColor||"#8b2cff";ctx.shadowBlur=12;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(e.r*(1-p),0);ctx.lineTo(e.r,0);ctx.stroke();}
+    else if(e.type==="death"){ctx.rotate(e.angle);ctx.fillStyle=e.worldRaidColor||"#d78bff";ctx.shadowColor=e.worldRaidColor||"#8d2cff";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(e.speed*p*8,0,5*(1-p)+1,0,Math.PI*2);ctx.fill();}
     else if(e.type==="poisonBurst"){ctx.strokeStyle="#aaff3f";ctx.lineWidth=9*(1-p)+2;ctx.beginPath();ctx.arc(0,0,70*p,0,Math.PI*2);ctx.stroke();}
     else if(e.type==="lightning"){
       const fade=1-p, seed=e.seed||0;
@@ -618,6 +631,7 @@ function formatRaidTime(frames) {
 }
 
 function drawMobileRaidBossUI(){
+  if(typeof drawWorldRaidUI==='function'&&drawWorldRaidUI(true))return;
   // 주의/등장 연출은 유지하되 체력바 아래의 작은 상단 패널에만 그린다.
   // 화면 전체 암전이나 중앙 배너, 확대 펄스는 사용하지 않는다.
   const w=Math.min(400,canvas.width*.62),x=(canvas.width-w)/2,y=52;
@@ -657,6 +671,7 @@ function drawMobileRaidBossUI(){
 }
 
 function drawRaidBossUI() {
+  if(typeof drawWorldRaidUI==='function'&&drawWorldRaidUI(typeof isMobileTouchDevice==='function'&&isMobileTouchDevice()))return;
   if(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()&&!raidVictory){drawMobileRaidBossUI();return;}
   ctx.save();
   ctx.textAlign="center";

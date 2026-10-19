@@ -82,3 +82,14 @@ test('result markup escapes names and uses real relic artwork with a safe frame 
 test('Enter is no longer a global game-over restart shortcut',()=>{
   const source=fs.readFileSync(path.join(root,'js/03-input.js'),'utf8');assert.doesNotMatch(source,/\(gameOver\s*\|\|\s*raidVictory\).*key\s*===\s*["']enter/);assert.match(source,/runResultsIsOpen\(\)\)return/);
 });
+
+test('reward card color and stamp flash stay inside the same metal frame opening',()=>{
+  const css=fs.readFileSync(path.join(root,'run-results.css'),'utf8');
+  const card=css.match(/\.run-reward-card\{([^}]+)\}/)?.[1],fill=css.match(/\.run-reward-card::after\{([^}]+)\}/)?.[1];
+  assert.match(card,/background:transparent;border:0/);assert.match(card,/isolation:isolate/);
+  assert.match(fill,/inset:8px/);assert.match(fill,/z-index:-1/);assert.match(fill,/background:linear-gradient/);
+  assert.match(css,/\.run-reward-card::before\{[^}]*border-image:url\('assets\/relic-card-frame-v1\.webp'\)/);
+  assert.match(css,/@keyframes run-reward-flash\{0%,28%\{filter:brightness\(1\)/);
+  assert.match(css,/\.run-reward-card.is-legendary::before\{filter:drop-shadow/);
+  assert.doesNotMatch(css,/\.run-reward-card::after\{opacity:0\}/,'reduced motion must retain the inset rarity fill');
+});

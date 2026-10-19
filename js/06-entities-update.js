@@ -320,6 +320,7 @@ function tryDodgeAttack() {
 }
 
 function updateZombies() {
+  if (typeof worldMonsterBeginFrame === "function") worldMonsterBeginFrame();
   if (zombieSlowTimer > 0) zombieSlowTimer--;
 
   for (let i = zombies.length - 1; i >= 0; i--) {
@@ -346,6 +347,7 @@ function updateZombies() {
     }
 
     if (z.isRaidBoss) continue;
+    if (typeof worldMonsterPrepareEnemy === "function") worldMonsterPrepareEnemy(z);
     // Captured bodies belong to Astra's orbital simulation, not ground AI/contact.
     if (typeof astraControlled === "function" && astraControlled(z)) continue;
 
@@ -384,13 +386,15 @@ function updateZombies() {
     // Astra's spacetime field also affects otherwise movement-immune summons.
     if (typeof astraEnemyMoveScale === "function") slow = Math.min(slow, astraEnemyMoveScale(z));
 
-    const angle = Math.atan2(player.y - z.y, player.x - z.x);
-    z.x += Math.cos(angle) * z.speed * slow;
-    z.y += Math.sin(angle) * z.speed * slow;
+    if (!(typeof updateWorldMonsterEnemy === "function" && updateWorldMonsterEnemy(z, slow))) {
+      const angle = Math.atan2(player.y - z.y, player.x - z.x);
+      z.x += Math.cos(angle) * z.speed * slow;
+      z.y += Math.sin(angle) * z.speed * slow;
+    }
 
     if (Math.hypot(player.x - z.x, player.y - z.y) < player.r + z.r) {
       const countered = !isZombieInsideGravityField(z) && selectedCharacter === "paladin" && player.paladinGuardTime > 0 && triggerPaladinCounter(z);
-      const astraSuppressed = typeof astraWellSuppressesEnemy === "function" && astraWellSuppressesEnemy(z);
+      const astraSuppressed = (typeof astraWellSuppressesEnemy === "function" && astraWellSuppressesEnemy(z)) || z.worldMonsterGrace > 0;
       if (!countered && !astraSuppressed && !isZombieInsideGravityField(z) && player.invincibleTime <= 0) {
         const dodged = tryDodgeAttack();
 
@@ -595,6 +599,7 @@ function update() {
   if(typeof updateSuncall==='function')updateSuncall();
   updateAstra();
   updateZombies();
+  if (typeof updateWorldMonsterCombat === "function") updateWorldMonsterCombat();
   updateDaggers();
   updateItems();
   updateVision();

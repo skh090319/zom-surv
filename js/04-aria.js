@@ -208,7 +208,8 @@ function ariaQueueDevouredEnemy(z){
   const tree=getAriaTreePosition();
   // Keep appearance primitives only: the victim is removed by normal kill handling
   // immediately, so this animation cannot retain AI, collisions or attack timers.
-  ariaDevouredEnemies.push({x:z.x,y:z.y,r:z.r||18,boss:!!z.boss,isBossMinion:!!z.isBossMinion,isRaidBoss:!!z.isRaidBoss,
+  ariaDevouredEnemies.push({x:z.x,y:z.y,r:z.r||18,boss:!!z.boss,isBossMinion:!!z.isBossMinion,isRaidBoss:!!z.isRaidBoss,worldMonsterType:z.worldMonsterType||null,
+    worldRaidType:z.worldRaidType||null,worldRaidWorld:z.worldRaidWorld||null,worldRaidMinionType:z.worldRaidMinionType||null,
     raidIndex:z.raidIndex??0,raidSprite:z.raidSprite??1,facing:z.facing<0?-1:1,type:typeof z.type==="string"?z.type:null,
     tx:tree.x,ty:tree.y,age:0,life:54,maxLife:54,phase:z.x*.013+z.y*.017+ariaGrowth.frame*.37});
   if(ariaDevouredEnemies.length>32)ariaDevouredEnemies.shift();

@@ -809,6 +809,7 @@ function drawYupiterWeapons() {
 
 function drawZombies() {
   worldStart();
+  if(typeof drawWorldMonsterEffects==='function')drawWorldMonsterEffects();
   for (const z of zombies) {
     if (z.isRaidBoss) continue;
     if (typeof astraControlled === "function" && astraControlled(z)) continue;
@@ -816,7 +817,9 @@ function drawZombies() {
     const spriteSize = z.r * (z.isBossMinion ? 4.3 : (z.boss ? 2.75 : 3.05));
     const spriteTop = z.y - spriteSize * 0.57;
 
-    if (z.isBossMinion && raidBossImages[1].complete && raidBossImages[1].naturalWidth > 0) {
+    if (typeof drawWorldMonsterSprite==='function'&&drawWorldMonsterSprite(z,spriteSize,spriteTop)) {
+      // World-specific art; shared status markers and health bars continue below.
+    } else if (z.isBossMinion && raidBossImages[1].complete && raidBossImages[1].naturalWidth > 0) {
       ctx.save();
       ctx.globalAlpha = 0.86;
       ctx.shadowColor = "#7130aa";
@@ -909,6 +912,7 @@ function drawZombies() {
       ctx.restore();
     }
   }
+  if(typeof drawWorldMonsterProjectiles==='function')drawWorldMonsterProjectiles();
   worldEnd();
 }
 

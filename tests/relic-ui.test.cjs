@@ -9,6 +9,22 @@ test('metal-framed inventory and material cards reserve inner safe rows instead 
   assert.match(css,/minmax\(min\(100%,152px\),1fr\)/);
   assert.match(css,/minmax\(min\(100%,148px\),1fr\)/);
 });
+
+test('inventory and feed rarity fills stay inside the transparent metal rim in every state',()=>{
+  const css=fs.readFileSync(path.join(root,'relics.css'),'utf8');
+  const surfaces=css.match(/#relic-screen \.relic-item,#relic-screen \.relic-feed-choice\{([^}]+)\}/)?.[1];
+  assert.ok(surfaces);assert.match(surfaces,/isolation:isolate/);assert.match(surfaces,/background:transparent!important/);assert.match(surfaces,/border:0!important/);assert.match(surfaces,/box-shadow:none!important/);
+  const fill=css.match(/#relic-screen \.relic-item::before,#relic-screen \.relic-feed-choice::before\{([^}]+)\}/)?.[1];
+  assert.ok(fill);assert.match(fill,/inset:8px/);assert.match(fill,/z-index:-1/);assert.match(fill,/background:linear-gradient/);assert.match(fill,/pointer-events:none/);
+  assert.match(css,/#relic-screen \.relic-item:hover::before,#relic-screen \.relic-feed-choice:hover::before\{background:linear-gradient/);
+  assert.match(css,/\.relic-feed-choice.selected::before\{box-shadow:inset/);
+  assert.match(css,/\.relic-feed-choice:focus-visible::before\{outline:2px solid/);
+  assert.match(css,/\.relic-feed-choice.relic-legendary::after\{filter:drop-shadow/);
+  assert.doesNotMatch(css,/border-bottom:[^;}]*var\(--rarity\)/,'old rarity strip must not remain');
+  assert.match(css,/border-image:url\("assets\/relic-card-frame-v1\.webp"\) 90 \/ 15px \/ 0 stretch/);
+  // 512px alpha art has its straight inner rail at 36px of the 90px slice.
+  assert.ok(8>1+36/90*15,'fill begins inside the inner rail, not in the alpha margin');
+});
 test('portrait enhancement panels stack in normal flow and notices stay above the modal',()=>{
   const css=fs.readFileSync(path.join(root,'relics.css'),'utf8'),portrait=css.slice(css.indexOf('@media(orientation:portrait) and (max-width:620px)'));
   assert.match(portrait,/\.relic-feed-body\{display:block;overflow:auto\}/);

@@ -217,8 +217,13 @@ function ariaDrawDevouredEnemyArt(e,v){
   const raid=e.isRaidBoss,minion=e.isBossMinion,size=(raid?(e.raidIndex===0?250:285):(e.r||18)*(minion?4.3:e.boss?2.75:3.05))*v.scale;
   const raidImage=typeof raidBossImages!=='undefined'?raidBossImages[raid?e.raidIndex:1]:null;
   const atlas=typeof zombieSpriteAtlas==='undefined'?null:zombieSpriteAtlas;
+  const species=e.worldMonsterType||e.worldRaidMinionType;
+  const worldSprite=e.worldRaidType&&typeof getWorldBossImage==='function'?getWorldBossImage(e.worldRaidType,e.worldRaidWorld):
+    species&&typeof getWorldMonsterImage==='function'?getWorldMonsterImage(species):null;
   ctx.save();ctx.translate(v.x,v.y);ctx.rotate(Math.sin(e.phase||0)*v.t*.6);ctx.globalAlpha*=v.alpha;ctx.globalCompositeOperation='source-over';
-  if((raid||minion)&&raidImage?.complete&&raidImage.naturalWidth>0){
+  if(worldSprite?.complete&&worldSprite.naturalWidth>0){
+    ctx.imageSmoothingEnabled=true;if(raid)ctx.scale(e.facing<0?-1:1,1);ctx.drawImage(worldSprite,-size/2,-size*(raid?.62:.57),size,size);
+  }else if((raid||minion)&&raidImage?.complete&&raidImage.naturalWidth>0){
     if(raid)ctx.scale(e.facing<0?-1:1,1);ctx.drawImage(raidImage,-size/2,-size*(raid?.62:.57),size,size);
   }else if(atlas?.complete&&atlas.naturalWidth>0){
     const sw=atlas.naturalWidth/2,sh=atlas.naturalHeight;ctx.drawImage(atlas,e.boss?sw:0,0,sw,sh,-size/2,-size*.57,size,size);

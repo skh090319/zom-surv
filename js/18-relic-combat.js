@@ -88,7 +88,11 @@ function relicTagTarget(enemy, source = null, tags = null) {
     context = relicNewAttack(tags || {});
     if (source) relicSourceContexts.set(source, context);
   }
-  relicPendingHits.set(enemy, { ...context, ...(tags || {}) });
+  // Use the incoming projectile side, including return trips, for directional
+  // armor. Non-projectile melee attacks fall back to the current attacker.
+  const origin = source && source !== enemy && Number.isFinite(source.x) && Number.isFinite(source.y)
+    ? {hitOriginX:source.x-(Number.isFinite(source.vx)?source.vx*2:0),hitOriginY:source.y-(Number.isFinite(source.vy)?source.vy*2:0)} : {};
+  relicPendingHits.set(enemy, { ...context, ...origin, ...(tags || {}) });
 }
 function relicTrackEnemy(enemy) {
   if (!enemy || relicEnemyRecords.has(enemy) || !Number.isFinite(enemy.hp)) return;
@@ -188,6 +192,7 @@ function relicResolveDamage(enemy, amount, context) {
   const crit = chance > 0 && context.canCrit !== false && !context.dot && Math.random() < chance;
   let damage = amount * Math.max(0, 1 + relicConditionalDamage(enemy, context, record));
   if (crit) damage *= critMultiplier + (wasBroken && relicHasSet('A08') ? .40 : 0);
+  if (typeof worldMonsterDamageMultiplier === 'function') damage *= worldMonsterDamageMultiplier(enemy,context);
   let hpDamage = damage, shieldDamage = 0;
   if (enemy.relicShield > 0) {
     const shieldMultiplier = Math.max(.01, 1 + relicStat('shieldDamage'));

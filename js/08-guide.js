@@ -126,30 +126,76 @@ function drawAugmentGuide() {
   items.forEach((u,i)=>{const x=sx+(i%cols)*(cardW+gap),y=contentTop+characterHeaderH+Math.floor(i/cols)*(cardH+gap)-guideScrollY;if(y+cardH>=contentTop&&y<=canvas.height)drawGuideAugmentCard(u,x,y,cardW,cardH);});ctx.restore();
 }
 
+function getWorldMonsterGuideSections() {
+  const types=typeof WORLD_MONSTER_TYPES==='object'?Object.values(WORLD_MONSTER_TYPES):[];
+  const names={1:'몰락한 거리',2:'봉쇄된 격리구역',3:'심연의 발원지'};
+  return [1,2,3].map(world=>({world,name:names[world],color:world===1?'#dbb17d':world===2?'#73e36f':'#b99cf8',entries:world===2?monsterGuideEntries.filter(entry=>entry.sprite==='zombie'||entry.tag==='BOSS MINION'):types.filter(entry=>entry.world===world)})).filter(section=>section.entries.length);
+}
+
+function getWorldMonsterGuideLayout(width,top) {
+  // Keep the original archive's generous card width on landscape phones.
+  const gap=16,cols=width<720?1:(width<1080?2:3),w=Math.min(350,(width-48-gap*(cols-1))/cols);
+  const x=width/2-(cols*w+(cols-1)*gap)/2;
+  let cursor=top;
+  const sections=getWorldMonsterGuideSections().map(section=>{
+    const headerY=cursor+17,h=section.world===2?242:282,startY=cursor+37;
+    const cards=section.entries.map((entry,i)=>({entry,x:x+i%cols*(w+gap),y:startY+Math.floor(i/cols)*(h+gap),w,h}));
+    cursor=startY+Math.ceil(section.entries.length/cols)*(h+gap)-gap+34;
+    return {...section,headerY,cards};
+  });
+  return {sections,bottom:cursor};
+}
+
+function drawWorldMonsterGuideCard(entry,x,y,w,h) {
+  const accent=entry.color,small=w<280;
+  const gradient=ctx.createLinearGradient(x,y,x+w,y+h);gradient.addColorStop(0,accent+'1b');gradient.addColorStop(1,'rgba(6,10,18,.98)');
+  drawRoundedRect(x,y,w,h,16,gradient,accent+'69',1.25);
+  ctx.save();ctx.beginPath();ctx.rect(x+8,y+8,w-16,h-16);ctx.clip();
+  ctx.textAlign='left';ctx.fillStyle=accent;ctx.font='bold 9px Arial';ctx.fillText(entry.id.toUpperCase().replaceAll('-',' '),x+16,y+22);
+  ctx.fillStyle='#f4f7ff';ctx.font=`900 ${small?18:21}px Arial`;ctx.fillText(entry.name,x+16,y+48);
+  const artW=small?100:125,artH=142,artX=x+w-artW-8,artY=y+59;
+  const glow=ctx.createRadialGradient(artX+artW*.5,artY+artH*.52,4,artX+artW*.5,artY+artH*.52,artH*.53);glow.addColorStop(0,accent+'22');glow.addColorStop(1,accent+'00');
+  ctx.fillStyle=glow;ctx.fillRect(artX-8,artY-8,artW+16,artH+16);
+  const image=typeof getWorldMonsterImage==='function'?getWorldMonsterImage(entry.id):null;
+  if(image?.complete&&image.naturalWidth){const sc=Math.min(artW/image.naturalWidth,artH/image.naturalHeight);ctx.drawImage(image,artX+(artW-image.naturalWidth*sc)/2,artY+(artH-image.naturalHeight*sc)/2,image.naturalWidth*sc,image.naturalHeight*sc);}
+  ctx.fillStyle='#bdc9dc';ctx.font=`${small?11:12}px Arial`;wrapTextLeft(entry.desc,x+16,y+77,w-artW-35,18);
+  ctx.strokeStyle=accent+'35';ctx.beginPath();ctx.moveTo(x+16,y+199);ctx.lineTo(x+w-16,y+199);ctx.stroke();
+  ctx.fillStyle=accent;ctx.font='bold 11px Arial';ctx.fillText('생존 요령',x+16,y+219);
+  const tips=Array.isArray(entry.tips)?entry.tips:[entry.tips];
+  for(let i=0;i<Math.min(2,tips.length);i++){ctx.fillStyle=accent;ctx.fillText('◆',x+16,y+239+i*20);ctx.fillStyle='#d1dcec';ctx.font=`${small?10:11}px Arial`;if(tips.length===1)wrapTextLeft(tips[i],x+31,y+239,w-47,15);else ctx.fillText(tips[i],x+31,y+239+i*20,w-47);}
+  ctx.restore();
+}
+
+function getWorldRaidBossGuideEntries() {
+  const legacy=monsterGuideEntries.filter(entry=>entry.tag.startsWith('BOSS 0')).map(entry=>({...entry,guideWorld:2,tag:'2세계 · '+entry.tag}));
+  if(typeof WORLD_RAID_BOSS_TYPES!=='object')return legacy;
+  const worldEntries=world=>(WORLD_RAID_BOSS_TYPES[world]||[]).map(entry=>({name:entry.name,tag:`${world}세계 · BOSS ${String(entry.index+1).padStart(2,'0')} · ${entry.subtitle}`,color:entry.color,worldBossType:entry.id,guideWorld:world,spriteIndex:entry.index,desc:entry.desc,tips:Array.isArray(entry.tips)?entry.tips:[entry.tips]}));
+  return [...worldEntries(1),...legacy,...worldEntries(3)];
+}
+
 function drawMonsterGuide() {
-  const top=guideSectionTop,gap=16;
-  const normalEntries=monsterGuideEntries.filter(entry=>entry.sprite==="zombie"||entry.tag==="BOSS MINION");
-  const bossEntries=monsterGuideEntries.filter(entry=>entry.tag.startsWith("BOSS 0"));
-  const normalCols=canvas.width<720?1:(canvas.width<1080?2:3),normalW=Math.min(350,(canvas.width-48-gap*(normalCols-1))/normalCols),normalH=242;
-  const normalRows=Math.ceil(normalEntries.length/normalCols),normalSectionH=normalRows*(normalH+gap)-gap;
-  const bossW=Math.min(960,canvas.width-48),bossH=326,bossGap=48,bossHeaderSpace=82,bossStart=top+normalSectionH+bossHeaderSpace;
-  const contentH=normalSectionH+bossHeaderSpace+bossEntries.length*(bossH+bossGap)-bossGap;
+  const top=guideSectionTop,gap=16,layout=getWorldMonsterGuideLayout(canvas.width,top);
+  const normalCards=layout.sections.flatMap(section=>section.cards);
+  const bossEntries=getWorldRaidBossGuideEntries();
+  const bossW=Math.min(960,canvas.width-48),bossH=326,bossGap=48,bossStart=layout.bottom+54;
+  const contentH=bossStart-top+bossEntries.length*(bossH+bossGap)-bossGap;
   guideContentTop=top;guideScrollMax=Math.max(0,contentH-(canvas.height-top-20));guideScrollY=Math.min(guideScrollY,guideScrollMax);
-  const normalX=canvas.width/2-(normalCols*normalW+(normalCols-1)*gap)/2,bossX=canvas.width/2-bossW/2;
+  const bossX=canvas.width/2-bossW/2;
   ctx.save();ctx.beginPath();ctx.rect(0,top-5,canvas.width,canvas.height-top+5);ctx.clip();
 
-  normalEntries.forEach((entry,i)=>{const x=normalX+(i%normalCols)*(normalW+gap),y=top+Math.floor(i/normalCols)*(normalH+gap)-guideScrollY;if(y+normalH<top||y>canvas.height)return;const g=ctx.createLinearGradient(x,y,x+normalW,y+normalH);g.addColorStop(0,`${entry.color}18`);g.addColorStop(1,"rgba(7,10,18,.98)");drawRoundedRect(x,y,normalW,normalH,18,g,`${entry.color}70`,1.4);
+  for(const section of layout.sections){const y=section.headerY-guideScrollY;if(y<top-10||y>canvas.height+10)continue;const x=section.cards[0].x;ctx.textAlign='left';ctx.fillStyle=section.color;ctx.font='900 14px Arial';ctx.fillText(`${section.world}세계 · ${section.name}`,x,y);ctx.strokeStyle=section.color+'35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y+9);ctx.lineTo(canvas.width-x,y+9);ctx.stroke();}
+  normalCards.forEach(card=>{const {entry,x,w:normalW,h:normalH}=card,y=card.y-guideScrollY;if(y+normalH<top||y>canvas.height)return;if(entry.world){drawWorldMonsterGuideCard(entry,x,y,normalW,normalH);return;}const g=ctx.createLinearGradient(x,y,x+normalW,y+normalH);g.addColorStop(0,`${entry.color}18`);g.addColorStop(1,"rgba(7,10,18,.98)");drawRoundedRect(x,y,normalW,normalH,18,g,`${entry.color}70`,1.4);
     ctx.fillStyle=entry.color;ctx.font="bold 10px Arial";ctx.textAlign="left";ctx.fillText(entry.tag,x+17,y+23);ctx.fillStyle="#f5f7ff";ctx.font="900 21px Arial";ctx.fillText(entry.name,x+17,y+50);
     const imageX=x+normalW-111,imageY=y+16;ctx.save();ctx.beginPath();ctx.arc(imageX+45,imageY+45,43,0,Math.PI*2);ctx.clip();ctx.fillStyle="rgba(2,5,11,.88)";ctx.fillRect(imageX,imageY,90,90);if(entry.sprite==="zombie"&&zombieSpriteAtlas.complete&&zombieSpriteAtlas.naturalWidth){const sw=zombieSpriteAtlas.naturalWidth/2,sh=zombieSpriteAtlas.naturalHeight;ctx.drawImage(zombieSpriteAtlas,entry.spriteIndex*sw,0,sw,sh,imageX+7,imageY+7,76,76);}else{const img=raidBossImages[entry.spriteIndex];if(img?.complete&&img.naturalWidth){const sc=Math.min(80/img.naturalWidth,80/img.naturalHeight);ctx.drawImage(img,imageX+45-img.naturalWidth*sc/2,imageY+45-img.naturalHeight*sc/2,img.naturalWidth*sc,img.naturalHeight*sc);}}ctx.restore();ctx.strokeStyle=entry.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(imageX+45,imageY+45,43,0,Math.PI*2);ctx.stroke();
-    ctx.fillStyle="#b9c5d7";ctx.font="12px Arial";wrapTextLeft(entry.desc,x+17,y+80,normalW-142,19);ctx.strokeStyle=`${entry.color}38`;ctx.beginPath();ctx.moveTo(x+17,y+132);ctx.lineTo(x+normalW-17,y+132);ctx.stroke();ctx.fillStyle=entry.color;ctx.font="bold 12px Arial";ctx.fillText("생존 요령",x+17,y+156);entry.tips.forEach((tip,n)=>{ctx.fillStyle=entry.color;ctx.fillText("◆",x+19,y+184+n*25);ctx.fillStyle="#ced6e4";ctx.font="12px Arial";ctx.fillText(tip,x+39,y+184+n*25);});
+    ctx.fillStyle="#b9c5d7";ctx.font="12px Arial";wrapTextLeft(entry.desc,x+17,y+80,normalW-142,19);ctx.strokeStyle=`${entry.color}38`;ctx.beginPath();ctx.moveTo(x+17,y+132);ctx.lineTo(x+normalW-17,y+132);ctx.stroke();ctx.fillStyle=entry.color;ctx.font="bold 12px Arial";ctx.fillText("생존 요령",x+17,y+156);entry.tips.forEach((tip,n)=>{ctx.fillStyle=entry.color;ctx.fillText("◆",x+19,y+184+n*25);ctx.fillStyle="#ced6e4";ctx.font="12px Arial";ctx.fillText(tip,x+39,y+184+n*25,normalW-56);});
   });
 
-  const bossTitleY=bossStart-40-guideScrollY;if(bossTitleY>top-30&&bossTitleY<canvas.height+20){const archiveLabel="RAID BOSS ARCHIVE";ctx.textAlign="left";ctx.fillStyle="#ff6d82";ctx.font="900 13px Arial";ctx.fillText(archiveLabel,bossX,bossTitleY);const archiveLabelWidth=ctx.measureText(archiveLabel).width;ctx.fillStyle="rgba(225,232,246,.58)";ctx.font="11px Arial";ctx.fillText("강력 개체 상세 분석",bossX+archiveLabelWidth+24,bossTitleY);}
+  const bossTitleY=bossStart-40-guideScrollY;if(bossTitleY>top-30&&bossTitleY<canvas.height+20){const archiveLabel="RAID BOSS ARCHIVE";ctx.textAlign="left";ctx.fillStyle="#ff6d82";ctx.font="900 13px Arial";ctx.fillText(archiveLabel,bossX,bossTitleY);const archiveLabelWidth=ctx.measureText(archiveLabel).width;ctx.fillStyle="rgba(225,232,246,.58)";ctx.font="11px Arial";ctx.fillText("세계별 강력 개체 상세 분석",bossX+archiveLabelWidth+24,bossTitleY);}
   bossEntries.forEach((entry,i)=>{const x=bossX,y=bossStart+i*(bossH+bossGap)-guideScrollY;if(y+bossH<top||y>canvas.height)return;
     const artW=Math.min(360,bossW*.43),cx=x+artW/2,cy=y+bossH/2-6;const aura=ctx.createRadialGradient(cx,cy,12,cx,cy,artW*.54);aura.addColorStop(0,`${entry.color}72`);aura.addColorStop(.48,`${entry.color}25`);aura.addColorStop(1,`${entry.color}00`);ctx.fillStyle=aura;ctx.fillRect(x-10,y,artW+20,bossH);ctx.save();ctx.translate(cx,cy);ctx.shadowColor=entry.color;ctx.shadowBlur=12;ctx.strokeStyle=`${entry.color}68`;ctx.lineWidth=1.7;for(let ring=0;ring<4;ring++){ctx.beginPath();ctx.ellipse(0,99-ring*9,artW*.43-ring*15,24-ring*4,0,0,Math.PI*2);ctx.stroke();}ctx.restore();
     const particleTime=performance.now()*.001;ctx.save();ctx.globalCompositeOperation="screen";for(let particle=0;particle<15;particle++){const lane=(particle*7)%15,px=x+artW*(.06+lane/16)+Math.sin(particleTime*(.55+particle*.018)+particle*2.1)*12,travel=(particleTime*(15+particle%4*3)+particle*47)%(bossH-42),py=y+bossH-18-travel,size=1.4+(particle%4)*.65,alphaHex=particle%3===0?"cc":"86";ctx.fillStyle=`${entry.color}${alphaHex}`;ctx.shadowColor=entry.color;ctx.shadowBlur=particle%3===0?12:7;if(particle%3===0){ctx.beginPath();ctx.moveTo(px,py-size*2.2);ctx.lineTo(px+size*.75,py-size*.45);ctx.lineTo(px+size*2,py);ctx.lineTo(px+size*.75,py+size*.45);ctx.lineTo(px,py+size*2.2);ctx.lineTo(px-size*.75,py+size*.45);ctx.lineTo(px-size*2,py);ctx.lineTo(px-size*.75,py-size*.45);ctx.closePath();ctx.fill();}else{ctx.beginPath();ctx.arc(px,py,size,0,Math.PI*2);ctx.fill();}}ctx.restore();
-    const img=raidBossImages[entry.spriteIndex];if(img?.complete&&img.naturalWidth){const maxW=artW*.9,maxH=bossH*.9,sc=Math.min(maxW/img.naturalWidth,maxH/img.naturalHeight),drawW=img.naturalWidth*sc,drawH=img.naturalHeight*sc,platformY=cy+99;ctx.save();ctx.shadowColor=entry.color;ctx.shadowBlur=34;ctx.drawImage(img,cx-drawW/2,platformY-drawH+4,drawW,drawH);ctx.restore();}
-    const tx=x+artW+42,tw=bossW-artW-66;ctx.textAlign="left";ctx.fillStyle=entry.color;ctx.shadowColor=entry.color;ctx.shadowBlur=8;ctx.font="bold 11px Arial";ctx.fillText(entry.tag,tx,y+52);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font="900 31px Arial";ctx.fillText(entry.name,tx,y+92);ctx.fillStyle="#c5cede";ctx.font="14px Arial";wrapTextLeft(entry.desc,tx,y+134,tw,23);ctx.strokeStyle=`${entry.color}4c`;ctx.beginPath();ctx.moveTo(tx,y+202);ctx.lineTo(x+bossW-12,y+202);ctx.stroke();ctx.fillStyle=entry.color;ctx.font="bold 12px Arial";ctx.fillText("생존 요령",tx,y+230);entry.tips.forEach((tip,n)=>{ctx.fillStyle=entry.color;ctx.fillText("◆",tx+2,y+262+n*29);ctx.fillStyle="#e0e6f0";ctx.font="13px Arial";ctx.fillText(tip,tx+23,y+262+n*29);});if(i<bossEntries.length-1){ctx.strokeStyle="rgba(255,255,255,.09)";ctx.beginPath();ctx.moveTo(x+28,y+bossH+bossGap/2);ctx.lineTo(x+bossW-28,y+bossH+bossGap/2);ctx.stroke();}
+    const img=entry.worldBossType?getWorldBossImage(entry.worldBossType,entry.guideWorld):raidBossImages[entry.spriteIndex];if(img?.complete&&img.naturalWidth){const maxW=artW*.9,maxH=bossH*.9,sc=Math.min(maxW/img.naturalWidth,maxH/img.naturalHeight),drawW=img.naturalWidth*sc,drawH=img.naturalHeight*sc,platformY=cy+99;ctx.save();ctx.shadowColor=entry.color;ctx.shadowBlur=34;ctx.drawImage(img,cx-drawW/2,platformY-drawH+4,drawW,drawH);ctx.restore();}
+    const tx=x+artW+42,tw=bossW-artW-66;ctx.textAlign="left";ctx.fillStyle=entry.color;ctx.shadowColor=entry.color;ctx.shadowBlur=8;ctx.font="bold 11px Arial";ctx.fillText(entry.tag,tx,y+52,tw);ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font="900 31px Arial";ctx.fillText(entry.name,tx,y+92,tw);ctx.fillStyle="#c5cede";ctx.font="14px Arial";wrapTextLeft(entry.desc,tx,y+134,tw,23);ctx.strokeStyle=`${entry.color}4c`;ctx.beginPath();ctx.moveTo(tx,y+202);ctx.lineTo(x+bossW-12,y+202);ctx.stroke();ctx.fillStyle=entry.color;ctx.font="bold 12px Arial";ctx.fillText("생존 요령",tx,y+230);entry.tips.forEach((tip,n)=>{ctx.fillStyle=entry.color;ctx.fillText("◆",tx+2,y+262+n*29);ctx.fillStyle="#e0e6f0";ctx.font="13px Arial";if(entry.tips.length===1)wrapTextLeft(tip,tx+23,y+262,tw-23,17);else ctx.fillText(tip,tx+23,y+262+n*29,tw-23);});if(i<bossEntries.length-1){ctx.strokeStyle="rgba(255,255,255,.09)";ctx.beginPath();ctx.moveTo(x+28,y+bossH+bossGap/2);ctx.lineTo(x+bossW-28,y+bossH+bossGap/2);ctx.stroke();}
   });ctx.restore();
 }
 

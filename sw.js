@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v107-critical-stats";
+const CACHE_VERSION = "zombie-survival-v108-world-monsters-bosses";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -36,6 +36,7 @@ const CORE_ASSETS = [
   "./js/02-upgrades.js",
   "./js/03-input.js",
   "./js/04-weapons-spawn.js",
+  "./js/04-world-monsters.js",
   "./js/04-yupiter-weapons.js",
   "./js/04-ren.js",
   "./js/04-night-lord.js",
@@ -66,9 +67,12 @@ const CORE_ASSETS = [
   "./js/04-mare-whale.js",
   "./js/04-mare-prestige.js",
   "./js/04-bosses.js",
+  "./js/04-world-bosses.js",
   "./js/05-skills.js",
   "./js/06-entities-update.js",
   "./js/07-world-render.js",
+  "./js/07-world-monsters-render.js",
+  "./js/07-world-bosses-render.js",
   "./js/07-hero-ultimate-background.js",
   "./js/07-fire-trail-polish.js",
   "./js/08-astra-healthbar.js",
