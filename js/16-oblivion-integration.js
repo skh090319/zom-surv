@@ -36,7 +36,7 @@ update=function(){
   oblivionCombatUpdateBase();if(active&&!paused&&!gameOver&&!raidVictory&&!choosingUpgrade){updateOblivionCombat();updateOblivionCombatHud();}
 };
 addEventListener('keydown',e=>{
-  const key=e.key.toLowerCase();if(selectedCharacter!=='oblivion'||!['q','e','x','r'].includes(key)||screenMode!=='game'||paused||gameOver||raidVictory||choosingUpgrade||isMobilePortraitMode())return;
+  const key=typeof resolveSkillInputKey==='function'?resolveSkillInputKey(e):e.key.toLowerCase();if(selectedCharacter!=='oblivion'||!['q','e','x','r'].includes(key)||screenMode!=='game'||paused||gameOver||raidVictory||choosingUpgrade||isMobilePortraitMode())return;
   e.stopImmediatePropagation();if(e.repeat)return;({q:activateOblivionQ,e:activateOblivionE,x:activateOblivionX,r:activateOblivionR})[key]();
 },true);
 const oblivionCombatPlayerBase=drawPlayer;

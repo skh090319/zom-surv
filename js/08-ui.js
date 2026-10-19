@@ -90,7 +90,7 @@ function drawHUD() {
     const cooldown = player.yupiterSkillCooldowns[player.yupiterWeapon];
     const cooldownText = cooldown > 0 ? `${(cooldown / 60).toFixed(1)}초` : "준비됨";
     ctx.fillStyle = cooldown > 0 ? "#c7c7d8" : "#7dffb2";
-    ctx.fillText(`남은 공격: ${player.yupiterAttacksRemaining ?? 50} · E: 고유 기술 (${cooldownText})`, x, y);
+    ctx.fillText(`남은 공격: ${player.yupiterAttacksRemaining ?? 50} · ${typeof getSkillHotkey==='function'?getSkillHotkey('E'):'E'}: 고유 기술 (${cooldownText})`, x, y);
     ctx.fillStyle = "white";
     y += gap;
   }
@@ -289,7 +289,7 @@ function drawNightLordInterface() {
       ctx.font = "900 18px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(skill[0], 0, 1);
+      ctx.fillText(typeof getSkillHotkey==='function'?getSkillHotkey(skill[0]):skill[0], 0, 1);
     }
     ctx.restore();
     if (skill[2] > 0) drawCooldownCover(x, y, radius, skill[2] / skill[3], skill[2]);
@@ -355,7 +355,7 @@ function drawZeroInterface() {
     ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.clip();
     const icon = zeroSkillIcons[index];
     if (icon && icon.complete && icon.naturalWidth > 0) { ctx.globalAlpha = skill[2] > 0 ? 0.42 : 1; ctx.drawImage(icon, -radius, -radius, radius * 2, radius * 2); }
-    else { ctx.fillStyle = "#fff"; ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(skill[0], 0, 1); }
+    else { ctx.fillStyle = "#fff"; ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(typeof getSkillHotkey==='function'?getSkillHotkey(skill[0]):skill[0], 0, 1); }
     ctx.restore();
     if (skill[2] > 0) drawCooldownCover(x, y, radius, skill[2] / skill[3], skill[2]);
     drawSkillHudLabel(x, panelY + 91, skill[1], skill[0], "#eadfc7");
@@ -402,7 +402,7 @@ function drawPaladinInterface() {
     ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.clip();
     const icon = paladinSkillIcons[index];
     if (icon && icon.complete && icon.naturalWidth > 0) { ctx.globalAlpha = skill[2] > 0 || locked ? 0.28 : 1; ctx.drawImage(icon, -radius, -radius, radius * 2, radius * 2); }
-    else { ctx.fillStyle = "#fff"; ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(skill[0], 0, 1); }
+    else { ctx.fillStyle = "#fff"; ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(typeof getSkillHotkey==='function'?getSkillHotkey(skill[0]):skill[0], 0, 1); }
     ctx.restore();
     if (skill[2] > 0) drawCooldownCover(x, y, radius, skill[2] / skill[3], skill[2]);
     if (locked) { ctx.fillStyle = "#d6dae0"; ctx.font = "bold 17px Arial"; ctx.textAlign = "center"; ctx.fillText("🔒", x, y + 6); }
@@ -630,7 +630,7 @@ function drawCooldownCover(x, y, radius, ratio, frames) {
 function drawSkillHudLabel(x, nameY, name, key, color = "#eadfc7") {
   ctx.fillStyle = color; ctx.font = "bold 10px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
   ctx.fillText(name, x, nameY);
-  ctx.fillStyle = "#ffffff"; ctx.font = "900 11px Arial"; ctx.fillText(key, x, nameY + 13);
+  ctx.fillStyle = "#ffffff"; ctx.font = "900 11px Arial"; ctx.fillText(typeof getSkillHotkey==='function'?getSkillHotkey(key):key, x, nameY + 13);
 }
 
 function drawYupiterHudLabel(x, y, text) {
@@ -1049,7 +1049,7 @@ function drawHomeScreen() {
 
   // 상단 상태바 / 하단 조작 정보
   ctx.textAlign="left";ctx.fillStyle="#d9e2f4";ctx.font="bold 12px Arial";ctx.fillText("Z/S  //  OPERATIONS",margin,34);ctx.fillStyle="rgba(220,230,248,.46)";ctx.font="11px Arial";ctx.textAlign="right";ctx.fillText(`누적 처치 ${totalZombieKills.toLocaleString()}  ·  생존자 ${info.name}`,canvas.width-margin,34);
-  ctx.textAlign="left";ctx.fillStyle="rgba(218,225,240,.5)";ctx.font="11px Arial";ctx.fillText("WASD  이동     MOUSE  조준·공격     Q E X R  스킬",margin,canvas.height-24);ctx.textAlign="right";ctx.fillText("BUILD 2026.09  ·  ONLINE",canvas.width-margin,canvas.height-24);
+  ctx.textAlign="left";ctx.fillStyle="rgba(218,225,240,.5)";ctx.font="11px Arial";ctx.fillText(typeof desktopControlMode!=='undefined'&&desktopControlMode==='rightClick'?"우클릭  이동     좌클릭  공격     Q W E R  스킬":"WASD  이동     MOUSE  조준·공격     Q E X R  스킬",margin,canvas.height-24);ctx.textAlign="right";ctx.fillText("BUILD 2026.09  ·  ONLINE",canvas.width-margin,canvas.height-24);
   ctx.restore();ctx.textAlign="left";drawHomeDifficultyPicker();
 }
 
@@ -1119,7 +1119,9 @@ function drawCharacterGameplayPreview(id,skillIndex,skillName,x,y,w,h,color){
 }
 
 function drawCharacterDetailOverlay(){
-  if(!characterDetailId)return;const info=characterSkillGuide[characterDetailId]||characterSkillGuide.yupiter;
+  if(!characterDetailId)return;const sourceInfo=characterSkillGuide[characterDetailId]||characterSkillGuide.yupiter;
+  const controlsText=text=>typeof formatSkillControlText==='function'?formatSkillControlText(text,characterDetailId):text;
+  const info={...sourceInfo,passive:controlsText(sourceInfo.passive),skills:sourceInfo.skills.map(skill=>[controlsText(skill[0]),controlsText(skill[1])])};
   ctx.save();ctx.fillStyle="rgba(2,4,10,.88)";ctx.fillRect(0,0,canvas.width,canvas.height);
   const w=Math.min(1040,canvas.width-36),h=Math.min(650,canvas.height-40),x=(canvas.width-w)/2,y=(canvas.height-h)/2;const panel=ctx.createLinearGradient(x,y,x+w,y+h);panel.addColorStop(0,"rgba(15,21,36,.99)");panel.addColorStop(1,"rgba(7,9,18,.99)");drawRoundedRect(x,y,w,h,24,panel,info.color,2);
   characterDetailCloseRect={x:x+w-58,y:y+14,w:42,h:42};drawRoundedRect(characterDetailCloseRect.x,characterDetailCloseRect.y,42,42,12,"rgba(255,255,255,.06)","rgba(255,255,255,.18)",1);ctx.fillStyle="#fff";ctx.font="bold 24px Arial";ctx.textAlign="center";ctx.fillText("×",characterDetailCloseRect.x+21,characterDetailCloseRect.y+29);

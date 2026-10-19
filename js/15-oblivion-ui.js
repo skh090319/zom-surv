@@ -67,7 +67,7 @@ function drawOblivionResource(x,y,w,h,compact=false,framed=true){
   oblivionUiText(compact?`오블리비언 · LV.${player.level}`:'오블리비언',tx,y+(compact?14:20),tw,compact?11:17,compact?10:15,true);
   if(!compact){ctx.fillStyle='#a79aaa';oblivionUiText(`LV.${player.level} · 처치 ${player.kills||0}`,tx,y+39,tw,11,11);}
   drawOblivionCollapseGauge(tx,y+(compact?38:65),tw,compact?10:13,compact);
-  if(!compact){ctx.fillStyle='#b9a2b4';oblivionUiText(oblivionState.ultimateTime>0?'게이지 보존 · 재앙의 화신':oblivionEmpowered()?'초당 붕괴 6 소모 · X 재봉인':'붕괴 20 이상 · X 봉인 해제',tx,y+89,tw,10,10);}
+  if(!compact){ctx.fillStyle='#b9a2b4';oblivionUiText(oblivionState.ultimateTime>0?'게이지 보존 · 재앙의 화신':`${oblivionEmpowered()?'초당 붕괴 6 소모':'붕괴 20 이상'} · ${typeof getSkillHotkey==='function'?getSkillHotkey('X'):'X'} ${oblivionEmpowered()?'재봉인':'봉인 해제'}`,tx,y+89,tw,10,10);}
   if(framed)drawOblivionMetalFrame(x,y,w,h);ctx.restore();
 }
 function getOblivionDesktopHudLayout(){
@@ -92,7 +92,7 @@ function drawOblivionSkillSocket(sk,mobile=false){
   if(locked){ctx.fillStyle='#08060de0';ctx.beginPath();ctx.arc(x,y,r-2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f5e7f0';ctx.font=`bold ${mobile?11:12}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(mobile?'10레벨':'LV.10',x,y);}
   if(!oblivionUiImage(oblivionCombatArt.skillFrame,x-r*1.12,y-r*1.12,r*2.24)){ctx.strokeStyle='#b8aabd';ctx.lineWidth=1.8;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();}
   if(active){ctx.strokeStyle='#ff708f';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,r*1.03,-Math.PI/2,-Math.PI/2+Math.PI*2*(key==='r'?oblivionState.ultimateTime/(oblivionState.ultimateMax||600):1));ctx.stroke();}
-  if(!mobile){ctx.fillStyle='#140a16';ctx.strokeStyle='#ad879e';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x-r+1,y+r-10,18,18,3);ctx.fill();ctx.stroke();ctx.fillStyle='#f6dfe9';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(key.toUpperCase(),x-r+10,y+r-1);ctx.fillStyle='#e5d7e3';oblivionUiText(OBLIVION_SKILL_NAMES[key],x,sk.labelY,sk.width,12,11,true);}
+  if(!mobile){ctx.fillStyle='#140a16';ctx.strokeStyle='#ad879e';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x-r+1,y+r-10,18,18,3);ctx.fill();ctx.stroke();ctx.fillStyle='#f6dfe9';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(typeof getSkillHotkey==='function'?getSkillHotkey(key):key.toUpperCase(),x-r+10,y+r-1);ctx.fillStyle='#e5d7e3';oblivionUiText(OBLIVION_SKILL_NAMES[key],x,sk.labelY,sk.width,12,11,true);}
   ctx.restore();
 }
 drawOblivionInterface=function(){

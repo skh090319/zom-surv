@@ -51,8 +51,9 @@ update=function(){
 const lushMoveBase=updatePlayer;
 updatePlayer=function(){const speed=player.speed;if(selectedCharacter==='lush'&&lushState.failureTime>0)player.speed*=1+Math.min(3,upgradeCount.lushRecovery||0)*.08;try{return lushMoveBase();}finally{player.speed=speed;}};
 addEventListener('keydown',e=>{
-  if(selectedCharacter!=='lush'||!['q','e','x','r'].includes(e.key.toLowerCase())||screenMode!=='game'||paused||gameOver||raidVictory||choosingUpgrade)return;
-  e.stopImmediatePropagation();if(e.repeat)return;({q:activateLushQ,e:activateLushE,x:activateLushX,r:activateLushR})[e.key.toLowerCase()]();
+  const key=typeof resolveSkillInputKey==='function'?resolveSkillInputKey(e):e.key.toLowerCase();
+  if(selectedCharacter!=='lush'||!['q','e','x','r'].includes(key)||screenMode!=='game'||paused||gameOver||raidVictory||choosingUpgrade)return;
+  e.stopImmediatePropagation();if(e.repeat)return;({q:activateLushQ,e:activateLushE,x:activateLushX,r:activateLushR})[key]();
 },true);
 const lushPreviewBase=getCharacterPreviewSprite;
 getCharacterPreviewSprite=function(id,thumbnail=false){return id==='lush'?ensureGameImage(thumbnail?lushArt.thumb:lushArt.body,'high'):lushPreviewBase(id,thumbnail);};

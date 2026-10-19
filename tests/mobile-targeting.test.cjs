@@ -553,13 +553,36 @@ test('settings open a category menu and return one level at a time',()=>{
   const g=game();g.run('openMobileSettings();drawMobileControlSettings()');
   assert.equal(g.run('mobileSettingsPage'),'menu');
   const entries=g.run('mobileSettingsCategoryRects');
-  assert.deepEqual(Array.from(entries,c=>c.page),['view','controls']);
+  assert.deepEqual(Array.from(entries,c=>c.page),['view','controls','movement']);
   const entry=entries[1];
   g.touch('touchstart',3,entry.x+40,entry.y+40);g.touch('touchend',3,entry.x+40,entry.y+40);
   assert.equal(g.run('mobileSettingsPage'),'controls');
   g.context.dispatchEvent({type:'keydown',key:'Escape'});
   assert.equal(g.context.screenMode,'mobileSettings');assert.equal(g.run('mobileSettingsPage'),'menu');
   g.context.dispatchEvent({type:'keydown',key:'Escape'});assert.equal(g.context.screenMode,'home');
+});
+
+test('movement preferences are exclusive, persistent and never close the settings page on selection',()=>{
+  const g=game();g.run("openMobileSettings();mobileSettingsPage='movement';drawMobileControlSettings()");
+  const choices=g.run('desktopControlChoiceRects');
+  for(const mode of ['rightClick','wasd']){
+    const choice=choices.find(c=>c.mode===mode);
+    g.touch('touchstart',9,choice.x+40,choice.y+40);g.touch('touchend',9,choice.x+40,choice.y+40);
+    assert.equal(g.run('desktopControlMode'),mode);
+    assert.equal(g.run('loadDesktopControlMode()'),mode);
+    assert.equal(g.run('mobileSettingsPage'),'movement');
+    assert.equal(g.context.screenMode,'mobileSettings');
+  }
+});
+
+test('desktop QWER preference never remaps touch buttons or their aimed skill',()=>{
+  const g=game();g.run("setDesktopControlMode('rightClick')");
+  for(const [key,field] of [['q','mareQCooldown'],['e','mareECooldown'],['x','mareXCooldown']]){
+    g.context.player[field]=0;g.context.player.mareUltimateTime=0;
+    if(key==='x')g.context.zombies.push({id:'wet',x:1100,y:1000,r:20,hp:10000,maxHp:10000,mareWet:2});
+    g.run(`triggerMobileSkill('${key}')`);
+    assert.ok(g.context.player[field]>0,key+' touches the actual skill');
+  }
 });
 
 test('attack, joystick and every skill can move and resize independently',()=>{

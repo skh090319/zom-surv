@@ -4,18 +4,23 @@ function updatePlayer() {
   let dx = 0;
   let dy = 0;
 
-  if (keys["w"]) dy--;
-  if (keys["s"]) dy++;
-  if (keys["a"]) dx--;
-  if (keys["d"]) dx++;
+  const pointMove = typeof desktopControlMode !== 'undefined' && desktopControlMode === 'rightClick';
+  if (!pointMove) {
+    if (keys["w"]) dy--;
+    if (keys["s"]) dy++;
+    if (keys["a"]) dx--;
+    if (keys["d"]) dx++;
+  }
+  let movingToPoint = pointMove && desktopMoveTarget;
+  if (movingToPoint) { dx=desktopMoveTarget.x-player.x;dy=desktopMoveTarget.y-player.y; }
 
   if (typeof getMobileMoveVector === "function") {
     const mobileMove = getMobileMoveVector();
-    if (mobileMove.active) { dx = mobileMove.x; dy = mobileMove.y; }
+    if (mobileMove.active) { dx = mobileMove.x; dy = mobileMove.y; movingToPoint=false;if(pointMove)desktopMoveTarget=null; }
   }
 
   let len = Math.hypot(dx, dy);
-  const moveStrength = Math.min(1, len);
+  const moveStrength = movingToPoint && len>0 ? 1 : Math.min(1, len);
 
   if (player.bossRootTime > 0) {
     dx = 0;
@@ -33,8 +38,15 @@ function updatePlayer() {
   const zeroUltimateSpeed = selectedCharacter === "zero" && player.zeroUltimateTime > 0 ? 1.35 : 1;
   const bossSlowMultiplier = player.bossSlowTime > 0 ? 0.55 : 1;
   const ariaStormSpeed = typeof getAriaMoveMultiplier==="function" ? getAriaMoveMultiplier() : 1;
-  player.x += dx * moveStrength * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier * ariaStormSpeed;
-  player.y += dy * moveStrength * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier * ariaStormSpeed;
+  const whalePointSpeed = movingToPoint && len>0 && selectedCharacter==='mare' && player.mareUltimateTime>0 && player.mareChargeTime<=0 ? 2.8 : 0;
+  const step = moveStrength * player.speed * yupiterUltimateSpeed * nightLordRageSpeed * zeroUltimateSpeed * bossSlowMultiplier * ariaStormSpeed + whalePointSpeed;
+  if (movingToPoint && len>0 && len<=step) {
+    player.x=desktopMoveTarget.x;player.y=desktopMoveTarget.y;desktopMoveTarget=null;
+  } else {
+    player.x += dx * step;
+    player.y += dy * step;
+    if(movingToPoint&&len===0&&player.bossRootTime<=0)desktopMoveTarget=null;
+  }
 
   player.x = Math.max(player.r, Math.min(WORLD.width - player.r, player.x));
   player.y = Math.max(player.r, Math.min(WORLD.height - player.r, player.y));

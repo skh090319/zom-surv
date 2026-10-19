@@ -1,11 +1,67 @@
 // 키보드, 마우스, 화면 크기 입력 처리
 
+let desktopControlMode = loadDesktopControlMode();
+let desktopMoveTarget = null;
+function loadDesktopControlMode() {
+  try { return localStorage.getItem('zombieSurvivalDesktopControls') === 'rightClick' ? 'rightClick' : 'wasd'; } catch(error) { return 'wasd'; }
+}
+function setDesktopControlMode(mode) {
+  desktopControlMode = mode === 'rightClick' ? 'rightClick' : 'wasd';
+  desktopMoveTarget = null; mouse.down = false;
+  for (const key of Object.keys(keys)) keys[key] = false;
+  try { localStorage.setItem('zombieSurvivalDesktopControls', desktopControlMode); } catch(error) {}
+}
+function getDesktopSkillOrder(character = selectedCharacter) {
+  if (character === 'ren') return ['q','x','e','r'];
+  if (character === 'yupiter') return ['e','r'];
+  if (character === 'echo') return ['q','e','r'];
+  if (character === 'carmilla') return ['q'];
+  return ['q','e','x','r'];
+}
+function getSkillHotkey(key, character = selectedCharacter) {
+  const internal = String(key).toLowerCase();
+  if (!['q','e','x','r'].includes(internal)) return key;
+  if (desktopControlMode !== 'rightClick') return internal.toUpperCase();
+  if (internal === 'r') return 'R';
+  const index = getDesktopSkillOrder(character).filter(k=>k!=='r').indexOf(internal);
+  return index < 0 ? key : ['Q','W','E'][index];
+}
+function resolveSkillInputKey(event) {
+  // Touch buttons carry their actual skill ID, independent of desktop bindings.
+  if (event.gameSkillKey) return event.gameSkillKey;
+  const key = event.key.toLowerCase();
+  if (desktopControlMode !== 'rightClick') return key;
+  if (['q','w','e','r','x'].includes(key)) return getDesktopSkillOrder().find(skill=>getSkillHotkey(skill).toLowerCase()===key) || '';
+  return key;
+}
+function formatSkillControlText(text, character = selectedCharacter) {
+  return String(text).replace(/\b[QEXR]\b/g,key=>getSkillHotkey(key,character));
+}
+function setDesktopMoveTarget(event) {
+  if (desktopControlMode !== 'rightClick' || screenMode !== 'game' || paused || gameOver || choosingUpgrade || (typeof raidVictory!=='undefined'&&raidVictory)) return false;
+  const rect = canvas.getBoundingClientRect(), scale = getWorldViewScale();
+  const x = (event.clientX-rect.left)*canvas.width/rect.width/scale+camera.x;
+  const y = (event.clientY-rect.top)*canvas.height/rect.height/scale+camera.y;
+  desktopMoveTarget = {x:Math.max(player.r,Math.min(WORLD.width-player.r,x)),y:Math.max(player.r,Math.min(WORLD.height-player.r,y)),at:performance.now()};
+  event.preventDefault();
+  return true;
+}
+function drawDesktopMoveTarget() {
+  if (desktopControlMode!=='rightClick'||!desktopMoveTarget) return;
+  const scale=getWorldViewScale(),x=(desktopMoveTarget.x-camera.x)*scale,y=(desktopMoveTarget.y-camera.y)*scale;
+  const age=(performance.now()-desktopMoveTarget.at)/1000,r=9+Math.max(0,1-age*3)*10;
+  ctx.save();ctx.strokeStyle='rgba(135,231,218,.78)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(x,y,r,r*.55,0,0,Math.PI*2);ctx.stroke();
+  for(let i=0;i<4;i++){const a=i*Math.PI/2;ctx.beginPath();ctx.moveTo(x+Math.cos(a)*4,y+Math.sin(a)*4);ctx.lineTo(x+Math.cos(a)*7,y+Math.sin(a)*7);ctx.stroke();}
+  ctx.restore();
+}
+
 addEventListener("keydown", e => {
-  const key = e.key.toLowerCase();
+  const key = resolveSkillInputKey(e);
   if(typeof runResultsIsOpen==='function'&&runResultsIsOpen())return;
 
   if(homeDifficultyOpen&&key==="escape"){homeDifficultyOpen=false;return;}
-  keys[key] = true;
+  keys[e.key.toLowerCase()] = true;
 
   if (screenMode === "character" && characterDetailId && key === "escape") {
     characterDetailId = null;
@@ -106,6 +162,7 @@ canvas.addEventListener("mousemove", e => {
 
 
 canvas.addEventListener("mousedown", event => {
+  if (event.button === 2 && setDesktopMoveTarget(event)) return;
   if (event.button === 2 && screenMode === "character") {
     event.preventDefault();
     for (const card of characterCards) {
@@ -279,6 +336,7 @@ canvas.addEventListener("mousedown", event => {
 });
 
 canvas.addEventListener("contextmenu", event => {
+  if (desktopControlMode==='rightClick'&&screenMode==='game') { event.preventDefault(); return; }
   if (screenMode !== "character") return;
   event.preventDefault();
   const point = { x: event.clientX, y: event.clientY };
@@ -307,6 +365,11 @@ canvas.addEventListener("wheel", e => {
 
 canvas.addEventListener("mouseup", () => {
   mouse.down = false;
+});
+
+addEventListener('blur',()=>{
+  desktopMoveTarget=null;mouse.down=false;
+  for(const key of Object.keys(keys))keys[key]=false;
 });
 
 addEventListener("resize", () => {

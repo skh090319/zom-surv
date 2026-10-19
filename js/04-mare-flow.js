@@ -28,6 +28,9 @@ updateMare=function(){
       if(mobileWhale){
         const length=move?.active?Math.hypot(move.x,move.y):0;
         if(length>.08){a=Math.atan2(move.y,move.x);advance=true;mouse.worldX=player.x+Math.cos(a)*600;mouse.worldY=player.y+Math.sin(a)*600;}
+      }else if(typeof desktopControlMode!=='undefined'&&desktopControlMode==='rightClick'){
+        // Point-move owns translation and arrival; hovering the cursor cannot restart it.
+        if(desktopMoveTarget)a=Math.atan2(desktopMoveTarget.y-player.y,desktopMoveTarget.x-player.x);
       }else{a=Math.atan2(mouse.worldY-player.y,mouse.worldX-player.x);advance=Math.hypot(mouse.worldX-player.x,mouse.worldY-player.y)>45;}
       player.mareUltimateAngle=a;
       if(advance){player.x=Math.max(player.r,Math.min(WORLD.width-player.r,player.x+Math.cos(a)*2.8));player.y=Math.max(player.r,Math.min(WORLD.height-player.r,player.y+Math.sin(a)*2.8));}

@@ -29,6 +29,7 @@ function draw() {
   }
 
   drawBackground();
+  if(typeof drawDesktopMoveTarget==='function')drawDesktopMoveTarget();
   drawRaidArena();
   drawStickyZones();
   drawFireTrails();
@@ -366,6 +367,7 @@ function restart() {
 
   // 입력 상태 초기화
   mouse.down = false;
+  if(typeof desktopMoveTarget!=='undefined')desktopMoveTarget=null;
 
   for (const key of Object.keys(keys)) {
     keys[key] = false;

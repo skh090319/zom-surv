@@ -127,7 +127,7 @@ drawAriaInterface=function(){
     const skill=box.skills[i],cd=player['aria'+skill.key.toUpperCase()+'Cooldown']||0;drawMobileIcon({atlas:ariaSkillIconAtlas,index:i},skill.x,skill.y,skill.r);if(cd>0)drawCooldownCover(skill.x,skill.y,skill.r,cd/cooldowns[i],cd);drawAriaSkillFrame(skill.x,skill.y,skill.r);
     ctx.textAlign='center';ctx.textBaseline='middle';
     if(skill.key==='r'&&player.level<10){ctx.fillStyle='rgba(4,17,23,.8)';ctx.beginPath();ctx.arc(skill.x,skill.y,skill.r*.91,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff2df';ctx.font='bold 11px Arial';ctx.fillText('10레벨',skill.x,skill.y);}
-    ctx.fillStyle='#142d2b';ctx.strokeStyle='#c69f85';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(skill.x+15,skill.y+19,18,18,4);ctx.fill();ctx.stroke();ctx.fillStyle='#fff1da';ctx.font='bold 11px Arial';ctx.fillText(skill.key.toUpperCase(),skill.x+24,skill.y+28);
+    ctx.fillStyle='#142d2b';ctx.strokeStyle='#c69f85';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(skill.x+15,skill.y+19,18,18,4);ctx.fill();ctx.stroke();ctx.fillStyle='#fff1da';ctx.font='bold 11px Arial';ctx.fillText(typeof getSkillHotkey==='function'?getSkillHotkey(skill.key):skill.key.toUpperCase(),skill.x+24,skill.y+28);
     ctx.fillStyle='#eadfd6';ariaHudText(ARIA_PRESTIGE_NAMES[skill.key],skill.x,skill.labelY,skill.width,11,10,true);
   }
   drawAriaPanelFrame(box.x,box.y,box.w,box.h);ctx.restore();

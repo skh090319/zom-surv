@@ -39,6 +39,7 @@ function drawMobileEditableHud(id,draw){
   try{return draw();}finally{ctx.restore();}
 }
 let mobileSettingsCategoryRects = [];
+let desktopControlChoiceRects = [];
 let mobileSettingsTargetRects = [];
 let mobileSettingsMinusRect = {x:0,y:0,w:0,h:0};
 let mobileSettingsPlusRect = {x:0,y:0,w:0,h:0};
@@ -124,6 +125,7 @@ function moveMobileSettingControl(gesture,p){
 }
 
 function resetMobileSettingsPage(){
+  if(mobileSettingsPage==='movement'){setDesktopControlMode('wasd');return;}
   if(mobileSettingsPage==="view")setMobileViewZoom(1);
   else if(mobileSettingsPage==="controls"){
     const hud=mobileSettingsEditGroup==='hud'?null:mobileControlSettings.hud;
@@ -144,6 +146,12 @@ function handleMobileSettingsTap(p){
     const entry=mobileSettingsCategoryRects.find(rect=>pointInRect(p.x,p.y,rect));
     if(entry){mobileSettingsPage=entry.page;mobileSettingsTarget="joystick";resetMobileSettingsGestures();}
     return !!entry;
+  }
+  if(mobileSettingsPage==='movement'){
+    if(pointInRect(p.x,p.y,mobileSettingsResetRect)){setDesktopControlMode('wasd');return true;}
+    const choice=desktopControlChoiceRects.find(rect=>pointInRect(p.x,p.y,rect));
+    if(choice){setDesktopControlMode(choice.mode);return true;}
+    return false;
   }
   if(pointInRect(p.x,p.y,mobileSettingsResetRect)){resetMobileSettingsPage();return true;}
   const delta=pointInRect(p.x,p.y,mobileSettingsMinusRect)?-.1:pointInRect(p.x,p.y,mobileSettingsPlusRect)?.1:0;
@@ -213,17 +221,34 @@ function drawMobileSettingsHeader(title,subtitle){
 }
 
 function drawMobileSettingsMenu(){
-  drawMobileSettingsHeader("모바일 설정","조절할 항목을 선택하세요 · 변경사항은 자동 저장됩니다");
-  const gap=18,w=Math.min(320,(canvas.width-54)/2),h=Math.min(170,canvas.height-112),y=80+(canvas.height-80-h)/2;
+  drawMobileSettingsHeader("조작 설정","조절할 항목을 선택하세요 · 변경사항은 자동 저장됩니다");
+  const gap=14,w=Math.min(300,(canvas.width-60)/3),h=Math.min(170,canvas.height-112),y=80+(canvas.height-80-h)/2;
   const entries=[{page:"view",title:"화면 크기",icon:"−  /  +",subtitle:"두 손가락 또는 ±로 확대·축소",detail:`현재 배율 ${Math.round(getMobileViewZoom()*100)}%`,color:"#75c9df"},
-    {page:"controls",title:"버튼·UI 편집",icon:"⊕",subtitle:"조작 버튼 · 체력 · 경험치 · 스택",detail:"각각 이동·크기 조절 · 실행 취소",color:"#b99ada"}];
-  mobileSettingsCategoryRects=entries.map((entry,i)=>({...entry,x:(canvas.width-w*2-gap)/2+i*(w+gap),y,w,h}));
+    {page:"controls",title:"버튼·UI 편집",icon:"⊕",subtitle:"조작 버튼 · 체력 · 경험치 · 스택",detail:"각각 이동·크기 조절 · 실행 취소",color:"#b99ada"},
+    {page:'movement',title:'이동 방식',icon:'⌨  /  ↗',subtitle:'WASD 또는 우클릭 이동',detail:typeof desktopControlMode!=='undefined'&&desktopControlMode==='rightClick'?'현재 우클릭 · 스킬 QWER':'현재 WASD · 스킬 QEXR',color:'#8ed2b7'}];
+  mobileSettingsCategoryRects=entries.map((entry,i)=>({...entry,x:(canvas.width-w*3-gap*2)/2+i*(w+gap),y,w,h}));
   for(const rect of mobileSettingsCategoryRects){
     drawRoundedRect(rect.x,rect.y,w,h,10,"rgba(12,24,34,.95)",rect.color,1.4);
     ctx.textAlign="center";ctx.fillStyle=rect.color;ctx.font="25px Arial";ctx.fillText(rect.icon,rect.x+w/2,y+35);
-    ctx.fillStyle="#f1f6fb";ctx.font="bold 21px Arial";ctx.fillText(rect.title,rect.x+w/2,y+68);
-    ctx.fillStyle="#bccbd7";ctx.font="12px Arial";ctx.fillText(rect.subtitle,rect.x+w/2,y+96);
-    ctx.fillStyle="#8098aa";ctx.font="11px Arial";ctx.fillText(rect.detail,rect.x+w/2,y+121);
+    ctx.fillStyle="#f1f6fb";ctx.font="bold 21px Arial";ctx.fillText(rect.title,rect.x+w/2,y+68,w-18);
+    ctx.fillStyle="#bccbd7";ctx.font="12px Arial";ctx.fillText(rect.subtitle,rect.x+w/2,y+96,w-18);
+    ctx.fillStyle="#8098aa";ctx.font="11px Arial";ctx.fillText(rect.detail,rect.x+w/2,y+121,w-18);
+  }
+}
+
+function drawDesktopControlSettings(){
+  drawMobileSettingsHeader('이동 방식','PC 조작 방식은 둘 중 하나만 적용됩니다 · 모바일 터치 조작은 유지됩니다');
+  const gap=20,w=Math.min(360,(canvas.width-60)/2),h=Math.min(200,canvas.height-120),y=80+(canvas.height-80-h)/2;
+  desktopControlChoiceRects=[{mode:'wasd',title:'WASD 이동',icon:'W A S D',skills:'스킬  Q · E · X · R',description:'키보드로 이동 · 마우스로 조준·공격'},
+    {mode:'rightClick',title:'우클릭 이동',icon:'↗',skills:'스킬  Q · W · E · R',description:'우클릭한 좌표로 이동 · 좌클릭 공격'}].map((entry,i)=>({...entry,x:(canvas.width-w*2-gap)/2+i*(w+gap),y,w,h}));
+  for(const rect of desktopControlChoiceRects){
+    const active=desktopControlMode===rect.mode;
+    drawRoundedRect(rect.x,y,w,h,12,active?'#183d3c':'#101e2b',active?'#8ce5cb':'#4b5e72',active?2:1);
+    ctx.textAlign='center';ctx.fillStyle=active?'#b8ffe8':'#879daf';ctx.font='bold 23px Arial';ctx.fillText(rect.icon,rect.x+w/2,y+38,w-24);
+    ctx.fillStyle='#f2f7fc';ctx.font='bold 23px Arial';ctx.fillText(rect.title,rect.x+w/2,y+74,w-24);
+    ctx.fillStyle='#c6d6e2';ctx.font='13px Arial';ctx.fillText(rect.description,rect.x+w/2,y+104,w-24);
+    ctx.fillStyle=active?'#b8ffe8':'#92a7b9';ctx.font='bold 15px Arial';ctx.fillText(rect.skills,rect.x+w/2,y+133,w-24);
+    ctx.font='bold 12px Arial';ctx.fillText(active?'사용 중':'클릭하여 선택',rect.x+w/2,y+h-18,w-24);
   }
 }
 
@@ -302,7 +327,7 @@ function drawMobileControlSettings(){
   if(mobileSettingsPage==="view")drawMobileViewSettings();
   else{
     drawMenuBackdrop(.76);ctx.fillStyle="rgba(3,9,15,.85)";ctx.fillRect(0,0,canvas.width,canvas.height);
-    if(mobileSettingsPage==="menu")drawMobileSettingsMenu();else drawMobileControlEditor();
+    if(mobileSettingsPage==="menu")drawMobileSettingsMenu();else if(mobileSettingsPage==='movement')drawDesktopControlSettings();else drawMobileControlEditor();
   }
   ctx.restore();
 }

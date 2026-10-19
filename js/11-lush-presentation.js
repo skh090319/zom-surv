@@ -131,7 +131,7 @@ function drawLushResource(x,y,w,h,compact=false,framed=true){
   lushHudText(`${compact?'자산':'총자산'} ${assets} · ${compact?'T':'TIER '}${tier} · 피해 +${lushHudNumber((s.totalAssets||0)*.5)}%`,tx,y+h/2-(compact?14:24),width,compact?11:14,compact?10:12,true);
   ctx.fillStyle='#f5d4b0';lushHudText(`칩 ${lushHudNumber(s.chips)} · 판돈 ${lushHudNumber(s.pot)} · ${s.wins}/4연승`,tx,y+h/2,width,compact?11:12,compact?10:11);
   const message=s.bet?'주사위 판정 중…':s.messageTime?s.message:`E ${chance}% · X ${s.pot?'판돈 정산':'보호막'}`;
-  ctx.fillStyle=s.bet?'#ffc18d':'#dca7b4';lushHudText(message,tx,y+h/2+(compact?14:24),width,compact?10:12,compact?10:11);if(framed)drawLushResourceFrame(x,y,w,h);ctx.restore();
+  ctx.fillStyle=s.bet?'#ffc18d':'#dca7b4';lushHudText(typeof formatSkillControlText==='function'?formatSkillControlText(message):message,tx,y+h/2+(compact?14:24),width,compact?10:12,compact?10:11);if(framed)drawLushResourceFrame(x,y,w,h);ctx.restore();
 }
 function getLushDesktopHudLayout(){
   const available=Math.max(240,canvas.width-28),pad=12,insetY=10,innerWidth=available-pad*2;
@@ -153,7 +153,7 @@ function drawLushInterface(){
   for(const [i,sk]of layout.skills.entries()){const {key,x:cx,y:cy,r}=sk;drawMobileIcon({image:lushArt.skills[i]},cx,cy,r);const cd=player['lush'+key+'Cooldown'];if(cd>0)drawCooldownCover(cx,cy,r,cd/LUSH_CD[key],cd);drawLushSkillFrame(cx,cy,r);
     ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
     if(key==='r'&&player.level<10){ctx.fillStyle='#140512cf';ctx.beginPath();ctx.arc(cx,cy,r*.91,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.fillText('10레벨',cx,cy);}
-    ctx.fillStyle='#2b1020';ctx.strokeStyle='#cfab69';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(cx+18,sk.keyY-12,20,20,4);ctx.fill();ctx.stroke();ctx.fillStyle='#fff0c5';ctx.font='bold 12px Arial';ctx.fillText(key.toUpperCase(),cx+28,sk.keyY-2);
+    ctx.fillStyle='#2b1020';ctx.strokeStyle='#cfab69';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(cx+18,sk.keyY-12,20,20,4);ctx.fill();ctx.stroke();ctx.fillStyle='#fff0c5';ctx.font='bold 12px Arial';ctx.fillText(typeof getSkillHotkey==='function'?getSkillHotkey(key):key.toUpperCase(),cx+28,sk.keyY-2);
     ctx.fillStyle='#ffe5b4';lushHudText(getMobileSkillName(key),cx,sk.labelY,sk.width,12,11,true);ctx.restore();}
   // One ornament surrounds the resource section and all four skills together.
   drawLushResourceFrame(panel.x,panel.y,panel.w,panel.h);ctx.restore();

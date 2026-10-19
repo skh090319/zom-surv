@@ -154,7 +154,9 @@ function applyMobileDragAim(state,spec){
 
 function triggerMobileSkill(key,keepAim=false){
   if(!keepAim)updateMobileAttackAim(true);
-  dispatchEvent(new KeyboardEvent("keydown",{key,bubbles:true}));
+  const event=new KeyboardEvent("keydown",{key,bubbles:true});
+  Object.defineProperty(event,'gameSkillKey',{value:key});
+  dispatchEvent(event);
   dispatchEvent(new KeyboardEvent("keyup",{key,bubbles:true}));
 }
 

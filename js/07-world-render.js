@@ -435,7 +435,7 @@ function drawRenEffects() {
       ctx.fillStyle = "#a9f5ff";
       ctx.font = "bold 15px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("X", x, placed.y - 49);
+      ctx.fillText(typeof getSkillHotkey==='function'?getSkillHotkey('X'):'X', x, placed.y - 49);
     }
     ctx.restore();
   }
