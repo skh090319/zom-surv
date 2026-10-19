@@ -2,12 +2,14 @@
 
 let desktopControlMode = loadDesktopControlMode();
 let desktopMoveTarget = null;
+let desktopMoveHold = null;
+const DESKTOP_MOVE_HOLD_DELAY = 160;
 function loadDesktopControlMode() {
   try { return localStorage.getItem('zombieSurvivalDesktopControls') === 'rightClick' ? 'rightClick' : 'wasd'; } catch(error) { return 'wasd'; }
 }
 function setDesktopControlMode(mode) {
   desktopControlMode = mode === 'rightClick' ? 'rightClick' : 'wasd';
-  desktopMoveTarget = null; mouse.down = false;
+  desktopMoveTarget = null; desktopMoveHold = null; mouse.down = false;
   for (const key of Object.keys(keys)) keys[key] = false;
   try { localStorage.setItem('zombieSurvivalDesktopControls', desktopControlMode); } catch(error) {}
 }
@@ -42,9 +44,26 @@ function setDesktopMoveTarget(event) {
   const rect = canvas.getBoundingClientRect(), scale = getWorldViewScale();
   const x = (event.clientX-rect.left)*canvas.width/rect.width/scale+camera.x;
   const y = (event.clientY-rect.top)*canvas.height/rect.height/scale+camera.y;
-  desktopMoveTarget = {x:Math.max(player.r,Math.min(WORLD.width-player.r,x)),y:Math.max(player.r,Math.min(WORLD.height-player.r,y)),at:performance.now()};
+  desktopMoveTarget = {x:Math.max(player.r,Math.min(WORLD.width-player.r,x)),y:Math.max(player.r,Math.min(WORLD.height-player.r,y)),at:desktopMoveHold?.tracking?desktopMoveHold.startedAt:performance.now()};
   event.preventDefault();
   return true;
+}
+function updateDesktopMoveHold() {
+  if (!desktopMoveHold) return;
+  if (desktopControlMode!=='rightClick'||screenMode!=='game'||paused||gameOver||choosingUpgrade||(typeof raidVictory!=='undefined'&&raidVictory)) {
+    desktopMoveHold=null;return;
+  }
+  if(performance.now()-desktopMoveHold.startedAt<DESKTOP_MOVE_HOLD_DELAY)return;
+  desktopMoveHold.tracking=true;
+  // Reproject every simulation step, even without mousemove: the camera follows us.
+  setDesktopMoveTarget({clientX:desktopMoveHold.clientX,clientY:desktopMoveHold.clientY,preventDefault(){}});
+}
+function endDesktopMoveHold(event) {
+  if(!desktopMoveHold)return;
+  if(performance.now()-desktopMoveHold.startedAt>=DESKTOP_MOVE_HOLD_DELAY&&Number.isFinite(event.clientX)&&Number.isFinite(event.clientY)) {
+    setDesktopMoveTarget(event);
+  }
+  desktopMoveHold=null;
 }
 function drawDesktopMoveTarget() {
   if (desktopControlMode!=='rightClick'||!desktopMoveTarget) return;
@@ -157,12 +176,19 @@ addEventListener("keyup", e => {
 canvas.addEventListener("mousemove", e => {
   mouse.x = e.clientX;
   mouse.y = e.clientY;
+  if(desktopMoveHold){
+    if(typeof e.buttons==='number'&&!(e.buttons&2))endDesktopMoveHold(e);
+    else {desktopMoveHold.clientX=e.clientX;desktopMoveHold.clientY=e.clientY;}
+  }
 });
 
 
 
 canvas.addEventListener("mousedown", event => {
-  if (event.button === 2 && setDesktopMoveTarget(event)) return;
+  if (event.button === 2 && setDesktopMoveTarget(event)) {
+    desktopMoveHold={clientX:event.clientX,clientY:event.clientY,startedAt:performance.now(),tracking:false};
+    return;
+  }
   if (event.button === 2 && screenMode === "character") {
     event.preventDefault();
     for (const card of characterCards) {
@@ -363,12 +389,18 @@ canvas.addEventListener("wheel", e => {
 }, { passive: false });
 
 
-canvas.addEventListener("mouseup", () => {
-  mouse.down = false;
+canvas.addEventListener("mouseup", event => {
+  if(event.button!==2)mouse.down = false;
+  if(event.button===2)endDesktopMoveHold(event);
+});
+// A release outside the canvas must also end cursor tracking.
+addEventListener('mouseup',event=>{
+  if(event.button===2)endDesktopMoveHold(event);
+  if(event.button===0)mouse.down=false;
 });
 
 addEventListener('blur',()=>{
-  desktopMoveTarget=null;mouse.down=false;
+  desktopMoveTarget=null;desktopMoveHold=null;mouse.down=false;
   for(const key of Object.keys(keys))keys[key]=false;
 });
 

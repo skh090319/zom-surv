@@ -1,6 +1,7 @@
 // 플레이어·좀비·투사체·아이템 업데이트와 게임 로직
 
 function updatePlayer() {
+  if(typeof updateDesktopMoveHold==='function')updateDesktopMoveHold();
   let dx = 0;
   let dy = 0;
 
@@ -16,7 +17,7 @@ function updatePlayer() {
 
   if (typeof getMobileMoveVector === "function") {
     const mobileMove = getMobileMoveVector();
-    if (mobileMove.active) { dx = mobileMove.x; dy = mobileMove.y; movingToPoint=false;if(pointMove)desktopMoveTarget=null; }
+    if (mobileMove.active) { dx = mobileMove.x; dy = mobileMove.y; movingToPoint=false;if(pointMove){desktopMoveTarget=null;desktopMoveHold=null;} }
   }
 
   let len = Math.hypot(dx, dy);

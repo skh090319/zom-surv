@@ -1,7 +1,8 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 function game(saved){
+  let now=0;
   const listeners={},canvasListeners={},storage=new Map(saved?[['zombieSurvivalDesktopControls',saved]]:[]),casts=[],draws=[];
-  const c={console,Math,performance,keys:{},mouse:{down:false,x:0,y:0,worldX:1800,worldY:1000},camera:{x:500,y:600},WORLD:{width:4000,height:4000},
+  const c={console,Math,performance:{now:()=>now},keys:{},mouse:{down:false,x:0,y:0,worldX:1800,worldY:1000},camera:{x:500,y:600},WORLD:{width:4000,height:4000},
     player:{x:1000,y:1000,r:20,speed:3.2,bossRootTime:0,bossSlowTime:0,fireCooldown:0,luminousAttackTime:0,invincibleTime:0,regenLevel:0,reloadTime:0},
     selectedCharacter:'zero',screenMode:'game',paused:false,gameOver:false,choosingUpgrade:false,raidVictory:false,homeDifficultyOpen:false,
     localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)},getWorldViewScale:()=>.5,createFireTrail(){},shoot(){casts.push('attack')},
@@ -19,7 +20,9 @@ function game(saved){
   load('03-input.js');load('06-entities-update.js');
   const key=(key,repeat=false)=>{let stopped=false;const e={key,repeat,stopImmediatePropagation(){stopped=true;}};for(const fn of listeners.keydown){if(stopped)break;fn(e);}};
   const click=(x,y,button=2)=>{const event={button,clientX:x,clientY:y,preventDefault(){this.prevented=true;}};for(const fn of canvasListeners.mousedown)fn(event);return event;};
-  return{c,run,load,key,click,casts,draws,listeners,storage};
+  const move=(x,y,buttons=2)=>{for(const fn of canvasListeners.mousemove)fn({clientX:x,clientY:y,buttons,preventDefault(){}});};
+  const release=(x,y,button=2,outside=false)=>{const e={button,clientX:x,clientY:y,preventDefault(){}};if(!outside)for(const fn of canvasListeners.mouseup||[])fn(e);for(const fn of listeners.mouseup||[])fn(e);};
+  return{c,run,load,key,click,move,release,casts,draws,listeners,storage,time:ms=>{now+=ms;}};
 }
 test('WASD is the default, old skills are unchanged, and saved modes safely reload',()=>{
   for(const value of [undefined,'bad','wasd'])assert.equal(game(value).run('desktopControlMode'),'wasd');
@@ -89,4 +92,45 @@ test('mobile joystick overrides destinations while Mare point movement keeps its
   const g=game('rightClick');g.c.selectedCharacter='mare';g.c.player.mareUltimateTime=100;g.c.player.mareChargeTime=0;g.click(200,130);
   g.run('updatePlayer()');assert.equal(g.c.player.x,1006);g.run('for(let i=0;i<30;i++)updatePlayer()');assert.equal(g.c.player.x,1100);assert.equal(g.run('desktopMoveTarget'),null);
   g.click(220,130);g.c.getMobileMoveVector=()=>({active:true,x:0,y:-1});g.run('updatePlayer()');assert.equal(g.run('desktopMoveTarget'),null);assert.equal(g.c.player.x,1100);assert.equal(g.c.player.y,996.8);
+});
+
+test('a short right click remains a fixed world destination after camera movement',()=>{
+  const g=game('rightClick');g.click(200,130);g.time(30);g.release(200,130);
+  assert.equal(g.run('desktopMoveHold'),null);g.c.camera.x+=100;g.run('updatePlayer()');
+  assert.equal(g.run('desktopMoveTarget.x'),1100);assert.equal(g.run('desktopMoveTarget.y'),1000);
+});
+test('holding right click follows the latest cursor and reprojects a stationary cursor with camera motion',()=>{
+  const g=game('rightClick');g.click(200,130);g.time(200);g.run('updatePlayer()');
+  assert.equal(g.run('desktopMoveHold.tracking'),true);assert.equal(g.run('desktopMoveTarget.x'),1100);
+  g.c.camera.x+=100;g.run('updatePlayer()');assert.equal(g.run('desktopMoveTarget.x'),1200);
+  const before={...g.c.player};g.move(100,200);g.run('updatePlayer()');
+  assert.equal(g.run('desktopMoveTarget.x'),800);assert.equal(g.run('desktopMoveTarget.y'),1280);
+  assert.ok(g.c.player.x<before.x);assert.ok(g.c.player.y>before.y);assert.deepEqual(g.casts,[]);
+});
+test('hold can continue past the original clicked location without any further mousemove events',()=>{
+  const g=game('rightClick');g.click(200,130);g.time(200);
+  for(let i=0;i<100;i++){g.run('updatePlayer()');g.c.camera.x=g.c.player.x-500;}
+  assert.ok(g.c.player.x>1300);assert.ok(g.run('desktopMoveTarget.x')>g.c.player.x);assert.deepEqual(g.casts,[]);
+});
+test('releasing a held right button freezes its final destination, including release outside the canvas',()=>{
+  for(const outside of [false,true]){
+    const g=game('rightClick');g.click(200,130);g.time(200);g.run('updatePlayer()');g.release(220,150,2,outside);
+    assert.equal(g.run('desktopMoveHold'),null);assert.equal(g.run('desktopMoveTarget.x'),1180);assert.equal(g.run('desktopMoveTarget.y'),1080);
+    g.c.camera.x+=100;g.move(50,50,0);g.run('updatePlayer()');assert.equal(g.run('desktopMoveTarget.x'),1180);
+  }
+});
+test('left attack and QWER casting remain independent while the right button is held',()=>{
+  const g=game('rightClick');g.click(200,130);g.time(200);g.c.mouse.down=true;g.key('w');g.run('updatePlayer()');
+  assert.deepEqual(g.casts,['ZeroE','attack']);g.release(200,130);assert.equal(g.c.mouse.down,true);
+  g.release(200,130,0);assert.equal(g.c.mouse.down,false);
+});
+test('mode changes, blur, mobile movement and lost-button mousemove cancel held tracking',()=>{
+  for(const action of ['mode','blur','mobile','lost']){
+    const g=game('rightClick');g.click(200,130);g.time(200);g.run('updatePlayer()');
+    if(action==='mode')g.run("setDesktopControlMode('wasd')");
+    if(action==='blur')for(const fn of g.listeners.blur)fn();
+    if(action==='mobile'){g.c.getMobileMoveVector=()=>({active:true,x:0,y:1});g.run('updatePlayer()');}
+    if(action==='lost')g.move(200,130,0);
+    assert.equal(g.run('desktopMoveHold'),null,action);
+  }
 });

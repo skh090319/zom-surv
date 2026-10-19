@@ -368,6 +368,7 @@ function restart() {
   // 입력 상태 초기화
   mouse.down = false;
   if(typeof desktopMoveTarget!=='undefined')desktopMoveTarget=null;
+  if(typeof desktopMoveHold!=='undefined')desktopMoveHold=null;
 
   for (const key of Object.keys(keys)) {
     keys[key] = false;

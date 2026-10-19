@@ -53,6 +53,7 @@ function resetMobileSettingsGestures(){
 }
 
 function openMobileSettings(){
+  if(typeof desktopMoveHold!=='undefined'){desktopMoveHold=null;desktopMoveTarget=null;}
   stopMobileScrollInertia();releaseMobileJoystick();mobileAttackTouchId=null;
   mobileAttackAim=null;mobileSkillAim=null;mobileUiGesture=null;mouse.down=false;
   resetMobileSettingsGestures();mobileSettingsCategoryRects=[];mobileSettingsPage="menu";screenMode="mobileSettings";
@@ -240,7 +241,7 @@ function drawDesktopControlSettings(){
   drawMobileSettingsHeader('이동 방식','PC 조작 방식은 둘 중 하나만 적용됩니다 · 모바일 터치 조작은 유지됩니다');
   const gap=20,w=Math.min(360,(canvas.width-60)/2),h=Math.min(200,canvas.height-120),y=80+(canvas.height-80-h)/2;
   desktopControlChoiceRects=[{mode:'wasd',title:'WASD 이동',icon:'W A S D',skills:'스킬  Q · E · X · R',description:'키보드로 이동 · 마우스로 조준·공격'},
-    {mode:'rightClick',title:'우클릭 이동',icon:'↗',skills:'스킬  Q · W · E · R',description:'우클릭한 좌표로 이동 · 좌클릭 공격'}].map((entry,i)=>({...entry,x:(canvas.width-w*2-gap)/2+i*(w+gap),y,w,h}));
+    {mode:'rightClick',title:'우클릭 이동',icon:'↗',skills:'스킬  Q · W · E · R',description:'클릭: 좌표 이동 · 꾹 누르기: 커서 추적'}].map((entry,i)=>({...entry,x:(canvas.width-w*2-gap)/2+i*(w+gap),y,w,h}));
   for(const rect of desktopControlChoiceRects){
     const active=desktopControlMode===rect.mode;
     drawRoundedRect(rect.x,y,w,h,12,active?'#183d3c':'#101e2b',active?'#8ce5cb':'#4b5e72',active?2:1);
