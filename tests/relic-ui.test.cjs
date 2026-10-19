@@ -143,7 +143,7 @@ test('unequipped character stats ignore old-run player state and refresh for eac
   g.c.selectedCharacter='yupiter';g.run('renderRelicInventory()');assert.equal(loadoutValues(g).damage,70);
   g.c.selectedCharacter='suncall';g.run('renderRelicInventory()');assert.equal(loadoutValues(g).speed,4.83);
   g.c.selectedCharacter='vargas';g.run('renderRelicInventory()');assert.equal(loadoutValues(g).maxHp,180);
-  g.c.selectedCharacter='ren';g.run('renderRelicInventory()');assert.equal(loadoutValues(g).maxHp,50);
+  g.c.selectedCharacter='ren';g.run('renderRelicInventory()');assert.equal(loadoutValues(g).maxHp,100);
 });
 test('loadout display updates on equip, unequip, preset restore and actual equipped-item enhancement',()=>{
   const g=scene();g.run('openRelicInventory()');const original=loadoutValues(g);

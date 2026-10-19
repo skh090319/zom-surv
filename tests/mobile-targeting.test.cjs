@@ -32,7 +32,7 @@ function game() {
     transcended:{}, renPlacedClones:[], renFlyingClones:[], arcZones:[], echoKnots:[], echoRifts:[], ariaSoils:[],
     terraStructures:[],voidTerrains:[],bloodDrops:[],moiraLinks:[],
     scaledDamage:value=>value,enemyMaxHpDamage:(enemy,ratio)=>enemy.maxHp*ratio,killZombie(index){context.zombies.splice(index,1);},
-    REN_CLONE_THROW_RANGE:320, REN_ULTIMATE_RADIUS:429, REN_ATTACK_RANGE:216, ZERO_ATTACK_RANGE:200,
+    REN_CLONE_THROW_RANGE:320, REN_ULTIMATE_RADIUS:429, REN_ATTACK_RANGE:378, ZERO_ATTACK_RANGE:200,
     getRenCloneCount:()=>4, arcAreaScale:()=>1, getPaladinTier:()=>0,
     getWorldViewScale:()=>.78, WORLD:{width:4000,height:4000},
     pointInRect:(x,y,r)=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h,

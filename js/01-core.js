@@ -354,7 +354,7 @@ const mouse = {
 // Returning a new object keeps menu inspection independent of the live player.
 function getCharacterBaseStats(hero) {
   return {
-    maxHp: ({ren:50,nightLord:150,paladin:125,vargas:180})[hero] ?? 100,
+    maxHp: ({ren:100,nightLord:150,paladin:125,vargas:180})[hero] ?? 100,
     damage: ({yupiter:70,zero:45,paladin:42})[hero] ?? 35,
     speed: hero === "suncall" ? 4.2 * 1.15 : 4.2
   };
