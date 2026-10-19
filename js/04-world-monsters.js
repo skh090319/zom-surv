@@ -1,5 +1,7 @@
 // World-specific street/abyss enemies. World 2, raid bosses and summons keep
 // their original simulation; identity is frozen when an enemy is spawned.
+// Retain the complete art/preview catalog, but reserve these identities for raids.
+const WORLD_BOSS_ONLY_MONSTER_IDS = Object.freeze(['iron-hauler','glass-thrower','alarm-infected','rift-hunter','stitcher','abyss-eye']);
 const WORLD_MONSTER_TYPES = Object.freeze(Object.fromEntries([
   ['street-walker',1,'거리 배회자','#bdaf93','찢어진 일상복을 입은 감염자. 무리가 넓게 돌아 포위합니다.','포위되기 전에 한쪽 길을 열어 이동하세요.',21,1,1,1,44],
   ['alley-hound',1,'굶주린 광견','#d7a371','감염된 들개. 옆으로 돌다가 가까워지면 빠르게 달려듭니다.','측면 접근을 살피고 뛰어들기 전에 거리를 벌리세요.',18,.72,1.30,2,24],
@@ -11,7 +13,10 @@ const WORLD_MONSTER_TYPES = Object.freeze(Object.fromEntries([
   ['split-larva',3,'분열 유생','#d996d9','반투명 막 속의 생명체. 죽으면 작은 유생 둘로 한 번만 분열합니다.','처치 후 생기는 작은 개체까지 정리하세요.',23,1.15,.88,2,18],
   ['stitcher',3,'봉합자','#80e5c3','신경선으로 연결한 일반 적 최대 셋의 체력을 회복합니다.','봉합자를 먼저 처치하면 연결된 적이 잠시 약해집니다.',23,1.05,.72,3,10],
   ['abyss-eye',3,'심연의 관측안','#da98ff','시선을 고정한 뒤 좁은 광선을 천천히 쓸어냅니다.','점선으로 예고하는 방향을 피해 옆으로 이동하세요.',24,1.30,.64,4,8]
-].map(([id,world,name,color,desc,tips,r,hpScale,speedScale,minWave,weight])=>[id,Object.freeze({id,world,name,color,desc,tips,r,hpScale,speedScale,minWave,weight,image:`assets/world-monsters-v1/${id}.webp`})])));
+].map(([id,world,name,color,desc,tips,r,hpScale,speedScale,minWave,weight])=>[id,Object.freeze({id,world,name,color,desc,tips,r,hpScale,speedScale,minWave,weight,bossOnly:WORLD_BOSS_ONLY_MONSTER_IDS.includes(id),image:`assets/world-monsters-v1/${id}.webp`})])));
+function getWorldOrdinaryMonsterDefinitions(world) {
+  return Object.values(WORLD_MONSTER_TYPES).filter(def=>def.world===world&&!def.bossOnly);
+}
 const worldMonsterProjectiles = [];
 const worldMonsterEffects = [];
 const worldMonsterLiveEnemies = new Set();
@@ -46,12 +51,10 @@ function attachWorldMonster(enemy, forceType = null) {
   const world = worldMonsterRunWorld || (typeof selectedWorld === 'number' ? selectedWorld : 2);
   // This early return deliberately consumes no randomness in the original world.
   if ((world !== 1 && world !== 3) || enemy.isRaidBoss || enemy.isBossMinion) return enemy;
-  let def = enemy.boss ? WORLD_MONSTER_TYPES[world===1?'iron-hauler':'hollow-husk'] : forceType && WORLD_MONSTER_TYPES[forceType];
+  let def = enemy.boss ? WORLD_MONSTER_TYPES[world===1?'street-walker':'hollow-husk'] : forceType && WORLD_MONSTER_TYPES[forceType];
+  if(def&&(def.bossOnly||def.world!==world))def=null;
   if (!def) {
-    const supportCounts = {};
-    for (const other of zombies) if (other.hp > 0) supportCounts[other.worldMonsterType] = (supportCounts[other.worldMonsterType] || 0) + 1;
-    const pool = Object.values(WORLD_MONSTER_TYPES).filter(entry=>entry.world===world && entry.minWave <= wave &&
-      (!['alarm-infected','stitcher','abyss-eye','glass-thrower'].includes(entry.id) || (supportCounts[entry.id]||0) < 3));
+    const pool = getWorldOrdinaryMonsterDefinitions(world).filter(entry=>entry.minWave<=wave);
     let roll = Math.random() * pool.reduce((sum,entry)=>sum+entry.weight,0);
     def = pool.find(entry=>(roll-=entry.weight)<0) || pool[0];
   }
@@ -72,8 +75,9 @@ function initializeWorldMonster(enemy,def) {
   enemy.worldMonsterLinks=[];
   return enemy;
 }
-// Explicit factory for previews/spawn integrations. The caller owns insertion;
-// this does not change the selected world or the encounter's zombie array.
+// Explicit catalog factory for previews/tests, including retired ordinary forms.
+// Gameplay spawn selection must use attachWorldMonster's ordinary-only pool.
+// The caller owns insertion; this never changes the selected world or zombie array.
 function createWorldMonster(typeId,x,y,options={}) {
   const def=WORLD_MONSTER_TYPES[typeId];if(!def)return null;
   const level=Number.isFinite(options.wave)?options.wave:wave;

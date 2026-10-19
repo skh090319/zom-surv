@@ -24,10 +24,11 @@ test('all ten illustrations have distinct world-scoped lazy registrations',()=>{
   assert.equal(f.run('worldMonsterImages.size'),10);
 });
 
-test('world 2 requests none, selected worlds 1 and 3 each prewarm only their own five',()=>{
+test('ordinary prewarm requests only the two remaining species and world 2 requests none',()=>{
   for(const world of [1,2,3]){
     const f=fixture();f.c.selectedWorld=world;f.run('prepareGameImages()');
-    assert.equal(f.run('worldMonsterImages.size'),world===2?0:5);
+    assert.equal(f.run('worldMonsterImages.size'),world===2?0:2);
+    assert.deepEqual(Array.from(f.run('Array.from(worldMonsterImages.keys())')),world===1?['street-walker','alley-hound']:world===3?['hollow-husk','split-larva']:[]);
     assert.equal(f.run(`gameImageRegistry.every(image=>image.assetGroup==='world-monster-${world}')`),true);
     const count=f.run('gameImageRegistry.length');f.run('prepareGameImages()');assert.equal(f.run('gameImageRegistry.length'),count);
   }
@@ -70,10 +71,13 @@ test('telegraphs cover actual glass trajectories and eye sweep while staying wor
   assert.equal(f.calls.some(call=>call[0]==='fillRect'),false,'no fullscreen warning overlay');
 });
 
-test('guide groups the ten new species separately and leaves all original boss entries intact',()=>{
+test('ordinary guide excludes the six raid-only identities and leaves all original boss entries intact',()=>{
   const f=fixture(),sections=f.run('getWorldMonsterGuideSections()');
   assert.deepEqual(Array.from(sections,section=>section.world),[1,2,3]);
-  assert.deepEqual(Array.from(sections,section=>section.entries.length),[5,3,5]);
+  assert.deepEqual(Array.from(sections,section=>section.entries.length),[2,3,2]);
+  assert.deepEqual(Array.from(sections[0].entries,entry=>entry.id),['street-walker','alley-hound']);
+  assert.deepEqual(Array.from(sections[2].entries,entry=>entry.id),['hollow-husk','split-larva']);
+  assert.ok(sections.every(section=>section.entries.every(entry=>!entry.bossOnly)));
   assert.equal(f.run("monsterGuideEntries.filter(entry=>entry.tag.startsWith('BOSS 0')).map(entry=>entry.name).join(',')"),'아마란스,모르스,녹스');
 });
 

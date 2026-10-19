@@ -22,21 +22,23 @@ test('the permanent tree starts at exact world center and never follows movement
   g.c.player.x=100;g.step(720);assert.equal(g.run('ariaWorldTree'),null);assert.equal(g.run('ariaGrowth.treeX'),2000);
   assert.deepEqual({...g.run('getAriaTreePosition()')},{x:2000,y:1500});
 });
-test('growth has nine visual stages with four unchanged combat unlocks and uncapped essence damage',()=>{
+test('growth keeps stage five at 1200 and extends nine visual stages beyond the four combat unlocks',()=>{
   const g=game();
-  for(const [essence,stage,tier]of [[0,0,0],[49,0,0],[50,1,0],[99,1,0],[100,2,1],[199,2,1],[200,3,1],[299,3,1],[300,4,2],[449,4,2],[450,5,2],[599,5,2],[600,6,3],[899,6,3],[900,7,3],[1199,7,3],[1200,8,4],[5000,8,4]]){
+  for(const [essence,stage,tier]of [[0,0,0],[50,0,0],[99.9,0,0],[100,1,1],[200,1,1],[299.9,1,1],[300,2,2],[450,2,2],[599.9,2,2],[600,3,3],[900,3,3],[1199.9,3,3],[1200,4,4],[1799.9,4,4],[1800,5,4],[2599.9,5,4],[2600,6,4],[3599.9,6,4],[3600,7,4],[4799.9,7,4],[4800,8,4],[5000,8,4]]){
     g.run('ariaGrowth.essence='+essence);assert.equal(g.run('getAriaGrowthStage()'),stage);
     assert.equal(g.run('getAriaGrowthTier()'),tier);assert.equal(g.run('getAriaGrowthProgress().tier'),tier);
     near(g.run('ariaDamage(1)'),100*(1+essence*.0015));
     near(g.run('getAriaGrowthProgress().damageBonus'),essence*.0015);
   }
   assert.equal(g.run('getAriaGrowthProgress().next'),null);assert.equal(g.run('getAriaGrowthProgress().ratio'),1);
-  g.run('ariaGrowth.essence=75');assert.equal(g.run('getAriaGrowthProgress().name'),'움트는 새싹');assert.equal(g.run('getAriaGrowthProgress().next'),100);near(g.run('getAriaGrowthProgress().ratio'),.5);
-  g.run('ariaGrowth.essence=1000');assert.equal(g.run('getAriaGrowthProgress().name'),'찬란한 개화');near(g.run('getAriaGrowthProgress().ratio'),1/3);
+  for(const [essence,stage,next,name]of [[50,0,100,'생명의 씨앗'],[200,1,300,'움트는 새싹'],[450,2,600,'새싹의 수호'],[900,3,1200,'뻗어가는 가지'],[1500,4,1800,'뿌리의 연결'],[2200,5,2600,'꽃망울의 화원'],[3100,6,3600,'영혼의 성목'],[4200,7,4800,'찬란한 개화']]){
+    g.run('ariaGrowth.essence='+essence);const progress=g.run('getAriaGrowthProgress()');
+    assert.equal(progress.stage,stage);assert.equal(progress.name,name);assert.equal(progress.next,next);near(progress.ratio,.5);
+  }
 });
 
-test('intermediate growth stages do not increase basic projectiles, piercing, or tree target counts early',()=>{
-  for(const [essence,count,pierce,treeCount]of [[0,3,1,1],[50,3,1,1],[100,4,2,2],[200,4,2,2],[300,4,3,3],[450,4,3,3],[600,4,3,4],[900,4,3,4],[1200,4,3,5]]){
+test('later growth stages preserve basic projectiles, piercing, and tree target counts at their original unlocks',()=>{
+  for(const [essence,count,pierce,treeCount]of [[0,3,1,1],[50,3,1,1],[100,4,2,2],[200,4,2,2],[300,4,3,3],[450,4,3,3],[600,4,3,4],[900,4,3,4],[1200,4,3,5],[1800,4,3,5],[2600,4,3,5],[3600,4,3,5],[4800,4,3,5]]){
     const g=game();for(let i=0;i<10;i++)g.enemy(2000+i*10,1500);g.c.calls=0;
     g.run('ariaGrowth.essence='+essence+';attackWithAria();ariaDealDamage=()=>{calls++;return true};ariaTreeAttack()');
     assert.equal(g.run('ariaBolts.length'),count,'petals at '+essence);assert.equal(g.run('ariaBolts.every(b=>b.pierce==='+pierce+')'),true,'piercing at '+essence);assert.equal(g.c.calls,treeCount,'roots at '+essence);

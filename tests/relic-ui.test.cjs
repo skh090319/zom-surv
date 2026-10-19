@@ -68,8 +68,14 @@ test('slot, rarity and Korean option search combine while filtering leaves inven
   g.run("relicView.query='없는검색';renderRelicCollection()");assert.match(g.element('relic-collection').innerHTML,/조건에 맞는 유물이 없습니다/);
 });
 test('UI enhancement previews feed XP and confirms consumption; failed storage preserves material relics',()=>{
-  const g=scene();g.run("let feeds=Array.from({length:2},()=>relicCreate({setId:'A02',slot:'core'}));relicStore.inventory.push(...feeds);relicSave();openRelicInventory()");g.click('enhance');g.clickFeed(g.run('feeds[0].id'));
-  assert.match(g.element('relic-feed').innerHTML,/Lv\.0.*Lv\.1/);assert.doesNotMatch(g.element('relic-detail').innerHTML,/성공률|확률/);assert.equal(g.run('relicStore.inventory.length'),8);
+  const g=scene();g.run("const enhanceTarget=relicStore.inventory[0];if(!enhanceTarget.substats.some(sub=>sub.stat==='critChance'))enhanceTarget.substats[0].stat='critChance';let feeds=Array.from({length:2},()=>relicCreate({setId:'A02',slot:'core'}));relicStore.inventory.push(...feeds);relicSave();openRelicInventory()");g.click('enhance');g.clickFeed(g.run('feeds[0].id'));
+  const detail=g.element('relic-detail').innerHTML;
+  // Critical-chance stats are valid; only the enhancement controls must omit odds.
+  assert.match(detail,/치명타 확률/);
+  const enhancement=detail.match(/<h3>유물 재료 강화<\/h3>([\s\S]*?)<div class="relic-compare">/)?.[1];
+  assert.ok(enhancement,'inspect the actual enhancement section, not unrelated relic stats');
+  assert.doesNotMatch(enhancement,/성공률|확률/);
+  assert.match(g.element('relic-feed').innerHTML,/Lv\.0.*Lv\.1/);assert.equal(g.run('relicStore.inventory.length'),8);
   g.click('feed-apply');assert.equal(g.element('relic-confirm').hidden,false);g.click('confirm');assert.equal(g.run('relicStore.inventory[0].level'),1);assert.equal(g.run('relicStore.inventory.length'),7);assert.equal(g.run('relicStore.materials'),150);
   const before=g.storage.get('zombieSurvivalRelicsV1');g.c.quota=true;g.clickFeed(g.run('feeds[1].id'));g.click('feed-apply');g.click('confirm');assert.equal(g.run('relicStore.inventory.length'),7);assert.equal(g.run('relicStore.inventory[0].xp'),0);assert.equal(g.storage.get('zombieSurvivalRelicsV1'),before);assert.match(g.element('relic-toast').textContent,/저장하지 못했습니다/);
 });

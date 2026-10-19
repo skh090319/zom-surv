@@ -32,7 +32,7 @@ test('new boss sprite reuses the correct species art at a distinctly larger scal
 
 test('world-1 boss portraits stay separate from chibi enemies and only selected-world art prewarms',()=>{
   const s=scene();s.c.screenMode='home';s.c.selectedWorld=1;s.run('prepareGameImages()');
-  assert.equal(s.run('worldBossImages.size'),3);assert.equal(s.run('worldMonsterImages.size'),5);
+  assert.equal(s.run('worldBossImages.size'),3);assert.equal(s.run('worldMonsterImages.size'),2);
   assert.equal(s.run("getWorldBossImage('iron-hauler',1).assetGroup"),'world-boss-1');
   assert.notEqual(s.run("getWorldBossImage('iron-hauler',1)"),s.run("getWorldMonsterImage('iron-hauler')"));
   assert.equal(s.run("getWorldBossImage('abyss-eye',3)"),s.run("getWorldMonsterImage('abyss-eye')"));
@@ -54,7 +54,7 @@ test('every new boss uses its own name in desktop/mobile health bars and intro w
     assert.equal(s.run(`drawWorldRaidUI(${mobile})`),true);
     const name=s.run('getWorldRaidBossDefinition(activeRaidBoss.raidIndex,activeRaidBoss.worldRaidWorld).name');
     const labels=s.calls.filter(call=>call[0]==='fillText').map(call=>call[1]);
-    assert.ok(labels.includes(name));assert.ok(labels.includes(`주의 · ${name} 등장`));
+    assert.ok(labels.some(label=>label.startsWith(name+' · 체력')));assert.ok(labels.includes(`주의 · ${name} 등장`));
     assert.equal(labels.some(label=>/아마란스|모르스|녹스/.test(label)),false);
   }
 });

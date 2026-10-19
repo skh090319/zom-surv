@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v108-world-monsters-bosses";
+const CACHE_VERSION = "zombie-survival-v109-growth-bossbar";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

@@ -222,30 +222,5 @@ function drawRelicGuide(){
 }
 registerGuideSection({id:'relics',label:'유물',color:'#68c9db',subtitle:'RELIC ARCHIVE · 6부위 장비와 세트 효과',draw:drawRelicGuide,onClick:(x,y)=>{if(y>=guideContentTop&&relicGuideEquipRect&&pointInRect(x,y,relicGuideEquipRect)){openRelicInventory();return true;}return false;}});
 
-// Keep the existing health/name and encounter warnings intact. The thin shield
-// row shares the editable boss-HUD transform rather than being fixed on screen.
-function drawRelicBossShield(){
-  const boss=typeof activeRaidBoss!=='undefined'?activeRaidBoss:null;
-  if(!boss?.relicShieldMax)return;
-  const mobile=typeof isMobileTouchDevice==='function'&&isMobileTouchDevice();
-  const w=mobile?Math.min(400,canvas.width*.62):Math.min(760,canvas.width-80),x=(canvas.width-w)/2,y=mobile?51:53,h=10;
-  const ratio=Math.max(0,Math.min(1,boss.relicShield/boss.relicShieldMax)),broken=boss.relicBreakTime>0;
-  ctx.save();ctx.shadowBlur=0;ctx.globalAlpha=1;ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillStyle='#091824e8';ctx.fillRect(x-2,y-2,w+4,h+4);
-  const gradient=ctx.createLinearGradient(x,y,x+w,y);gradient.addColorStop(0,'#3384b3');gradient.addColorStop(1,'#9de6ee');ctx.fillStyle=gradient;ctx.fillRect(x,y,w*ratio,h);
-  ctx.strokeStyle=broken?'#ffe193':'#85cede';ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);
-  ctx.font='bold 9px Arial';ctx.fillStyle=broken?'#ffe193':'#f0faff';
-  ctx.fillText(broken?`보호막 파괴 · ${(boss.relicBreakTime/60).toFixed(1)}초`:ratio>0?`보호막 ${Math.ceil(ratio*100)}%`:'보호막 파괴',canvas.width/2,y+h/2+.5);
-  ctx.restore();
-}
-if(typeof drawRaidBossUI==='function'){
-  const baseBossUi=drawRaidBossUI;
-  drawRaidBossUI=function(){
-    if(typeof activeRaidBoss!=='undefined'&&activeRaidBoss?.relicShieldMax&&!raidVictory){ctx.save();ctx.translate(0,16);try{baseBossUi();}finally{ctx.restore();}drawRelicBossShield();}
-    else baseBossUi();
-  };
-}
-if(typeof getMobileHudBounds==='function'){
-  const baseHudBounds=getMobileHudBounds;
-  getMobileHudBounds=function(id){const bounds=baseHudBounds(id);return id==='boss'?{...bounds,y:bounds.y+8,h:bounds.h+16}:bounds;};
-}
+// Boss shield/HP presentation is shared by all worlds in drawRaidBossVitalBar.
+// No extra row or HUD offset: mobile movement/scale preferences apply once.

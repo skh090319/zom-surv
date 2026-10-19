@@ -127,9 +127,9 @@ function drawAugmentGuide() {
 }
 
 function getWorldMonsterGuideSections() {
-  const types=typeof WORLD_MONSTER_TYPES==='object'?Object.values(WORLD_MONSTER_TYPES):[];
+  const ordinary=world=>typeof getWorldOrdinaryMonsterDefinitions==='function'?getWorldOrdinaryMonsterDefinitions(world):[];
   const names={1:'몰락한 거리',2:'봉쇄된 격리구역',3:'심연의 발원지'};
-  return [1,2,3].map(world=>({world,name:names[world],color:world===1?'#dbb17d':world===2?'#73e36f':'#b99cf8',entries:world===2?monsterGuideEntries.filter(entry=>entry.sprite==='zombie'||entry.tag==='BOSS MINION'):types.filter(entry=>entry.world===world)})).filter(section=>section.entries.length);
+  return [1,2,3].map(world=>({world,name:names[world],color:world===1?'#dbb17d':world===2?'#73e36f':'#b99cf8',entries:world===2?monsterGuideEntries.filter(entry=>entry.sprite==='zombie'||entry.tag==='BOSS MINION'):ordinary(world)})).filter(section=>section.entries.length);
 }
 
 function getWorldMonsterGuideLayout(width,top) {

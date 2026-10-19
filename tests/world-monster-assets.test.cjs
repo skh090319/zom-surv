@@ -1,4 +1,4 @@
-const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.join(__dirname,'..'),manifest=require('../tools/world-monster-art-prompts.json');
 test('all ten generated monster sprites ship as compact 640px alpha WebP assets',()=>{
   assert.equal(manifest.assets.length,10);assert.equal(new Set(manifest.assets.map(a=>a.id)).size,10);
@@ -24,4 +24,12 @@ test('World 1 boss variants keep the earlier art separate from ordinary chibi sp
     assert.ok(bytes[20]&0x10);assert.equal(bytes.readUIntLE(24,3)+1,640);assert.equal(bytes.readUIntLE(27,3)+1,640);
     assert.ok(!bytes.equals(ordinary),'boss and ordinary illustration must not overwrite one another');
   }
+});
+
+test('ordinary roster and archived boss-only art remain backed by the shipped catalog',()=>{
+  const context=vm.createContext({});vm.runInContext(fs.readFileSync(path.join(root,'js/04-world-monsters.js'),'utf8'),context);
+  const definitions=vm.runInContext('Object.values(WORLD_MONSTER_TYPES)',context);
+  assert.deepEqual(Array.from(definitions.filter(def=>!def.bossOnly),def=>def.id),['street-walker','alley-hound','hollow-husk','split-larva']);
+  for(const def of definitions)assert.ok(manifest.assets.some(asset=>asset.id===def.id&&asset.output===def.image));
+  assert.equal(definitions.filter(def=>def.bossOnly).length,6,'six identities remain for raid art and previews, not ordinary spawning');
 });

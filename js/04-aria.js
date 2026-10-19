@@ -5,8 +5,9 @@ let ariaGrowth={essence:0,stage:0,visualStage:0,frame:0,treeX:0,treeY:0,treeTick
 let ariaAttackSequence=0,ariaDeadEnemies=new WeakSet(),ariaBossHits=new WeakMap();
 const ARIA_Q_CD=270,ARIA_E_CD=420,ARIA_X_CD=540,ARIA_R_CD=1500;
 const ARIA_BASIC_RANGE=840,ARIA_Q_WIDTH=48,ARIA_E_RANGE=520,ARIA_R_RANGE=0,ARIA_HARVEST_RADIUS=650,ARIA_WORLD_TREE_RADIUS=650,ARIA_TREE_ATTACK_RANGE=600;
-const ARIA_GROWTH_THRESHOLDS=[50,100,200,300,450,600,900,1200],ARIA_GROWTH_NAMES=["생명의 씨앗","움트는 새싹","새싹의 수호","뻗어가는 가지","뿌리의 연결","꽃망울의 화원","영혼의 성목","찬란한 개화","완전한 에덴"];
-// More visual milestones must not unlock existing combat upgrades prematurely.
+// Stage 5 keeps its original 1200 essence milestone; stages 6–9 extend growth beyond it.
+const ARIA_GROWTH_THRESHOLDS=[100,300,600,1200,1800,2600,3600,4800],ARIA_GROWTH_NAMES=["생명의 씨앗","움트는 새싹","새싹의 수호","뻗어가는 가지","뿌리의 연결","꽃망울의 화원","영혼의 성목","찬란한 개화","완전한 에덴"];
+// Later visual stages leave the original combat upgrade thresholds unchanged.
 const ARIA_GROWTH_TIER_THRESHOLDS=[100,300,600,1200];
 function getAriaTreePosition(){return {x:WORLD.width/2,y:WORLD.height/2}}
 function getAriaTreeAttackRange(){return ARIA_TREE_ATTACK_RANGE}

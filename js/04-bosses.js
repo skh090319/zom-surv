@@ -630,6 +630,32 @@ function formatRaidTime(frames) {
   const seconds=Math.floor(frames/60);return `${String(Math.floor(seconds/60)).padStart(2,"0")}:${String(seconds%60).padStart(2,"0")}`;
 }
 
+// One shared bar for all worlds: the shield owns the bar until it breaks.
+// Rendering never changes combat values or the player's saved HUD transform.
+function getRaidBossVitalState(boss){
+  const shield=Number.isFinite(boss.relicShield)&&boss.relicShield>0&&boss.relicShieldMax>0;
+  const maximum=shield?boss.relicShieldMax:boss.maxHp;
+  const value=shield?boss.relicShield:boss.hp;
+  const ratio=maximum>0&&Number.isFinite(value)?Math.max(0,Math.min(1,value/maximum)):0;
+  return {shield,ratio,value,maximum,broken:!shield&&boss.relicBreakTime>0};
+}
+
+function drawRaidBossVitalBar(boss,{x,y,w,h,mobile=false,name,colors,border='#f3d9ff'}){
+  const vital=getRaidBossVitalState(boss);
+  const palette=vital.shield?['#236d9c','#76dce9','#418ebc']:colors;
+  ctx.save();ctx.shadowBlur=0;ctx.globalAlpha=1;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(6,9,18,.9)';ctx.fillRect(x-3,y-3,w+6,h+6);
+  const gradient=ctx.createLinearGradient(x,y,x+w,y);
+  palette.forEach((color,index)=>gradient.addColorStop(index/(palette.length-1),color));
+  ctx.fillStyle=gradient;ctx.fillRect(x,y,w*vital.ratio,h);
+  ctx.strokeStyle=vital.shield?'#a4edf5':vital.broken?'#ffe193':border;ctx.lineWidth=mobile?1:1.5;ctx.strokeRect(x,y,w,h);
+  const phase=`${vital.shield?'보호막':'체력'} ${Math.ceil(vital.ratio*100)}%`;
+  const broken=vital.broken?` · 파괴 ${(boss.relicBreakTime/60).toFixed(1)}초`:'';
+  ctx.font=`bold ${mobile?11:17}px Arial`;ctx.fillStyle='#fff';
+  ctx.fillText(`${name} · ${phase}${broken}`,x+w/2,y+h/2,w-14);
+  ctx.restore();
+}
+
 function drawMobileRaidBossUI(){
   if(typeof drawWorldRaidUI==='function'&&drawWorldRaidUI(true))return;
   // 주의/등장 연출은 유지하되 체력바 아래의 작은 상단 패널에만 그린다.
@@ -638,11 +664,7 @@ function drawMobileRaidBossUI(){
   const noticeFont=canvas.height<430?13:14;
   ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";ctx.shadowBlur=0;
   if(activeRaidBoss){
-    const ratio=Math.max(0,Math.min(1,activeRaidBoss.hp/activeRaidBoss.maxHp));
-    ctx.fillStyle="rgba(7,8,18,.8)";ctx.fillRect(x-3,y-3,w+6,22);
-    const g=ctx.createLinearGradient(x,0,x+w,0);g.addColorStop(0,"#9f2d79");g.addColorStop(1,"#df536c");
-    ctx.fillStyle=g;ctx.fillRect(x,y,w*ratio,16);ctx.strokeStyle="rgba(247,214,235,.8)";ctx.lineWidth=1;ctx.strokeRect(x,y,w,16);
-    ctx.font="bold 11px Arial";ctx.fillStyle="#fff";ctx.fillText(RAID_BOSS_NAMES[activeRaidBoss.raidIndex],canvas.width/2,y+8,w-12);
+    drawRaidBossVitalBar(activeRaidBoss,{x,y,w,h:16,mobile:true,name:RAID_BOSS_NAMES[activeRaidBoss.raidIndex],colors:['#9f2d79','#df536c'],border:'rgba(247,214,235,.8)'});
     if(raidIntroTime>0){
       ctx.fillStyle="rgba(28,10,21,.78)";ctx.fillRect(x,y+22,w,32);
       ctx.strokeStyle="rgba(255,116,139,.65)";ctx.strokeRect(x,y+22,w,32);
@@ -676,11 +698,8 @@ function drawRaidBossUI() {
   ctx.save();
   ctx.textAlign="center";
   if(activeRaidBoss){
-    const w=Math.min(760,canvas.width-80),x=(canvas.width-w)/2,y=54,ratio=Math.max(0,activeRaidBoss.hp/activeRaidBoss.maxHp);
-    ctx.fillStyle="rgba(6,5,12,.9)";ctx.fillRect(x-6,y-6,w+12,38);
-    const g=ctx.createLinearGradient(x,0,x+w,0);g.addColorStop(0,"#8f22cc");g.addColorStop(.5,"#ff3e6d");g.addColorStop(1,"#5211aa");ctx.fillStyle=g;ctx.fillRect(x,y,w*ratio,26);
-    ctx.strokeStyle="#f3d9ff";ctx.lineWidth=2;ctx.strokeRect(x,y,w,26);
-    ctx.fillStyle="#fff";ctx.font="bold 17px Arial";ctx.fillText(RAID_BOSS_NAMES[activeRaidBoss.raidIndex],canvas.width/2,y+19);
+    const w=Math.min(760,canvas.width-80),x=(canvas.width-w)/2,y=54;
+    drawRaidBossVitalBar(activeRaidBoss,{x,y,w,h:26,name:RAID_BOSS_NAMES[activeRaidBoss.raidIndex],colors:['#8f22cc','#ff3e6d','#5211aa']});
     ctx.fillStyle="#ffdf73";ctx.font="bold 14px Arial";ctx.fillText("보스전 · 시간 정지",canvas.width/2,y+49);
   } else if(!raidVictory){
     ctx.fillStyle="rgba(4,6,12,.72)";ctx.fillRect(canvas.width/2-58,52,116,30);ctx.fillStyle="#fff";ctx.font="bold 18px monospace";ctx.fillText(formatRaidTime(survivalFrames),canvas.width/2,73);

@@ -74,13 +74,14 @@ test('iron charge travels exactly 480px and never damages outside its 110px prev
   assert.equal(g.run('worldRaidChargeHits({x:0,y:0,angle:0,width:110},0,480,240,76,20)'),false);
   assert.equal(g.run('worldRaidChargeHits({x:0,y:0,angle:0,width:110},0,480,240,74,20)'),true);
 });
-test('actual Paladin counter can kill a boss from multiple simultaneous zones or projectiles without stale-array crashes',()=>{
-  for(const mode of ['zones','projectiles']) {
+test('actual Paladin counter can kill a boss from multiple simultaneous zones, waves or projectiles without stale-array crashes',()=>{
+  for(const mode of ['zones','shockwaves','projectiles']) {
     const g=game(1),boss=g.start(1);g.c.owner=boss;g.c.selectedCharacter='paladin';
     g.c.player.x=boss.x;g.c.player.y=boss.y+110;g.c.player.paladinGuardTime=40;g.c.player.paladinGuardTriggered=false;
     g.c.player.paladinCombo=0;g.c.player.paladinComboLevel=0;g.c.paladinEffects=[];g.c.scaledDamage=n=>n;
     g.run(read('04-paladin'));boss.hp=1;
     if(mode==='zones')g.run("for(let n=0;n<4;n++)worldRaidZone(owner,'rain',{x:player.x,y:player.y,r:75,delay:1,duration:12,damage:.2})");
+    else if(mode==='shockwaves')g.run("for(let n=0;n<4;n++)worldRaidZone(owner,'shockwave',{x:player.x-380,y:player.y,angle:0,minR:380,r:380,maxR:620,width:32,arc:1.8,delay:1,duration:40,damage:.25})");
     else g.run("for(let n=0;n<4;n++)worldRaidProjectiles.push({owner,type:'glass',x:player.x,y:player.y,vx:0,vy:0,r:8,life:30,maxLife:30,spin:0,damage:.2})");
     assert.doesNotThrow(()=>g.run('updateWorldRaidHazards(owner)'));
     assert.equal(g.run('activeRaidBoss'),null);assert.equal(g.run('worldRaidZones.length'),0);assert.equal(g.run('worldRaidProjectiles.length'),0);
@@ -125,6 +126,77 @@ test('rift arrival grants contact grace and final eye has an aimed sweep plus a 
   eye.run('cancelWorldRaidPattern(owner);startWorldRaidPattern(owner,1);for(let n=0;n<72;n++)updateWorldRaidHazards(owner)');
   assert.equal(eye.run('worldRaidProjectiles.length'),12);
   const angles=eye.run('worldRaidProjectiles.map(p=>Math.atan2(p.vy,p.vx))');assert.ok(Math.max(...angles)-Math.min(...angles)>5.5);
+});
+test('rift speed adds 3% of initial speed per actual teleport, persists through casts and BREAK, and resets each encounter',()=>{
+  const g=game(3),boss=g.start(0);g.c.owner=boss;
+  assert.equal(boss.worldRaidBaseSpeed,2.3);assert.equal(boss.worldRaidTeleportCount,0);assert.equal(boss.worldRaidSpeedBonus,0);
+  g.run('startWorldRaidPattern(owner,0);for(let n=0;n<47;n++)updateWorldRaidHazards(owner)');
+  assert.equal(boss.speed,2.3);assert.equal(boss.worldRaidTeleportCount,0);
+  g.c.paused=true;g.run('updateWorldRaidHazards(owner)');assert.equal(boss.worldRaidTeleportCount,0);g.c.paused=false;
+  g.run('updateWorldRaidHazards(owner)');assert.equal(boss.worldRaidTeleportCount,1);assert.equal(boss.speed,2.3*1.03);
+  g.run('for(let n=0;n<49;n++)updateWorldRaidHazards(owner)');assert.equal(boss.worldRaidTeleportCount,1);
+  g.run('updateWorldRaidHazards(owner)');assert.equal(boss.worldRaidTeleportCount,2);assert.equal(boss.speed,2.3*1.06);
+  g.run('for(let n=0;n<64;n++)updateWorldRaidHazards(owner)');assert.equal(boss.worldRaidTeleportCount,3);assert.equal(boss.speed,2.3*1.09);
+  g.run('cancelWorldRaidPattern(owner);startWorldRaidPattern(owner,1);cancelWorldRaidPattern(owner)');
+  assert.equal(boss.speed,2.3*1.09);assert.equal(boss.worldRaidSpeedBonus,.09);
+  g.run('startWorldRaidPattern(owner,0);owner.relicInterruptTime=30;updateWorldRaidBoss(owner,false);updateWorldRaidHazards(owner)');
+  assert.equal(boss.worldRaidTeleportCount,3);assert.equal(boss.speed,2.3*1.09);
+  g.run('owner.relicInterruptTime=0;startWorldRaidPattern(owner,0);for(let n=0;n<48;n++)updateWorldRaidHazards(owner)');
+  assert.equal(boss.worldRaidTeleportCount,4);assert.equal(boss.speed,2.3*1.12);
+  g.run('cancelWorldRaidPattern(owner);owner.x=800;owner.y=800;player.x=1400;player.y=800;owner.cooldown=100;updateWorldRaidBoss(owner,true)');
+  assert.ok(Math.abs(boss.x-(800+2.3*1.12*.65))<1e-9);
+  const fresh=g.start(0);assert.notEqual(fresh,boss);assert.equal(fresh.speed,2.3);
+  assert.equal(fresh.worldRaidTeleportCount,0);assert.equal(fresh.worldRaidSpeedBonus,0);
+});
+test('rift slash keeps its original hit and announces a locked outward wave before it travels from 380 to 620px',()=>{
+  const g=game(3),boss=g.start(0);g.c.owner=boss;g.c.player.x=boss.x+500;g.c.player.y=boss.y;
+  g.run('startWorldRaidPattern(owner,1)');const [cone,wave]=g.run('worldRaidZones');
+  assert.equal(cone.type,'cone');assert.equal(cone.r,380);assert.equal(cone.delay,65);assert.equal(cone.maxLife-cone.maxDelay,14);
+  assert.equal(wave.type,'shockwave');assert.equal(wave.minR,380);assert.equal(wave.maxR,620);assert.equal(wave.width,32);
+  assert.equal(wave.arc,cone.arc);assert.equal(wave.angle,cone.angle);assert.equal(wave.delay,79);assert.equal(wave.hitGroup,cone.hitGroup);
+  g.run('for(let n=0;n<78;n++)updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,100);assert.equal(wave.r,380);
+  g.run('updateWorldRaidHazards(owner)');assert.equal(wave.r,386);assert.equal(g.c.player.hp,100);
+  g.run('for(let n=0;n<15;n++)updateWorldRaidHazards(owner)');assert.equal(wave.r,476);assert.equal(g.c.player.hp,100);
+  g.run('updateWorldRaidHazards(owner)');assert.equal(wave.r,482);assert.equal(g.c.player.hp,75);
+  const x=boss.x,y=boss.y;g.run('for(let n=0;n<23;n++){player.invincibleTime=0;updateWorldRaidHazards(owner)}');
+  assert.equal(wave.r,620);assert.equal(g.c.player.hp,75);assert.equal(boss.x,x);assert.equal(boss.y,y);
+  g.run('updateWorldRaidHazards(owner)');assert.equal(g.run('worldRaidZones.length'),0);assert.equal(wave.r,620);
+});
+test('rift slash and following wave share one 25% hit even after invincibility ends, and a later cast gets a new hit',()=>{
+  const g=game(3),boss=g.start(0);g.c.owner=boss;g.c.player.x=boss.x+300;g.c.player.y=boss.y;
+  g.run('startWorldRaidPattern(owner,1);for(let n=0;n<64;n++)updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,100);
+  g.run('updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,75);
+  g.c.player.x=boss.x+500;g.run('for(let n=0;n<54;n++){player.invincibleTime=0;updateWorldRaidHazards(owner)}');assert.equal(g.c.player.hp,75);
+  g.run('startWorldRaidPattern(owner,1);for(let n=0;n<95;n++)updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,50);
+});
+test('rift wave collision matches the annular-sector preview, including swept edges and the empty area behind it',()=>{
+  const g=game(3),boss=g.start(0);g.c.owner=boss;
+  g.c.waveShape={x:0,y:0,angle:0,arc:1.8,minR:380,maxR:620,width:32};
+  assert.equal(g.run('worldRaidShockwaveHits(waveShape,614,620,640,0,20)'),true);
+  assert.equal(g.run('worldRaidShockwaveHits(waveShape,614,620,641,0,20)'),false);
+  assert.equal(g.run('worldRaidShockwaveHits(waveShape,380,386,359,0,20)'),false);
+  assert.equal(g.run('worldRaidShockwaveHits(waveShape,500,600,550,0,2)'),true);
+  assert.equal(g.run('worldRaidShockwaveHits(waveShape,500,506,400,0,20)'),false);
+  assert.equal(g.run('worldRaidShockwaveHits(waveShape,500,506,-500,0,20)'),false);
+  assert.equal(g.run('worldRaidShockwaveHits(waveShape,500,506,500*Math.cos(.93),500*Math.sin(.93),20)'),true);
+  assert.equal(g.run('worldRaidShockwaveHits(waveShape,500,506,500*Math.cos(.95),500*Math.sin(.95),20)'),false);
+  for(const [distance,angle]of[[641,0],[500,1.1],[200,Math.PI]]){
+    g.c.player.x=boss.x+500;g.c.player.y=boss.y;g.run('startWorldRaidPattern(owner,1)');
+    g.c.player.x=boss.x+Math.cos(angle)*distance;g.c.player.y=boss.y+Math.sin(angle)*distance;
+    g.run('for(let n=0;n<119;n++)updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,100);
+  }
+  g.c.player.x=boss.x+700;g.c.player.y=boss.y;g.run('startWorldRaidPattern(owner,1);for(let n=0;n<105;n++)updateWorldRaidHazards(owner)');
+  g.c.player.x=boss.x+300;g.run('for(let n=0;n<14;n++)updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,100);
+});
+test('an active rift wave pauses in place, is canceled by BREAK, and cannot outlive its owner',()=>{
+  const g=game(3),boss=g.start(0);g.c.owner=boss;g.c.player.x=boss.x+550;g.c.player.y=boss.y;
+  g.run('startWorldRaidPattern(owner,1);for(let n=0;n<90;n++)updateWorldRaidHazards(owner)');
+  const wave=g.run('worldRaidZones[0]'),radius=wave.r,life=wave.life;
+  g.c.paused=true;g.run('for(let n=0;n<20;n++)updateWorldRaidHazards(owner)');assert.equal(wave.r,radius);assert.equal(wave.life,life);
+  g.c.paused=false;g.run('owner.relicInterruptTime=30;updateWorldRaidBoss(owner,false);updateWorldRaidHazards(owner)');
+  assert.equal(g.run('worldRaidZones.length'),0);assert.equal(g.c.player.hp,100);
+  g.run('owner.relicInterruptTime=0;startWorldRaidPattern(owner,1);for(let n=0;n<90;n++)updateWorldRaidHazards(owner);owner.hp=0;updateWorldRaidHazards(owner)');
+  assert.equal(g.run('worldRaidZones.length'),0);assert.equal(g.c.player.hp,100);
 });
 test('new hazards honor shields, dodge, source suppression and pause without hurting after owner death',()=>{
   const g=game(1),boss=g.start(0);g.c.owner=boss;

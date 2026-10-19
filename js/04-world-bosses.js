@@ -8,7 +8,7 @@ const WORLD_RAID_BOSS_TYPES = Object.freeze({
     {id:'alarm-infected',name:'최후의 경보',subtitle:'경보 감염자',color:'#ef746d',desc:'퍼져 나가는 음파와 거리의 감염자들을 지휘합니다.',tips:'음파 고리를 넘겨 피하고 소환된 감염자를 먼저 정리하세요.',speed:1.4}
   ].map((d,index)=>Object.freeze({...d,index,world:1,image:`assets/world-bosses-v1/${d.id}.webp`})) ),
   3:Object.freeze([
-    {id:'rift-hunter',name:'균열의 추격자',subtitle:'균열 사냥꾼',color:'#bd8af3',desc:'도착 지점을 예고한 뒤 연속으로 균열을 건너옵니다.',tips:'겹치는 균열 표식에서 벗어나세요. 출현 직후 접촉 피해는 잠시 유예됩니다.',speed:2.3},
+    {id:'rift-hunter',name:'균열의 추격자',subtitle:'균열 사냥꾼',color:'#bd8af3',desc:'순간이동할 때마다 빨라지며 전방으로 균열 충격파를 내보냅니다.',tips:'순간이동마다 기본 이동속도가 3%씩 누적됩니다. 균열 표식과 부채꼴 충격파를 피하세요. 출현 직후 접촉 피해는 잠시 유예됩니다.',speed:2.3},
     {id:'stitcher',name:'심연의 봉합자',subtitle:'봉합자',color:'#80e5c3',desc:'소환체와 생명의 실을 연결해 회복하며 봉합 광선을 쏩니다.',tips:'연결된 소환체를 모두 처치하면 회복이 끊기고 잠시 무방비가 됩니다.',speed:1.6},
     {id:'abyss-eye',name:'심연의 관측안',subtitle:'최종 관측체',color:'#da98ff',desc:'서서히 회전하는 광선과 전방위 구체로 발원지를 지킵니다.',tips:'넓은 회전 구간 예고를 살피고 구체 사이의 틈을 이용하세요.',speed:1.25}
   ].map((d,index)=>Object.freeze({...d,index,world:3,image:`assets/world-monsters-v1/${d.id}.webp`})) )
@@ -35,6 +35,7 @@ function initializeWorldRaidBoss(boss) {
   boss.isWorldRaidBoss=true;boss.worldRaidType=def.id;boss.worldRaidWorld=def.world;
   boss.hp=boss.maxHp=RAID_BOSS_BALANCE.easy.hp[boss.raidIndex];boss.lastHp=boss.hp;
   boss.r=def.id==='abyss-eye'?78:def.id==='iron-hauler'?72:64;boss.speed=def.speed;
+  boss.worldRaidBaseSpeed=def.speed;boss.worldRaidTeleportCount=0;boss.worldRaidSpeedBonus=0;
   boss.worldRaidState='move';boss.worldRaidAge=0;boss.worldRaidTimer=0;boss.worldRaidMaxTimer=1;
   boss.worldRaidAim=Math.atan2(player.y-boss.y,player.x-boss.x);boss.worldRaidLinks=[];boss.worldRaidPatternSequence=0;
   boss.worldRaidGrace=0;boss.worldRaidFrayed=0;boss.worldRaidHealBudget=boss.maxHp*.02;
@@ -47,9 +48,9 @@ function enforceWorldRaidBossPosition(boss) {
   boss.slowTime=0;boss.stunTime=0;boss.stunFlash=0;return true;
 }
 function worldRaidAlive(boss) { return !!boss&&boss===activeRaidBoss&&boss.hp>0&&zombies.includes(boss); }
-function worldRaidEmit(type,x,y,r,color,life=32) {
+function worldRaidEmit(type,x,y,r,color,life=32,details={}) {
   if(worldRaidEffects.length>=WORLD_RAID_EFFECT_CAP)worldRaidEffects.shift();
-  worldRaidEffects.push({type,x,y,r,color,life,maxLife:life});
+  worldRaidEffects.push({type,x,y,r,color,life,maxLife:life,...details});
 }
 function worldRaidZone(owner,type,options={}) {
   if(worldRaidZones.length>=WORLD_RAID_ZONE_CAP)return null;
@@ -117,7 +118,13 @@ function startWorldRaidPattern(boss,pattern) {
         worldRaidZone(boss,'rift',{x:Math.max(110,Math.min(WORLD.width-110,player.x+Math.cos(a)*150)),
           y:Math.max(110,Math.min(WORLD.height-110,player.y+Math.sin(a)*150)),r:105,delay:48+n*50,duration:14,damage:.22,teleport:true});
       }
-    } else worldRaidZone(boss,'cone',{r:380,arc:1.8,delay:65,duration:14,damage:.25});
+    } else {
+      // One slash launches one wave. Both previews appear when the cast begins,
+      // and share a hit record so remaining in the path cannot take both hits.
+      const hitGroup={hit:false};
+      worldRaidZone(boss,'cone',{r:380,arc:1.8,delay:65,duration:14,damage:.25,hitGroup});
+      worldRaidZone(boss,'shockwave',{minR:380,r:380,maxR:620,width:32,arc:1.8,delay:79,duration:40,damage:.25,hitGroup});
+    }
   } else if(type==='stitcher') {
     if(pattern===0)worldRaidZone(boss,'summon',{r:150,delay:65,duration:12,count:4});
     else worldRaidZone(boss,'beam',{length:640,width:18,baseAngle:boss.worldRaidAim-.35,angle:boss.worldRaidAim-.35,arc:.7,delay:80,duration:85,damage:.18});
@@ -183,6 +190,17 @@ function worldRaidChargeHits(zone,from,to,x,y,r) {
   const nearestAlong=Math.max(from,Math.min(to,along)),nearestSide=Math.max(-zone.width/2,Math.min(zone.width/2,side));
   return (along-nearestAlong)**2+(side-nearestSide)**2<=r*r;
 }
+function worldRaidShockwaveHits(zone,from,to,x,y,r) {
+  // Radius is the outer edge, so the moving band never exceeds its preview.
+  // Sweep the previous trailing edge through the new front to prevent tunneling.
+  const inner=Math.max(zone.minR||0,from-zone.width),outer=Math.min(zone.maxR,to);
+  const dx=x-zone.x,dy=y-zone.y,d=Math.hypot(dx,dy);
+  const delta=Math.atan2(Math.sin(Math.atan2(dy,dx)-zone.angle),Math.cos(Math.atan2(dy,dx)-zone.angle));
+  const nearestAngle=Math.max(-zone.arc/2,Math.min(zone.arc/2,delta));
+  const nearestRadius=Math.max(inner,Math.min(outer,d*Math.cos(delta-nearestAngle)));
+  const angle=zone.angle+nearestAngle;
+  return (dx-Math.cos(angle)*nearestRadius)**2+(dy-Math.sin(angle)*nearestRadius)**2<=r*r;
+}
 function updateWorldRaidHazards(boss) {
   if(!boss?.isWorldRaidBoss)return;
   if(typeof paused!=='undefined'&&(paused||gameOver||choosingUpgrade||raidVictory))return;
@@ -198,13 +216,35 @@ function updateWorldRaidHazards(boss) {
     z.life--;z.delay--;z.age++;
     if(z.delay<=0) {
       const elapsed=-z.delay,duration=z.maxLife-z.maxDelay;
-      if(!z.activated){z.activated=true;worldRaidEmit('impact',z.x,z.y,z.r||70,z.color,26);}
+      if(!z.activated){
+        z.activated=true;
+        if(z.type!=='shockwave')worldRaidEmit('impact',z.x,z.y,z.r||70,z.color,26,{worldRaidType:z.owner.worldRaidType,zoneType:z.type,angle:z.angle,arc:z.arc});
+      }
       if(z.type==='summon') {if(!z.fired){z.fired=true;worldRaidSummon(boss,z.count);}}
       else if(z.action==='glassVolley') {if(elapsed===0||elapsed===20||elapsed===40)worldRaidVolley(boss,5,1.02,6.5,.18);}
       else if(z.action==='orbVolley') {if(elapsed===0||elapsed===30){boss.worldRaidAim+=.12;worldRaidVolley(boss,12,Math.PI*2,4.8,.25,true);}}
-      else if(z.type==='cone') {if(!z.hit&&worldRaidPointInCone(z,player.x,player.y,player.r)){worldRaidDamage(boss,z.damage);z.hit=true;}}
+      else if(z.type==='cone') {
+        if(!z.hit&&!z.hitGroup?.hit&&worldRaidPointInCone(z,player.x,player.y,player.r)){
+          z.hit=true;if(z.hitGroup)z.hitGroup.hit=true;worldRaidDamage(boss,z.damage);
+        }
+      }
+      else if(z.type==='shockwave') {
+        if(elapsed<duration) {
+          const from=z.r,to=Math.min(z.maxR,from+(z.maxR-(z.minR||0))/duration);z.r=to;
+          if(!z.hit&&!z.hitGroup?.hit&&worldRaidShockwaveHits(z,from,to,player.x,player.y,player.r)){
+            z.hit=true;if(z.hitGroup)z.hitGroup.hit=true;worldRaidDamage(boss,z.damage);
+          }
+        }
+      }
       else if(z.type==='rain'||z.type==='rift') {
-        if(z.teleport&&!z.teleported){worldRaidEmit('teleport',boss.x,boss.y,boss.r,z.color);boss.x=z.x;boss.y=z.y;boss.worldRaidGrace=20;z.teleported=true;}
+        if(z.teleport&&!z.teleported){
+          worldRaidEmit('teleport',boss.x,boss.y,boss.r,z.color);boss.x=z.x;boss.y=z.y;boss.worldRaidGrace=20;z.teleported=true;
+          if(boss.worldRaidType==='rift-hunter') {
+            // Add a fixed share of the encounter's base speed, never compound it.
+            boss.worldRaidTeleportCount++;boss.worldRaidSpeedBonus=boss.worldRaidTeleportCount*.03;
+            boss.speed=boss.worldRaidBaseSpeed*(1+boss.worldRaidSpeedBonus);
+          }
+        }
         // The rupture itself damages at its advertised location; grace protects
         // contact after arrival, not a hit inside the completed telegraph.
         if(!z.hit&&Math.hypot(player.x-z.x,player.y-z.y)<z.r+player.r){
