@@ -82,12 +82,31 @@ function renderRelicStage(equipped,hero){
     }).join('')}</div><p class="relic-orbit-hint">슬롯을 눌러 보유 유물을 장착하세요</p></div>
   </section>`;
 }
+function renderRelicLoadoutStats(summary,hero){
+  // The same pure calculation prepares a new run. Never read player here:
+  // it can still contain damage, injuries and temporary buffs from the last run.
+  const stats=calculateRelicLoadoutStats(getCharacterBaseStats(selectedCharacter),summary);
+  const number=value=>value.toLocaleString('ko-KR',{maximumFractionDigits:1});
+  const fields=[
+    ['maxHp','최대 체력',number(stats.maxHp),''],
+    ['damage','공격력',number(stats.damage),''],
+    ['speed','이동 속도',stats.speed.toFixed(2),''],
+    ['critChance','치명타 확률',number(stats.critChance*100),'%'],
+    ['critMultiplier','치명타 피해',number(stats.critMultiplier*100),'%'],
+    ['cooldown','쿨타임 감소',number(stats.cooldownReduction*100),'%']
+  ];
+  return `<section class="relic-loadout-stats" id="relic-loadout-stats" aria-labelledby="relic-loadout-stats-title">
+    <div class="relic-loadout-stats-heading"><div><small>SURVIVOR PROFILE</small><h2 id="relic-loadout-stats-title">${relicEscape(hero)} <span>출격 능력치</span></h2></div><span class="relic-loadout-badge">장착 유물 반영</span></div>
+    <dl class="relic-loadout-stat-grid">${fields.map(([key,label,value,unit])=>`<div class="relic-loadout-stat" data-loadout-stat="${key}"><dt>${label}</dt><dd>${value}${unit?`<small>${unit}</small>`:''}</dd></div>`).join('')}</dl>
+    <p class="relic-loadout-stats-note">캐릭터 기본 능력치와 유물의 상시 효과입니다. 전투 중 성장·스킬·조건부 효과는 제외합니다.</p>
+  </section>`;
+}
 function renderRelicInventory(){
   ensureRelicScreen();
   const equipped=relicEquippedItems(selectedCharacter),summary=relicStatsForItems(equipped),slots=Object.keys(RELIC_SLOTS),hero=characterSkillGuide[selectedCharacter]?.name||selectedCharacter;
   relicSyncSelection(equipped);
   document.getElementById('relic-wallet').innerHTML=`보유 유물 <b>${relicStore.inventory.length}</b> / 300<small>제작권 ${relicStore.tickets?.standard||0} · 고급 ${relicStore.tickets?.advanced||0}</small>`;
-  document.getElementById('relic-content').innerHTML=`${renderRelicStage(equipped,hero)}
+  document.getElementById('relic-content').innerHTML=`${renderRelicStage(equipped,hero)}${renderRelicLoadoutStats(summary,hero)}
     <div class="relic-config"><div class="relic-sets">${summary.activeSets.filter(set=>set.two).map(set=>`<span class="relic-set-pill">${relicEscape(set.name)} · ${set.count}/${set.type==='special'?2:4}</span>`).join('')||'<span class="relic-notice">같은 세트 2개 또는 4개로 세트 효과 활성화</span>'}</div><span class="grow"></span><label>프리셋 <select id="relic-preset">${[0,1,2].map(n=>`<option value="${n}" ${n===relicView.preset?'selected':''}>${n+1}</option>`).join('')}</select></label><button data-action="save-preset">저장</button><button data-action="load-preset">불러오기</button><button data-action="catalog">유물 도감</button></div>
     <div class="relic-workspace" id="relic-workspace"><div><div class="relic-collection-heading"><h2>보유 유물 <span>${relicStore.inventory.length}</span></h2><p>보유한 유물만 표시됩니다</p></div><div class="relic-filter"><select id="relic-slot-filter" aria-label="부위 필터"><option value="">모든 부위</option>${slots.map(slot=>`<option value="${slot}" ${slot===relicView.slot?'selected':''}>${RELIC_SLOTS[slot].name}</option>`).join('')}</select><select id="relic-rarity-filter" aria-label="등급 필터"><option value="">모든 등급</option>${Object.entries(RELIC_RARITIES).map(([id,r])=>`<option value="${id}" ${id===relicView.rarity?'selected':''}>${r.name}</option>`).join('')}</select><select id="relic-sort" aria-label="정렬">${[['level','레벨순'],['rarity','등급순'],['set','세트순']].map(([id,label])=>`<option value="${id}" ${id===relicView.sort?'selected':''}>${label}</option>`).join('')}</select><input id="relic-search" placeholder="이름·메인·보조 속성 검색" aria-label="유물 검색" value="${relicEscape(relicView.query)}"></div><div class="relic-collection" id="relic-collection"></div><details class="relic-craft-disclosure"><summary>유물 제작 · 설계도</summary><div class="relic-craft" id="relic-craft"></div></details></div><aside class="relic-detail" id="relic-detail" aria-label="유물 상세"></aside></div>
     <p class="relic-notice relic-save-note">출격 전 장비만 변경할 수 있습니다. 이 브라우저에 자동 저장되며 다른 기기와 동기화되지 않습니다.</p>`;

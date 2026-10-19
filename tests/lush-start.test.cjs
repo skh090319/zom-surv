@@ -25,6 +25,8 @@ function game(character = 'lush') {
   ]) c[name] = () => {};
   vm.createContext(c);
   const run = source => vm.runInContext(source, c);
+  const core = fs.readFileSync(path.join(root, 'js/01-core.js'), 'utf8');
+  run(core.slice(core.indexOf('function getCharacterBaseStats('), core.indexOf('const player =')));
   for (const file of ['02-upgrades.js', '04-weapons-spawn.js', '10-lush.js']) {
     run(fs.readFileSync(path.join(root, 'js', file), 'utf8'));
   }

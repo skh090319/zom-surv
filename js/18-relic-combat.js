@@ -16,6 +16,24 @@ function relicRunActive() {
 function relicHasSet(id, count = 4) { return !!relicRun && (relicRun.setCounts[id] || 0) >= count; }
 function relicHeroSet(id, hero) { return relicHasSet(id) && relicRun.hero === hero; }
 function relicStat(id) { return relicRun ? (relicRun.stats[id] || 0) : 0; }
+// Relics add percentage points to every survivor's base critical stats. Keep
+// this pure so the equipment screen and combat resolve the same final values.
+function getCombatCriticalStats(stats = {}) {
+  const chanceBonus = Number.isFinite(stats?.critChance) ? stats.critChance : 0;
+  const damageBonus = Number.isFinite(stats?.critDamage) ? stats.critDamage : 0;
+  return { chance: Math.max(0, Math.min(1, .25 + chanceBonus)), multiplier: Math.max(1, 1.30 + damageBonus) };
+}
+function calculateRelicLoadoutStats(base, aggregate = {}) {
+  const stats = aggregate.stats || {}, setCounts = aggregate.setCounts || {};
+  const stat = key => Number.isFinite(stats[key]) ? stats[key] : 0;
+  const maxHp = Math.max(1, (base.maxHp + stat('hpFlat')) * (1 + stat('hpPct')));
+  const conversion = (setCounts.A04 || 0) >= 4 ? Math.min(maxHp * .02, base.damage * .30) : 0;
+  const critical = getCombatCriticalStats(stats);
+  const cooldown = Math.min(.9, stat('cooldown'));
+  return { maxHp, damage: (base.damage + stat('atkFlat') + conversion) * (1 + stat('atkPct')),
+    speed: base.speed * (1 + stat('moveSpeed')), critChance: critical.chance, critMultiplier: critical.multiplier,
+    cooldown, cooldownReduction: cooldown };
+}
 function relicBuff(name) { return !!relicRun && (relicRun.buffs[name] || 0) > relicRun.frame; }
 function relicSetBuff(name, frames) { if (relicRun) relicRun.buffs[name] = relicRun.frame + frames; }
 function relicFreeze(value) {
@@ -34,11 +52,10 @@ function relicBeginRun() {
     frame: 0, buffs: {}, basicStacks: 0, stardustStacks: 0, casts: 0, movement: 0,
     moveArmed: true, baseDamage: player.damage, attacks: new Map(), rewards: new Set(),
     rewardItems: [], rewardItemIds: new Set(), rewardMaterials: 0 };
-  const maxHp = Math.max(1, (player.maxHp + relicStat('hpFlat')) * (1 + relicStat('hpPct')));
-  player.maxHp = maxHp; player.hp = maxHp;
-  const conversion = relicHasSet('A04') ? Math.min(maxHp * .02, relicRun.baseDamage * .30) : 0;
-  player.damage = (relicRun.baseDamage + relicStat('atkFlat') + conversion) * (1 + relicStat('atkPct'));
-  player.speed *= 1 + relicStat('moveSpeed');
+  const loadout = calculateRelicLoadoutStats({ maxHp: player.maxHp, damage: player.damage, speed: player.speed }, aggregate);
+  player.maxHp = loadout.maxHp; player.hp = loadout.maxHp;
+  player.damage = loadout.damage;
+  player.speed = loadout.speed;
   player.relicLoadout = snapshot;
   relicInstallPlayerProperties();
   for (const enemy of zombies) relicTrackEnemy(enemy);
@@ -167,11 +184,10 @@ function relicResolveDamage(enemy, amount, context) {
   relicMarkActiveSkill(context);
   const record = relicRecordAttack(context);
   const wasBroken = enemy.relicBreakTime > 0;
-  const chance = Math.max(0, Math.min(1, relicStat('critChance')));
+  const { chance, multiplier: critMultiplier } = getCombatCriticalStats(relicRun.stats);
   const crit = chance > 0 && context.canCrit !== false && !context.dot && Math.random() < chance;
   let damage = amount * Math.max(0, 1 + relicConditionalDamage(enemy, context, record));
-  const critBase = 1.5 + relicStat('critDamage');
-  if (crit) damage *= critBase + (wasBroken && relicHasSet('A08') ? .40 : 0);
+  if (crit) damage *= critMultiplier + (wasBroken && relicHasSet('A08') ? .40 : 0);
   let hpDamage = damage, shieldDamage = 0;
   if (enemy.relicShield > 0) {
     const shieldMultiplier = Math.max(.01, 1 + relicStat('shieldDamage'));

@@ -350,6 +350,16 @@ const mouse = {
   down: false
 };
 
+// One source of truth for both a fresh sortie and the equipment-screen preview.
+// Returning a new object keeps menu inspection independent of the live player.
+function getCharacterBaseStats(hero) {
+  return {
+    maxHp: ({ren:50,nightLord:150,paladin:125,vargas:180})[hero] ?? 100,
+    damage: ({yupiter:70,zero:45,paladin:42})[hero] ?? 35,
+    speed: hero === "suncall" ? 4.2 * 1.15 : 4.2
+  };
+}
+
 const player = {
   x: WORLD.width / 2,
   y: WORLD.height / 2,

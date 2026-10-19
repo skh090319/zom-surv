@@ -31,6 +31,57 @@ function game(hero='arc',sets={},stats={}) {
 function near(a,b){assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);}
 function damage(g,e){return e.maxHp-e.hp;}
 
+test('base critical chance is exactly 25 percent and its TOTAL damage is 130 percent without equipment',()=>{
+  for (const kind of ['basic','skill']) {
+    const g=game('arc'),critical=g.enemy(),normal=g.enemy();
+    g.c.Math.random=()=>.249999;
+    g.hit(critical,100,{kind});near(damage(g,critical),130);assert.equal(critical.relicLastHit.crit,true);
+    g.c.Math.random=()=>.25;
+    g.hit(normal,100,{kind});near(damage(g,normal),100);assert.equal(normal.relicLastHit.crit,false);
+  }
+});
+test('critical stat helper is pure, adds relic percentage points and clamps chance at zero and 100 percent',()=>{
+  const g=game();
+  const base=g.run('getCombatCriticalStats()');near(base.chance,.25);near(base.multiplier,1.3);
+  const equipped=g.run('getCombatCriticalStats(Object.freeze({critChance:.10,critDamage:.25}))');near(equipped.chance,.35);near(equipped.multiplier,1.55);
+  near(g.run('getCombatCriticalStats({critChance:5}).chance'),1);
+  near(g.run('getCombatCriticalStats({critChance:-5}).chance'),0);
+  near(g.run('getCombatCriticalStats({critChance:NaN,critDamage:Infinity}).multiplier'),1.3);
+  const e=g.enemy();g.c.Math.random=()=>.999999;
+  g.run('relicRun.stats=Object.freeze({critChance:.75})');g.hit(e,100,{kind:'basic'});near(damage(g,e),130);
+  const geared=game('arc',{}, {critChance:.10,critDamage:.25}),crit=geared.enemy(),normal=geared.enemy();
+  geared.c.Math.random=()=>.349999;geared.hit(crit,100,{kind:'skill'});near(damage(geared,crit),155);
+  geared.c.Math.random=()=>.35;geared.hit(normal,100,{kind:'skill'});near(damage(geared,normal),100);
+});
+test('shared loadout stats match actual sortie stats, including HP conversion, criticals and cooldown cap',()=>{
+  const g=game('vargas',{A04:4},{atkFlat:8,atkPct:.2,hpFlat:80,hpPct:.12,moveSpeed:.1,critChance:.10,critDamage:.25,cooldown:1.2});
+  const stats=g.run('calculateRelicLoadoutStats(Object.freeze({maxHp:180,damage:35,speed:4.2}),Object.freeze({stats:Object.freeze({...testStats}),setCounts:Object.freeze({...testSets})}))');
+  near(stats.maxHp,g.player.maxHp);near(stats.damage,g.player.damage);near(stats.speed,g.player.speed);
+  near(stats.critChance,.35);near(stats.critMultiplier,1.55);near(stats.cooldown,.9);near(stats.cooldownReduction,.9);
+  near(g.run('calculateRelicLoadoutStats({maxHp:100000,damage:35,speed:4},{setCounts:{A04:4}}).damage'),45.5);
+});
+test('crit resolves once before shield overflow and never rolls again for excluded DOT or secondary hits',()=>{
+  const g=game('arc'),boss=g.enemy(0,0,1000,{isRaidBoss:true});boss.relicShield=60;
+  let rolls=0;g.c.Math.random=()=>{rolls++;return 0;};
+  g.hit(boss,100,{kind:'skill'});near(boss.hp,930);near(boss.relicShield,0);assert.equal(rolls,1);
+  near(boss.relicLastHit.shieldDamage,60);near(boss.relicLastHit.hpDamage,70);
+  for (const tags of [{kind:'skill',dot:true},{kind:'skill',canCrit:false},{kind:'augment',dot:true}]) {
+    const e=g.enemy();g.hit(e,100,tags);near(damage(g,e),100);assert.equal(e.relicLastHit.crit,false);
+  }
+  assert.equal(rolls,1,'excluded damage must not consume another critical roll');
+});
+test('critical stats stay frozen during a run, do not compound across restarts and never multiply incoming damage',()=>{
+  const g=game('arc',{}, {critChance:.05,critDamage:.20});
+  g.c.testStats.critChance=.7;g.c.testStats.critDamage=3;
+  near(g.run('getCombatCriticalStats(relicRun.stats).chance'),.3);
+  near(g.run('getCombatCriticalStats(relicRun.stats).multiplier'),1.5);
+  g.c.testStats.critChance=.05;g.c.testStats.critDamage=.2;
+  for(let n=0;n<3;n++) {
+    g.run('restart()');near(g.run('getCombatCriticalStats(relicRun.stats).chance'),.3);near(g.run('getCombatCriticalStats(relicRun.stats).multiplier'),1.5);
+  }
+  g.c.Math.random=()=>0;const hp=g.player.hp;g.run('player.hp-=10');near(g.player.hp,hp-10);near(g.run('relicIncomingDamage(100)'),100);
+  const e=g.enemy();g.run('screenMode="home"');g.hit(e,100,{kind:'skill'});near(damage(g,e),100);
+});
 test('sortie snapshots are immutable; restart does not double stats or retain temporary buffs',()=>{
   const g=game('vargas',{A04:4},{atkFlat:8,atkPct:.2,hpFlat:80,hpPct:.12,moveSpeed:.1});
   near(g.player.maxHp,291.2);near(g.player.damage,(35+8+5.824)*1.2);near(g.player.speed,4.62);
@@ -53,7 +104,7 @@ test('boss shields use damage budget overflow; breaking hit receives no new brea
 });
 test('crit and A08 are additive percentage points and apply after the breaking hit only',()=>{
   const g=game('arc',{A08:4},{critChance:1,critDamage:.3}),e=g.enemy(0,0,1000,{isRaidBoss:true});e.relicShield=100;
-  g.hit(e,100);near(e.hp,920);g.hit(e,100);near(e.hp,700);
+  g.hit(e,100);near(e.hp,940);g.hit(e,100);near(e.hp,740);
   const dot=g.enemy();g.hit(dot,100,{dot:true});near(damage(g,dot),100);
 });
 test('A01 stacks once for a multi-pellet attack and expires; A06 counts distinct targets in one attack',()=>{
@@ -146,17 +197,17 @@ test('C12 knots and closing rifts, C13 world-tree roots and infection use their 
 test('Aria infection keeps skill and DOT equipment bonuses without inheriting burst criticals',()=>{
   const g=game('aria',{}, {skillDamage:.1,dotDamage:.5,critChance:1}),e=g.enemy(0);
   g.run('ariaGrowth.treeTick=10000;mouse.worldX=player.x;mouse.worldY=player.y;activateAriaE()');
-  near(damage(g,e),35*2.8*1.1*1.5);
+  near(damage(g,e),35*2.8*1.1*1.3);
   const before=e.hp;g.run('for(let n=0;n<30;n++)updateAria()');near(before-e.hp,35*.8*1.6);
 });
 test('Aria harvest is a single skill hit and awakened roots are skill hits rather than DOT',()=>{
   const x=game('aria',{}, {skillDamage:.1,dotDamage:.5,critChance:1}),harvest=x.enemy(0);
-  x.run('ariaGrowth.treeTick=10000;activateAriaX()');near(damage(x,harvest),35*4.5*1.1*1.5);
+  x.run('ariaGrowth.treeTick=10000;activateAriaX()');near(damage(x,harvest),35*4.5*1.1*1.3);
   const before=harvest.hp;x.run('for(let n=0;n<18;n++)updateAria()');near(harvest.hp,before);
   const r=game('aria',{}, {skillDamage:.1,dotDamage:.5,critChance:1}),root=r.enemy(0);
   r.run('activateAriaR()');near(damage(r,root),0);
-  r.run('updateAria()');near(damage(r,root),35*2.2*1.1*1.5);
-  const first=root.hp;r.run('for(let n=0;n<18;n++)updateAria()');near(first-root.hp,35*2.2*1.1*1.5);
+  r.run('updateAria()');near(damage(r,root),35*2.2*1.1*1.3);
+  const first=root.hp;r.run('for(let n=0;n<18;n++)updateAria()');near(first-root.hp,35*2.2*1.1*1.3);
 });
 test('Aria delayed petals retain one basic attack ID and basic equipment bonuses throughout flight',()=>{
   const g=game('aria',{}, {basicDamage:.2,skillDamage:.7}),e=g.enemy(120);
@@ -280,6 +331,18 @@ test('every hero basic attack reaches a raid shield through its real damage path
     const attack=hero==='yupiter'?'attackWithYupiterWeapon':`attackWith${hero[0].toUpperCase()+hero.slice(1)}`;
     for(let n=0;n<45;n++)g.run(`${attack}();update();${hero==='lush'?'updateLush()':hero==='oblivion'?'updateOblivionCombat()':''}`);
     assert.equal(boss.hp,hp,`${hero}: shield must absorb HP damage`);assert.ok(boss.relicShield<shield,`${hero}: its basic must damage the shield`);
+  }
+});
+test('every survivor basic attack can critically hit through its actual direct damage path without relics',()=>{
+  for(const hero of ['suncall','yupiter','ren','nightLord','zero','paladin','arc','terra','void','carmilla','vargas','echo','aria','moira','mare','nullZero','astra','lush','oblivion']) {
+    const g=game(hero),target=g.enemy(120,0,100000,{r:65});g.c.Math.random=()=>.249999;
+    if(hero==='aria')g.run('ariaGrowth.treeTick=10000');
+    g.run(`const criticalBasicHits=[];const resolveCriticalFixture=relicResolveDamage;relicResolveDamage=function(enemy,amount,context){const output=resolveCriticalFixture(enemy,amount,context);if(context.kind==='basic'&&!context.dot&&context.canCrit!==false)criticalBasicHits.push({amount,output,crit:enemy.relicLastHit.crit});return output;}`);
+    const attack=hero==='yupiter'?'attackWithYupiterWeapon':`attackWith${hero[0].toUpperCase()+hero.slice(1)}`;
+    for(let n=0;n<45;n++)g.run(`${attack}();update();${hero==='lush'?'updateLush()':hero==='oblivion'?'updateOblivionCombat()':''}`);
+    const hits=g.run('criticalBasicHits');assert.ok(hits.length>0,`${hero}: expected an actual basic hit`);
+    for(const hit of hits){assert.equal(hit.crit,true,`${hero}: base crit must apply`);near(hit.output,hit.amount*1.3);}
+    assert.ok(target.hp<target.maxHp,`${hero}: criticals must reach HP`);
   }
 });
 test('single-projectile creators never scan unrelated pools; a full cast only reads their tail boundaries',()=>{

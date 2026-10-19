@@ -26,7 +26,13 @@ function scene(saved){
   c.drawRoundedRect=(...args)=>drawCalls.push({kind:'rect',args});c.registerGuideSection=section=>c.section=section;c.openGuideScreen=id=>{c.guideOpened=id;c.screenMode='guide';};c.Image=class{constructor(){this.complete=false;}};
   c.portraitRequests=[];c.getCharacterPreviewSprite=(id,thumbnail=false)=>{c.portraitRequests.push({id,thumbnail});return{assetSource:'assets/test/'+id+'-body.webp',src:'assets/test/'+id+'-body.webp'};};
   c.guideSectionTop=153;c.guideScrollY=0;c.guideScrollMax=0;c.guideContentTop=0;c.isMobileTouchDevice=()=>true;c.pointInRect=()=>false;
-  vm.createContext(c);for(const file of ['17-relic-data.js','19-relic-ui.js'])vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),c,{filename:file});
+  vm.createContext(c);
+  // Load the production pure helpers without starting the battlefield adapters.
+  for(const [file,names] of [['01-core.js',['getCharacterBaseStats']],['18-relic-combat.js',['getCombatCriticalStats','calculateRelicLoadoutStats']]]){
+    const source=fs.readFileSync(path.join(root,'js',file),'utf8');
+    for(const name of names){const definition=source.match(new RegExp('function '+name+'\\([^]*?\\n\\}'));assert.ok(definition,`${name} exists`);vm.runInContext(definition[0],c,{filename:file});}
+  }
+  for(const file of ['17-relic-data.js','19-relic-ui.js'])vm.runInContext(fs.readFileSync(path.join(root,'js',file),'utf8'),c,{filename:file});
   const run=expression=>vm.runInContext(expression,c);
   function click(action){c.button={dataset:{action},disabled:false};run('onRelicUiClick({target:{closest:()=>button}})');}
   function clickSlot(slot){c.button={dataset:{slot},disabled:false};run('onRelicUiClick({target:{closest:()=>button}})');}
@@ -90,6 +96,56 @@ test('equipment overview shows the selected full-body portrait beside exactly si
     assert.deepEqual(slots,['core','armor','lens','boots','emblem','power']);
     assert.ok(g.c.portraitRequests.some(request=>request.id===hero&&!request.thumbnail));
   }
+});
+function loadoutValues(g){
+  return Object.fromEntries([...g.element('relic-content').innerHTML.matchAll(/data-loadout-stat="([^"]+)"[^>]*>[\s\S]*?<dd>([\s\S]*?)<\/dd>/g)].map(([,key,value])=>[key,Number(value.replace(/<[^>]*>|,|%/g,''))]));
+}
+test('six sortie stats sit below the portrait and slots, before the preset controls',()=>{
+  const g=scene();g.run('openRelicInventory()');const html=g.element('relic-content').innerHTML;
+  assert.ok(html.indexOf('relic-loadout-stats')>html.indexOf('relic-orbit-hint'));
+  assert.ok(html.indexOf('relic-loadout-stats')<html.indexOf('class="relic-config"'));
+  assert.equal(Object.keys(loadoutValues(g)).length,6);
+  for(const label of ['최대 체력','공격력','이동 속도','치명타 확률','치명타 피해','쿨타임 감소'])assert.ok(html.includes(label));
+  assert.match(html,/장착 유물 반영/);assert.match(html,/전투 중 성장·스킬·조건부 효과는 제외/);
+  const css=fs.readFileSync(path.join(root,'relics.css'),'utf8');
+  assert.match(css,/\.relic-loadout-stat-grid\{display:grid;grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
+  assert.match(css,/@media\(max-width:620px\)\{\.relic-loadout-stat-grid\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+});
+test('unequipped character stats ignore old-run player state and refresh for each selected survivor',()=>{
+  const g=scene();g.run('relicStore.loadouts={};renderRelicInventory()');
+  assert.deepEqual(loadoutValues(g),{maxHp:100,damage:35,speed:4.2,critChance:25,critMultiplier:130,cooldown:0});
+  const saved=g.storage.get('zombieSurvivalRelicsV1');
+  g.c.player={maxHp:99999,hp:1,damage:88888,speed:300,level:99};
+  const oldPlayer=JSON.stringify(g.c.player);g.run('renderRelicInventory()');
+  assert.equal(loadoutValues(g).damage,35);assert.equal(JSON.stringify(g.c.player),oldPlayer);assert.equal(g.storage.get('zombieSurvivalRelicsV1'),saved);
+  g.c.selectedCharacter='yupiter';g.run('renderRelicInventory()');assert.equal(loadoutValues(g).damage,70);
+  g.c.selectedCharacter='suncall';g.run('renderRelicInventory()');assert.equal(loadoutValues(g).speed,4.83);
+  g.c.selectedCharacter='vargas';g.run('renderRelicInventory()');assert.equal(loadoutValues(g).maxHp,180);
+  g.c.selectedCharacter='ren';g.run('renderRelicInventory()');assert.equal(loadoutValues(g).maxHp,50);
+});
+test('loadout display updates on equip, unequip, preset restore and actual equipped-item enhancement',()=>{
+  const g=scene();g.run('openRelicInventory()');const original=loadoutValues(g);
+  g.click('save-preset');g.click('confirm');g.click('equip');
+  assert.ok(loadoutValues(g).damage<original.damage,'unequipping the selected core changes attack');
+  g.click('equip');assert.deepEqual(loadoutValues(g),original);
+  g.click('equip');g.click('load-preset');assert.deepEqual(loadoutValues(g),original);
+  g.run("let statFeed=relicCreate({setId:'A02',slot:'core'});relicStore.inventory.push(statFeed);renderRelicInventory()");
+  g.click('enhance');g.clickFeed(g.run('statFeed.id'));g.click('feed-apply');g.click('confirm');
+  assert.ok(loadoutValues(g).damage>original.damage,'successful fusion refreshes the equipped main stat');
+});
+test('stat display shares exact sortie HP conversion and critical/cooldown percentage semantics',()=>{
+  const g=scene();
+  g.run(`relicStore.inventory=Object.keys(RELIC_SLOTS).map(slot=>{
+    const item=relicCreate({setId:['emblem','power'].includes(slot)?'B03':'A04',slot,rarity:'legendary',mainStat:slot==='lens'?'critChance':slot==='boots'?'moveSpeed':slot==='power'?'cooldown':undefined});
+    item.substats=[{stat:'critDamage',count:0},{stat:'atkPct',count:0}];return relicEnhancePreview(item,100000).item;
+  });relicStore.loadouts={astra:Object.fromEntries(relicStore.inventory.map(item=>[item.slot,item.id]))};renderRelicInventory()`);
+  const expected=g.run('calculateRelicLoadoutStats(getCharacterBaseStats(selectedCharacter),relicStatsForItems(relicEquippedItems(selectedCharacter)))'),actual=loadoutValues(g);
+  for(const key of ['maxHp','damage'])assert.equal(actual[key],Number(expected[key].toFixed(1)));
+  assert.equal(actual.speed,Number(expected.speed.toFixed(2)));
+  assert.equal(actual.critChance,Number((expected.critChance*100).toFixed(1)));
+  assert.equal(actual.critMultiplier,Number((expected.critMultiplier*100).toFixed(1)));
+  assert.equal(actual.cooldown,Number((expected.cooldownReduction*100).toFixed(1)));
+  assert.ok(actual.maxHp>100);assert.ok(actual.critChance>25);assert.ok(actual.critMultiplier>130);assert.ok(actual.cooldown>0);
 });
 test('empty equipment slots retain their controls without showing art for unowned relics',()=>{
   const g=scene();g.run("relicUnequip('astra','core');renderRelicInventory()");

@@ -39,6 +39,26 @@
 #relic-screen .relic-slot.empty .relic-slot-disc{border-style:dashed;background:#12203665;box-shadow:0 0 0 4px #b1c6e009}
 .relic-slot-empty{position:absolute;inset:0;display:grid;place-items:center;color:#90a5bc;font:300 32px Arial}.relic-slot-state{font-size:10px;display:block;color:#8398ae;margin-top:3px}
 .relic-orbit-hint{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:11px;color:#9fb1c8;margin:0}
+/* Permanent sortie stats live below the showcase, never over the portrait or slots. */
+.relic-loadout-stats{position:relative;margin:20px 0 22px;padding:18px 20px 14px;border:1px solid #395571;border-radius:11px;background:linear-gradient(125deg,#172b42e6,#0c1728f5 65%);box-shadow:inset 0 1px 0 #c4e6ff12,0 6px 24px #0002;min-width:0}
+.relic-loadout-stats::before{content:"";position:absolute;left:20px;right:20px;top:-1px;height:1px;background:linear-gradient(90deg,transparent,#a7cfe6a6,transparent);pointer-events:none}
+.relic-loadout-stats-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.relic-loadout-stats-heading small{display:block;font-size:8px;letter-spacing:2.5px;color:#85abc7;margin-bottom:4px}
+.relic-loadout-stats-heading h2{margin:0;font:22px 'Do Hyeon',Arial,sans-serif;color:#f0f5fd;line-height:1.3;overflow-wrap:anywhere}
+.relic-loadout-stats-heading h2 span{font:12px Arial,sans-serif;color:#a4bbd1;margin-left:7px;white-space:nowrap}
+.relic-loadout-badge{flex:none;padding:5px 8px;border:1px solid #5a7c8c6b;border-radius:4px;background:#25445540;color:#b0dae1;font-size:10px;white-space:nowrap}
+.relic-loadout-stat-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0}
+.relic-loadout-stat{position:relative;min-width:0;padding:12px 14px;border:1px solid #38536d6b;border-radius:6px;background:linear-gradient(155deg,#253d534d,#0a142533)}
+.relic-loadout-stat::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:2px;background:#a9c8df7a;border-radius:2px}
+.relic-loadout-stat dt{font-size:11px;line-height:1.4;color:#a5bbce;white-space:nowrap}
+.relic-loadout-stat dd{margin:7px 0 0;font-size:23px;line-height:1.15;font-weight:700;letter-spacing:.3px;color:#edf6ff;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.relic-loadout-stat dd small{font-size:12px;color:#b2cadc;font-weight:400;margin-left:3px}
+.relic-loadout-stat[data-loadout-stat="critChance"] dd,.relic-loadout-stat[data-loadout-stat="critMultiplier"] dd{color:#edcf9a}
+.relic-loadout-stat[data-loadout-stat="critChance"]::before,.relic-loadout-stat[data-loadout-stat="critMultiplier"]::before{background:#dfb974a8}
+.relic-loadout-stats-note{font-size:10px;line-height:1.6;color:#8ba3b9;margin:11px 0 0;overflow-wrap:anywhere}
+@media(max-width:1000px){.relic-loadout-stats{padding:15px;margin:16px 0 20px}.relic-loadout-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.relic-loadout-stat{padding:11px 13px}.relic-loadout-stat dd{font-size:21px}}
+@media(orientation:landscape) and (max-height:560px){.relic-loadout-stats{margin-top:15px;padding:12px 14px}.relic-loadout-stats-heading{margin-bottom:10px}.relic-loadout-stats-heading h2{font-size:20px}.relic-loadout-stat-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.relic-loadout-stat{padding:10px}.relic-loadout-stat dt{font-size:10px}.relic-loadout-stat dd{font-size:19px}.relic-loadout-stats-note{font-size:9px}}
+@media(max-width:620px){.relic-loadout-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.relic-loadout-stats-heading{gap:8px}.relic-loadout-stats-heading h2 span{display:block;margin:3px 0 0;font-size:11px}.relic-loadout-stat dt{font-size:10px}.relic-loadout-badge{font-size:9px;padding:5px 6px}.relic-loadout-stat dd{font-size:20px}}
 .relic-collection-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:13px}.relic-collection-heading h2{font:23px 'Do Hyeon',Arial;margin:0;color:#e2edf9}.relic-collection-heading h2 span{color:#cbbd93;font-size:16px;margin-left:6px}.relic-collection-heading p{font-size:11px;color:#8fa3b9;margin:0}
 .relic-craft-disclosure{margin-top:22px;border:1px solid #35475e;border-radius:8px;padding:14px;background:#0d1828}.relic-craft-disclosure summary{cursor:pointer;color:#c9c1a4;min-height:24px}.relic-craft-disclosure .relic-craft{border:0;padding:0;background:transparent;margin-top:14px}.relic-save-note{margin-top:24px}
 @media(max-width:1000px){

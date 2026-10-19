@@ -124,17 +124,18 @@ function draw() {
 function restart() {
   if(typeof resetOblivionPresentation==='function')resetOblivionPresentation();
   // 기본 능력치 초기화
+  const baseStats = getCharacterBaseStats(selectedCharacter);
   player.x = WORLD.width / 2;
   player.y = WORLD.height / 2;
-  player.speed = selectedCharacter === "suncall" ? 4.2 * 1.15 : 4.2;
+  player.speed = baseStats.speed;
 
-  player.maxHp = selectedCharacter === "ren" ? 50 : (selectedCharacter === "nightLord" ? 150 : (selectedCharacter === "paladin" ? 125 : (selectedCharacter === "vargas" ? 180 : 100)));
+  player.maxHp = baseStats.maxHp;
   player.hp = player.maxHp;
 
   player.maxAmmo = selectedCharacter === "luminous" ? 8 : 12;
   player.ammo = player.maxAmmo;
   // 유피테르는 세 무기 모두 다른 캐릭터의 두 배인 기본 공격력을 사용한다.
-  player.damage = selectedCharacter === "yupiter" ? 70 : (selectedCharacter === "zero" ? 45 : (selectedCharacter === "paladin" ? 42 : 35));
+  player.damage = baseStats.damage;
   player.fireRateBonus = 0;
   player.reloadTime = 0;
   player.fireCooldown = 0;
