@@ -69,6 +69,8 @@ test('match end, menus and reset clear Aria presentation, while every other hero
 });
 test('ultimate images are registered once and prewarm only for selected Aria at home',()=>{
   const g=scene();g.c.screenMode='home';g.c.selectedCharacter='ren';g.run('prepareGameImages()');assert.equal(g.run('ariaUltimateArt.background.assetRequested'),undefined);assert.equal(g.run('ariaUltimateArt.portrait.assetRequested'),undefined);
+  assert.equal(g.run('ariaUltimateArt.background.assetSource'),'assets/aria-v3/ultimate-background-lake.webp');
+  assert.equal(g.run('ariaUltimateArt.portrait.assetSource'),'assets/aria-v2/ultimate-portrait.webp');
   g.c.selectedCharacter='aria';g.run('prepareGameImages()');assert.equal(g.run('ariaUltimateArt.background.assetRequested'),true);assert.equal(g.run('ariaUltimateArt.portrait.assetRequested'),true);assert.equal(g.run('ariaUltimateArt.background.assetGroup'),'aria');assert.equal(g.run('ariaUltimateArt.portrait.assetGroup'),'aria');
   assert.equal(g.run('gameImageRegistry.filter(image=>/aria-v[23]\\/ultimate-/.test(image.assetSource)).length'),2);
 });

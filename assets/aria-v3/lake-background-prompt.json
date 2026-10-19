@@ -1,0 +1,13 @@
+{
+  "mode": "built-in image_gen",
+  "created": "2026-10-19",
+  "asset": "ultimate-background-lake.webp",
+  "source": "exec-bb683a4d-7bf1-414c-95c2-be906545f836.png",
+  "prompt": "Use case: stylized-concept.\nAsset type: premium fantasy action-game environment background, opaque 16:9 landscape, 2048x1152 composition.\nPrimary request: a sunlit tranquil LAKE surrounded by fresh green GRASS, bright fair weather and a peaceful natural feeling. This replaces a mistakenly dark forest background. It must feel distinctly sunny and inviting, NOT dark, gloomy, nocturnal or ominous.\nScene and composition: a wide open shallow blue-green lake with soft ripples occupies the central 70% of the image. Lush low grass and gently curved grassy banks frame the outer edges. A few modest smooth shoreline stones and sparse reeds make the banks natural. Elevated game-camera view looking down across the lake; far shoreline only in the upper 15%, mostly water surface and grassy banks rather than a scenic sky panorama. The center and upper center must stay EMPTY, spacious, quiet, and low in visual complexity because a separately rendered majestic ivory-and-pink World Tree will appear there during gameplay. No tree, island, building or large object in the center.\nLighting and color: clear gentle daytime sunshine, soft natural shadows, fresh sage and meadow greens, calm medium-light turquoise and blue water. A few fine water highlights but no blinding white glare, strong sun rays, high saturation or glitter. Central water should be a smooth moderate blue-green value to preserve readability of the luminous ivory/pink tree and characters on top. Brightness comes from natural daylight, not magical glow.\nStyle: beautifully polished hand-painted fantasy game environment, believable soft water reflections, fine grass texture at the edges, detailed yet restrained, graceful rather than cartoony. Layered atmospheric depth without theatrical fog.\nConstraints: background environment ONLY. No character, no world tree, no giant flowers, no magical ornaments, no particles, no palace, no waterfall, no huge mountains, no thick framing trees, no vignette, no UI, no text, no logos, no watermark. Do not overcrowd the center; the tree must remain the principal focal point after compositing.",
+  "optimization": {
+    "format": "webp",
+    "quality": 88,
+    "effort": 6
+  },
+  "scope": "Replace Aria ultimate background only; preserve character, portrait, HUD, controls, growth, combat and transition timing."
+}
