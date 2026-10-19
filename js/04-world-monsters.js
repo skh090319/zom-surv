@@ -2,20 +2,28 @@
 // their original simulation; identity is frozen when an enemy is spawned.
 // Retain the complete art/preview catalog, but reserve these identities for raids.
 const WORLD_BOSS_ONLY_MONSTER_IDS = Object.freeze(['iron-hauler','glass-thrower','alarm-infected','rift-hunter','stitcher','abyss-eye']);
+const WORLD_ELITE_MONSTER_IDS = Object.freeze({1:'street-walker',3:'hollow-husk'});
+const WORLD_ELITE_SIZE_SCALE = 1.3;
 const WORLD_MONSTER_TYPES = Object.freeze(Object.fromEntries([
   ['street-walker',1,'거리 배회자','#bdaf93','찢어진 일상복을 입은 감염자. 무리가 넓게 돌아 포위합니다.','포위되기 전에 한쪽 길을 열어 이동하세요.',21,1,1,1,44],
-  ['alley-hound',1,'굶주린 광견','#d7a371','감염된 들개. 옆으로 돌다가 가까워지면 빠르게 달려듭니다.','측면 접근을 살피고 뛰어들기 전에 거리를 벌리세요.',18,.72,1.30,2,24],
+  ['alley-hound',1,'굶주린 광견','#d7a371','감염된 들개. 옆으로 돌다가 가까워지면 빠르게 달려듭니다.','측면 접근을 살피고 뛰어들기 전에 거리를 벌리세요.',18,.72,1.30,1,24],
   ['iron-hauler',1,'철판 운반자','#d9b765','도로 표지판을 든 거구. 정면 피해는 절반, 등 뒤 피해는 20% 증가합니다.','돌아서 뒤를 노리거나 넓은 범위 공격을 사용하세요.',26,1.75,.70,2,14],
   ['glass-thrower',1,'유리 투척자','#82cbd1','유리 파편을 세 갈래로 던진 뒤 잠시 무방비가 됩니다.','파편 예고선 사이로 피한 뒤 공격하세요.',21,.85,.80,3,12],
   ['alarm-infected',1,'경보 감염자','#ef746d','경보를 울려 주변 일반 적의 이동속도를 잠시 높입니다.','경보가 완성되기 전에 처치하거나 기절시키세요.',23,1.10,.75,4,6],
   ['hollow-husk',3,'공허의 허물','#b2a2df','내부의 핵만 떠 있는 빈 껍질. 접히고 펼쳐지며 접근합니다.','맥동하는 움직임을 살피며 포위망을 벗어나세요.',21,1,1,1,43],
   ['rift-hunter',3,'균열 사냥꾼','#bd8af3','균열에 도착 지점을 새긴 뒤 짧은 거리를 이동합니다.','밝아지는 균열에서 물러나세요. 출현 직후에는 공격하지 못합니다.',23,.92,1.04,2,21],
-  ['split-larva',3,'분열 유생','#d996d9','반투명 막 속의 생명체. 죽으면 작은 유생 둘로 한 번만 분열합니다.','처치 후 생기는 작은 개체까지 정리하세요.',23,1.15,.88,2,18],
+  ['split-larva',3,'분열 유생','#d996d9','반투명 막 속의 생명체. 죽으면 작은 유생 둘로 한 번만 분열합니다.','처치 후 생기는 작은 개체까지 정리하세요.',23,1.15,.88,1,18],
   ['stitcher',3,'봉합자','#80e5c3','신경선으로 연결한 일반 적 최대 셋의 체력을 회복합니다.','봉합자를 먼저 처치하면 연결된 적이 잠시 약해집니다.',23,1.05,.72,3,10],
   ['abyss-eye',3,'심연의 관측안','#da98ff','시선을 고정한 뒤 좁은 광선을 천천히 쓸어냅니다.','점선으로 예고하는 방향을 피해 옆으로 이동하세요.',24,1.30,.64,4,8]
-].map(([id,world,name,color,desc,tips,r,hpScale,speedScale,minWave,weight])=>[id,Object.freeze({id,world,name,color,desc,tips,r,hpScale,speedScale,minWave,weight,bossOnly:WORLD_BOSS_ONLY_MONSTER_IDS.includes(id),image:`assets/world-monsters-v1/${id}.webp`})])));
-function getWorldOrdinaryMonsterDefinitions(world) {
+].map(([id,world,name,color,desc,tips,r,hpScale,speedScale,minWave,weight])=>[id,Object.freeze({id,world,name,color,desc,tips,r,hpScale,speedScale,minWave,weight,bossOnly:WORLD_BOSS_ONLY_MONSTER_IDS.includes(id),eliteOnly:WORLD_ELITE_MONSTER_IDS[world]===id,image:`assets/world-monsters-v1/${id}.webp`})])));
+function getWorldFieldMonsterDefinitions(world) {
   return Object.values(WORLD_MONSTER_TYPES).filter(def=>def.world===world&&!def.bossOnly);
+}
+function getWorldOrdinaryMonsterDefinitions(world) {
+  return getWorldFieldMonsterDefinitions(world).filter(def=>!def.eliteOnly);
+}
+function getWorldEliteMonsterDefinition(world) {
+  return WORLD_MONSTER_TYPES[WORLD_ELITE_MONSTER_IDS[world]]||null;
 }
 const worldMonsterProjectiles = [];
 const worldMonsterEffects = [];
@@ -51,8 +59,8 @@ function attachWorldMonster(enemy, forceType = null) {
   const world = worldMonsterRunWorld || (typeof selectedWorld === 'number' ? selectedWorld : 2);
   // This early return deliberately consumes no randomness in the original world.
   if ((world !== 1 && world !== 3) || enemy.isRaidBoss || enemy.isBossMinion) return enemy;
-  let def = enemy.boss ? WORLD_MONSTER_TYPES[world===1?'street-walker':'hollow-husk'] : forceType && WORLD_MONSTER_TYPES[forceType];
-  if(def&&(def.bossOnly||def.world!==world))def=null;
+  let def = enemy.boss ? getWorldEliteMonsterDefinition(world) : forceType && WORLD_MONSTER_TYPES[forceType];
+  if(def&&(def.bossOnly||def.world!==world||(!enemy.boss&&def.eliteOnly)))def=null;
   if (!def) {
     const pool = getWorldOrdinaryMonsterDefinitions(world).filter(entry=>entry.minWave<=wave);
     let roll = Math.random() * pool.reduce((sum,entry)=>sum+entry.weight,0);
@@ -63,10 +71,11 @@ function attachWorldMonster(enemy, forceType = null) {
 }
 function initializeWorldMonster(enemy,def) {
   enemy.worldMonsterType=def.id; enemy.worldMonsterWorld=def.world;
-  // Large-wave zombies keep their existing radius/HP/speed and reward flag;
-  // only their species/appearance changes, without multiplying elite HP twice.
+  // Elites keep their HP/speed/rewards and use a 30% larger species hitbox.
+  // Do not multiply elite HP by the ordinary species' HP scale again.
   enemy.worldMonsterElite=!!enemy.boss;
-  if(!enemy.boss){enemy.r=def.r;enemy.hp*=def.hpScale;enemy.maxHp*=def.hpScale;enemy.speed*=def.speedScale;}
+  if(enemy.boss)enemy.r=def.r*WORLD_ELITE_SIZE_SCALE;
+  else{enemy.r=def.r;enemy.hp*=def.hpScale;enemy.maxHp*=def.hpScale;enemy.speed*=def.speedScale;}
   enemy.worldMonsterAge=0; enemy.worldMonsterSeed=++worldMonsterSequence;
   enemy.worldMonsterFacing=Math.atan2(player.y-enemy.y,player.x-enemy.x);
   enemy.worldMonsterAim=enemy.worldMonsterFacing; enemy.worldMonsterState='move';

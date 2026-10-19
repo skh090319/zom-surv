@@ -104,6 +104,7 @@ test('world-native summon population is capped, uses correct species and contact
     const minions=g.c.zombies.filter(z=>z.worldRaidMinion);assert.equal(minions.length,cap);
     assert.ok(minions.every(z=>z.isBossMinion&&z.owner===b&&z.worldRaidWorld===world));
     assert.ok(minions.every(z=>z.worldRaidMinionType!=='winged-reaper'));
+    assert.ok(minions.every(z=>z.worldRaidMinionType===(world===1?'alley-hound':'split-larva')),'summons never reuse exclusive elite art');
     g.run('for(let n=0;n<46;n++)updateZombies()');assert.ok(minions.every(z=>z.worldMonsterGrace===0));
     const contact=minions[0];contact.x=g.c.player.x;contact.y=g.c.player.y;
     contact.controlImmuneX=contact.x;contact.controlImmuneY=contact.y;g.c.player.invincibleTime=0;

@@ -76,7 +76,8 @@ function worldRaidDamage(boss,ratio) {
 }
 function worldRaidSummon(boss,count) {
   const owned=zombies.filter(z=>z.worldRaidMinion&&z.owner===boss&&z.hp>0),cap=boss.worldRaidType==='stitcher'?4:6;
-  const ids=boss.worldRaidWorld===1?['street-walker','alley-hound']:['hollow-husk','split-larva'];
+  // Raid summons also avoid species reserved for exclusive field elites.
+  const ids=boss.worldRaidWorld===1?['alley-hound']:['split-larva'];
   for(let n=0;n<count&&owned.length<cap;n++) {
     const a=(n+.5)*Math.PI*2/count+boss.worldRaidAge*.005,x=boss.x+Math.cos(a)*160,y=boss.y+Math.sin(a)*160;
     const hp=boss.raidIndex===2?750:600;

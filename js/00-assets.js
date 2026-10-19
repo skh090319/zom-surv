@@ -45,8 +45,8 @@ function getWorldMonsterImage(id) {
 }
 
 function prepareWorldMonsterImages(world) {
-  if(typeof getWorldOrdinaryMonsterDefinitions!=='function'||(world!==1&&world!==3))return;
-  for(const definition of getWorldOrdinaryMonsterDefinitions(world))getWorldMonsterImage(definition.id);
+  if(typeof getWorldFieldMonsterDefinitions!=='function'||(world!==1&&world!==3))return;
+  for(const definition of getWorldFieldMonsterDefinitions(world))getWorldMonsterImage(definition.id);
 }
 
 function getWorldBossImage(id,world=typeof selectedWorld==='number'?selectedWorld:2) {

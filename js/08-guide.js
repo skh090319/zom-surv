@@ -127,7 +127,7 @@ function drawAugmentGuide() {
 }
 
 function getWorldMonsterGuideSections() {
-  const ordinary=world=>typeof getWorldOrdinaryMonsterDefinitions==='function'?getWorldOrdinaryMonsterDefinitions(world):[];
+  const ordinary=world=>typeof getWorldFieldMonsterDefinitions==='function'?getWorldFieldMonsterDefinitions(world):[];
   const names={1:'몰락한 거리',2:'봉쇄된 격리구역',3:'심연의 발원지'};
   return [1,2,3].map(world=>({world,name:names[world],color:world===1?'#dbb17d':world===2?'#73e36f':'#b99cf8',entries:world===2?monsterGuideEntries.filter(entry=>entry.sprite==='zombie'||entry.tag==='BOSS MINION'):ordinary(world)})).filter(section=>section.entries.length);
 }
@@ -151,7 +151,7 @@ function drawWorldMonsterGuideCard(entry,x,y,w,h) {
   const gradient=ctx.createLinearGradient(x,y,x+w,y+h);gradient.addColorStop(0,accent+'1b');gradient.addColorStop(1,'rgba(6,10,18,.98)');
   drawRoundedRect(x,y,w,h,16,gradient,accent+'69',1.25);
   ctx.save();ctx.beginPath();ctx.rect(x+8,y+8,w-16,h-16);ctx.clip();
-  ctx.textAlign='left';ctx.fillStyle=accent;ctx.font='bold 9px Arial';ctx.fillText(entry.id.toUpperCase().replaceAll('-',' '),x+16,y+22);
+  ctx.textAlign='left';ctx.fillStyle=accent;ctx.font='bold 9px Arial';ctx.fillText((entry.eliteOnly?'엘리트 전용 · ':'')+entry.id.toUpperCase().replaceAll('-',' '),x+16,y+22);
   ctx.fillStyle='#f4f7ff';ctx.font=`900 ${small?18:21}px Arial`;ctx.fillText(entry.name,x+16,y+48);
   const artW=small?100:125,artH=142,artX=x+w-artW-8,artY=y+59;
   const glow=ctx.createRadialGradient(artX+artW*.5,artY+artH*.52,4,artX+artW*.5,artY+artH*.52,artH*.53);glow.addColorStop(0,accent+'22');glow.addColorStop(1,accent+'00');

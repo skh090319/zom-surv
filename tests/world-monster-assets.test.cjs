@@ -30,6 +30,8 @@ test('ordinary roster and archived boss-only art remain backed by the shipped ca
   const context=vm.createContext({});vm.runInContext(fs.readFileSync(path.join(root,'js/04-world-monsters.js'),'utf8'),context);
   const definitions=vm.runInContext('Object.values(WORLD_MONSTER_TYPES)',context);
   assert.deepEqual(Array.from(definitions.filter(def=>!def.bossOnly),def=>def.id),['street-walker','alley-hound','hollow-husk','split-larva']);
+  assert.deepEqual(Array.from(definitions.filter(def=>def.eliteOnly),def=>def.id),['street-walker','hollow-husk']);
+  assert.deepEqual(Array.from(vm.runInContext('[...getWorldOrdinaryMonsterDefinitions(1),...getWorldOrdinaryMonsterDefinitions(3)]',context),def=>def.id),['alley-hound','split-larva']);
   for(const def of definitions)assert.ok(manifest.assets.some(asset=>asset.id===def.id&&asset.output===def.image));
   assert.equal(definitions.filter(def=>def.bossOnly).length,6,'six identities remain for raid art and previews, not ordinary spawning');
 });

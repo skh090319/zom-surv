@@ -30,8 +30,11 @@ test('catalog retains ten species but marks the six raid identities as boss-only
   assert.equal(defs.length,10);for(const world of [1,3])assert.equal(defs.filter(d=>d.world===world).length,5);
   for(const d of defs){assert.ok(d.desc&&d.tips&&d.name);assert.equal(d.image,`assets/world-monsters-v1/${d.id}.webp`);}
   assert.deepEqual(Array.from(defs.filter(d=>d.bossOnly),d=>d.id),['iron-hauler','glass-thrower','alarm-infected','rift-hunter','stitcher','abyss-eye']);
-  assert.deepEqual(Array.from(g.run('getWorldOrdinaryMonsterDefinitions(1)'),d=>d.id),['street-walker','alley-hound']);
-  assert.deepEqual(Array.from(g.run('getWorldOrdinaryMonsterDefinitions(3)'),d=>d.id),['hollow-husk','split-larva']);
+  assert.deepEqual(Array.from(g.run('getWorldOrdinaryMonsterDefinitions(1)'),d=>d.id),['alley-hound']);
+  assert.deepEqual(Array.from(g.run('getWorldOrdinaryMonsterDefinitions(3)'),d=>d.id),['split-larva']);
+  assert.equal(g.run('getWorldEliteMonsterDefinition(1).id'),'street-walker');
+  assert.equal(g.run('getWorldEliteMonsterDefinition(3).id'),'hollow-husk');
+  assert.equal(g.run('getWorldEliteMonsterDefinition(2)'),null);
 });
 test('World 2 spawn output and RNG sequence are byte-identical to legacy spawning',()=>{
   const g=fixture(2),old=fixture(2);
@@ -50,12 +53,12 @@ test('World 2 movement, contact damage, elite and boss behavior remain on the or
     g.run('selectedWorld=1;resetWorldMonsters();attachWorldMonster(raw)');assert.equal(g.c.raw.worldMonsterType,undefined);assert.equal(g.c.raw.hp,100);
   }
 });
-test('large-wave zombies use new-world species without changing elite HP, radius or rewards',()=>{
+test('large-wave elites reserve their own species and enlarge its hitbox 30% while retaining HP and rewards',()=>{
   for(const world of [1,3]){
     const g=fixture(world);g.c.raw={id:'elite',x:0,y:0,hp:415,maxHp:415,r:36,speed:1.1,boss:true};
     g.run('attachWorldMonster(raw)');
     assert.equal(g.c.raw.worldMonsterType,world===1?'street-walker':'hollow-husk');
-    assert.equal(g.c.raw.hp,415);assert.equal(g.c.raw.maxHp,415);assert.equal(g.c.raw.r,36);assert.equal(g.c.raw.speed,1.1);assert.equal(g.c.raw.boss,true);
+    assert.equal(g.c.raw.hp,415);assert.equal(g.c.raw.maxHp,415);assert.equal(g.c.raw.r,21*1.3);assert.equal(g.c.raw.speed,1.1);assert.equal(g.c.raw.boss,true);
     assert.equal(g.c.raw.worldMonsterElite,true);
     g.run('zombies.push(raw);killZombie(0,raw)');
     assert.equal(g.c.player.score,100);assert.equal(g.c.player.kills,1);assert.equal(g.c.expOrbs.length,8);
@@ -65,26 +68,28 @@ test('real spawn selection excludes raid identities at every wave and preserves 
   for(const world of [1,3]){
     const g=fixture(world);g.c.wave=1;g.run('for(let n=0;n<10;n++)spawnZombie()');
     assert.ok(g.c.zombies.every(z=>z.worldMonsterWorld===world));
-    assert.ok(g.c.zombies.every(z=>z.worldMonsterType===(world===1?'street-walker':'hollow-husk')));
+    assert.ok(g.c.zombies.every(z=>z.worldMonsterType===(world===1?'alley-hound':'split-larva')));
     let seed=12345;g.c.Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
     const allowed=world===1?['street-walker','alley-hound']:['hollow-husk','split-larva'];
     for(const level of [2,5,15,100]){
       g.c.wave=level;g.c.zombies=[];g.run('for(let n=0;n<1000;n++)spawnZombie()');
-      assert.deepEqual([...new Set(g.c.zombies.map(z=>z.worldMonsterType))].sort(),[...allowed].sort());
+      assert.deepEqual([...new Set(g.c.zombies.map(z=>z.worldMonsterType))].sort(),(level>=5?[...allowed]:[allowed[1]]).sort());
       assert.ok(g.c.zombies.every(z=>allowed.includes(z.worldMonsterType)));
       if(level%5===0)assert.ok(g.c.zombies.some(z=>z.boss),'exercise large-wave elites through real spawn');
       assert.ok(g.c.zombies.filter(z=>z.boss).every(z=>z.worldMonsterType===allowed[0]));
+      assert.ok(g.c.zombies.filter(z=>!z.boss).every(z=>z.worldMonsterType===allowed[1]),'elite species never appears in ordinary spawns');
     }
   }
 });
 
 test('ordinary attachment cannot force a boss-only species, but explicit preview factory remains available',()=>{
   for(const world of [1,3]){
-    const g=fixture(world),reserved=Array.from(g.run(`Object.values(WORLD_MONSTER_TYPES).filter(d=>d.world===${world}&&d.bossOnly)`),d=>d.id);
+    const g=fixture(world),reserved=Array.from(g.run(`Object.values(WORLD_MONSTER_TYPES).filter(d=>d.world===${world}&&(d.bossOnly||d.eliteOnly))`),d=>d.id);
     for(const id of reserved){
       g.c.raw={x:0,y:0,hp:100,maxHp:100,r:21,speed:1,boss:false};
       g.run(`attachWorldMonster(raw,${JSON.stringify(id)})`);
       assert.equal(g.run('WORLD_MONSTER_TYPES[raw.worldMonsterType].bossOnly'),false);
+      assert.equal(g.run('WORLD_MONSTER_TYPES[raw.worldMonsterType].eliteOnly'),false);
       assert.equal(g.run(`createWorldMonster(${JSON.stringify(id)},0,0).worldMonsterType`),id);
     }
   }

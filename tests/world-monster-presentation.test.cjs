@@ -24,7 +24,7 @@ test('all ten illustrations have distinct world-scoped lazy registrations',()=>{
   assert.equal(f.run('worldMonsterImages.size'),10);
 });
 
-test('ordinary prewarm requests only the two remaining species and world 2 requests none',()=>{
+test('field prewarm includes each world ordinary and exclusive elite while world 2 requests none',()=>{
   for(const world of [1,2,3]){
     const f=fixture();f.c.selectedWorld=world;f.run('prepareGameImages()');
     assert.equal(f.run('worldMonsterImages.size'),world===2?0:2);
@@ -78,6 +78,8 @@ test('ordinary guide excludes the six raid-only identities and leaves all origin
   assert.deepEqual(Array.from(sections[0].entries,entry=>entry.id),['street-walker','alley-hound']);
   assert.deepEqual(Array.from(sections[2].entries,entry=>entry.id),['hollow-husk','split-larva']);
   assert.ok(sections.every(section=>section.entries.every(entry=>!entry.bossOnly)));
+  assert.deepEqual(Array.from(sections[0].entries,entry=>entry.eliteOnly),[true,false]);
+  assert.deepEqual(Array.from(sections[2].entries,entry=>entry.eliteOnly),[true,false]);
   assert.equal(f.run("monsterGuideEntries.filter(entry=>entry.tag.startsWith('BOSS 0')).map(entry=>entry.name).join(',')"),'아마란스,모르스,녹스');
 });
 
