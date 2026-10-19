@@ -2124,7 +2124,7 @@ function drawGameOver() {
 
   ctx.font = "24px Arial";
   ctx.fillText(`Score: ${player.score}`, canvas.width / 2, canvas.height / 2 + 10);
-  ctx.fillText("Enter 키로 재시작", canvas.width / 2, canvas.height / 2 + 50);
+  ctx.fillText("전투 결과를 확인하세요", canvas.width / 2, canvas.height / 2 + 50);
 
   ctx.textAlign = "left";
 }

@@ -1,16 +1,21 @@
 // 아리아 — 중앙에 뿌리내린 세계수와 끝없이 자라는 생명 정수.
 let ariaSoils=[],ariaJudgments=[],ariaPetalStorm=null,ariaWorldTree=null;
-let ariaBolts=[],ariaBlooms=[],ariaSpirits=[],ariaEffects=[],ariaDeathQueue=[];
+let ariaBolts=[],ariaBlooms=[],ariaSpirits=[],ariaEffects=[],ariaDeathQueue=[],ariaDevouredEnemies=[];
 let ariaGrowth={essence:0,stage:0,visualStage:0,frame:0,treeX:0,treeY:0,treeTick:0,shield:0,shieldTime:0,harvestTime:0};
 let ariaAttackSequence=0,ariaDeadEnemies=new WeakSet(),ariaBossHits=new WeakMap();
 const ARIA_Q_CD=270,ARIA_E_CD=420,ARIA_X_CD=540,ARIA_R_CD=1500;
-const ARIA_BASIC_RANGE=840,ARIA_Q_WIDTH=48,ARIA_E_RANGE=520,ARIA_R_RANGE=0,ARIA_HARVEST_RADIUS=650,ARIA_WORLD_TREE_RADIUS=650;
-const ARIA_GROWTH_THRESHOLDS=[100,300,600,1200],ARIA_GROWTH_NAMES=["생명의 씨앗","새싹의 수호","뿌리의 연결","영혼의 성목","완전한 에덴"];
+const ARIA_BASIC_RANGE=840,ARIA_Q_WIDTH=48,ARIA_E_RANGE=520,ARIA_R_RANGE=0,ARIA_HARVEST_RADIUS=650,ARIA_WORLD_TREE_RADIUS=650,ARIA_TREE_ATTACK_RANGE=600;
+const ARIA_GROWTH_THRESHOLDS=[50,100,200,300,450,600,900,1200],ARIA_GROWTH_NAMES=["생명의 씨앗","움트는 새싹","새싹의 수호","뻗어가는 가지","뿌리의 연결","꽃망울의 화원","영혼의 성목","찬란한 개화","완전한 에덴"];
+// More visual milestones must not unlock existing combat upgrades prematurely.
+const ARIA_GROWTH_TIER_THRESHOLDS=[100,300,600,1200];
 function getAriaTreePosition(){return {x:WORLD.width/2,y:WORLD.height/2}}
+function getAriaTreeAttackRange(){return ARIA_TREE_ATTACK_RANGE}
+function ariaInTreeAttackRange(z){const tree=getAriaTreePosition();return Math.hypot(z.x-tree.x,z.y-tree.y)<=getAriaTreeAttackRange()+(z.r||0)}
 function getAriaGrowthStage(){return ARIA_GROWTH_THRESHOLDS.filter(value=>ariaGrowth.essence>=value).length}
+function getAriaGrowthTier(){return ARIA_GROWTH_TIER_THRESHOLDS.filter(value=>ariaGrowth.essence>=value).length}
 function getAriaGrowthProgress(){
   const stage=getAriaGrowthStage(),previous=stage?ARIA_GROWTH_THRESHOLDS[stage-1]:0,next=ARIA_GROWTH_THRESHOLDS[stage]??null;
-  return {essence:ariaGrowth.essence,stage,name:ARIA_GROWTH_NAMES[stage],next,ratio:next===null?1:Math.max(0,Math.min(1,(ariaGrowth.essence-previous)/(next-previous))),damageBonus:ariaGrowth.essence*.0015};
+  return {essence:ariaGrowth.essence,stage,tier:getAriaGrowthTier(),name:ARIA_GROWTH_NAMES[stage],next,ratio:next===null?1:Math.max(0,Math.min(1,(ariaGrowth.essence-previous)/(next-previous))),damageBonus:ariaGrowth.essence*.0015};
 }
 function ariaAddEssence(amount,x=player.x,y=player.y){
   if(selectedCharacter!=="aria"||!Number.isFinite(amount)||amount<=0)return 0;
@@ -73,15 +78,17 @@ function ariaBossDirectHit(z,source){
 function ariaDealDamage(z,multiplier,source,tags={},percent=0){
   if(selectedCharacter!=="aria"||!z||z.hp<=0||!zombies.includes(z))return false;
   const context={kind:"skill",area:true,...source?.tags,...tags};
+  if(context.treeBound&&!ariaInTreeAttackRange(z))return false;
   const marked=ariaIsMarked(z)?1.25+(player.ariaThornLevel||0)*.05:1;
   if(typeof relicTagTarget==="function")relicTagTarget(z,source,context);
-  const previous=z.ariaSuppressSpiritDeath;z.ariaSuppressSpiritDeath=!!context.secondary;
+  const previous=z.ariaSuppressSpiritDeath,previousTreeKill=z.ariaWorldTreeKill;
+  z.ariaSuppressSpiritDeath=!!context.secondary;z.ariaWorldTreeKill=!!context.worldTree;
   z.hp-=ariaDamage(multiplier)*marked+(percent?enemyMaxHpDamage(z,percent):0);
   if(context.direct)ariaBossDirectHit(z,source);
   if(z.hp<=0)killZombie(zombies.indexOf(z),z);
-  else z.ariaSuppressSpiritDeath=previous;
-  if(context.direct&&!context.secondary&&getAriaGrowthStage()>=2){
-    const linked=ariaTargets(z.x,z.y,300,2,new Set([z]));
+  else {z.ariaSuppressSpiritDeath=previous;z.ariaWorldTreeKill=previousTreeKill;}
+  if(context.direct&&!context.secondary&&getAriaGrowthTier()>=2){
+    const linked=ariaTargets(z.x,z.y,300,context.treeBound?zombies.length:2,new Set([z])).filter(other=>!context.treeBound||ariaInTreeAttackRange(other)).slice(0,2);
     for(const other of linked){
       ariaEmit("treeRoot",{x:z.x,y:z.y,tx:other.x,ty:other.y,r:20,shared:true},22);
       ariaDealDamage(other,multiplier*.35,source,{kind:"skill",garden:true,secondary:true,direct:false,canCrit:false});
@@ -107,18 +114,19 @@ function ariaSpawnBolt(origin,target,angle,multiplier,source,type="petal",pierce
 function attackWithAria(){
   if(selectedCharacter!=="aria"||player.fireCooldown>0)return;
   const dragAngle=typeof mobileAttackAim!=="undefined"&&mobileAttackAim?.dragged&&Number.isFinite(mobileAttackAim.angle)?mobileAttackAim.angle:null;
-  const stage=getAriaGrowthStage(),count=stage>=1?4:3,targets=ariaTargets(player.x,player.y,ARIA_BASIC_RANGE,count,null,dragAngle);
-  const source=ariaMakeSource({kind:"basic",area:stage>=1,direct:true});
+  const tier=getAriaGrowthTier(),count=tier>=1?4:3,targets=ariaTargets(player.x,player.y,ARIA_BASIC_RANGE,count,null,dragAngle);
+  const source=ariaMakeSource({kind:"basic",area:tier>=1,direct:true});
   const aim=dragAngle??Math.atan2(mouse.worldY-player.y,mouse.worldX-player.x);
   for(let n=0;n<count;n++){
     const target=targets[n%Math.max(1,targets.length)]||null,angle=dragAngle===null&&target?Math.atan2(target.y-player.y,target.x-player.x):aim+(n-(count-1)/2)*.12;
-    const bolt=ariaSpawnBolt(player,target,angle,1.2,source,"petal",stage>=2?3:stage>=1?2:1);
+    const bolt=ariaSpawnBolt(player,target,angle,1.2,source,"petal",tier>=2?3:tier>=1?2:1);
     // Manual launch direction remains visible before petals seek targets ahead;
     // an enemy behind the player must never reverse a dragged shot immediately.
     if(dragAngle!==null){bolt.aimAngle=dragAngle;bolt.homingDelay=6;}
   }
-  if(ariaWorldTree&&targets.length){
-    const target=targets[0],tree=getAriaTreePosition(),echo=ariaMakeSource({kind:"basic",area:true,secondary:true,direct:false},source);
+  const echoTarget=ariaWorldTree&&targets.find(ariaInTreeAttackRange);
+  if(echoTarget){
+    const target=echoTarget,tree=getAriaTreePosition(),echo=ariaMakeSource({kind:"basic",area:true,secondary:true,direct:false,treeBound:true,worldTree:true},source);
     ariaEmit("treeEcho",{...tree,tx:target.x,ty:target.y,r:55},30);
     ariaDealDamage(target,1.8,echo,{kind:"basic",secondary:true,direct:false});
   }
@@ -132,13 +140,15 @@ function activateAriaQ(){
   for(const z of [...zombies]){
     const dx=z.x-player.x,dy=z.y-player.y,forward=dx*c+dy*s,side=Math.abs(-dx*s+dy*c);
     if(forward < -z.r||forward>length+z.r||side>ARIA_Q_WIDTH/2+z.r)continue;
-    targets.push(z);ariaDealDamage(z,6*(1+(player.ariaThornLevel||0)*.15),source,{thorn:true,direct:true},transcended.ariaThorn?.03:0);
+    if(!ariaDealDamage(z,6*(1+(player.ariaThornLevel||0)*.15),source,{thorn:true,direct:true},transcended.ariaThorn?.03:0))continue;
+    targets.push(z);
+    if(targets.length<=12)ariaEmit("thornImpact",{x:z.x,y:z.y,angle,r:40,phase:(targets.length-1)*.61803398875},30);
     if(z.hp>0){ariaMark(z);z.slowTime=Math.max(z.slowTime||0,75);}
   }
   ariaEmit("thornLance",{x:player.x,y:player.y,angle,length,width:ARIA_Q_WIDTH,r:length*.5},36);
   if(ariaWorldTree&&targets.length){
-    const tree=getAriaTreePosition(),echo=ariaMakeSource({thorn:true,secondary:true},source);
-    for(const z of targets.slice(0,6))if(z.hp>0){
+    const tree=getAriaTreePosition(),echo=ariaMakeSource({thorn:true,secondary:true,treeBound:true,worldTree:true},source);
+    for(const z of targets.filter(z=>z.hp>0&&ariaInTreeAttackRange(z)).slice(0,6)){
       ariaEmit("treeEcho",{...tree,tx:z.x,ty:z.y,r:70},36);
       ariaDealDamage(z,3*(1+(player.ariaThornLevel||0)*.15),echo,{thorn:true,secondary:true,direct:false});
     }
@@ -176,30 +186,41 @@ function activateAriaX(){
 }
 function activateAriaR(){
   if(selectedCharacter!=="aria"||player.level<10||player.ariaRCooldown>0)return;
-  const tree=getAriaTreePosition(),source=ariaMakeSource({garden:true});
+  const tree=getAriaTreePosition(),source=ariaMakeSource({garden:true,worldTree:true});
   ariaWorldTree={type:"worldTree",...tree,r:ARIA_WORLD_TREE_RADIUS,life:720,maxLife:720,age:0,phase:0,source};
   ariaGrowth.treeTick=0;player.ariaUltimateTime=720;player.ariaRCooldown=ARIA_R_CD;
   ariaEmit("worldTreeCast",ariaWorldTree,75);
 }
 function ariaFinalBloom(tree){
   const targets=[...zombies].filter(z=>ariaIsMarked(z)||ariaIsInfected(z)||Math.hypot(z.x-player.x,z.y-player.y)<=tree.r+z.r||Math.hypot(z.x-tree.x,z.y-tree.y)<=tree.r+z.r);
-  const secondary=ariaMakeSource({garden:true,secondary:true},tree.source);
+  const secondary=ariaMakeSource({garden:true,secondary:true,worldTree:true},tree.source);
   let chainSeeds=0;
   for(const z of targets)if(z.hp>0){
     ariaDealDamage(z,8,tree.source,{garden:true,direct:false},(z.boss||z.isRaidBoss)? .06:0);
-    if(getAriaGrowthStage()>=4&&chainSeeds++<12)for(const other of ariaTargets(z.x,z.y,210,3,new Set([z]))){
+    if(getAriaGrowthTier()>=4&&chainSeeds++<12)for(const other of ariaTargets(z.x,z.y,210,3,new Set([z]))){
       ariaDealDamage(other,2.5,secondary,{garden:true,secondary:true,direct:false,canCrit:false});
       ariaEmit("infectionBurst",{x:other.x,y:other.y,r:100},30);
     }
   }
   ariaEmit("worldTreeFinal",tree,100);
 }
+function ariaQueueDevouredEnemy(z){
+  const tree=getAriaTreePosition();
+  // Keep appearance primitives only: the victim is removed by normal kill handling
+  // immediately, so this animation cannot retain AI, collisions or attack timers.
+  ariaDevouredEnemies.push({x:z.x,y:z.y,r:z.r||18,boss:!!z.boss,isBossMinion:!!z.isBossMinion,isRaidBoss:!!z.isRaidBoss,
+    raidIndex:z.raidIndex??0,raidSprite:z.raidSprite??1,facing:z.facing<0?-1:1,type:typeof z.type==="string"?z.type:null,
+    tx:tree.x,ty:tree.y,age:0,life:54,maxLife:54,phase:z.x*.013+z.y*.017+ariaGrowth.frame*.37});
+  if(ariaDevouredEnemies.length>32)ariaDevouredEnemies.shift();
+}
 function onAriaEnemyKilled(z){
   if(selectedCharacter!=="aria"||!z||ariaDeadEnemies.has(z))return;
-  ariaDeadEnemies.add(z);ariaAddEssence(z.boss||z.isRaidBoss?50:1,z.x,z.y);
+  ariaDeadEnemies.add(z);
+  if(z.ariaWorldTreeKill)ariaQueueDevouredEnemy(z);
+  ariaAddEssence(z.boss||z.isRaidBoss?50:1,z.x,z.y);
   const infection=z.ariaInfection;
   if(infection&&ariaDeathQueue.length<64)ariaDeathQueue.push({x:z.x,y:z.y,generation:infection.generation,source:infection.source});
-  if(getAriaGrowthStage()>=3&&!z.ariaSuppressSpiritDeath){
+  if(getAriaGrowthTier()>=3&&!z.ariaSuppressSpiritDeath){
     if(ariaGrowth.spiritBirthFrame!==ariaGrowth.frame){ariaGrowth.spiritBirthFrame=ariaGrowth.frame;ariaGrowth.spiritBirths=0;}
     if(ariaGrowth.spiritBirths<8){
       ariaGrowth.spiritBirths++;
@@ -232,14 +253,8 @@ function ariaUpdateBolts(pool){
   }
 }
 function ariaTreeAttack(){
-  const tree=getAriaTreePosition(),candidates=[];
-  for(const z of zombies)if(z.hp>0){
-    const distance=Math.min(Math.hypot(z.x-player.x,z.y-player.y),Math.hypot(z.x-tree.x,z.y-tree.y)*900/1100);
-    if(distance<=900+z.r)candidates.push({z,score:distance-(ariaIsMarked(z)?2000:ariaIsInfected(z)?1000:0)});
-  }
-  candidates.sort((a,b)=>a.score-b.score);
-  const count=1+getAriaGrowthStage()+(transcended.ariaSoil?1:0)+(ariaWorldTree?1:0),source=ariaMakeSource({garden:true});
-  for(const {z} of candidates.slice(0,count)){
+  const tree=getAriaTreePosition(),count=1+getAriaGrowthTier()+(transcended.ariaSoil?1:0)+(ariaWorldTree?1:0),source=ariaMakeSource({garden:true,treeBound:true,worldTree:true});
+  for(const z of ariaTargets(tree.x,tree.y,getAriaTreeAttackRange(),count)){
     ariaEmit("treeRoot",{...tree,tx:z.x,ty:z.y,r:45},30);
     ariaDealDamage(z,2.2*(1+(player.ariaSoilLevel||0)*.12),source,{garden:true,direct:true});
   }
@@ -257,9 +272,9 @@ function ariaProcessDeaths(){
 function resetAriaRework(){
   const tree=getAriaTreePosition();
   ariaGrowth={essence:0,stage:0,visualStage:0,frame:0,treeX:tree.x,treeY:tree.y,treeTick:0,shield:0,shieldTime:0,harvestTime:0};
-  ariaBolts=[];ariaBlooms=[];ariaSpirits=[];ariaEffects=[];ariaDeathQueue=[];ariaSoils=[];ariaJudgments=[];ariaPetalStorm=null;ariaWorldTree=null;
+  ariaBolts=[];ariaBlooms=[];ariaSpirits=[];ariaEffects=[];ariaDeathQueue=[];ariaDevouredEnemies=[];ariaSoils=[];ariaJudgments=[];ariaPetalStorm=null;ariaWorldTree=null;
   ariaDeadEnemies=new WeakSet();ariaBossHits=new WeakMap();ariaAttackSequence=0;player.ariaUltimateTime=0;
-  for(const z of zombies){delete z.ariaInfection;delete z.ariaMarkTime;delete z.ariaSuppressSpiritDeath;}
+  for(const z of zombies){delete z.ariaInfection;delete z.ariaMarkTime;delete z.ariaSuppressSpiritDeath;delete z.ariaWorldTreeKill;}
 }
 function updateAria(){
   if(selectedCharacter!=="aria")return;
@@ -295,6 +310,7 @@ function updateAria(){
   }
   player.ariaUltimateTime=ariaWorldTree?ariaWorldTree.life:0;
   ariaProcessDeaths();
+  for(let i=ariaDevouredEnemies.length-1;i>=0;i--){ariaDevouredEnemies[i].age++;if(--ariaDevouredEnemies[i].life<=0)ariaDevouredEnemies.splice(i,1);}
   for(let i=ariaEffects.length-1;i>=0;i--)if(--ariaEffects[i].life<=0)ariaEffects.splice(i,1);
 }
 function ariaPetal(x,y,size,a,alpha,color){ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.fillStyle=color||`rgba(255,139,194,${alpha})`;ctx.beginPath();ctx.moveTo(0,-size);ctx.bezierCurveTo(size*.8,-size*.4,size*.65,size*.55,0,size);ctx.bezierCurveTo(-size*.65,size*.55,-size*.8,-size*.4,0,-size);ctx.fill();ctx.restore()}

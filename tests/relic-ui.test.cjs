@@ -1,5 +1,14 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.join(__dirname,'..');
+test('metal-framed inventory and material cards reserve inner safe rows instead of overlapping the rails',()=>{
+  const css=fs.readFileSync(path.join(root,'relics.css'),'utf8');
+  assert.match(css,/#relic-screen \.relic-item\{padding:20px!important;[^}]*display:flex;flex-direction:column/);
+  assert.match(css,/#relic-screen \.relic-item>\.badge\{position:static;/);
+  assert.match(css,/#relic-screen \.relic-owner\{right:20px;bottom:20px\}/);
+  assert.match(css,/#relic-screen \.relic-feed-status\{position:static;[^}]*min-height:28px/);
+  assert.match(css,/minmax\(min\(100%,152px\),1fr\)/);
+  assert.match(css,/minmax\(min\(100%,148px\),1fr\)/);
+});
 test('portrait enhancement panels stack in normal flow and notices stay above the modal',()=>{
   const css=fs.readFileSync(path.join(root,'relics.css'),'utf8'),portrait=css.slice(css.indexOf('@media(orientation:portrait) and (max-width:620px)'));
   assert.match(portrait,/\.relic-feed-body\{display:block;overflow:auto\}/);

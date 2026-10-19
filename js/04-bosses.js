@@ -697,7 +697,7 @@ function drawRaidBossUI() {
     ctx.fillStyle="#cbb8dc";ctx.font="bold 14px Arial";ctx.fillText("처치한 좀비",centerX-statGap/2,statY);ctx.fillText("최종 점수",centerX+statGap/2,statY);
     ctx.fillStyle="#fff";ctx.font="900 31px Arial";ctx.fillText(player.kills.toLocaleString(),centerX-statGap/2,statY+42);ctx.fillStyle="#ffd867";ctx.fillText(player.score.toLocaleString(),centerX+statGap/2,statY+42);
     ctx.strokeStyle="rgba(217,154,255,.28)";ctx.beginPath();ctx.moveTo(centerX,statY-12);ctx.lineTo(centerX,statY+52);ctx.stroke();
-    ctx.fillStyle="#bdb7c8";ctx.font="18px Arial";ctx.fillText("ENTER 키로 다시 시작",centerX,panelY+318);
+    ctx.fillStyle="#bdb7c8";ctx.font="18px Arial";ctx.fillText("전투 결과를 확인하세요",centerX,panelY+318);
   }
   ctx.restore();
 }

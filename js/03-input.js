@@ -2,6 +2,7 @@
 
 addEventListener("keydown", e => {
   const key = e.key.toLowerCase();
+  if(typeof runResultsIsOpen==='function'&&runResultsIsOpen())return;
 
   if(homeDifficultyOpen&&key==="escape"){homeDifficultyOpen=false;return;}
   keys[key] = true;
@@ -90,11 +91,6 @@ addEventListener("keydown", e => {
     if(selectedCharacter==="astra"&&key==="x")activateAstraX();
     if(selectedCharacter==="astra"&&key==="r")activateAstraR();
     if (key === "r" && selectedCharacter !== "suncall" && selectedCharacter !== "yupiter" && selectedCharacter !== "ren" && selectedCharacter !== "nightLord" && selectedCharacter !== "zero" && selectedCharacter !== "paladin" && selectedCharacter !== "arc" && selectedCharacter !== "terra" && selectedCharacter !== "void" && selectedCharacter !== "carmilla" && selectedCharacter !== "vargas" && selectedCharacter !== "echo" && selectedCharacter !== "aria" && selectedCharacter !== "moira" && selectedCharacter !== "mare" && selectedCharacter !== "nullZero" && selectedCharacter !== "astra" && selectedCharacter !== "oblivion") reload();
-  }
-  if ((gameOver || raidVictory) && key === "enter") {
-    restart();
-    screenMode = "game";
-    paused = false;
   }
 });
 

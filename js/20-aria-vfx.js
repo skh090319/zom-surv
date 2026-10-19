@@ -92,15 +92,61 @@ function ariaSegmentVisible(x,y,tx,ty,pad=65){
 }
 // Different branch silhouettes share a ground anchor. Cross-fades follow the
 // simulation clock and remain frozen while the game is paused.
+const ARIA_TREE_GROWTH_HEIGHTS=[155,200,260,310,365,420,475,525,570];
 function ariaTreeVisualState(){
   const growth=typeof ariaGrowth==='undefined'?null:ariaGrowth;
   const point=typeof getAriaTreePosition==='function'?getAriaTreePosition():{x:growth?.treeX||0,y:growth?.treeY||0};
-  const stage=Math.max(0,Math.min(4,growth?.visualStage??growth?.stage??0)),low=Math.floor(stage),mix=stage-low;
-  const heights=[155,260,365,475,570],h=heights[low]+((heights[low+1]||heights[low])-heights[low])*mix;
+  const stage=Math.max(0,Math.min(8,growth?.visualStage??growth?.stage??0)),low=Math.floor(stage),mix=ariaVfxEase(stage-low);
+  const heights=ARIA_TREE_GROWTH_HEIGHTS,h=heights[low]+((heights[low+1]||heights[low])-heights[low])*mix;
+  const artStage=stage*.5,artLow=Math.floor(artStage),artMix=ariaVfxEase(artStage-artLow);
   const ultimate=typeof ariaWorldTree==='undefined'?null:ariaWorldTree;
   const awaken=ultimate?ariaVfxEase((ultimate.age||0)/60)*ariaVfxEase(ultimate.life/65):0;
   const viewportScale=Math.min(1,getCameraViewHeight()*.45/600);
-  return{x:point.x,y:point.y,stage,low,mix:ariaVfxEase(mix),h:Math.min(600,h+awaken*30)*viewportScale,frame:growth?.frame||0,awaken};
+  return{x:point.x,y:point.y,stage,low,mix,artLow,artMix,h:Math.min(600,h+awaken*30)*viewportScale,frame:growth?.frame||0,awaken};
+}
+let ariaTreeRangePath=null,ariaTreeRangePathRadius=0;
+function ariaTreeRangeVisible(x,y,r,pad=12){
+  const left=camera.x,top=camera.y,right=left+getCameraViewWidth(),bottom=top+getCameraViewHeight();
+  const nearestX=Math.max(left,Math.min(right,x)),nearestY=Math.max(top,Math.min(bottom,y));
+  const near=(nearestX-x)**2+(nearestY-y)**2;
+  const far=Math.max(Math.abs(left-x),Math.abs(right-x))**2+Math.max(Math.abs(top-y),Math.abs(bottom-y))**2;
+  return near<=(r+pad)**2&&far>=Math.max(0,r-pad)**2;
+}
+function ariaTreeRangeCircle(r){
+  if(typeof Path2D!=='undefined'){
+    if(!ariaTreeRangePath||ariaTreeRangePathRadius!==r){
+      ariaTreeRangePath=new Path2D();ariaTreeRangePath.arc(0,0,r,0,Math.PI*2);ariaTreeRangePathRadius=r;
+    }
+    ctx.stroke(ariaTreeRangePath);
+  }else{ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();}
+}
+function ariaDrawTreeRange(){
+  const position=typeof getAriaTreePosition==='function'?getAriaTreePosition():{x:ariaGrowth.treeX,y:ariaGrowth.treeY};
+  const r=typeof getAriaTreeAttackRange==='function'?getAriaTreeAttackRange():600;
+  if(!(r>0)||!ariaTreeRangeVisible(position.x,position.y,r))return;
+  const frame=typeof ariaGrowth==='undefined'?0:ariaGrowth.frame||0,phase=frame*.0007;
+  ctx.save();ctx.translate(position.x,position.y);ctx.globalCompositeOperation='source-over';ctx.lineCap='round';
+  ctx.globalAlpha*=.92+Math.sin(frame*.012)*.05;
+  // A muted plum keyline keeps the pink legible on the sunny lake. The core
+  // contour is exactly the combat radius: no filled disc or perspective squash.
+  ctx.strokeStyle='rgba(82,33,58,.24)';ctx.lineWidth=4.4;ariaTreeRangeCircle(r);
+  ctx.strokeStyle='rgba(255,170,205,.065)';ctx.lineWidth=8;ariaTreeRangeCircle(r);
+  ctx.strokeStyle='rgba(247,173,202,.52)';ctx.lineWidth=1.45;ariaTreeRangeCircle(r);
+  ctx.strokeStyle='rgba(255,225,235,.23)';ctx.lineWidth=.7;ctx.beginPath();ctx.arc(0,0,Math.max(0,r-4),0,Math.PI*2);ctx.stroke();
+  for(let n=0;n<8;n++){
+    const angle=n*Math.PI/4,px=Math.cos(angle)*r,py=Math.sin(angle)*r;
+    if(!ariaVfxVisible(position.x+px,position.y+py,18))continue;
+    ctx.save();ctx.translate(px,py);ctx.rotate(angle);
+    ctx.strokeStyle='rgba(99,43,70,.32)';ctx.lineWidth=2.6;
+    ctx.beginPath();ctx.moveTo(0,-10);ctx.quadraticCurveTo(-5,-4,0,1);ctx.quadraticCurveTo(5,-4,0,-10);ctx.moveTo(0,10);ctx.quadraticCurveTo(4,5,0,1);ctx.quadraticCurveTo(-4,5,0,10);ctx.stroke();
+    ctx.strokeStyle='rgba(255,199,220,.57)';ctx.lineWidth=.8;ctx.stroke();ctx.restore();
+  }
+  for(let n=0;n<3;n++){
+    const angle=phase+n*Math.PI*2/3,length=.12+.025*Math.sin(frame*.008+n);
+    ctx.strokeStyle='rgba(225,129,177,.14)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,r,angle-length,angle);ctx.stroke();
+    ctx.strokeStyle='rgba(255,222,234,.67)';ctx.lineWidth=1.15;ctx.beginPath();ctx.arc(0,0,r,angle-length*.65,angle);ctx.stroke();
+  }
+  ctx.restore();
 }
 function ariaDrawTreeFallback(h,stage,alpha){
   ctx.save();ctx.globalAlpha*=alpha;ctx.lineCap='round';
@@ -126,19 +172,31 @@ function ariaDrawTreeArt(stage,h,alpha){
 function ariaDrawPermanentTree(){
   const v=ariaTreeVisualState(),h=v.h;
   if(!ariaVfxVisible(v.x,v.y-h*.4,h*.7+70))return;
-  const sway=Math.sin(v.frame*.011)*.005,roots=68+v.stage*25;
+  const sway=Math.sin(v.frame*.011)*.005,roots=68+v.stage*12.5;
   ctx.save();ctx.translate(v.x,v.y);ctx.lineCap='round';
   for(let n=0;n<7;n++){
     const a=n*Math.PI*2/7+.2,rr=roots*(.7+n%3*.12),tx=Math.cos(a)*rr,ty=Math.sin(a)*rr*.4;
     ctx.beginPath();ctx.moveTo(0,-5);ctx.bezierCurveTo(tx*.3,ty-22,tx*.7,ty+15,tx,ty);
-    ctx.strokeStyle='rgba(8,21,19,.8)';ctx.lineWidth=5+v.stage;ctx.stroke();ctx.strokeStyle='rgba(177,202,151,.4)';ctx.lineWidth=1.1;ctx.stroke();
+    ctx.strokeStyle='rgba(8,21,19,.8)';ctx.lineWidth=5+v.stage*.5;ctx.stroke();ctx.strokeStyle='rgba(177,202,151,.4)';ctx.lineWidth=1.1;ctx.stroke();
   }
   if(v.awaken>0)ariaSigil(0,0,roots*1.45,-v.frame*.0007,v.awaken*.3);
-  ctx.save();ctx.rotate(sway);ariaDrawTreeArt(v.low,h,(1-v.mix)*.96);if(v.mix>0)ariaDrawTreeArt(Math.min(4,v.low+1),h,v.mix*.96);ctx.restore();
-  const adorn=ariaVfxClamp(v.stage-2),count=8+Math.ceil(v.stage*3);
+  ctx.save();ctx.rotate(sway);ariaDrawTreeArt(v.artLow,h,(1-v.artMix)*.96);if(v.artMix>0)ariaDrawTreeArt(Math.min(4,v.artLow+1),h,v.artMix*.96);ctx.restore();
+  // Intermediate stages sprout their own thin branches and buds before the
+  // next painted canopy unfolds. Later stages add pendant blossoms gradually.
+  for(let n=0;n<8;n++){
+    const sprout=ariaVfxEase(v.stage-n-.2);if(sprout<=0)continue;
+    const side=n%2?1:-1,baseY=-h*(.29+n*.047),tipX=side*h*(.1+(n%3)*.045)*sprout,tipY=baseY-h*(.09+(n%2)*.025)*sprout;
+    ctx.save();ctx.globalAlpha*=sprout;ctx.strokeStyle='rgba(58,85,58,.6)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(0,baseY);ctx.bezierCurveTo(tipX*.3,baseY-h*.045,tipX*.8,tipY+h*.04,tipX,tipY);ctx.stroke();
+    ctx.strokeStyle='rgba(235,225,174,.55)';ctx.lineWidth=.65;ctx.stroke();
+    ariaVfxPetal(tipX,tipY,h*(.013+Math.min(n,4)*.002),side*.75,1,n<3?'#b3d9aa':'#eeb6d1');
+    if(n>=3)ariaBloom(tipX,tipY,h*.024,side*.2,sprout*.55);
+    ctx.restore();
+  }
+  const adorn=ariaVfxClamp((v.stage-4)*.5),count=8+Math.ceil(v.stage*1.5);
   if(adorn>0)for(let n=0;n<8;n++){
     const a=n*2.399,px=Math.cos(a)*h*(.14+(n%3)*.045),py=-h*(.42+(n%4)*.095),pulse=.8+Math.sin(v.frame*.025+n)*.12;
-    ariaBloom(px,py,h*.034*pulse,a,adorn*.5);ctx.strokeStyle='rgba(236,209,139,.34)';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px+Math.sin(v.frame*.018+n)*5,py+13,px+3,py+25);ctx.stroke();ariaGleam(px+3,py+25,2.5+v.awaken*2,adorn*.75);
+    const blossom=ariaVfxEase((v.stage-4-n*.35)*.8);if(blossom<=0)continue;
+    ariaBloom(px,py,h*.034*pulse,a,blossom*.5);ctx.strokeStyle='rgba(236,209,139,.34)';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px+Math.sin(v.frame*.018+n)*5,py+13*blossom,px+3,py+25*blossom);ctx.stroke();ariaGleam(px+3,py+25*blossom,2.5+v.awaken*2,blossom*.75);
   }
   ctx.globalCompositeOperation='lighter';
   for(let n=0;n<count;n++){
@@ -147,6 +205,53 @@ function ariaDrawPermanentTree(){
     if(n%4===0)ariaVfxPetal(px+8,py+11,3+n%2,v.frame*.008+n,alpha,'#e7a5c3');
   }
   ctx.restore();
+}
+function ariaDevourVisualState(e){
+  const p=ariaVfxClamp(1-e.life/e.maxLife),t=ariaVfxEase((p-.09)/.8),dx=e.tx-e.x,dy=e.ty-e.y,d=Math.hypot(dx,dy)||1;
+  const bend=Math.min(78,d*.18)*Math.sin(e.phase||0),cx=(e.x+e.tx)*.5-dy/d*bend,cy=(e.y+e.ty)*.5+dx/d*bend-42;
+  const x=(1-t)*(1-t)*e.x+2*(1-t)*t*cx+t*t*e.tx,y=(1-t)*(1-t)*e.y+2*(1-t)*t*cy+t*t*e.ty;
+  return{p,t,cx,cy,x,y,scale:1-.94*ariaVfxEase(t),alpha:1-ariaVfxEase((p-.78)/.18)};
+}
+function ariaDrawDevouredEnemyArt(e,v){
+  if(v.alpha<=0||!ariaVfxVisible(v.x,v.y,160*v.scale+10))return;
+  const raid=e.isRaidBoss,minion=e.isBossMinion,size=(raid?(e.raidIndex===0?250:285):(e.r||18)*(minion?4.3:e.boss?2.75:3.05))*v.scale;
+  const raidImage=typeof raidBossImages!=='undefined'?raidBossImages[raid?e.raidIndex:1]:null;
+  const atlas=typeof zombieSpriteAtlas==='undefined'?null:zombieSpriteAtlas;
+  ctx.save();ctx.translate(v.x,v.y);ctx.rotate(Math.sin(e.phase||0)*v.t*.6);ctx.globalAlpha*=v.alpha;ctx.globalCompositeOperation='source-over';
+  if((raid||minion)&&raidImage?.complete&&raidImage.naturalWidth>0){
+    if(raid)ctx.scale(e.facing<0?-1:1,1);ctx.drawImage(raidImage,-size/2,-size*(raid?.62:.57),size,size);
+  }else if(atlas?.complete&&atlas.naturalWidth>0){
+    const sw=atlas.naturalWidth/2,sh=atlas.naturalHeight;ctx.drawImage(atlas,e.boss?sw:0,0,sw,sh,-size/2,-size*.57,size,size);
+  }else{ctx.fillStyle=e.boss?'#764c58':'#628a6c';ctx.beginPath();ctx.arc(0,0,(e.r||18)*v.scale,0,Math.PI*2);ctx.fill();}
+  const bind=Math.min(1,v.p*10)*v.alpha,rr=size*.31;
+  ctx.strokeStyle='rgba(36,61,43,.65)';ctx.lineWidth=Math.max(1,3*v.scale);ctx.beginPath();
+  for(let n=0;n<2;n++){const side=n?1:-1;ctx.moveTo(-rr,-rr*side*.65);ctx.bezierCurveTo(-rr*.3,rr*side*.8,rr*.4,-rr*side*.8,rr,rr*side*.65);}
+  ctx.stroke();ctx.globalAlpha*=bind;ctx.strokeStyle='#c8d9a2';ctx.lineWidth=Math.max(.5,.9*v.scale);ctx.stroke();
+  ariaVfxPetal(rr*.7,-rr*.25,Math.max(1,5*v.scale),-.6,bind,'#e5abc1');ctx.restore();
+}
+function ariaDrawDevouredEnemies(){
+  if(typeof ariaDevouredEnemies==='undefined')return;
+  for(let i=0;i<ariaDevouredEnemies.length&&i<32;i++){
+    const e=ariaDevouredEnemies[i];if(!(e.life>0)||!(e.maxLife>0)||!ariaSegmentVisible(e.x,e.y,e.tx,e.ty,190))continue;
+    const v=ariaDevourVisualState(e),fade=Math.sin(v.p*Math.PI),grow=ariaVfxEase(v.p*8);
+    ctx.save();ctx.lineCap='round';ctx.globalCompositeOperation='source-over';
+    // The tether closes around the defeated sprite, then carries that same
+    // sprite into the fixed root. It is visual-only, never a live enemy.
+    ctx.globalAlpha*=fade*.52;
+    ctx.strokeStyle='rgba(29,57,39,.62)';ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(e.tx,e.ty);ctx.quadraticCurveTo(v.cx,v.cy,e.tx+(v.x-e.tx)*grow,e.ty+(v.y-e.ty)*grow);ctx.stroke();
+    ctx.strokeStyle='rgba(218,192,155,.8)';ctx.lineWidth=.8;ctx.stroke();ctx.restore();
+    ariaDrawDevouredEnemyArt(e,v);
+    for(let n=0;n<3;n++){
+      const trailT=Math.max(0,v.t-.045*(n+1)),x=(1-trailT)*(1-trailT)*e.x+2*(1-trailT)*trailT*v.cx+trailT*trailT*e.tx;
+      const y=(1-trailT)*(1-trailT)*e.y+2*(1-trailT)*trailT*v.cy+trailT*trailT*e.ty;
+      if(ariaVfxVisible(x,y,15))ariaVfxPetal(x+Math.sin((e.phase||0)+n)*7,y,3+n,v.p*2+n,fade*(.6-n*.12),n%2?'#c2dfb2':'#ecc1d2');
+    }
+    const absorb=ariaVfxClamp((v.p-.72)/.28);
+    if(absorb>0&&ariaVfxVisible(e.tx,e.ty,65)){
+      const alpha=Math.sin(absorb*Math.PI);ariaBloom(e.tx,e.ty-4,12+absorb*23,absorb*.3,alpha*.65);ariaGleam(e.tx,e.ty-7,5+alpha*6,alpha*.8);
+      ctx.save();ctx.globalAlpha*=alpha*.44;ctx.strokeStyle='#e9b2cd';ctx.lineWidth=1;ctx.beginPath();ctx.arc(e.tx,e.ty,9+absorb*34,0,Math.PI*2);ctx.stroke();ctx.restore();
+    }
+  }
 }
 function ariaDrawRootThread(e,alpha=1){
   const tx=e.tx??e.x,ty=e.ty??e.y;if(!ariaSegmentVisible(e.x,e.y,tx,ty,90))return;
@@ -163,18 +268,83 @@ function ariaDrawRootThread(e,alpha=1){
   const pulse=(age*3)%1,px=d*pulse,py=-3*bend*(1-pulse)*(1-pulse)*pulse+3*bend*.55*(1-pulse)*pulse*pulse;
   ariaGleam(px,py,5,alpha);ariaBloom(d,0,18+22*Math.sin(Math.PI*ariaVfxClamp(age*2)),age*.2,alpha*.8);ctx.restore();
 }
-function ariaDrawLance(e){
-  const p=ariaVfxClamp(1-e.life/e.maxLife),a=ariaVfxClamp(e.life/12),length=e.length||600,width=e.width||22,head=length*ariaVfxEase(Math.min(1,p*4));
-  const tx=e.x+Math.cos(e.angle||0)*length,ty=e.y+Math.sin(e.angle||0)*length;
-  if(!ariaSegmentVisible(e.x,e.y,tx,ty,width+45))return;
-  ctx.save();ctx.translate(e.x,e.y);ctx.rotate(e.angle||0);ctx.globalAlpha*=a;ctx.lineCap='round';
-  for(let layer=0;layer<3;layer++){
-    ctx.strokeStyle=['rgba(104,233,174,.09)','rgba(255,162,204,.25)','#bceac9'][layer];ctx.lineWidth=[width*2.5,width*.8,2][layer];ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(head*.25,-width*.3,head*.7,width*.3,head,0);ctx.stroke();
+// Q is a narrow botanical lance rather than a filled targeting wedge. All
+// motion comes from simulation life; drawing never changes combat state.
+function ariaQLanceState(e){
+  if(!Number.isFinite(e.x)||!Number.isFinite(e.y)||!(e.maxLife>0)||!Number.isFinite(e.maxLife)||!(e.life>0)||!Number.isFinite(e.life))return null;
+  const length=Number.isFinite(e.length)?Math.max(0,e.length):600,width=Number.isFinite(e.width)?Math.max(6,Math.min(80,e.width)):22;
+  if(!length)return null;
+  const p=ariaVfxClamp(1-e.life/e.maxLife),head=length*ariaVfxEase(p/.22),tail=length*.9*ariaVfxEase((p-.36)/.64);
+  return{p,length,width,head,tail:Math.min(head,tail),alpha:ariaVfxClamp(e.life/12),angle:Number.isFinite(e.angle)?e.angle:0};
+}
+function ariaQLanceVine(v,front){
+  const span=v.head-v.tail,segments=24,amplitude=Math.min(12,v.width*.24)*ariaVfxEase(v.p/.16);
+  if(span<2)return;
+  ctx.lineCap='round';
+  for(let n=0;n<segments;n++){
+    const t=n/segments,nt=(n+1)/segments,phase=t*Math.PI*8-v.p*3,nextPhase=nt*Math.PI*8-v.p*3;
+    if((Math.cos((phase+nextPhase)/2)>=0)!==front)continue;
+    const x=v.tail+span*t,nx=v.tail+span*nt,y=Math.sin(phase)*amplitude,ny=Math.sin(nextPhase)*amplitude;
+    ctx.strokeStyle=front?'rgba(31,100,70,.9)':'rgba(47,118,92,.42)';ctx.lineWidth=front?3.4:2.2;
+    ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo((x+nx)/2,Math.sin((phase+nextPhase)/2)*amplitude,nx,ny);ctx.stroke();
+    ctx.strokeStyle=front?'#b5f2c4':'rgba(164,222,185,.5)';ctx.lineWidth=front?.75:.5;ctx.stroke();
+    if(front&&n%4===1){
+      const side=y<0?-1:1,tip=Math.min(v.head,x+12),leaf=side*(Math.abs(y)+8);
+      ctx.fillStyle='#89be9b';ctx.strokeStyle='#e9dec1';ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+3,leaf,tip,leaf);ctx.quadraticCurveTo(x+8,y+side*2,x,y);ctx.fill();ctx.stroke();
+    }
   }
-  for(let side=-1;side<=1;side+=2){ctx.fillStyle=side<0?'#406956':'#8be0b3';ctx.strokeStyle='#f8e6c6';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(head-84,side*width*.18);ctx.lineTo(head-32,side*width*.54);ctx.lineTo(head+22,0);ctx.lineTo(head-57,side*width*.08);ctx.closePath();ctx.fill();ctx.stroke();}
-  for(let n=1;n<7;n++){const x=head*n/7;ctx.strokeStyle=n%2?'rgba(255,171,201,.6)':'rgba(184,255,206,.45)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x-17,0);ctx.quadraticCurveTo(x-4,-width*(n%2?1:-1),x+15,-width*.45*(n%2?1:-1));ctx.stroke();ariaGleam(x,-Math.sin(n)*width,2+n%3,a*(1-p));}
-  if(ariaSpellArtReady(ariaSpellArt.thorn)){ctx.save();ctx.translate(head-24,0);ctx.rotate(Math.PI/2);ctx.globalAlpha*=.7;ctx.drawImage(ariaSpellArt.thorn,-34,-44,68,88);ctx.restore();}
-  ariaGleam(head+18,0,10,a);ctx.restore();
+}
+function ariaDrawLance(e){
+  const v=ariaQLanceState(e);if(!v||v.head-v.tail<.5)return;
+  const tx=e.x+Math.cos(v.angle)*v.length,ty=e.y+Math.sin(v.angle)*v.length;
+  if(!ariaSegmentVisible(e.x,e.y,tx,ty,v.width+30))return;
+  ctx.save();ctx.translate(e.x,e.y);ctx.rotate(v.angle);ctx.globalAlpha*=v.alpha;ctx.lineCap='butt';
+  // Clip every facet, sprite and glint to the real forward damage segment.
+  ctx.beginPath();ctx.rect(0,-v.width*1.2,v.length,v.width*2.4);ctx.clip();
+  const span=v.head-v.tail,root=v.tail,neck=Math.max(root,v.head-68),blade=Math.min(68,span),wing=Math.min(14,blade*.22);
+  for(let layer=0;layer<3;layer++){
+    ctx.strokeStyle=layer===0?'rgba(246,141,185,.055)':layer===1?'rgba(255,172,206,.15)':'rgba(255,232,224,.7)';ctx.lineWidth=layer===0?23:layer===1?8:1.25;
+    ctx.beginPath();ctx.moveTo(root,0);ctx.lineTo(v.head,0);ctx.stroke();
+  }
+  ariaQLanceVine(v,false);
+  // Split lit/shadow facets, with curved thorn shoulders and a precise point.
+  ctx.fillStyle='#c4879d';ctx.strokeStyle='rgba(255,207,226,.95)';ctx.lineWidth=.85;
+  ctx.beginPath();ctx.moveTo(root,1.1);ctx.lineTo(neck,1.1);ctx.bezierCurveTo(neck+blade*.12,wing*.15,neck+blade*.1,wing,neck+blade*.27,wing);ctx.quadraticCurveTo(neck+blade*.66,wing*.45,v.head,0);ctx.lineTo(root,0);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#fff5de';ctx.strokeStyle='#fff8e8';ctx.lineWidth=.65;
+  ctx.beginPath();ctx.moveTo(root,-1);ctx.lineTo(neck,-1);ctx.quadraticCurveTo(neck+blade*.1,-wing,neck+blade*.3,-wing*.86);ctx.quadraticCurveTo(neck+blade*.68,-wing*.3,v.head,0);ctx.lineTo(root,0);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.strokeStyle='#ffe0ef';ctx.lineWidth=.85;ctx.beginPath();ctx.moveTo(neck+blade*.14,-wing*.75);ctx.quadraticCurveTo(neck+blade*.55,-wing*.12,v.head,0);ctx.stroke();
+  ariaQLanceVine(v,true);
+  if(span>75&&ariaSpellArtReady(ariaSpellArt.thorn)){
+    ctx.save();ctx.translate(v.head-34,0);ctx.rotate(Math.PI/2);ctx.globalAlpha*=.56;ctx.drawImage(ariaSpellArt.thorn,-17,-22,34,44);ctx.restore();
+  }
+  // Small detached petals dissolve behind the shaft; none extend past its tip.
+  for(let n=0;n<7;n++){
+    const t=(n+.55)/7,x=root+span*t,y=Math.sin(n*2.4+v.p*6)*(6+v.p*15),fade=Math.sin(t*Math.PI)*(1-v.p);
+    ariaVfxPetal(x,y,2+n%2,n*.7+v.p*2,fade*.65,n%2?'#f5c8de':'#d8edbf');
+    if(n%2===0)ariaGleam(x,-y*.65,1.8,fade*.6);
+  }
+  ariaGleam(Math.max(root,v.head-Math.min(7,span*.1)),0,Math.min(6,span*.08),v.alpha*.85);
+  ctx.restore();
+}
+function ariaDrawThornImpact(e){
+  if(!(e.life>0)||!Number.isFinite(e.life)||!(e.maxLife>0)||!Number.isFinite(e.maxLife)||!Number.isFinite(e.x)||!Number.isFinite(e.y)||!ariaVfxVisible(e.x,e.y,85))return;
+  const p=ariaVfxClamp(1-e.life/e.maxLife),alpha=ariaVfxClamp(e.life/12),spread=1-Math.pow(1-p,3),angle=Number.isFinite(e.angle)?e.angle:0,phase=Number.isFinite(e.phase)?e.phase:0;
+  ctx.save();ctx.translate(e.x,e.y);ctx.globalAlpha*=alpha;
+  // The crown rises out of the hit flash, echoing the persistent Q mark.
+  const lift=8+spread*17,crown=8+spread*5;
+  ctx.strokeStyle='rgba(255,210,225,.7)';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(0,-lift+4,crown*.95,3,0,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='#f4e0b8';ctx.lineWidth=1.15;ctx.beginPath();ctx.moveTo(-crown,-lift+2);ctx.lineTo(-crown*.8,-lift-7);ctx.lineTo(-crown*.35,-lift-3);ctx.lineTo(0,-lift-12);ctx.lineTo(crown*.35,-lift-3);ctx.lineTo(crown*.8,-lift-7);ctx.lineTo(crown,-lift+2);ctx.stroke();
+  ctx.save();ctx.rotate(angle);
+  for(let side=-1;side<=1;side+=2){
+    const radius=9+spread*25;ctx.strokeStyle='rgba(255,182,217,.52)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-radius*.65,side*radius*.35);ctx.bezierCurveTo(-radius*.1,side*radius*.85,radius*.55,side*radius*.35,radius,0);ctx.stroke();
+  }
+  for(let n=0;n<8;n++){
+    const a=n*2.399+phase,dist=5+spread*(15+n%3*9),x=Math.cos(a)*dist*1.1+spread*9,y=Math.sin(a)*dist*.65;
+    ariaVfxPetal(x,y,(2.5+n%3)*(1-p*.45),a+p*1.4,(1-p)*.9,n%2?'#ffcade':'#def5cc');
+    if(n%3===0)ariaGleam(x,y,2.5*(1-p),1-p);
+  }
+  if(p<.45)ariaBloom(0,0,8+spread*7,phase,(1-p/.45)*.65);
+  ariaGleam(0,0,8*(1-p),1-p);ctx.restore();ctx.restore();
 }
 function ariaDrawBolt(b){
   if(!ariaVfxVisible(b.x,b.y,105))return;
@@ -235,6 +405,8 @@ function ariaDrawEssence(e){
 }
 function drawAriaRoyalEffects(){
   if(selectedCharacter!=="aria")return;worldStart();ctx.save();
+  ariaDrawTreeRange();
+  ariaDrawDevouredEnemies();
   ariaDrawPermanentTree();
   if(typeof ariaBlooms!=='undefined')for(let i=0;i<ariaBlooms.length&&i<8;i++)ariaDrawParasiticField(ariaBlooms[i]);
   ariaDrawEnemyBotany();
@@ -244,6 +416,7 @@ function drawAriaRoyalEffects(){
     const e=ariaEffects[i];if(e.life<=0||!(e.maxLife>0))continue;
     const a=ariaVfxClamp(e.life/18),p=ariaVfxClamp(1-e.life/e.maxLife);
     if(e.type==='thornLance'){ariaDrawLance(e);continue;}
+    if(e.type==='thornImpact'){ariaDrawThornImpact(e);continue;}
     if(e.type==='treeRoot'||e.type==='treeEcho'){ariaDrawRootThread(e,a);continue;}
     if(e.type==='essence'){ariaDrawEssence(e);continue;}
     if(!ariaVfxVisible(e.x,e.y,(e.r||100)+90))continue;

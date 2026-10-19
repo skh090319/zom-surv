@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v105-aria-lake";
+const CACHE_VERSION = "zombie-survival-v106-roots-results";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -7,6 +7,7 @@ const CORE_ASSETS = [
   "./index.html",
   "./style.css",
   "./relics.css",
+  "./run-results.css",
   "./assets/relic-card-frame-v1.webp",
   // Only the six starter pieces are preloaded. Other owned art is cached on demand.
   "./assets/relics-v2/A01-core.webp",
@@ -97,6 +98,7 @@ const CORE_ASSETS = [
   "./js/20-aria-vfx.js",
   "./js/20-aria-prestige.js",
   "./js/21-aria-ultimate.js",
+  "./js/22-run-results.js",
   "./js/pwa.js"
 ];
 

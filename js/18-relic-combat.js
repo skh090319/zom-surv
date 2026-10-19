@@ -32,7 +32,8 @@ function relicBeginRun() {
   relicRun = { id: `relic-${Date.now()}-${Math.random().toString(36).slice(2)}`, hero,
     snapshot, stats: relicFreeze({ ...aggregate.stats }), setCounts: relicFreeze({ ...aggregate.setCounts }),
     frame: 0, buffs: {}, basicStacks: 0, stardustStacks: 0, casts: 0, movement: 0,
-    moveArmed: true, baseDamage: player.damage, attacks: new Map(), rewards: new Set() };
+    moveArmed: true, baseDamage: player.damage, attacks: new Map(), rewards: new Set(),
+    rewardItems: [], rewardItemIds: new Set(), rewardMaterials: 0 };
   const maxHp = Math.max(1, (player.maxHp + relicStat('hpFlat')) * (1 + relicStat('hpPct')));
   player.maxHp = maxHp; player.hp = maxHp;
   const conversion = relicHasSet('A04') ? Math.min(maxHp * .02, relicRun.baseDamage * .30) : 0;
@@ -256,9 +257,25 @@ function relicGrantCombatReward(kind, bossIndex) {
   const key = `${kind}:${bossIndex ?? ''}`;
   if (relicRun.rewards.has(key)) return;
   const result = relicGrantReward({ runId: relicRun.id, kind, hero: relicRun.hero, bossIndex, difficulty: selectedDifficulty });
-  if (result && result.ok) relicRun.rewards.add(key);
+  if (result && result.ok) {
+    relicRun.rewards.add(key);
+    // Only successful, newly persisted rewards belong to this sortie's report.
+    // Snapshot them now so later equipment/enhancement cannot rewrite history.
+    if (!result.duplicate && !result.unchanged) {
+      for (const item of result.items || []) {
+        if (!item?.id || relicRun.rewardItemIds.has(item.id)) continue;
+        relicRun.rewardItemIds.add(item.id);
+        relicRun.rewardItems.push(relicFreeze(JSON.parse(JSON.stringify(item))));
+      }
+      relicRun.rewardMaterials += Math.max(0, Number(result.materials) || 0);
+    }
+  }
   relicRun.lastReward = result;
   return result;
+}
+function relicRunRewardSummary() {
+  return relicRun ? {runId:relicRun.id,hero:relicRun.hero,items:relicRun.rewardItems.slice(),materials:relicRun.rewardMaterials,
+    error:relicRun.lastReward?.ok===false?relicRun.lastReward.message||'보상을 저장하지 못했습니다.':''} : {runId:null,hero:null,items:[],materials:0,error:''};
 }
 
 // Array identities may be reset by restart. Read them each time rather than

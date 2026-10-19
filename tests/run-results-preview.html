@@ -1,0 +1,26 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><base href="../"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Run results visual QA</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="relics.css"><link rel="stylesheet" href="run-results.css"><style>
+body.qa-host{height:auto;overflow:auto;background:#10141d;color:#e8ebf1;font:13px Arial,sans-serif}.qa-host header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px}.qa-host button{color:#e8edf2;background:#253344;border:1px solid #6a7a8d;border-radius:4px;padding:8px 12px;cursor:pointer}.qa-host iframe{display:block;border:1px solid #4e6177;margin:0 auto 20px;max-width:100%}.qa-host #game{display:none}#qa-errors{position:fixed;left:8px;bottom:2px;z-index:1000;color:#ff7474;pointer-events:none;font:10px monospace;max-width:90%}
+</style></head><body><canvas id="game"></canvas><output id="qa-errors"></output><script>
+const params=new URLSearchParams(location.search),embedded=params.has('embed');
+if(!embedded){
+  document.body.className='qa-host';let scenario='death';
+  const header=document.createElement('header');header.innerHTML='<b>RUN RESULTS QA</b><button data-scenario="death">사망 결과</button><button data-scenario="clear">클리어 결과</button><button data-scenario="empty">보상 없음</button><button data-scenario="failure">저장 실패</button><button data-scenario="many">유물 스크롤</button><button data-size="1280,720">PC 1280×720</button><button data-size="844,390">모바일 844×390</button><button data-size="568,320">모바일 568×320</button>';
+  const frame=document.createElement('iframe');frame.id='run-results-preview';frame.title='게임 종료 보상 미리보기';frame.width='1280';frame.height='720';
+  function load(){frame.src='tests/run-results-preview.html?embed=1&scenario='+scenario+'&qa='+Date.now();}
+  header.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.scenario)scenario=b.dataset.scenario;if(b.dataset.size){const [w,h]=b.dataset.size.split(',');frame.width=w;frame.height=h;}load();});document.body.prepend(header);document.body.append(frame);load();
+}else{
+  const storage=new Map();Object.defineProperty(window,'localStorage',{value:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)},configurable:true});
+  window.requestAnimationFrame=()=>0;addEventListener('error',event=>document.getElementById('qa-errors').textContent+=event.message+'\n');addEventListener('unhandledrejection',event=>document.getElementById('qa-errors').textContent+=String(event.reason)+'\n');
+  (async()=>{
+    const html=await(await fetch('index.html?qa='+Date.now(),{cache:'no-store'})).text(),doc=new DOMParser().parseFromString(html,'text/html');
+    for(const old of doc.querySelectorAll('script[src]')){const src=old.getAttribute('src');if(src.includes('pwa.js')||src.includes('studio-intro.js'))continue;await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src+(src.includes('?')?'&':'?')+'qa='+Date.now();s.onload=resolve;s.onerror=reject;document.head.append(s);});}
+    saveTotalKills=()=>{};selectedCharacter='aria';restart();screenMode='game';choosingUpgrade=false;player.kills=784;player.score=25150;player.level=31;isMobileTouchDevice=()=>innerHeight<=560;isMobilePortraitMode=()=>false;canvas.width=innerWidth;canvas.height=innerHeight;
+    const scenario=params.get('scenario')||'death',random=Math.random;let seed=17;Math.random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+    try{
+      if(scenario==='failure'){relicStorageBlocked=true;relicStorageError='저장 공간을 확인해주세요. (QA 저장 실패 예시)';relicGrantCombatReward('defeat');}
+      else if(scenario!=='empty'){const count=scenario==='clear'?3:scenario==='many'?12:2;for(let n=0;n<count;n++)relicGrantCombatReward('boss',n);relicGrantCombatReward(scenario==='clear'?'clear':'defeat');}
+    }finally{Math.random=random;}
+    raidVictory=scenario==='clear';gameOver=!raidVictory;draw();setInterval(()=>draw(),1000/30);
+  })();
+}
+</script></body></html>

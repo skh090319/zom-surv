@@ -22,14 +22,25 @@ test('the permanent tree starts at exact world center and never follows movement
   g.c.player.x=100;g.step(720);assert.equal(g.run('ariaWorldTree'),null);assert.equal(g.run('ariaGrowth.treeX'),2000);
   assert.deepEqual({...g.run('getAriaTreePosition()')},{x:2000,y:1500});
 });
-test('growth has four unlock thresholds while essence damage continues beyond the last stage',()=>{
+test('growth has nine visual stages with four unchanged combat unlocks and uncapped essence damage',()=>{
   const g=game();
-  for(const [essence,stage]of [[0,0],[99,0],[100,1],[300,2],[600,3],[1200,4],[5000,4]]){
+  for(const [essence,stage,tier]of [[0,0,0],[49,0,0],[50,1,0],[99,1,0],[100,2,1],[199,2,1],[200,3,1],[299,3,1],[300,4,2],[449,4,2],[450,5,2],[599,5,2],[600,6,3],[899,6,3],[900,7,3],[1199,7,3],[1200,8,4],[5000,8,4]]){
     g.run('ariaGrowth.essence='+essence);assert.equal(g.run('getAriaGrowthStage()'),stage);
+    assert.equal(g.run('getAriaGrowthTier()'),tier);assert.equal(g.run('getAriaGrowthProgress().tier'),tier);
     near(g.run('ariaDamage(1)'),100*(1+essence*.0015));
     near(g.run('getAriaGrowthProgress().damageBonus'),essence*.0015);
   }
   assert.equal(g.run('getAriaGrowthProgress().next'),null);assert.equal(g.run('getAriaGrowthProgress().ratio'),1);
+  g.run('ariaGrowth.essence=75');assert.equal(g.run('getAriaGrowthProgress().name'),'움트는 새싹');assert.equal(g.run('getAriaGrowthProgress().next'),100);near(g.run('getAriaGrowthProgress().ratio'),.5);
+  g.run('ariaGrowth.essence=1000');assert.equal(g.run('getAriaGrowthProgress().name'),'찬란한 개화');near(g.run('getAriaGrowthProgress().ratio'),1/3);
+});
+
+test('intermediate growth stages do not increase basic projectiles, piercing, or tree target counts early',()=>{
+  for(const [essence,count,pierce,treeCount]of [[0,3,1,1],[50,3,1,1],[100,4,2,2],[200,4,2,2],[300,4,3,3],[450,4,3,3],[600,4,3,4],[900,4,3,4],[1200,4,3,5]]){
+    const g=game();for(let i=0;i<10;i++)g.enemy(2000+i*10,1500);g.c.calls=0;
+    g.run('ariaGrowth.essence='+essence+';attackWithAria();ariaDealDamage=()=>{calls++;return true};ariaTreeAttack()');
+    assert.equal(g.run('ariaBolts.length'),count,'petals at '+essence);assert.equal(g.run('ariaBolts.every(b=>b.pierce==='+pierce+')'),true,'piercing at '+essence);assert.equal(g.c.calls,treeCount,'roots at '+essence);
+  }
 });
 test('actual kill handling awards each ordinary or boss death once, including non-Aria damage sources',()=>{
   const g=game(),normal=g.enemy(),boss=g.enemy(1300,1000,{isRaidBoss:true,raidIndex:1}),minion=g.enemy(1400,1000,{isBossMinion:true});
@@ -70,22 +81,51 @@ test('holding auto-aims petals while mobile dragging launches along the chosen d
   empty.run('attackWithAria()');empty.step(30);
   assert.equal(onlyRear.hp,onlyRear.maxHp);assert.equal(empty.run('ariaBolts.every(b=>b.y>player.y&&b.target===null)'),true);
 });
-test('tree attacks prioritize marks near the player even when the tree is far away',()=>{
+test('tree attacks prioritize marks only inside the fixed central radius, ignoring player-centered targets',()=>{
   const g=game(),nearby=g.enemy(1050,1000),marked=g.enemy(1750,1000);g.c.marked=marked;
   g.run('ariaMark(marked);ariaTreeAttack()');assert.equal(nearby.hp,nearby.maxHp);near(marked.maxHp-marked.hp,275);
   assert.equal(g.run('ariaEffects.find(e=>e.type==="treeRoot").x'),2000);
   assert.equal(g.run('ariaEffects.find(e=>e.type==="treeRoot").tx'),1750);
+  assert.equal(g.run('getAriaTreeAttackRange()'),600);
+  g.c.zombies.length=0;g.c.player.x=3500;g.c.player.y=1500;const far=g.enemy(3500,1500);g.c.far=far;
+  g.run('ariaMark(far);ariaTreeAttack()');assert.equal(far.hp,far.maxHp);
+});
+
+test('the tree circle uses enemy-hitbox intersection and rejects targets just outside it even during R',()=>{
+  const g=game(),edge=g.enemy(2618,1500),outside=g.enemy(2618.01,1500);g.c.outside=outside;
+  g.run('ariaMark(outside);activateAriaR();ariaTreeAttack()');
+  near(edge.maxHp-edge.hp,220);assert.equal(outside.hp,outside.maxHp);
+  assert.equal(g.run('ariaEffects.filter(e=>e.type==="treeRoot").length'),1);
+});
+
+test('automatic root sharing cannot cross its central circle but still chooses eligible nearby links',()=>{
+  const g=game(),primary=g.enemy(2590,1500),outside=g.enemy(2620,1500),inside=g.enemy(2550,1500),inside2=g.enemy(2510,1500);g.c.primary=primary;g.c.outside=outside;
+  g.run('ariaGrowth.essence=300;ariaMark(outside);ariaDealDamage(primary,1,ariaMakeSource({garden:true,treeBound:true}),{garden:true,direct:true})');
+  near(primary.maxHp-primary.hp,145);assert.equal(outside.hp,outside.maxHp);near(inside.maxHp-inside.hp,50.75);near(inside2.maxHp-inside2.hp,50.75);
+  assert.equal(g.run('ariaEffects.filter(e=>e.type==="treeRoot").length'),2);
+  assert.equal(g.run('ariaDealDamage(outside,1,ariaMakeSource({treeBound:true}),{direct:true})'),false);
 });
 test('stage 300 shares a direct hit with two nearby enemies exactly once without recursive sharing',()=>{
   const g=game(),a=g.enemy(),b=g.enemy(1250),c=g.enemy(1300),d=g.enemy(1400);g.c.a=a;
   g.run('ariaGrowth.essence=300;ariaDealDamage(a,1,ariaMakeSource(),{direct:true})');
   near(a.maxHp-a.hp,145);near(b.maxHp-b.hp,50.75);near(c.maxHp-c.hp,50.75);assert.equal(d.hp,d.maxHp);
+  const early=game(),first=early.enemy(),second=early.enemy(1250);early.c.first=first;
+  early.run('ariaGrowth.essence=200;ariaDealDamage(first,1,ariaMakeSource(),{direct:true})');assert.equal(second.hp,second.maxHp);
 });
 test('Q pierces the aim line and marks survivors without any soil requirement',()=>{
   const g=game(),a=g.enemy(1200),b=g.enemy(1600),side=g.enemy(1200,1150),behind=g.enemy(800);
   g.run('activateAriaQ()');near(a.maxHp-a.hp,600);near(b.maxHp-b.hp,600);assert.equal(side.hp,side.maxHp);assert.equal(behind.hp,behind.maxHp);
   assert.equal(a.ariaMarkTime,480);assert.equal(g.c.player.ariaQCooldown,270);
   const hp=a.hp;g.run('activateAriaQ()');assert.equal(a.hp,hp);
+  assert.equal(g.run('ariaEffects.filter(e=>e.type==="thornImpact").length'),2);
+  assert.equal(g.run('ariaEffects.filter(e=>e.type==="thornImpact").every(e=>e.life===30&&e.r===40&&e.angle===0)'),true);
+});
+
+test('Q impact embellishments are limited to twelve actual hits without limiting damage targets',()=>{
+  const g=game();for(let i=0;i<30;i++)g.enemy(1100+i*20,1000);const miss=g.enemy(1100,1200);
+  g.run('activateAriaQ()');assert.equal(g.run('ariaEffects.filter(e=>e.type==="thornImpact").length'),12);
+  assert.equal(g.c.zombies.filter(z=>z.hp<z.maxHp).length,30);assert.equal(miss.hp,miss.maxHp);
+  assert.equal(g.run('ariaEffects.filter(e=>e.type==="thornImpact").every((e,i)=>e.phase===i*.61803398875)'),true);
 });
 test('infection persists after its field fades, pulses eleven times, then grants boss essence on expiry',()=>{
   const g=game(),boss=g.enemy(1520,1000,{isRaidBoss:true,raidIndex:1});g.c.mouse.worldX=3000;
@@ -126,25 +166,75 @@ test('R keeps its level lock, accelerates independent roots for twelve seconds, 
   assert.equal(g.c.rootCount,40);assert.equal(g.run('ariaWorldTree'),null);assert.equal(g.c.player.ariaUltimateTime,0);assert.equal(g.c.player.ariaRCooldown,780);
 });
 test('R echoes basics and up to six Q targets from the center tree without recursive echoes',()=>{
-  const basic=game(),target=basic.enemy();basic.run('activateAriaR();ariaGrowth.treeTick=10000;attackWithAria()');
+  const basic=game(),target=basic.enemy(1900,1500);basic.c.player.x=1700;basic.c.player.y=1500;basic.run('activateAriaR();ariaGrowth.treeTick=10000;attackWithAria()');
   near(target.maxHp-target.hp,180);assert.equal(basic.run('ariaBolts.length'),3);
   basic.step(15);near(target.maxHp-target.hp,540);
   assert.equal(basic.run('ariaEffects.filter(e=>e.type==="treeEcho").length'),1);
-  const spear=game(),targets=Array.from({length:7},(_,n)=>spear.enemy(1100+n*75,1000));
+  const spear=game(),targets=Array.from({length:7},(_,n)=>spear.enemy(1800+n*75,1500));spear.c.player.x=1700;spear.c.player.y=1500;spear.c.mouse.worldX=2400;spear.c.mouse.worldY=1500;
   spear.run('activateAriaR();activateAriaQ()');
   for(const target of targets.slice(0,6))near(target.maxHp-target.hp,975);
   near(targets[6].maxHp-targets[6].hp,600);
   assert.equal(spear.run('ariaEffects.filter(e=>e.type==="treeEcho").length'),6);
   assert.equal(spear.run('ariaEffects.filter(e=>e.type==="treeEcho").every(e=>e.x===WORLD.width/2&&e.y===WORLD.height/2)'),true);
 });
+
+test('R tree echoes respect the pink central circle without shortening manually aimed basic or Q attacks',()=>{
+  const basic=game(),far=basic.enemy();basic.run('activateAriaR();ariaGrowth.treeTick=10000;attackWithAria()');
+  assert.equal(far.hp,far.maxHp);assert.equal(basic.run('ariaEffects.filter(e=>e.type==="treeEcho").length'),0);
+  basic.step(15);near(far.maxHp-far.hp,360);
+  const q=game(),outside=q.enemy(1300,1500),inside=q.enemy(1500,1500);q.c.player.y=1500;q.c.mouse.worldY=1500;q.c.mouse.worldX=1600;
+  q.run('activateAriaR();activateAriaQ()');near(outside.maxHp-outside.hp,600);near(inside.maxHp-inside.hp,975);
+  assert.equal(q.run('ariaEffects.filter(e=>e.type==="treeEcho").length'),1);
+});
+test('a tree kill immediately removes its victim from combat and rewards once while a detached corpse animates',()=>{
+  const g=game(),victim=g.enemy(2100,1500,{hp:1,speed:10});g.c.victim=victim;g.c.player.x=2100;g.c.player.y=1500;
+  const drops=[];g.c.dropExp=(...args)=>drops.push(args);
+  g.run('ariaTreeAttack()');
+  assert.equal(g.c.zombies.length,0);assert.equal(g.c.player.kills,1);assert.equal(g.c.player.score,20);assert.equal(g.run('ariaGrowth.essence'),1);assert.equal(drops.length,1);
+  assert.equal(g.run('ariaDevouredEnemies.length'),1);const snapshot=g.run('ariaDevouredEnemies[0]');
+  assert.equal(snapshot.x,2100);assert.equal(snapshot.tx,2000);assert.equal(snapshot.ty,1500);assert.equal(snapshot.life,54);
+  assert.equal(Object.values(snapshot).some(v=>v&&typeof v==='object'),false);assert.equal('hp' in snapshot,false);
+  victim.x=123;victim.r=99;g.run('onAriaEnemyKilled(victim);killZombie(0,victim);updateZombies()');
+  assert.equal(snapshot.x,2100);assert.equal(snapshot.r,18);assert.equal(g.c.player.hp,1000);assert.equal(g.c.player.kills,1);assert.equal(g.run('ariaGrowth.essence'),1);assert.equal(g.run('ariaDevouredEnemies.length'),1);
+  g.step(27);assert.equal(snapshot.age,27);assert.equal(snapshot.life,27);g.step(27);assert.equal(g.run('ariaDevouredEnemies.length'),0);assert.equal(g.c.player.hp,1000);
+});
+
+test('devouring requires an actual world-tree killing blow, not just garden tags or an earlier surviving root hit',()=>{
+  const g=game(),manual=g.enemy(2000,1500,{hp:1}),survivor=g.enemy(2050,1500,{hp:1000});g.c.manual=manual;g.c.survivor=survivor;
+  g.run('ariaDealDamage(manual,1,ariaMakeSource({garden:true}),{direct:true});ariaDealDamage(survivor,1,ariaMakeSource({worldTree:true}),{direct:true})');
+  assert.equal(g.run('ariaDevouredEnemies.length'),0);assert.equal(survivor.ariaWorldTreeKill,undefined);
+  g.run('ariaDealDamage(survivor,100,ariaMakeSource(),{direct:true})');assert.equal(g.run('ariaDevouredEnemies.length'),0);
+  const q=game(),echoVictim=q.enemy(1900,1500,{hp:800});q.c.player.x=1700;q.c.player.y=1500;q.c.mouse.worldX=2100;q.c.mouse.worldY=1500;
+  q.run('activateAriaR();activateAriaQ()');assert.equal(q.c.zombies.includes(echoVictim),false);assert.equal(q.run('ariaDevouredEnemies.length'),1);
+  const linked=game(),primary=linked.enemy(2100,1500),secondary=linked.enemy(2150,1500,{hp:1});linked.c.primary=primary;
+  linked.run('ariaGrowth.essence=300;ariaDealDamage(primary,1,ariaMakeSource({garden:true,treeBound:true,worldTree:true}),{direct:true})');
+  assert.equal(linked.c.zombies.includes(secondary),false);assert.equal(linked.run('ariaDevouredEnemies.length'),1);
+});
+
+test('devoured appearance preserves enemy variants with bounded lifetimes and never affects other heroes',()=>{
+  const g=game(),boss=g.enemy(2000,1500,{hp:1,isRaidBoss:true,raidIndex:2,facing:-1}),minion=g.enemy(2100,1500,{hp:1,isBossMinion:true,raidSprite:1}),elite=g.enemy(2200,1500,{hp:1,boss:true});
+  g.c.defeats=0;g.c.defeatRaidBoss=()=>g.c.defeats++;
+  g.run('for(const z of [...zombies])ariaDealDamage(z,1,ariaMakeSource({worldTree:true}),{direct:false})');
+  assert.equal(g.c.zombies.length,0);assert.equal(g.c.defeats,1);assert.equal(g.run('ariaGrowth.essence'),101);
+  const snapshots=g.run('ariaDevouredEnemies');assert.equal(snapshots[0].raidIndex,2);assert.equal(snapshots[0].facing,-1);assert.equal(snapshots[1].isBossMinion,true);assert.equal(snapshots[2].boss,true);
+  for(let i=0;i<80;i++)g.enemy(2000+i,1500,{hp:1});
+  g.run('for(const z of [...zombies])ariaDealDamage(z,1,ariaMakeSource({worldTree:true}),{direct:false})');assert.equal(g.run('ariaDevouredEnemies.length'),32);
+  const age=g.run('ariaDevouredEnemies[0].age');g.c.selectedCharacter='mare';g.step(10);assert.equal(g.run('ariaDevouredEnemies[0].age'),age);
+  const foreign=g.enemy(2000,1500,{hp:1,ariaWorldTreeKill:true});g.c.foreign=foreign;g.run('killZombie(0,foreign)');assert.equal(g.run('ariaDevouredEnemies.length'),32);
+  g.run('resetAriaRework()');assert.equal(g.run('ariaDevouredEnemies.length'),0);
+});
+
 test('ultimate finale reaches distant marks and uses fixed raid percentage conversion, with bounded 1200-stage chains',()=>{
   const g=game(),boss=g.enemy(3500,2600,{isRaidBoss:true,raidIndex:1});g.c.boss=boss;
   g.run('ariaMark(boss);activateAriaR();ariaFinalBloom(ariaWorldTree)');near(boss.maxHp-boss.hp,1300);
   const h=game();for(let i=0;i<200;i++)h.enemy(2000+i%10,1500);
   h.run('ariaGrowth.essence=1200;activateAriaR()');h.c.calls=0;h.run('ariaDealDamage=()=>calls++;ariaFinalBloom(ariaWorldTree)');
   assert.equal(h.c.calls,236);
+  h.c.calls=0;h.run('ariaGrowth.essence=900;ariaFinalBloom(ariaWorldTree)');assert.equal(h.c.calls,200);
 });
 test('600-stage spirits cannot reproduce themselves, and all combat queues have hard limits',()=>{
+  const early=game(),before=early.enemy(1200,1000,{hp:1});early.c.before=before;
+  early.run('ariaGrowth.essence=450;killZombie(0,before)');assert.equal(early.run('ariaSpirits.length'),0);
   const g=game();g.run('ariaGrowth.essence=600');const first=g.enemy(1200,1000,{hp:1}),next=g.enemy(1250,1000,{hp:1});g.c.first=first;g.c.next=next;
   g.run('killZombie(0,first)');assert.equal(g.run('ariaSpirits.length'),1);
   g.run('ariaDealDamage(next,1,ariaMakeSource(),{secondary:true})');assert.equal(g.run('ariaSpirits.length'),1);
