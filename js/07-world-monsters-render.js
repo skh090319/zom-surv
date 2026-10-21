@@ -22,7 +22,8 @@ function drawWorldMonsterSprite(z,spriteSize,spriteTop) {
   ctx.translate(z.x,spriteTop+spriteSize*.5+bob);
   ctx.rotate(hovering?Math.sin(phase*.24)*.025:Math.sin(phase)*.018+recoil);
   // A horizontal flip preserves the upright silhouette; no rotating the entire illustration toward a target.
-  ctx.scale(Math.cos(z.worldMonsterFacing||0)<0?-1:1,1);
+  const facing=z.worldMonsterSpriteFacing||(Math.cos(z.worldMonsterFacing||0)<0?-1:1);
+  ctx.scale(facing,1);
   if(z.stunTime>0)ctx.globalAlpha*=.76;
   if(z.worldMonsterState==='blink')ctx.globalAlpha*=.44;
   if(image?.complete&&image.naturalWidth>0){

@@ -6,7 +6,7 @@ if ("serviceWorker" in navigator) {
     // Leave bandwidth and decoding time to the opening film before updating.
     if (window.studioIntro) await window.studioIntro.finished;
     try {
-      const registration = await navigator.serviceWorker.register("./sw.js?v=20261021-boss-balance1", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./sw.js?v=20261021-hound-pursuit1", { scope: "./", updateViaCache: "none" });
       await registration.update();
     } catch (error) {
       console.warn("PWA service worker registration failed", error);

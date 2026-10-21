@@ -212,6 +212,9 @@ function updateWorldMonsterEnemy(enemy,slow) {
       if(other.hp>before)worldMonsterEmit('heal',other.x,other.y,other.r+12,def.color,24);
     }
   }
+  // Close-range pursuit must not cross the target even with rush/haste bonuses.
+  // Ranged retreat is intentional and must keep its outward movement.
+  if(Math.cos(angle-toward)>0)speed=Math.min(speed,d);
   enemy.x+=Math.cos(angle)*speed;enemy.y+=Math.sin(angle)*speed;
   return true;
 }

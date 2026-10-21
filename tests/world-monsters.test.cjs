@@ -45,9 +45,9 @@ test('World 2 spawn output and RNG sequence are byte-identical to legacy spawnin
   assert.ok(g.c.zombies.every(z=>!z.worldMonsterType));
   const positions=JSON.stringify(g.c.zombies);g.run('worldMonsterBeginFrame();updateWorldMonsterCombat()');assert.equal(JSON.stringify(g.c.zombies),positions);
 });
-test('World 2 movement, contact damage, elite and boss behavior remain on the original branch',()=>{
+test('World 2 keeps contact damage and boss identity while resolving body overlap',()=>{
   const g=fixture(2),z={id:'old',x:880,y:700,hp:100,maxHp:100,r:21,speed:1,boss:false};
-  g.c.zombies.push(z);g.step();assert.equal(g.c.player.hp,90);assert.equal(z.x,878);
+  g.c.zombies.push(z);g.step();assert.equal(g.c.player.hp,90);assert.equal(z.x,859);
   for(const extra of [{isRaidBoss:true},{isBossMinion:true}]){
     g.c.raw={id:'boss',x:0,y:0,hp:100,maxHp:100,r:36,speed:1,...extra};
     g.run('selectedWorld=1;resetWorldMonsters();attachWorldMonster(raw)');assert.equal(g.c.raw.worldMonsterType,undefined);assert.equal(g.c.raw.hp,100);

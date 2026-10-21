@@ -399,13 +399,30 @@ function updateZombies() {
     // Astra's spacetime field also affects otherwise movement-immune summons.
     if (typeof astraEnemyMoveScale === "function") slow = Math.min(slow, astraEnemyMoveScale(z));
 
+    const chaseStartX = z.x, chaseStartY = z.y;
     if (!(typeof updateWorldMonsterEnemy === "function" && updateWorldMonsterEnemy(z, slow))) {
-      const angle = Math.atan2(player.y - z.y, player.x - z.x);
-      z.x += Math.cos(angle) * z.speed * slow;
-      z.y += Math.sin(angle) * z.speed * slow;
+      const dx = player.x - z.x, dy = player.y - z.y;
+      const distance = Math.hypot(dx, dy);
+      // Fast summons must arrive rather than step past the target every frame.
+      const step = Math.min(distance, Math.max(0, z.speed * slow));
+      if (distance > 0) {
+        z.x += dx / distance * step;
+        z.y += dy / distance * step;
+      }
     }
 
-    if (Math.hypot(player.x - z.x, player.y - z.y) < player.r + z.r) {
+    if (z.worldMonsterType || z.worldRaidMinionType) {
+      const moveX = z.x - chaseStartX, moveY = z.y - chaseStartY;
+      // Sprite orientation follows travel immediately; armor keeps its own turn rate.
+      // Retain the last side near vertical travel so small offsets do not flicker.
+      if (Math.abs(moveX) > Math.max(.01, Math.hypot(moveX, moveY) * .08)) {
+        z.worldMonsterSpriteFacing = moveX < 0 ? -1 : 1;
+      }
+    }
+
+    const contactRadius = player.r + z.r;
+    const contactDistance = Math.hypot(player.x - z.x, player.y - z.y);
+    if (contactDistance <= contactRadius + 1e-6) {
       const countered = !isZombieInsideGravityField(z) && selectedCharacter === "paladin" && player.paladinGuardTime > 0 && triggerPaladinCounter(z);
       const astraSuppressed = (typeof astraWellSuppressesEnemy === "function" && astraWellSuppressesEnemy(z)) || z.worldMonsterGrace > 0;
       if (!countered && !astraSuppressed && !isZombieInsideGravityField(z) && player.invincibleTime <= 0) {
@@ -442,9 +459,21 @@ function updateZombies() {
       }
 
       if (!movementImmune) {
-        const pushAngle = Math.atan2(z.y - player.y, z.x - player.x);
-        z.x += Math.cos(pushAngle) * 3;
-        z.y += Math.sin(pushAngle) * 3;
+        // Resolve overlap once at the body boundary. A fixed 3px shove made
+        // slow enemies bounce and let faster hounds tunnel through the player.
+        let awayX = z.x - player.x, awayY = z.y - player.y;
+        let awayLength = contactDistance;
+        if (awayLength < 1e-6) {
+          awayX = chaseStartX - player.x; awayY = chaseStartY - player.y;
+          awayLength = Math.hypot(awayX, awayY);
+        }
+        if (awayLength < 1e-6) {
+          awayX = -Math.cos(z.worldMonsterFacing || 0);
+          awayY = -Math.sin(z.worldMonsterFacing || 0);
+          awayLength = 1;
+        }
+        z.x = player.x + awayX / awayLength * contactRadius;
+        z.y = player.y + awayY / awayLength * contactRadius;
       }
     }
     if (movementImmune) {

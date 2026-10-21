@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v115-boss-balance";
+const CACHE_VERSION = "zombie-survival-v116-hound-pursuit";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
