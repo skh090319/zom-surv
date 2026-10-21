@@ -123,6 +123,7 @@ function draw() {
 }
 
 function restart() {
+  if(typeof enforceTemporaryContentSelection==='function')enforceTemporaryContentSelection();
   if(typeof resetWorldMonsters==='function')resetWorldMonsters();
   if(typeof resetOblivionPresentation==='function')resetOblivionPresentation();
   // 기본 능력치 초기화

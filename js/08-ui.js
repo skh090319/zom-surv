@@ -874,7 +874,8 @@ function drawLobbyBackdrop(){
   vignette.addColorStop(0,"rgba(0,0,0,0)");vignette.addColorStop(.7,"rgba(0,1,4,.08)");vignette.addColorStop(1,"rgba(0,2,6,.42)");ctx.fillStyle=vignette;ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
-function drawLobbyPanel(rect,color,{hover=false,primary=false}={}){
+function drawLobbyPanel(rect,color,{hover=false,primary=false,disabled=false}={}){
+  if(disabled){drawRoundedRect(rect.x,rect.y,rect.w,rect.h,7,'rgba(17,24,32,.94)','#465160',1);return rect.y;}
   const y=rect.y+(hover?-3:0);
   if(lobbyButtonPanelLoaded){
     const sw=lobbyButtonPanelImage.naturalWidth,sh=lobbyButtonPanelImage.naturalHeight,sourceCap=Math.min(sw*.16,sh*.58),destCap=Math.min(rect.w*.25,rect.h*.58);
@@ -896,6 +897,24 @@ function drawLobbyEmblem(cx,cy,r,color,glyph){
   ctx.fillStyle="#f3f7ff";ctx.shadowColor=color;ctx.shadowBlur=5;ctx.font=`bold ${Math.max(14,r*.92)}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(glyph,0,1);ctx.restore();ctx.textBaseline="alphabetic";
 }
 
+// A canvas-drawn lock stays crisp at phone, tablet and desktop sizes.
+function drawMenuPadlock(cx,cy,size,{color='#c3cbd6',plate=false}={}){
+  ctx.save();ctx.translate(cx,cy);ctx.lineCap='round';ctx.lineJoin='round';
+  if(plate){
+    const halo=ctx.createRadialGradient(0,0,size*.18,0,0,size*.78);
+    halo.addColorStop(0,'rgba(10,15,24,.96)');halo.addColorStop(1,'rgba(10,15,24,0)');
+    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(0,0,size*.78,0,Math.PI*2);ctx.fill();
+    drawRoundedRect(-size*.58,-size*.62,size*1.16,size*1.24,size*.23,'rgba(17,24,35,.94)','rgba(171,188,211,.26)',1);
+  }
+  ctx.strokeStyle=color;ctx.lineWidth=Math.max(2,size*.09);
+  ctx.beginPath();ctx.moveTo(-size*.22,-size*.03);ctx.lineTo(-size*.22,-size*.23);ctx.arc(0,-size*.23,size*.22,Math.PI,Math.PI*2);ctx.lineTo(size*.22,-size*.03);ctx.stroke();
+  const metal=ctx.createLinearGradient(0,-size*.08,0,size*.4);metal.addColorStop(0,color);metal.addColorStop(1,'#798698');
+  drawRoundedRect(-size*.35,-size*.09,size*.7,size*.52,size*.08,metal,'rgba(239,245,255,.56)',Math.max(1,size*.02));
+  ctx.fillStyle='#263345';ctx.beginPath();ctx.arc(0,size*.11,size*.065,0,Math.PI*2);ctx.fill();
+  drawRoundedRect(-size*.025,size*.12,size*.05,size*.14,size*.02,'#263345');
+  ctx.restore();
+}
+
 function difficultyLabel(value=selectedStageDifficulty){return getWorldStageLabel(selectedWorld,value);}
 
 const LOBBY_DISPLAY_FONT='"Black Han Sans", "Arial Black", "Malgun Gothic", sans-serif';
@@ -914,20 +933,24 @@ function drawHomeDifficultyPicker(){
   const cardW=(w-pad*2-gap*2)/3,cardH=h-top-pad;
   homeDifficultyChoiceRects=[];
   for(const world of GAME_WORLDS){
-    const cx=x+pad+(world.id-1)*(cardW+gap),cy=y+top,color=world.color,active=world.id===selectedWorld;
+    const worldLocked=typeof isWorldStageTemporarilyLocked==='function'&&['easy','medium','hard'].every(tier=>isWorldStageTemporarilyLocked(world.id,tier));
+    const cx=x+pad+(world.id-1)*(cardW+gap),cy=y+top,color=worldLocked?'#84909f':world.color,active=!worldLocked&&world.id===selectedWorld;
     drawRoundedRect(cx,cy,cardW,cardH,7,'#0c1520',active?color:'#3b4b5c',active?2:1);
     const image=getWorldBackgroundImage(world.id),imageH=Math.min(150,cardH*(compact?.23:.34)),inset=8;
-    if(image.complete&&image.naturalWidth){ctx.save();ctx.beginPath();ctx.rect(cx+inset,cy+inset,cardW-inset*2,imageH);ctx.clip();const scale=Math.max((cardW-inset*2)/image.naturalWidth,imageH/image.naturalHeight),dw=image.naturalWidth*scale,dh=image.naturalHeight*scale;ctx.drawImage(image,cx+(cardW-dw)/2,cy+inset+(imageH-dh)/2,dw,dh);ctx.restore();}
+    if(image.complete&&image.naturalWidth){ctx.save();if(worldLocked){ctx.filter='grayscale(.85) brightness(.55)';ctx.globalAlpha=.65;}ctx.beginPath();ctx.rect(cx+inset,cy+inset,cardW-inset*2,imageH);ctx.clip();const scale=Math.max((cardW-inset*2)/image.naturalWidth,imageH/image.naturalHeight),dw=image.naturalWidth*scale,dh=image.naturalHeight*scale;ctx.drawImage(image,cx+(cardW-dw)/2,cy+inset+(imageH-dh)/2,dw,dh);ctx.restore();}
     ctx.textAlign='left';ctx.fillStyle=color;ctx.font=`${compact?12:17}px ${LOBBY_DISPLAY_FONT}`;ctx.fillText(`${world.id}세계 · ${world.name}`,cx+inset,cy+imageH+(compact?25:32),cardW-inset*2);
     ctx.fillStyle='#b2c0ce';ctx.font=`${compact?9:11}px Arial`;
     const storyY=cy+imageH+(compact?41:53),lineH=compact?13:17;
     world.story.forEach((line,i)=>ctx.fillText(line,cx+inset,storyY+i*lineH,cardW-inset*2));
     const buttonTop=storyY+lineH+(compact?12:23),buttonGap=compact?5:9,buttonH=(cy+cardH-inset-buttonTop-buttonGap*2)/3;
     ['easy','medium','hard'].forEach((value,i)=>{
-      const rect={world:world.id,value,x:cx+inset,y:buttonTop+i*(buttonH+buttonGap),w:cardW-inset*2,h:buttonH},selected=active&&value===selectedStageDifficulty;
-      homeDifficultyChoiceRects.push(rect);drawLobbyPanel(rect,color,{hover:selected});
+      const disabled=typeof isWorldStageTemporarilyLocked==='function'&&isWorldStageTemporarilyLocked(world.id,value);
+      const rect={world:world.id,value,x:cx+inset,y:buttonTop+i*(buttonH+buttonGap),w:cardW-inset*2,h:buttonH,disabled},selected=!disabled&&active&&value===selectedStageDifficulty;
+      homeDifficultyChoiceRects.push(rect);
+      if(disabled){drawRoundedRect(rect.x,rect.y,rect.w,rect.h,5,'#141c26','#394454',1);drawMenuPadlock(rect.x+Math.min(22,rect.w*.18),rect.y+rect.h/2,Math.min(22,rect.h*.65));}
+      else drawLobbyPanel(rect,color,{hover:selected});
       if(selected){const tint=ctx.createLinearGradient(0,rect.y,0,rect.y+rect.h);tint.addColorStop(0,color+'88');tint.addColorStop(1,color+'48');drawRoundedRect(rect.x+6,rect.y+3,rect.w-12,rect.h-9,4,tint,color+'dc',1.5);}
-      ctx.textAlign='center';ctx.fillStyle=selected?'#fff':color;ctx.font=`${compact?14:21}px ${LOBBY_BUTTON_FONT}`;ctx.textBaseline='middle';ctx.fillText(`${world.id}-${i+1}`,rect.x+rect.w/2,rect.y+rect.h/2);ctx.textBaseline='alphabetic';
+      ctx.textAlign='center';ctx.fillStyle=disabled?'#8f9aaa':selected?'#fff':color;ctx.font=`${compact?14:21}px ${LOBBY_BUTTON_FONT}`;ctx.textBaseline='middle';ctx.fillText(`${world.id}-${i+1}`,rect.x+rect.w/2,rect.y+rect.h/2);ctx.textBaseline='alphabetic';
     });
   }
   ctx.restore();
@@ -1040,6 +1063,15 @@ function drawHomeScreen() {
   homeCharacterRect=cardRect(0);homeCodexRect=cardRect(1);homeRelicRect=cardRect(2);homeSettingsRect=cardRect(3);homeDifficultyRect={...cardRect(4),w:menuW};mobileSettingsHomeRect=homeSettingsRect;
   const cards=[[homeCharacterRect,"#9874c4","◆","캐릭터","01"],[homeCodexRect,"#b99a55","✦","도감","02"],[homeRelicRect,"#c79764","◈","유물","03"],[homeSettingsRect,"#568da1","⚙","조작 설정","04"],[homeDifficultyRect,"#b86a51","▲",`세계 선택 · ${difficultyLabel()}`,"05"]];
   for(const [rect,color,glyph,label,no] of cards){
+    const disabled=rect===homeRelicRect&&typeof isRelicMenuTemporarilyLocked==='function'&&isRelicMenuTemporarilyLocked();
+    rect.disabled=disabled;
+    if(disabled){
+      drawRoundedRect(rect.x,rect.y,rect.w,rect.h,7,'rgba(17,24,32,.94)','#465160',1);
+      drawMenuPadlock(rect.x+30,rect.y+rect.h/2,29,{color:'#aeb8c6'});
+      ctx.textAlign='center';ctx.shadowBlur=0;ctx.fillStyle='#aeb8c6';ctx.font=`${cardW<130?15:18}px ${LOBBY_BUTTON_FONT}`;ctx.fillText(label,rect.x+rect.w/2,rect.y+rect.h/2+2);
+      ctx.fillStyle='#788595';ctx.font='10px Arial';ctx.fillText('일시 잠금',rect.x+rect.w/2,rect.y+rect.h/2+21);
+      continue;
+    }
     const hover=pointInRect(mouse.x,mouse.y,rect),cy=drawLobbyPanel(rect,color,{hover});
     drawLobbyEmblem(rect.x+28,cy+rect.h/2,18,color,glyph);
     ctx.textAlign="center";ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=4;ctx.font=`${cardW<130?15:18}px ${LOBBY_BUTTON_FONT}`;ctx.fillText(label,rect.x+rect.w/2,cy+rect.h/2+6);ctx.shadowBlur=0;
@@ -1132,11 +1164,37 @@ function drawCharacterDetailOverlay(){
   ctx.restore();
 }
 
+function getCharacterSelectLayout(){
+  const columns=5,gap=Math.max(8,Math.min(22,canvas.width*.014)),sidePad=canvas.width<760?20:24;
+  const cardW=Math.min(200,(canvas.width-sidePad*2-gap*(columns-1))/columns);
+  const cardH=Math.round(Math.max(320,Math.min(490,340+(cardW-100)*1.5)));
+  const originalIds=['suncall','yupiter','ren','nightLord','zero','paladin','arc','terra','void','carmilla','vargas','echo','aria','moira','mare','nullZero','astra','oblivion'];
+  if(characterSkillGuide.lush)originalIds.push('lush');
+  const tallOrder=typeof TEMPORARY_TALL_CHARACTER_IDS!=='undefined'?TEMPORARY_TALL_CHARACTER_IDS:['oblivion','lush','mare','astra','aria'];
+  const regularIds=originalIds.filter(id=>!tallOrder.includes(id)),tallIds=tallOrder.filter(id=>originalIds.includes(id));
+  const regularRows=Math.ceil(regularIds.length/columns),tallRows=Math.ceil(tallIds.length/columns),sectionGap=canvas.width<760?48:60;
+  const y=151,rowStartX=(canvas.width-cardW*columns-gap*(columns-1))/2;
+  const regularHeight=regularRows*cardH+Math.max(0,regularRows-1)*gap;
+  const tallTop=regularHeight+(tallRows?sectionGap:0);
+  const contentHeight=tallTop+tallRows*cardH+Math.max(0,tallRows-1)*gap;
+  const scrollMax=Math.max(0,y+contentHeight-(canvas.height-18)),scrollY=Math.max(0,Math.min(scrollMax,characterScrollY));
+  const mobile=typeof isMobileTouchDevice==='function'&&isMobileTouchDevice(),headerOffset=mobile?Math.min(143,scrollY):0;
+  const clipTop=mobile?Math.max(8,y-headerOffset):y-8;
+  const makeCards=(ids,top)=>ids.map((id,index)=>{
+    const cardY=y+top+Math.floor(index/columns)*(cardH+gap)-scrollY;
+    return{id,x:rowStartX+(cardW+gap)*(index%columns),y:cardY,w:cardW,h:cardH,
+      disabled:typeof isCharacterTemporarilyLocked==='function'&&isCharacterTemporarilyLocked(id),
+      visibleTop:Math.max(clipTop,cardY),visibleBottom:Math.min(canvas.height-8,cardY+cardH)};
+  });
+  return{columns,gap,cardW,cardH,y,rowStartX,contentHeight,scrollMax,scrollY,mobile,headerOffset,clipTop,sectionY:y+tallTop-sectionGap/2-scrollY,tallIds,cards:[...makeCards(regularIds,0),...makeCards(tallIds,tallTop)]};
+}
+
 function drawCharacterSelectScreen() {
   drawMenuBackdrop(0.2);
   const centerX = canvas.width / 2;
-  const mobileSelect=typeof isMobileTouchDevice==="function"&&isMobileTouchDevice();
-  const headerOffset=mobileSelect?Math.min(143,characterScrollY):0;
+  const layout=getCharacterSelectLayout();
+  const {mobile:mobileSelect,headerOffset,gap,cardW,y,contentHeight,clipTop}=layout;
+  characterScrollY=layout.scrollY;characterScrollMax=layout.scrollMax;characterCards=layout.cards;
   ctx.save();ctx.translate(0,-headerOffset);
   const headerGlow = ctx.createRadialGradient(centerX, 65, 0, centerX, 65, 350);
   headerGlow.addColorStop(0, "rgba(122,88,206,0.22)");
@@ -1160,31 +1218,6 @@ function drawCharacterSelectScreen() {
   ctx.fillText(`☠  누적 처치  ${totalZombieKills.toLocaleString()}`, centerX, 118);
   ctx.restore();
 
-  const gap = Math.max(10, Math.min(22, canvas.width * 0.014));
-  const maxCardsPerRow = 4;
-  const characterIds = ["suncall", "yupiter", "ren", "nightLord", "zero", "paladin", "arc", "terra", "void","carmilla","vargas","echo","aria","moira","mare","nullZero","astra","oblivion"];
-  if(characterSkillGuide.lush)characterIds.push('lush');
-  const cardW = Math.min(200, (canvas.width - 48 - gap * (maxCardsPerRow - 1)) / maxCardsPerRow);
-  const y = 151;
-  const rowCount = Math.ceil(characterIds.length / maxCardsPerRow);
-  const cardH = 490;
-  const contentHeight = rowCount * cardH + (rowCount - 1) * gap;
-  const listTop=mobileSelect?8:y;
-  characterScrollMax = Math.max(0, contentHeight - (canvas.height - listTop - 18));
-  characterScrollY = Math.max(0, Math.min(characterScrollMax, characterScrollY));
-  const rowStartX = centerX - (cardW * maxCardsPerRow + gap * (maxCardsPerRow - 1)) / 2;
-  characterCards = characterIds.map((id, index) => {
-    const row = Math.floor(index / maxCardsPerRow);
-    const column = index % maxCardsPerRow;
-    return {
-      id,
-      x: rowStartX + (cardW + gap) * column,
-      y: y + row * (cardH + gap) - characterScrollY,
-      w: cardW,
-      h: cardH
-    };
-  });
-
   const themes = {
     suncall: { color: "#48d8ff", color2: "#2469c7", role: "FROST CIRCUIT", number: "01" },
     yupiter: { color: "#64ef91", color2: "#148b69", role: "WEAPON MASTER", number: "03" },
@@ -1199,15 +1232,23 @@ function drawCharacterSelectScreen() {
 
   ctx.save();
   ctx.beginPath();
-  const clipTop=mobileSelect?Math.max(8,y-headerOffset):y-8;
   ctx.rect(0,clipTop,canvas.width,canvas.height-clipTop);
   ctx.clip();
+  if(layout.tallIds.length){
+    const lockedCount=characterCards.filter(card=>card.disabled).length,sectionY=layout.sectionY;
+    const divider=ctx.createLinearGradient(layout.rowStartX,0,canvas.width-layout.rowStartX,0);
+    divider.addColorStop(0,'rgba(149,164,189,.04)');divider.addColorStop(.5,'rgba(149,164,189,.42)');divider.addColorStop(1,'rgba(149,164,189,.04)');
+    ctx.fillStyle=divider;ctx.fillRect(layout.rowStartX,sectionY,cardW*5+gap*4,1);
+    drawRoundedRect(centerX-76,sectionY-12,152,25,12,'#0c111c');
+    ctx.textAlign='center';ctx.fillStyle='#95a2b7';ctx.font='bold 11px Arial';ctx.fillText(lockedCount?`일시 잠금 · ${lockedCount}명`:'추가 생존자',centerX,sectionY+4);
+  }
   for (const card of characterCards) {
-    const cardScale = 1;
-    if (card.y + card.h < y - 8 || card.y > canvas.height) continue;
-    const isSelected = selectedCharacter === card.id;
-    const unlocked = card.id === 'lush' || card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas"||card.id==="echo"||card.id==="aria"||card.id==="moira"||card.id==="mare"||card.id==="nullZero"||card.id==="astra"||card.id==="oblivion" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked());
-    const hover = pointInRect(mouse.x, mouse.y, card);
+    const cardScale = card.h/490;
+    if (card.y + card.h < clipTop || card.y > canvas.height) continue;
+    const temporaryLocked=card.disabled;
+    const isSelected = !temporaryLocked&&selectedCharacter === card.id;
+    const unlocked = !temporaryLocked&&(card.id === 'lush' || card.id === "yupiter" || card.id === "ren" || card.id === "nightLord" || card.id === "zero" || card.id === "paladin" || card.id === "arc" || card.id === "terra" || card.id === "void"||card.id==="carmilla"||card.id==="vargas"||card.id==="echo"||card.id==="aria"||card.id==="moira"||card.id==="mare"||card.id==="nullZero"||card.id==="astra"||card.id==="oblivion" || (card.id === "suncall" ? isSuncallUnlocked() : isLuminousUnlocked()));
+    const hover = unlocked&&mouse.y>=card.visibleTop&&mouse.y<=card.visibleBottom&&pointInRect(mouse.x, mouse.y, card);
     const theme = card.id==='lush'?{color:'#e8bc6c',color2:'#7b1538',role:'FATE GAMBLER',number:'20'}:themes[card.id];
     const displayY = card.y + (hover && unlocked ? -7 : 0);
     const stroke = unlocked ? (isSelected ? theme.color : `${theme.color}9a`) : "#4c5261";
@@ -1235,7 +1276,7 @@ function drawCharacterSelectScreen() {
     ctx.font = "bold 11px Arial";
     ctx.textAlign = "left";
     ctx.fillText(theme.number, card.x + 17, displayY + 25);
-    if (card.w >= 145) {
+    if (card.w >= 180) {
       ctx.textAlign = "right";
       ctx.fillText(theme.role, card.x + card.w - 16, displayY + 25);
     }
@@ -1245,30 +1286,34 @@ function drawCharacterSelectScreen() {
     const loaded = sprite&&sprite.complete&&sprite.naturalWidth>0;
     if (loaded) {
       ctx.save();
-      if (!unlocked) ctx.globalAlpha = 0.24;
+      if (!unlocked){ctx.globalAlpha=temporaryLocked?.34:.24;ctx.filter='grayscale(.9) brightness(.7)';}
       const maxSpriteW = Math.max(42, card.w - (card.w < 110 ? 16 : 60));
       const maxSpriteH = (card.w < 110 ? 150 : 205) * cardScale;
       const spriteScale = Math.min(maxSpriteW / sprite.naturalWidth, maxSpriteH / sprite.naturalHeight);
       const spriteW = sprite.naturalWidth * spriteScale;
       const spriteH = sprite.naturalHeight * spriteScale;
-      if(typeof drawOblivionMenuAura==='function')drawOblivionMenuAura(card.id,card.x+(card.w-spriteW)/2,displayY+28*cardScale+(maxSpriteH-spriteH)/2,spriteW,spriteH);
+      if(unlocked&&typeof drawOblivionMenuAura==='function')drawOblivionMenuAura(card.id,card.x+(card.w-spriteW)/2,displayY+28*cardScale+(maxSpriteH-spriteH)/2,spriteW,spriteH);
       ctx.shadowColor = unlocked ? theme.color : "transparent";
       ctx.shadowBlur = unlocked ? 16 : 0;
       ctx.drawImage(sprite, card.x + (card.w - spriteW) / 2, displayY + 28 * cardScale + (maxSpriteH - spriteH) / 2, spriteW, spriteH);
       ctx.restore();
     }
+    if(temporaryLocked)drawMenuPadlock(card.x+card.w/2,displayY+126*cardScale,Math.max(38,Math.min(64,card.w*.43)),{plate:true});
 
     const name = characterSkillGuide[card.id]?.name||"유피테르";
     const passive = `패시브: ${characterSkillGuide[card.id]?.passive||"기본 능력치"}`;
-    ctx.fillStyle = unlocked ? "#f4f7ff" : "#777d88";
-    ctx.font = `bold ${Math.max(12, (card.w < 145 ? 16 : 23) * Math.min(1, cardScale + .12))}px Arial`;
+    ctx.fillStyle = unlocked ? "#f4f7ff" : temporaryLocked?'#bec7d5':"#777d88";
+    let nameSize=Math.max(12,(card.w<145?16:23)*Math.min(1,cardScale+.12));
+    ctx.font=`bold ${nameSize}px Arial`;
+    while(ctx.measureText(name).width>card.w-16&&nameSize>10){nameSize-=.5;ctx.font=`bold ${nameSize}px Arial`;}
     ctx.fillText(name, card.x + card.w / 2, displayY + 252 * cardScale);
     ctx.fillStyle = unlocked ? theme.color : "#59606d";
     ctx.fillRect(card.x + card.w / 2 - 18, displayY + 266 * cardScale, 36, 2);
-    ctx.font = `${Math.max(8, (card.w < 145 ? 11 : 14) * Math.min(1, cardScale + .18))}px Arial`;
-    ctx.fillStyle = unlocked ? "#b7c7df" : "#747985";
+    ctx.font = `${Math.max(10, (card.w < 145 ? 11 : 14) * Math.min(1, cardScale + .18))}px Arial`;
+    ctx.fillStyle = unlocked ? "#b7c7df" : "#8793a6";
     const passiveLineHeight = card.w < 145 ? 14 : 18;
-    wrapText(passive, card.x + card.w / 2, displayY + 287 * cardScale, card.w - 24, passiveLineHeight);
+    const passiveMaxLines=Math.max(2,Math.floor((402-287)*cardScale/passiveLineHeight));
+    wrapTextClamped(passive, card.x + card.w / 2, displayY + 287 * cardScale, card.w - 24, passiveLineHeight,passiveMaxLines);
 
     if (unlocked) {
       ctx.fillStyle="rgba(218,226,242,.52)";ctx.font=`bold ${card.w < 145 ? 9 : 10}px Arial`;ctx.fillText(typeof isMobileTouchDevice==="function"&&isMobileTouchDevice()?"길게 누르기: 스킬 보기":"우클릭: 스킬 보기",card.x+card.w/2,displayY+425*cardScale);
@@ -1276,6 +1321,9 @@ function drawCharacterSelectScreen() {
       ctx.fillStyle = isSelected ? theme.color : "rgba(224,231,244,0.62)";
       ctx.font = `bold ${card.w < 145 ? 10 : 13}px Arial`;
       ctx.fillText(isSelected ? "✓ 현재 선택됨" : "선택하기", card.x + card.w / 2, displayY + 461 * cardScale);
+    } else if(temporaryLocked){
+      drawRoundedRect(card.x+Math.min(16,card.w*.1),displayY+440*cardScale,card.w-Math.min(32,card.w*.2),Math.max(22,31*cardScale),11,'rgba(157,173,196,.07)','rgba(157,173,196,.2)',1);
+      ctx.fillStyle='#aab6c8';ctx.font=`bold ${card.w<145?10:12}px Arial`;ctx.fillText('일시 잠금',card.x+card.w/2,displayY+461*cardScale);
     } else {
       const unlockKills = 200;
       const remaining = Math.max(0, unlockKills - totalZombieKills);
@@ -1293,7 +1341,7 @@ function drawCharacterSelectScreen() {
 
   if (characterScrollMax > 0) {
     const trackY = mobileSelect?clipTop:y, trackH = canvas.height - trackY - 18;
-    const thumbH = Math.max(48, trackH * trackH / contentHeight);
+    const thumbH = Math.min(trackH,Math.max(32, trackH * trackH / (contentHeight+(mobileSelect?143:0))));
     const thumbY = trackY + (trackH - thumbH) * characterScrollY / characterScrollMax;
     drawRoundedRect(canvas.width - 13, trackY, 5, trackH, 3, "rgba(255,255,255,.08)");
     drawRoundedRect(canvas.width - 13, thumbY, 5, thumbH, 3, "rgba(174,132,255,.72)");

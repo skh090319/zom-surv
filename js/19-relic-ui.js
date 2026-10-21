@@ -1,6 +1,7 @@
 // Equipment is a native scroll surface; the battlefield remains canvas-rendered.
 const relicView={slot:'',rarity:'',query:'',sort:'level',selected:null,returnTo:'home',preset:0,craftSet:'A01',craftSlot:'core',craftMain:'',toastTimer:0};
 const relicFeedView={target:null,selected:[],returnFocus:null};
+function relicUiTemporarilyLocked(){return typeof isRelicMenuTemporarilyLocked==='function'&&isRelicMenuTemporarilyLocked();}
 function relicEscape(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function relicArtPath(item){
   // Every set/slot owns its artwork; rarity is represented by the card skin.
@@ -20,8 +21,9 @@ function fitRelicOwnerPortrait(image){
   Object.assign(image.style,{width:`${100/side}%`,height:'auto',left:`${-x/side*100}%`,top:`${-y*ratio/side*100}%`});
 }
 function relicUiToast(message){const el=document.getElementById('relic-toast');if(!el)return;el.textContent=message;el.hidden=false;clearTimeout(relicView.toastTimer);relicView.toastTimer=setTimeout(()=>el.hidden=true,3400);}
-function relicUiMutation(fn){const result=fn();renderRelicInventory();relicUiToast(result?.message||(result?.ok?'적용했습니다.':'변경하지 못했습니다.'));return result;}
+function relicUiMutation(fn){if(relicUiTemporarilyLocked())return{ok:false,message:'유물 메뉴는 임시 잠금 상태입니다.'};const result=fn();renderRelicInventory();relicUiToast(result?.message||(result?.ok?'적용했습니다.':'변경하지 못했습니다.'));return result;}
 function ensureRelicScreen(){
+  if(relicUiTemporarilyLocked())return null;
   let root=document.getElementById('relic-screen');if(root)return root;
   root=document.createElement('section');root.id='relic-screen';root.hidden=true;root.setAttribute('aria-label','유물 장비 설정');
   root.innerHTML=`<header class="relic-top"><button data-action="close">← 홈으로</button><div><small>CHARACTER LOADOUT</small><h1>유물 장착</h1></div><div class="relic-wallet" id="relic-wallet"></div></header><div class="relic-shell" id="relic-content"></div><div id="relic-toast" role="status" aria-live="polite" hidden></div><div id="relic-confirm" hidden role="dialog" aria-modal="true" aria-label="유물 변경 확인"><div><h2 id="relic-confirm-title"></h2><p id="relic-confirm-copy"></p><div class="buttons"><button data-action="cancel">취소</button><button class="danger" data-action="confirm">확인</button></div></div></div>`;
@@ -31,7 +33,7 @@ function ensureRelicScreen(){
   root.addEventListener('click',onRelicUiClick);
   root.addEventListener('load',event=>fitRelicOwnerPortrait(event.target),true);
   root.addEventListener('change',onRelicUiChange);
-  root.addEventListener('input',event=>{if(event.target.id==='relic-search'){relicView.query=event.target.value;relicSyncSelection();renderRelicCollection();renderRelicDetail();}});
+  root.addEventListener('input',event=>{if(relicUiTemporarilyLocked())return;if(event.target.id==='relic-search'){relicView.query=event.target.value;relicSyncSelection();renderRelicCollection();renderRelicDetail();}});
   root.addEventListener('keydown',event=>{
     const dialog=document.getElementById('relic-confirm');
     if(event.key==='Escape'){event.stopPropagation();if(!dialog.hidden)closeRelicConfirm();else if(relicFeedView.target)closeRelicFeed();else closeRelicInventory();}
@@ -41,7 +43,7 @@ function ensureRelicScreen(){
   return root;
 }
 function openRelicInventory(){
-  if(screenMode==='game'){return;}
+  if(relicUiTemporarilyLocked()||screenMode==='game'){return false;}
   relicView.returnTo=screenMode==='guide'?'guide':'home';screenMode='relics';mouse.down=false;
   if(typeof releaseMobileJoystick==='function')releaseMobileJoystick();
   if(typeof mobileAttackTouchId!=='undefined'){mobileAttackTouchId=null;mobileAttackAim=null;mobileSkillAim=null;}
@@ -49,13 +51,14 @@ function openRelicInventory(){
 }
 function closeRelicInventory(){const root=document.getElementById('relic-screen');if(root)root.hidden=true;closeRelicConfirm();closeRelicFeed();screenMode=relicView.returnTo;mouse.down=false;canvas.focus({preventScroll:true});}
 let relicConfirmAction=null,relicConfirmReturn=null;
-function openRelicConfirm(title,copy,action){relicConfirmAction=action;relicConfirmReturn=document.activeElement;document.getElementById('relic-confirm-title').textContent=title;document.getElementById('relic-confirm-copy').textContent=copy;document.getElementById('relic-confirm').hidden=false;document.querySelector('#relic-confirm [data-action="cancel"]').focus();}
+function openRelicConfirm(title,copy,action){if(relicUiTemporarilyLocked())return false;relicConfirmAction=action;relicConfirmReturn=document.activeElement;document.getElementById('relic-confirm-title').textContent=title;document.getElementById('relic-confirm-copy').textContent=copy;document.getElementById('relic-confirm').hidden=false;document.querySelector('#relic-confirm [data-action="cancel"]').focus();}
 function closeRelicConfirm(){const el=document.getElementById('relic-confirm');if(el)el.hidden=true;relicConfirmAction=null;if(relicConfirmReturn?.isConnected)relicConfirmReturn.focus({preventScroll:true});}
 function relicFilteredItems(){
   const q=relicView.query.trim().toLowerCase();return relicStore.inventory.filter(item=>(!relicView.slot||item.slot===relicView.slot)&&(!relicView.rarity||item.rarity===relicView.rarity)&&(!q||[relicUiName(item),RELIC_SETS[item.setId].name,RELIC_STATS[item.mainStat]?.name,...item.substats.map(sub=>RELIC_STATS[sub.stat]?.name)].join(' ').toLowerCase().includes(q)))
     .sort((a,b)=>relicView.sort==='rarity'?(Object.keys(RELIC_RARITIES).indexOf(b.rarity)-Object.keys(RELIC_RARITIES).indexOf(a.rarity)||b.level-a.level):relicView.sort==='set'?a.setId.localeCompare(b.setId)||a.slot.localeCompare(b.slot):b.level-a.level||a.setId.localeCompare(b.setId));
 }
 function renderRelicCollection(){
+  if(relicUiTemporarilyLocked())return false;
   const host=document.getElementById('relic-collection');if(!host)return;const equipped=new Set(relicEquippedItems(selectedCharacter).map(item=>item.id));
   host.innerHTML=relicFilteredItems().map(item=>{const rarity=RELIC_RARITIES[item.rarity],owner=relicOwner(item.id);return `<button class="relic-item ${item.rarity==='legendary'?'relic-legendary':''} ${relicView.selected===item.id?'active':''} ${owner?'has-owner':''}" data-select="${relicEscape(item.id)}" style="--rarity:${rarity.color}" aria-label="${relicEscape(relicUiName(item))} ${rarity.name} 레벨 ${item.level}${owner?' · '+relicEscape(relicCharacterName(owner))+' 장착 중':''}"><span class="badge">${item.locked?'잠금 ':''}${equipped.has(item.id)?'장착':owner?'다른 캐릭터 장착':''}</span><img loading="lazy" src="${relicArtPath(item)}" alt=""><strong>${relicEscape(relicUiName(item))}</strong><small>${rarity.name} · ${RELIC_SLOTS[item.slot].name} · Lv.${item.level}</small>${relicOwnerBadge(item)}</button>`;}).join('')||'<p class="relic-empty">조건에 맞는 유물이 없습니다.<br>필터를 바꾸거나 제작권으로 원하는 부위를 제작하세요.</p>';
 }
@@ -102,6 +105,7 @@ function renderRelicLoadoutStats(summary,hero){
   </section>`;
 }
 function renderRelicInventory(){
+  if(relicUiTemporarilyLocked())return false;
   ensureRelicScreen();
   const equipped=relicEquippedItems(selectedCharacter),summary=relicStatsForItems(equipped),slots=Object.keys(RELIC_SLOTS),hero=characterSkillGuide[selectedCharacter]?.name||selectedCharacter;
   relicSyncSelection(equipped);
@@ -114,6 +118,7 @@ function renderRelicInventory(){
   if(relicStorageError){const warning=document.createElement('p');warning.className='relic-alert';warning.textContent=relicStorageError;document.getElementById('relic-content').prepend(warning);}
 }
 function renderRelicDetail(){
+  if(relicUiTemporarilyLocked())return false;
   const host=document.getElementById('relic-detail'),item=relicStore.inventory.find(it=>it.id===relicView.selected);if(!item){host.innerHTML='<p>이 조건에 맞는 보유 유물이 없습니다.<br>다른 부위를 선택하거나 출격 보상으로 유물을 획득하세요.</p>';return;}
   const rarity=RELIC_RARITIES[item.rarity],set=RELIC_SETS[item.setId],equipped=relicEquippedItems(selectedCharacter),old=equipped.find(it=>it.slot===item.slot),isEquipped=old?.id===item.id,count=equipped.filter(it=>it.setId===item.setId).length;
   const main=relicMainValue(item),cost=relicEnhanceCost(item),owner=relicOwner(item.id),occupied=owner&&owner!==selectedCharacter;
@@ -135,9 +140,10 @@ function relicXpMarkup(item,gain=0){
   const cost=relicEnhanceCost(item),xp=item.xp||0,current=cost?xp/cost*100:100,preview=cost?Math.min(100,(xp+gain)/cost*100):100;
   return `<div class="relic-xp" role="progressbar" aria-label="강화 경험치" aria-valuemin="0" aria-valuemax="${cost||1}" aria-valuenow="${cost?xp:1}"><span class="incoming" style="width:${preview}%"></span><span class="current" style="width:${current}%"></span></div><p class="relic-xp-label">${cost?`${xp} / ${cost} EXP${gain?' · +'+gain:''}`:'MAX · 최대 레벨'}</p>`;
 }
-function openRelicFeed(item){relicFeedView.target=item.id;relicFeedView.selected=[];relicFeedView.returnFocus=document.activeElement;renderRelicFeed();document.querySelector('#relic-feed [data-action="feed-close"]')?.focus({preventScroll:true});}
+function openRelicFeed(item){if(relicUiTemporarilyLocked())return false;relicFeedView.target=item.id;relicFeedView.selected=[];relicFeedView.returnFocus=document.activeElement;renderRelicFeed();document.querySelector('#relic-feed [data-action="feed-close"]')?.focus({preventScroll:true});}
 function closeRelicFeed(){const panel=document.getElementById('relic-feed');if(panel)panel.hidden=true;relicFeedView.target=null;relicFeedView.selected=[];const focus=relicFeedView.returnFocus?.isConnected?relicFeedView.returnFocus:document.querySelector('#relic-detail [data-action="enhance"]');focus?.focus({preventScroll:true});}
 function renderRelicFeed(){
+  if(relicUiTemporarilyLocked())return false;
   const panel=document.getElementById('relic-feed'),item=relicStore.inventory.find(entry=>entry.id===relicFeedView.target);if(!panel||!item){closeRelicFeed();return;}
   const previousScroll=document.getElementById('relic-feed-items')?.scrollTop||0;
   relicFeedView.selected=relicFeedView.selected.filter(id=>relicStore.inventory.some(entry=>entry.id===id&&id!==item.id&&!entry.locked));
@@ -148,6 +154,7 @@ function renderRelicFeed(){
   document.getElementById('relic-feed-items').scrollTop=previousScroll;
 }
 function confirmRelicFeed(){
+  if(relicUiTemporarilyLocked())return false;
   const item=relicStore.inventory.find(entry=>entry.id===relicFeedView.target);if(!item)return;
   const materials=relicStore.inventory.filter(entry=>relicFeedView.selected.includes(entry.id));if(!materials.length)return;
   const equipped=materials.filter(entry=>relicOwner(entry.id)),presets=materials.some(entry=>relicPresetReferences(entry.id).length),gain=materials.reduce((sum,entry)=>sum+relicFeedValue(entry),0),preview=relicEnhancePreview(item,gain);
@@ -157,13 +164,15 @@ function confirmRelicFeed(){
   openRelicConfirm(equipped.length?'장착 유물 소모 경고':presets?'프리셋 유물 소모 경고':'강화 재료 소모 확인',copy,()=>{const result=relicUiMutation(()=>relicEnhance(item.id,request));if(result.ok)relicFeedView.selected=[];renderRelicFeed();document.querySelector('#relic-feed [data-action="feed-close"]')?.focus({preventScroll:true});});
 }
 function renderRelicCraft(){
+  if(relicUiTemporarilyLocked())return false;
   const set=RELIC_SETS[relicView.craftSet]||RELIC_SETS.A01;if(!set.slots.includes(relicView.craftSlot))relicView.craftSlot=set.slots[0];
   const mains=RELIC_SLOTS[relicView.craftSlot].mains;if(!mains.includes(relicView.craftMain))relicView.craftMain='';
   document.getElementById('relic-craft').innerHTML=`<h3>제작권 · 원하는 세트와 부위 선택</h3><div class="relic-craft-row"><select id="relic-craft-set" aria-label="제작 세트">${Object.values(RELIC_SETS).map(s=>`<option value="${s.id}" ${s.id===set.id?'selected':''}>${s.name}${s.id==='D01'?' · 저주':''}</option>`).join('')}</select><select id="relic-craft-slot" aria-label="제작 부위">${set.slots.map(slot=>`<option value="${slot}" ${slot===relicView.craftSlot?'selected':''}>${RELIC_SLOTS[slot].name}</option>`).join('')}</select><select id="relic-craft-main" aria-label="제작 메인 속성"><option value="">메인 무작위 · 일반 제작권</option>${mains.map(stat=>`<option value="${stat}" ${stat===relicView.craftMain?'selected':''}>${RELIC_STATS[stat].name} · 고급 제작권</option>`).join('')}</select><button data-action="craft" class="primary">제작권 1장 사용</button></div><p>출격 보상으로 유물과 제작권을 획득합니다. 저주 세트는 일반 보상과 분리되며 이점과 패널티가 함께 적용됩니다.</p>`;
 }
-function onRelicUiChange(event){const map={'relic-slot-filter':'slot','relic-rarity-filter':'rarity','relic-sort':'sort','relic-preset':'preset','relic-craft-set':'craftSet','relic-craft-slot':'craftSlot','relic-craft-main':'craftMain'},key=map[event.target.id];if(!key)return;relicView[key]=key==='preset'?Number(event.target.value):event.target.value;if(key.startsWith('craft'))renderRelicCraft();else if(key!=='preset')renderRelicInventory();}
+function onRelicUiChange(event){if(relicUiTemporarilyLocked())return;const map={'relic-slot-filter':'slot','relic-rarity-filter':'rarity','relic-sort':'sort','relic-preset':'preset','relic-craft-set':'craftSet','relic-craft-slot':'craftSlot','relic-craft-main':'craftMain'},key=map[event.target.id];if(!key)return;relicView[key]=key==='preset'?Number(event.target.value):event.target.value;if(key.startsWith('craft'))renderRelicCraft();else if(key!=='preset')renderRelicInventory();}
 function onRelicUiClick(event){
   const button=event.target.closest('button');if(!button||button.disabled)return;
+  if(relicUiTemporarilyLocked()){if(button.dataset.action==='close')closeRelicInventory();return;}
   if(button.dataset.feedItem){const id=button.dataset.feedItem;relicFeedView.selected=relicFeedView.selected.includes(id)?relicFeedView.selected.filter(key=>key!==id):[...relicFeedView.selected,id];renderRelicFeed();document.querySelector(`#relic-feed [data-feed-item="${id}"]`)?.focus({preventScroll:true});return;}
   if(button.dataset.select){relicView.selected=button.dataset.select;renderRelicCollection();renderRelicDetail();return;}
   if(button.dataset.slot){relicView.slot=button.dataset.slot;relicView.rarity='';relicView.query='';const equipped=relicEquippedItems(selectedCharacter).find(it=>it.slot===button.dataset.slot);relicView.selected=equipped?.id||relicFilteredItems()[0]?.id||null;renderRelicInventory();document.getElementById('relic-workspace')?.scrollIntoView?.({block:'start'});return;}
@@ -185,7 +194,7 @@ function onRelicUiClick(event){
   }
 }
 const relicUiDrawBase=draw;
-draw=function(){if(screenMode==='relics'){ctx.fillStyle='#080d16';ctx.fillRect(0,0,canvas.width,canvas.height);return;}relicUiDrawBase();};
+draw=function(){if(screenMode==='relics'){if(relicUiTemporarilyLocked())closeRelicInventory();else{ctx.fillStyle='#080d16';ctx.fillRect(0,0,canvas.width,canvas.height);return;}}relicUiDrawBase();};
 
 const relicGuideImages=new Map();let relicGuideEquipRect=null;
 function relicGuideImage(set){const item=relicStore.inventory.find(owned=>owned.setId===set.id);if(!item)return null;const path=relicArtPath(item);if(!relicGuideImages.has(path)){const im=new Image();im.src=path;relicGuideImages.set(path,im);}return relicGuideImages.get(path);}
@@ -207,7 +216,10 @@ function drawRelicGuide(){
   for(let i=0;i<rarities.length;i++){const r=rarities[i],x=margin+i*(pillWidth+gap);drawRoundedRect(x,y,pillWidth,30,6,r.color+'20',r.color,1);ctx.fillStyle=r.color;ctx.textAlign='center';ctx.font='bold 13px Arial';ctx.fillText(r.name,x+pillWidth/2,y+20);}
   y+=48;ctx.textAlign='left';ctx.fillStyle='#b7cbdc';ctx.font='13px Arial';for(const line of intro){ctx.fillText(line,margin,y);y+=19;}
   ctx.fillStyle='#869ab0';ctx.font='12px Arial';for(const line of note){ctx.fillText(line,margin,y);y+=18;}
-  relicGuideEquipRect={x:margin,y:equipTop-guideScrollY,w:Math.min(230,width),h:38};drawRoundedRect(margin,relicGuideEquipRect.y,relicGuideEquipRect.w,38,7,'#244454','#6fcbdc',1);ctx.fillStyle='#e7fcff';ctx.font='bold 14px Arial';ctx.fillText('유물 장비 · 보관함 열기  →',margin+14,relicGuideEquipRect.y+24);
+  const inventoryLocked=relicUiTemporarilyLocked();
+  relicGuideEquipRect={x:margin,y:equipTop-guideScrollY,w:Math.min(230,width),h:38,disabled:inventoryLocked};drawRoundedRect(margin,relicGuideEquipRect.y,relicGuideEquipRect.w,38,7,inventoryLocked?'#1c2632':'#244454',inventoryLocked?'#53616f':'#6fcbdc',1);
+  if(inventoryLocked&&typeof drawMenuPadlock==='function')drawMenuPadlock(margin+21,relicGuideEquipRect.y+19,20,{color:'#96a2ae',plate:false});
+  ctx.fillStyle=inventoryLocked?'#96a2ae':'#e7fcff';ctx.font='bold 14px Arial';ctx.fillText(inventoryLocked?'유물 장비 · 임시 잠금':'유물 장비 · 보관함 열기  →',margin+(inventoryLocked?39:14),relicGuideEquipRect.y+24);
   if(!cards.length){ctx.fillStyle='#b7cbdc';ctx.font='14px Arial';ctx.fillText('보유한 유물이 없습니다. 출격 보상으로 유물을 획득하세요.',margin,cardStart+24-guideScrollY);}
   for(let index=0;index<cards.length;index++){
     const card=cards[index],set=card.set,x=margin+(index%columns)*(cardWidth+14),cy=card.top-guideScrollY;if(cy+card.rowH<start||cy>canvas.height)continue;
@@ -220,7 +232,7 @@ function drawRelicGuide(){
   }
   ctx.restore();
 }
-registerGuideSection({id:'relics',label:'유물',color:'#68c9db',subtitle:'RELIC ARCHIVE · 6부위 장비와 세트 효과',draw:drawRelicGuide,onClick:(x,y)=>{if(y>=guideContentTop&&relicGuideEquipRect&&pointInRect(x,y,relicGuideEquipRect)){openRelicInventory();return true;}return false;}});
+registerGuideSection({id:'relics',label:'유물',color:'#68c9db',subtitle:'RELIC ARCHIVE · 6부위 장비와 세트 효과',draw:drawRelicGuide,onClick:(x,y)=>{if(y>=guideContentTop&&relicGuideEquipRect&&pointInRect(x,y,relicGuideEquipRect)){if(!relicUiTemporarilyLocked()&&!relicGuideEquipRect.disabled)openRelicInventory();return true;}return false;}});
 
 // Boss shield/HP presentation is shared by all worlds in drawRaidBossVitalBar.
 // No extra row or HUD offset: mobile movement/scale preferences apply once.

@@ -22,6 +22,7 @@ function getWorldStageLabel(world=selectedWorld,tier=selectedStageDifficulty){re
 function getSelectedWorld(){return GAME_WORLDS.find(world=>world.id===selectedWorld)||GAME_WORLDS[1];}
 function selectWorldStage(world=selectedWorld,tier='easy'){
   if(![1,2,3].includes(world)||!['easy','medium','hard'].includes(tier))return false;
+  if(typeof isWorldStageTemporarilyLocked==='function'&&isWorldStageTemporarilyLocked(world,tier))return false;
   selectedWorld=world;selectedStageDifficulty=tier;
   selectedDifficulty=WORLD_STAGE_BALANCE[getWorldStageLabel()];
   try{localStorage.setItem('zombieSurvivalWorldStage',JSON.stringify({world,tier}));localStorage.setItem('zombieSurvivalDifficulty',selectedDifficulty);}catch(error){}
@@ -37,3 +38,4 @@ function getWorldBackgroundImage(world=selectedWorld){
 }
 // Older saves remain in World 2 with their previous easy/medium/hard choice.
 selectedDifficulty=WORLD_STAGE_BALANCE[getWorldStageLabel()];
+if(typeof enforceTemporaryContentSelection==='function')enforceTemporaryContentSelection();

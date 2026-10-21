@@ -169,7 +169,9 @@ function dispatchMobileCanvasClick(p){
 
 function openMobileCharacterDetail(p){
   if(screenMode!=="character"||characterDetailId)return false;
-  const card=characterCards.find(item=>pointInRect(p.x,p.y,item));if(!card)return false;
+  if(typeof characterBackRect!=='undefined'&&characterBackRect&&pointInRect(p.x,p.y,characterBackRect))return false;
+  const card=characterCards.find(item=>pointInRect(p.x,p.y,item)&&p.y>=(item.visibleTop??item.y)&&p.y<=(item.visibleBottom??item.y+item.h));
+  if(!card||card.disabled||(typeof isCharacterTemporarilyLocked==='function'&&isCharacterTemporarilyLocked(card.id)))return false;
   characterDetailId=card.id;characterDetailOpenedAt=performance.now();characterDetailSkillIndex=0;mouse.down=false;return true;
 }
 
@@ -407,11 +409,13 @@ function drawMobileHomeScreen(){
   const cards=[["#9874c4","◆","캐릭터"],["#b99a55","✦","도감"],["#c79764","◈","유물"],["#568da1","⚙","조작 설정"],["#b86a51","▲",`세계 선택 · ${difficultyLabel()}`]];
   const rects=[];
   for(let i=0;i<cards.length;i++){
-    const rect={x:outerX+(i%2)*(cardW+gap),y:cardY+Math.floor(i/2)*(cardH+gap),w:i===cards.length-1?menuW:cardW,h:cardH};
+    const locked=i===2&&typeof isRelicMenuTemporarilyLocked==='function'&&isRelicMenuTemporarilyLocked();
+    const rect={x:outerX+(i%2)*(cardW+gap),y:cardY+Math.floor(i/2)*(cardH+gap),w:i===cards.length-1?menuW:cardW,h:cardH,disabled:locked};
     rects.push(rect);
-    const [color,icon,label]=cards[i];drawLobbyPanel(rect,color);
-    drawMobileLobbyEmblem(rect.x+(short?19:24),rect.y+cardH/2,short?12:15,color,icon);
-    ctx.fillStyle="#fff";ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=3;ctx.font=`${short?13:17}px ${MOBILE_LOBBY_BUTTON_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,rect.x+rect.w/2,rect.y+cardH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
+    const [accentColor,icon,label]=cards[i],color=locked?'#65717e':accentColor;drawLobbyPanel(rect,color,{disabled:locked});
+    if(locked&&typeof drawMenuPadlock==='function')drawMenuPadlock(rect.x+(short?19:24),rect.y+cardH/2,short?21:26,{color:'#a0aab6',plate:true});
+    else drawMobileLobbyEmblem(rect.x+(short?19:24),rect.y+cardH/2,short?12:15,color,icon);
+    ctx.fillStyle=locked?'#8e99a6':'#fff';ctx.shadowColor="rgba(255,255,255,.18)";ctx.shadowBlur=locked?0:3;ctx.font=`${short?13:17}px ${MOBILE_LOBBY_BUTTON_FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(locked?label+' · 잠금':label,rect.x+rect.w/2,rect.y+cardH/2+1);ctx.shadowBlur=0;ctx.textBaseline="alphabetic";
   }
   [homeCharacterRect,homeCodexRect,homeRelicRect,homeSettingsRect,homeDifficultyRect]=rects;
   mobileSettingsHomeRect=homeSettingsRect;

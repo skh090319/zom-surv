@@ -15,7 +15,11 @@ test('retired ammo and fire-rate augments and their transcendences are absent fr
 });
 test('Luminous cannot be selected, has no skill-guide entry, and does not register runtime images',()=>{
   const ui=fs.readFileSync(path.join(root,'js/08-ui.js'),'utf8');
-  const cards=vm.runInNewContext(ui.match(/const characterIds = (\[[^;]+\]);/)[1]);
+  const start=ui.indexOf('function getCharacterSelectLayout()'),end=ui.indexOf('function drawCharacterSelectScreen()',start);
+  assert.ok(start>=0&&end>start,'the production character layout is available');
+  const game=vm.createContext({canvas:{width:1000,height:600},characterScrollY:0,characterSkillGuide:{lush:{}}});
+  vm.runInContext(ui.slice(start,end),game);
+  const cards=vm.runInContext('getCharacterSelectLayout().cards.map(card=>card.id)',game);
   assert.ok(!cards.includes('luminous'));assert.ok(cards.includes('suncall'));
   assert.ok(!ui.includes('luminous:{name:'));
   assert.ok(!fs.readFileSync(path.join(root,'js/03-input.js'),'utf8').includes('selectedCharacter = "luminous"'));

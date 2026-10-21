@@ -1,4 +1,4 @@
-const CACHE_VERSION = "zombie-survival-v116-hound-pursuit";
+const CACHE_VERSION = "zombie-survival-v117-content-lock";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -32,6 +32,7 @@ const CORE_ASSETS = [
   "./js/00-assets.js",
   "./js/studio-intro.js",
   "./js/01-core.js",
+  "./js/00-content-access.js",
   "./js/00-worlds.js",
   "./js/02-upgrades.js",
   "./js/03-input.js",

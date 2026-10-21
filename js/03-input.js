@@ -39,6 +39,12 @@ function resolveSkillInputKey(event) {
 function formatSkillControlText(text, character = selectedCharacter) {
   return String(text).replace(/\b[QEXR]\b/g,key=>getSkillHotkey(key,character));
 }
+function canInteractWithCharacterCard(card,x,y) {
+  return pointInRect(x,y,card) && !card.disabled &&
+    !(typeof characterBackRect!=='undefined'&&characterBackRect&&pointInRect(x,y,characterBackRect)) &&
+    !(typeof isCharacterTemporarilyLocked==='function'&&isCharacterTemporarilyLocked(card.id)) &&
+    y >= (card.visibleTop ?? 138) && y <= (card.visibleBottom ?? canvas.height-8);
+}
 function setDesktopMoveTarget(event) {
   if (desktopControlMode !== 'rightClick' || screenMode !== 'game' || paused || gameOver || choosingUpgrade || (typeof raidVictory!=='undefined'&&raidVictory)) return false;
   const rect = canvas.getBoundingClientRect(), scale = getWorldViewScale();
@@ -192,7 +198,7 @@ canvas.addEventListener("mousedown", event => {
   if (event.button === 2 && screenMode === "character") {
     event.preventDefault();
     for (const card of characterCards) {
-      if (!pointInRect(event.clientX, event.clientY, card)) continue;
+      if (!canInteractWithCharacterCard(card,event.clientX,event.clientY)) continue;
       characterDetailId = card.id;
       characterDetailOpenedAt = performance.now();
       characterDetailSkillIndex = 0;
@@ -235,6 +241,7 @@ canvas.addEventListener("mousedown", event => {
     }
 
     if (pointInRect(event.clientX, event.clientY, homeRelicRect)) {
+      if(typeof isRelicMenuTemporarilyLocked==='function'&&isRelicMenuTemporarilyLocked())return;
       if (typeof openRelicInventory === "function") openRelicInventory();
       return;
     }
@@ -266,9 +273,8 @@ canvas.addEventListener("mousedown", event => {
       return;
     }
 
-    if (mouse.y < 138 || mouse.y > canvas.height - 8) return;
     for (const card of characterCards) {
-      if (!pointInRect(mouse.x, mouse.y, card)) continue;
+      if (!canInteractWithCharacterCard(card,mouse.x,mouse.y)) continue;
 
       if (card.id === "suncall") {
         selectedCharacter = "suncall";
@@ -367,7 +373,7 @@ canvas.addEventListener("contextmenu", event => {
   event.preventDefault();
   const point = { x: event.clientX, y: event.clientY };
   for (const card of characterCards) {
-    if (!pointInRect(point.x, point.y, card)) continue;
+    if (!canInteractWithCharacterCard(card,point.x,point.y)) continue;
     characterDetailId = card.id;
     characterDetailOpenedAt = performance.now();
     characterDetailSkillIndex = 0;
