@@ -413,7 +413,7 @@ function updateZombies() {
 
         if (!dodged) {
           const incomingDamage = z.isBossMinion
-            ? getRaidBossMinionDamage()
+            ? getRaidBossMinionDamage(z)
             : (player.crownLevel > 0 ? 20 : 10) * getZombieDifficultyDamageMultiplier();
           const carmillaFatalGuard = selectedCharacter === "carmilla" && player.carmillaBloodMoonTime > 0 && transcended.carmillaFeast;
           let remainingDamage=typeof relicIncomingDamage==='function'?relicIncomingDamage(incomingDamage):incomingDamage;

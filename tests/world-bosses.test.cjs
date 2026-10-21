@@ -4,17 +4,20 @@ const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const read=name=>fs.readFileSync(path.join(__dirname,'..','js',name+'.js'),'utf8');
-function game(world=1,withNewModule=true) {
+const documentFixture=require('./fixtures/boss-balance-document-20261021.json');
+const number=value=>Number(value.replace(/[,％%]|마리/g,'').trim());
+const tiers=['easy','medium','hard'];
+function game(world=1,withNewModule=true,tier='easy') {
   let seed=11,calls=0;
   const noop=()=>{};
-  const c={console,Math:Object.create(Math),Date:{now:()=>1000},selectedWorld:world,selectedDifficulty:'easy',wave:8,
+  const c={console,Math:Object.create(Math),Date:{now:()=>1000},selectedWorld:world,selectedDifficulty:world===2?tier:'easy',selectedStageDifficulty:tier,wave:8,
     WORLD:{width:2400,height:1800},Image:class{complete=false;naturalWidth=0},setGameImageSource:noop,
     player:{x:1200,y:900,r:20,hp:100,maxHp:100,damage:35,speed:4.2,invincibleTime:0,crownLevel:0,
       dodgeLevel:0,immortalLevel:0,score:0,kills:0,paladinCombo:30,paladinUltimateTime:0},selectedCharacter:'arc',transcended:{},
     zombies:[],bullets:[],droneBullets:[],particles:[],gravityFields:[],stickyZones:[],fireTrails:[],terraStructures:[],
     zombieSlowTimer:0,expOrbs:[],totalZombieKills:0,screenMode:'game',paused:false,choosingUpgrade:false,gameOver:false,
     saveTotalKills:noop,onRenZombieKilled:noop,onVargasZombieKilled:noop,
-    getZombieDifficultySpeedMultiplier:()=>1,getZombieDifficultyDamageMultiplier:()=>1,getRaidBossDifficultySpeedMultiplier:()=>1,
+    getZombieDifficultySpeedMultiplier:()=>1,getZombieDifficultyDamageMultiplier:()=>1,getRaidBossDifficultySpeedMultiplier:()=>c.selectedDifficulty==='easy'?1:1.2,
     astraEnemyMoveScale:()=>1,astraWellSuppressesEnemy:()=>false,astraControlled:z=>!!z?.astraControl,
     openUpgradeMenu:()=>{c.upgradeOpened=(c.upgradeOpened||0)+1;},isInCameraView:()=>true,
     crypto:{randomUUID:()=>`id-${calls}`},localStorage:{getItem:()=>null,setItem:noop}};
@@ -26,11 +29,11 @@ function game(world=1,withNewModule=true) {
   return {c,run,calls:()=>calls,start(index){run(`startRaidBoss(${index});raidIntroTime=0`);return run('activeRaidBoss');},
     step(n){run(`for(let n=0;n<${n};n++){updateRaidBossSystem();if(player.invincibleTime>0)player.invincibleTime--;}`);}};
 }
-test('each new world selects its three requested boss species, with final world eye and preserved easy HP',()=>{
+test('each new world selects its requested boss species with the revised document Easy HP',()=>{
   const order={1:['iron-hauler','glass-thrower','alarm-infected'],3:['rift-hunter','stitcher','abyss-eye']};
   for(const world of [1,3])for(let index=0;index<3;index++){
     const g=game(world),b=g.start(index);assert.equal(b.worldRaidType,order[world][index]);
-    assert.equal(b.isWorldRaidBoss,true);assert.equal(b.isRaidBoss,true);assert.equal(b.hp,[37500,150000,600000][index]);
+    assert.equal(b.isWorldRaidBoss,true);assert.equal(b.isRaidBoss,true);assert.equal(b.hp,({1:[27500,100000,150000],3:[67500,250000,30000000]})[world][index]);
     assert.equal(b.worldRaidWorld,world);assert.equal(g.run(`getRaidBossName(${index},${world})`),g.run(`getWorldRaidBossDefinition(${index},${world}).name`));
   }
 });
@@ -158,17 +161,17 @@ test('rift slash keeps its original hit and announces a locked outward wave befo
   g.run('for(let n=0;n<78;n++)updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,100);assert.equal(wave.r,380);
   g.run('updateWorldRaidHazards(owner)');assert.equal(wave.r,386);assert.equal(g.c.player.hp,100);
   g.run('for(let n=0;n<15;n++)updateWorldRaidHazards(owner)');assert.equal(wave.r,476);assert.equal(g.c.player.hp,100);
-  g.run('updateWorldRaidHazards(owner)');assert.equal(wave.r,482);assert.equal(g.c.player.hp,75);
+  g.run('updateWorldRaidHazards(owner)');assert.equal(wave.r,482);assert.equal(g.c.player.hp,30);
   const x=boss.x,y=boss.y;g.run('for(let n=0;n<23;n++){player.invincibleTime=0;updateWorldRaidHazards(owner)}');
-  assert.equal(wave.r,620);assert.equal(g.c.player.hp,75);assert.equal(boss.x,x);assert.equal(boss.y,y);
+  assert.equal(wave.r,620);assert.equal(g.c.player.hp,30);assert.equal(boss.x,x);assert.equal(boss.y,y);
   g.run('updateWorldRaidHazards(owner)');assert.equal(g.run('worldRaidZones.length'),0);assert.equal(wave.r,620);
 });
-test('rift slash and following wave share one 25% hit even after invincibility ends, and a later cast gets a new hit',()=>{
+test('rift slash and following wave share one revised 70% hit even after invincibility ends, and a later cast gets a new hit',()=>{
   const g=game(3),boss=g.start(0);g.c.owner=boss;g.c.player.x=boss.x+300;g.c.player.y=boss.y;
   g.run('startWorldRaidPattern(owner,1);for(let n=0;n<64;n++)updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,100);
-  g.run('updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,75);
-  g.c.player.x=boss.x+500;g.run('for(let n=0;n<54;n++){player.invincibleTime=0;updateWorldRaidHazards(owner)}');assert.equal(g.c.player.hp,75);
-  g.run('startWorldRaidPattern(owner,1);for(let n=0;n<95;n++)updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,50);
+  g.run('updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,30);
+  g.c.player.x=boss.x+500;g.run('for(let n=0;n<54;n++){player.invincibleTime=0;updateWorldRaidHazards(owner)}');assert.equal(g.c.player.hp,30);
+  g.run('startWorldRaidPattern(owner,1);for(let n=0;n<95;n++)updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,-40);
 });
 test('rift wave collision matches the annular-sector preview, including swept edges and the empty area behind it',()=>{
   const g=game(3),boss=g.start(0);g.c.owner=boss;
@@ -218,7 +221,110 @@ test('boss clear preserves rewards and deletes minions, links and hazards; reset
 });
 test('raid shields and percentage damage adapters continue to treat new bosses as real raid encounters',()=>{
   const g=game(3);g.run(read('18-relic-combat'));g.run('relicBeginRun()');const boss=g.start(2);g.c.owner=boss;g.c.Math.random=()=>.99;
-  assert.equal(boss.relicShield,600000*.3);assert.equal(g.run('enemyMaxHpDamage(owner,.01)'),90);
+  assert.equal(boss.relicShield,30000000*.3);assert.equal(g.run('enemyMaxHpDamage(owner,.01)'),90);
   const hp=boss.hp;g.run("relicTagTarget(owner,null,{kind:'basic'});owner.hp-=1000");
-  assert.equal(boss.hp,hp);assert.equal(boss.relicShield,179000);
+  assert.equal(boss.hp,hp);assert.equal(boss.relicShield,8999000);
+});
+
+test('every new-world boss HP and speed matches every edited document cell, independent of ordinary-wave profiles',()=>{
+  const hpRows=documentFixture.tables[0].slice(1).filter(row=>row[0]);
+  for(const row of hpRows)for(const [ti,tier]of tiers.entries()){
+    const world=number(row[0]),index=hpRows.filter(r=>r[0]===row[0]).indexOf(row),g=game(world,true,tier),boss=g.start(index);
+    const speedRow=documentFixture.tables[1].find(r=>r[1]===row[1]);
+    assert.equal(boss.maxHp,number(row[ti+2]),`${row[1]} ${tier} HP`);assert.equal(boss.hp,boss.maxHp);
+    assert.equal(boss.speed,number(speedRow[ti+2]),`${row[1]} ${tier} speed`);assert.equal(boss.worldRaidBaseSpeed,boss.speed);
+    assert.equal(boss.worldRaidDifficulty,tier);assert.equal(g.c.selectedDifficulty,'easy');
+  }
+});
+
+test('every new-world contact, zone, minion and projectile damage ratio matches the document',()=>{
+  const keys={1:['contact','cone','charge','contact','glass','rain','contact','ring','minion'],3:['contact','rift','cone','shockwave','contact','beam','minion','contact','beam','orb']};
+  for(const world of [1,3])for(const [ti,tier]of tiers.entries()){
+    const names=documentFixture.tables[0].slice(1).filter(r=>r[0]===String(world)).map(r=>r[1]);
+    for(const [ri,row]of documentFixture.tables[world===1?2:4].slice(1).entries()){
+      const g=game(world,true,tier),boss=g.start(names.indexOf(row[0]));g.c.owner=boss;const key=keys[world][ri],expected=number(row[ti+2])/100;
+      assert.equal(g.run(`getWorldRaidBossBalance(owner).damage['${key}']`),expected,`${row[0]} ${row[1]} ${tier}`);
+      if(key==='contact'){
+        boss.cooldown=999;g.c.player.x=boss.x;g.c.player.y=boss.y;g.run('updateRaidBossSystem()');
+        assert.ok(Math.abs(g.c.player.hp-(100-100*expected))<1e-8);
+      }else if(key==='minion'){
+        g.c.player.maxHp=1000;g.run('worldRaidSummon(owner)');const minion=g.c.zombies.find(z=>z.worldRaidMinion);g.c.minion=minion;
+        assert.equal(g.run('getRaidBossMinionDamage(minion)'),Math.max(1000*expected,g.run('getWorldRaidBossBalance(owner).summon.minimum')));
+      }else if(['glass','orb'].includes(key)){
+        g.c.player.invincibleTime=9999;g.c.player.x=-1000;g.c.player.y=-1000;
+        g.run(`startWorldRaidPattern(owner,${key==='glass'?0:1});for(let n=0;n<${key==='glass'?65:72};n++)updateWorldRaidHazards(owner)`);
+        const shots=g.run('worldRaidProjectiles');assert.equal(shots.length,key==='glass'?5:12);assert.ok(shots.every(p=>p.damage===expected));
+      }else{
+        const pattern=({cone:0,charge:1,rain:1,ring:0,rift:0,shockwave:1,beam:1})[key];
+        const actualPattern=world===3&&boss.raidIndex===0&&key==='cone'?1:world===3&&boss.raidIndex===2&&key==='beam'?0:pattern;
+        g.run(`startWorldRaidPattern(owner,${actualPattern})`);
+        const zone=g.run('worldRaidZones').find(z=>z.type===key);assert.ok(zone,`${key} zone`);assert.equal(zone.damage,expected);
+      }
+    }
+  }
+});
+
+test('edited summons use the document HP, per-cast count, cap and contact minimum on all tiers',()=>{
+  for(const world of [1,3])for(const [ti,tier]of tiers.entries()){
+    const rows=documentFixture.tables[world===1?3:5],index=world===1?2:1,g=game(world,true,tier),boss=g.start(index);g.c.owner=boss;
+    g.run(`startWorldRaidPattern(owner,${world===1?1:0});for(let n=0;n<65;n++)updateWorldRaidHazards(owner)`);
+    const expectedHp=number(rows[1][ti+1]),count=number(rows[2][ti+1]),cap=number(rows[world===1?3:2][ti+1]),minimum=number(rows[world===1?4:3][ti+1]);
+    let minions=g.c.zombies.filter(z=>z.worldRaidMinion);assert.equal(minions.length,count);assert.ok(minions.every(z=>z.hp===expectedHp&&z.maxHp===expectedHp&&z.speed===1.8));
+    g.run('worldRaidSummon(owner,100)');minions=g.c.zombies.filter(z=>z.worldRaidMinion);assert.equal(minions.length,cap);
+    if(world===3)assert.equal(boss.worldRaidLinks.length,cap);
+    const minion=minions[0];g.c.minion=minion;g.c.player.hp=g.c.player.maxHp=100;
+    const ratio=g.run('getWorldRaidBossBalance(owner).damage.minion');assert.equal(g.run('getRaidBossMinionDamage(minion)'),Math.max(minimum,100*ratio));
+    minion.x=minion.controlImmuneX=g.c.player.x;minion.y=minion.controlImmuneY=g.c.player.y;minion.worldMonsterGrace=0;
+    g.run('updateZombies()');assert.equal(g.c.player.hp,100-Math.max(minimum,100*ratio));
+  }
+});
+
+test('boss tier is frozen at encounter spawn and does not change when the stage selection changes',()=>{
+  const g=game(3,true,'hard'),boss=g.start(0);g.c.owner=boss;
+  g.c.selectedStageDifficulty='easy';g.c.selectedWorld=1;g.run('startWorldRaidPattern(owner,0)');
+  assert.equal(boss.maxHp,187500);assert.equal(boss.speed,4.3);assert.equal(g.run('worldRaidZones[0].damage'),.92);
+  g.run('for(let n=0;n<48;n++)updateWorldRaidHazards(owner)');assert.equal(boss.speed,4.3*1.03);
+});
+
+test('the edited 99 percent beams remain repeat hits rather than instant death and still respect shields',()=>{
+  for(const index of [1,2]){
+    const g=game(3),boss=g.start(index);g.c.owner=boss;g.c.player.x=boss.x+100;g.c.player.y=boss.y;
+    g.run(`startWorldRaidPattern(owner,${index===1?1:0});Object.assign(worldRaidZones[0],{delay:1,baseAngle:0,arc:0});updateWorldRaidHazards(owner)`);
+    assert.equal(g.c.player.hp,1);assert.equal(g.c.gameOver,false);
+    g.run('updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,1,'invincibility still protects');
+    g.c.player.invincibleTime=0;g.run('updateWorldRaidHazards(owner)');assert.equal(g.c.player.hp,-98);assert.equal(g.c.gameOver,true);
+    const shielded=game(3);shielded.c.owner=shielded.start(index);shielded.c.absorbSuncallShield=damage=>Math.max(0,damage-50);
+    shielded.run('worldRaidDamage(owner,getWorldRaidBossBalance(owner).damage.beam)');assert.equal(shielded.c.player.hp,51);
+  }
+});
+
+test('unchanged World 2 document HP, speed and minimum summon damage remain exact on every tier',()=>{
+  for(const [ti,tier]of tiers.entries())for(let index=0;index<3;index++){
+    const g=game(2,true,tier),boss=g.start(index),speedRow=documentFixture.tables[7][index*2+1];
+    assert.equal(boss.maxHp,number(documentFixture.tables[6][index+1][ti+1]));assert.ok(Math.abs(boss.speed-number(speedRow[ti+2]))<1e-9);
+    g.c.player.maxHp=1;assert.equal(g.run('getRaidBossMinionDamage()'),number(documentFixture.tables[8][4][ti+1]));
+  }
+});
+
+test('all World 2 damage cells and Mors summon HP, count and movement match the supplied document',()=>{
+  const attacks=['contact','poison','venom','venomSmall','vine','contact','charge','scythe','scytheReturn','minion','contact','abyssOrb','lightning','dash'];
+  for(const [ti,tier]of tiers.entries()){
+    for(const [ri,row]of documentFixture.tables[9].slice(1).entries()){
+      const index=ri<5?0:ri<10?1:2,g=game(2,true,tier),boss=g.start(index);g.c.owner=boss;
+      if(attacks[ri]==='dash'){
+        assert.equal(row[ti+2],'즉사');g.run('raidPlayerDamage(0,true,owner)');assert.equal(g.c.player.hp,0);assert.equal(g.c.gameOver,true);
+      }else assert.ok(Math.abs(g.run(`getRaidBossDamageRatio('${attacks[ri]}')`)-number(row[ti+2])/100)<1e-12,row.join(' / '));
+    }
+    const g=game(2,true,tier);g.c.owner=g.start(1);g.run('summonReaperMinions(owner)');const minions=g.c.zombies.filter(z=>z.isBossMinion),table=documentFixture.tables[8];
+    assert.equal(minions.length,number(table[2][ti+1]));assert.ok(minions.every(z=>z.hp===number(table[1][ti+1])&&Math.abs(z.speed-number(table[3][ti+1]))<1e-12));
+  }
+});
+
+test('the edited document has no descending Easy to Medium to Hard numerical rows',()=>{
+  for(const [index,table]of documentFixture.tables.entries())for(const row of table.slice(1)){
+    if(row.every(cell=>!cell.trim()))continue;
+    const start=[0,1,2,4,7,9].includes(index)?2:1;
+    const cells=row.slice(start,start+3);if(cells.some(c=>c==='즉사'))continue;
+    const values=cells.map(number);assert.ok(values[0]<=values[1]&&values[1]<=values[2],row.join(' / '));
+  }
 });

@@ -1,6 +1,54 @@
 // Six world-native raids reuse the generated species art, not World 2's bosses.
 // Patterns run on bounded hazard arrays and keep the original 2/4/6-minute,
 // reward, break-shield and percentage-damage infrastructure.
+// Revised Word balance table, 2026-10-21. Stage tier applies to bosses only;
+// ordinary waves and relic rewards keep their separate existing profiles.
+const WORLD_RAID_BOSS_BALANCE = Object.freeze({
+  1:Object.freeze({
+    easy:Object.freeze([
+      {"hp":27500,"speed":1.7,"damage":{"contact":0.12,"cone":0.22,"charge":0.28}},
+      {"hp":100000,"speed":1.8,"damage":{"contact":0.18,"glass":0.18,"rain":0.23}},
+      {"hp":150000,"speed":1.4,"damage":{"contact":0.25,"ring":0.2,"minion":0.05},"summon":{"hp":750,"count":4,"cap":6,"minimum":4,"speed":1.8}}
+    ]),
+    medium:Object.freeze([
+      {"hp":40500,"speed":1.7,"damage":{"contact":0.15,"cone":0.25,"charge":0.3}},
+      {"hp":130000,"speed":1.8,"damage":{"contact":0.21,"glass":0.21,"rain":0.26}},
+      {"hp":180000,"speed":1.4,"damage":{"contact":0.3,"ring":0.3,"minion":0.1},"summon":{"hp":1750,"count":4,"cap":6,"minimum":10,"speed":1.8}}
+    ]),
+    hard:Object.freeze([
+      {"hp":57500,"speed":1.7,"damage":{"contact":0.18,"cone":0.28,"charge":0.32}},
+      {"hp":150000,"speed":1.8,"damage":{"contact":0.24,"glass":0.24,"rain":0.29}},
+      {"hp":200000,"speed":1.4,"damage":{"contact":0.35,"ring":0.4,"minion":0.15},"summon":{"hp":2750,"count":6,"cap":12,"minimum":20,"speed":1.8}}
+    ]),
+  }),
+  3:Object.freeze({
+    easy:Object.freeze([
+      {"hp":67500,"speed":2.3,"damage":{"contact":0.22,"rift":0.52,"cone":0.7,"shockwave":0.7}},
+      {"hp":250000,"speed":5.6,"damage":{"contact":0.4,"beam":0.99,"minion":0.2},"summon":{"hp":2600,"count":4,"cap":4,"minimum":40,"speed":1.8}},
+      {"hp":30000000,"speed":3.25,"damage":{"contact":0.75,"beam":0.99,"orb":0.99}}
+    ]),
+    medium:Object.freeze([
+      {"hp":117500,"speed":4.3,"damage":{"contact":0.32,"rift":0.72,"cone":0.8,"shockwave":0.8}},
+      {"hp":500000,"speed":5.6,"damage":{"contact":0.4,"beam":0.99,"minion":0.35},"summon":{"hp":3600,"count":4,"cap":4,"minimum":50,"speed":1.8}},
+      {"hp":60000000,"speed":3.25,"damage":{"contact":0.85,"beam":0.99,"orb":0.99}}
+    ]),
+    hard:Object.freeze([
+      {"hp":187500,"speed":4.3,"damage":{"contact":0.42,"rift":0.92,"cone":0.9,"shockwave":0.9}},
+      {"hp":800000,"speed":5.6,"damage":{"contact":0.4,"beam":0.99,"minion":0.45},"summon":{"hp":4600,"count":10,"cap":10,"minimum":60,"speed":1.8}},
+      {"hp":100300000,"speed":3.25,"damage":{"contact":0.95,"beam":0.99,"orb":0.99}}
+    ]),
+  }),
+});
+function getWorldRaidSelectedDifficulty() {
+  return typeof selectedStageDifficulty==='string'?selectedStageDifficulty:typeof selectedDifficulty==='string'?selectedDifficulty:'easy';
+}
+function getWorldRaidBossBalance(boss) {
+  const world=boss?.worldRaidWorld??(typeof selectedWorld==='number'?selectedWorld:2);
+  const profiles=WORLD_RAID_BOSS_BALANCE[world];
+  const tier=boss?.worldRaidDifficulty||getWorldRaidSelectedDifficulty();
+  return (profiles?.[tier]||profiles?.easy)?.[boss?.raidIndex??0]||null;
+}
+
 const WORLD_RAID_BOSS_TYPES = Object.freeze({
   1:Object.freeze([
     {id:'iron-hauler',name:'철판의 파수꾼',subtitle:'철판 운반자',color:'#d9b765',desc:'방패로 길을 막고 거대한 철판을 휘두릅니다.',tips:'부채꼴 강타와 직선 돌진 예고 밖으로 이동하세요.',speed:1.7},
@@ -9,8 +57,8 @@ const WORLD_RAID_BOSS_TYPES = Object.freeze({
   ].map((d,index)=>Object.freeze({...d,index,world:1,image:`assets/world-bosses-v1/${d.id}.webp`})) ),
   3:Object.freeze([
     {id:'rift-hunter',name:'균열의 추격자',subtitle:'균열 사냥꾼',color:'#bd8af3',desc:'순간이동할 때마다 빨라지며 전방으로 균열 충격파를 내보냅니다.',tips:'순간이동마다 기본 이동속도가 3%씩 누적됩니다. 균열 표식과 부채꼴 충격파를 피하세요. 출현 직후 접촉 피해는 잠시 유예됩니다.',speed:2.3},
-    {id:'stitcher',name:'심연의 봉합자',subtitle:'봉합자',color:'#80e5c3',desc:'소환체와 생명의 실을 연결해 회복하며 봉합 광선을 쏩니다.',tips:'연결된 소환체를 모두 처치하면 회복이 끊기고 잠시 무방비가 됩니다.',speed:1.6},
-    {id:'abyss-eye',name:'심연의 관측안',subtitle:'최종 관측체',color:'#da98ff',desc:'서서히 회전하는 광선과 전방위 구체로 발원지를 지킵니다.',tips:'넓은 회전 구간 예고를 살피고 구체 사이의 틈을 이용하세요.',speed:1.25}
+    {id:'stitcher',name:'심연의 봉합자',subtitle:'봉합자',color:'#80e5c3',desc:'소환체와 생명의 실을 연결해 회복하며 봉합 광선을 쏩니다.',tips:'연결된 소환체를 모두 처치하면 회복이 끊기고 잠시 무방비가 됩니다.',speed:5.6},
+    {id:'abyss-eye',name:'심연의 관측안',subtitle:'최종 관측체',color:'#da98ff',desc:'서서히 회전하는 광선과 전방위 구체로 발원지를 지킵니다.',tips:'넓은 회전 구간 예고를 살피고 구체 사이의 틈을 이용하세요.',speed:3.25}
   ].map((d,index)=>Object.freeze({...d,index,world:3,image:`assets/world-monsters-v1/${d.id}.webp`})) )
 });
 const worldRaidZones=[];
@@ -33,9 +81,11 @@ function initializeWorldRaidBoss(boss) {
   // Clear stale ordinary-enemy projectiles at the encounter boundary too.
   if(typeof resetWorldMonsters==='function')resetWorldMonsters();
   boss.isWorldRaidBoss=true;boss.worldRaidType=def.id;boss.worldRaidWorld=def.world;
-  boss.hp=boss.maxHp=RAID_BOSS_BALANCE.easy.hp[boss.raidIndex];boss.lastHp=boss.hp;
-  boss.r=def.id==='abyss-eye'?78:def.id==='iron-hauler'?72:64;boss.speed=def.speed;
-  boss.worldRaidBaseSpeed=def.speed;boss.worldRaidTeleportCount=0;boss.worldRaidSpeedBonus=0;
+  boss.worldRaidDifficulty=getWorldRaidSelectedDifficulty();
+  const balance=getWorldRaidBossBalance(boss);
+  boss.hp=boss.maxHp=balance.hp;boss.lastHp=boss.hp;
+  boss.r=def.id==='abyss-eye'?78:def.id==='iron-hauler'?72:64;boss.speed=balance.speed;
+  boss.worldRaidBaseSpeed=balance.speed;boss.worldRaidTeleportCount=0;boss.worldRaidSpeedBonus=0;
   boss.worldRaidState='move';boss.worldRaidAge=0;boss.worldRaidTimer=0;boss.worldRaidMaxTimer=1;
   boss.worldRaidAim=Math.atan2(player.y-boss.y,player.x-boss.x);boss.worldRaidLinks=[];boss.worldRaidPatternSequence=0;
   boss.worldRaidGrace=0;boss.worldRaidFrayed=0;boss.worldRaidHealBudget=boss.maxHp*.02;
@@ -75,21 +125,23 @@ function worldRaidDamage(boss,ratio) {
   raidPlayerDamage(ratio,false,boss);
 }
 function worldRaidSummon(boss,count) {
-  const owned=zombies.filter(z=>z.worldRaidMinion&&z.owner===boss&&z.hp>0),cap=boss.worldRaidType==='stitcher'?4:6;
+  const summon=getWorldRaidBossBalance(boss)?.summon;if(!summon)return;
+  count=count??summon.count;
+  const owned=zombies.filter(z=>z.worldRaidMinion&&z.owner===boss&&z.hp>0),cap=summon.cap;
   // Raid summons also avoid species reserved for exclusive field elites.
   const ids=boss.worldRaidWorld===1?['alley-hound']:['split-larva'];
   for(let n=0;n<count&&owned.length<cap;n++) {
     const a=(n+.5)*Math.PI*2/count+boss.worldRaidAge*.005,x=boss.x+Math.cos(a)*160,y=boss.y+Math.sin(a)*160;
-    const hp=boss.raidIndex===2?750:600;
+    const hp=summon.hp;
     const minion={id:`world-raid-minion-${++worldRaidSequence}`,owner:boss,isBossMinion:true,worldRaidMinion:true,
       worldRaidMinionType:ids[n%ids.length],worldRaidWorld:boss.worldRaidWorld,
       x:Math.max(30,Math.min(WORLD.width-30,x)),y:Math.max(30,Math.min(WORLD.height-30,y)),r:23,
-      hp,maxHp:hp,speed:1.8,boss:false,worldMonsterGrace:45};
+      hp,maxHp:hp,speed:summon.speed,boss:false,worldMonsterGrace:45};
     minion.controlImmuneX=minion.x;minion.controlImmuneY=minion.y;
     zombies.push(minion);owned.push(minion);if(typeof relicTrackEnemy==='function')relicTrackEnemy(minion);
     worldRaidEmit('summon',minion.x,minion.y,55,boss.worldRaidColor,40);
   }
-  boss.worldRaidLinks=boss.worldRaidType==='stitcher'?owned.slice(0,4):[];
+  boss.worldRaidLinks=boss.worldRaidType==='stitcher'?owned.slice(0,cap):[];
 }
 function cancelWorldRaidPattern(boss) {
   for(let i=worldRaidZones.length-1;i>=0;i--)if(worldRaidZones[i].owner===boss)worldRaidZones.splice(i,1);
@@ -99,38 +151,38 @@ function cancelWorldRaidPattern(boss) {
 function startWorldRaidPattern(boss,pattern) {
   boss.pattern=pattern;boss.patternTime=0;boss.worldRaidAim=Math.atan2(player.y-boss.y,player.x-boss.x);
   boss.worldRaidState='windup';boss.worldRaidTimer=0;boss.worldRaidMaxTimer=1;
-  const type=boss.worldRaidType;
+  const type=boss.worldRaidType,balance=getWorldRaidBossBalance(boss),damage=balance.damage;
   if(type==='iron-hauler') {
-    if(pattern===0)worldRaidZone(boss,'cone',{r:300,arc:1.55,delay:72,duration:14,damage:.22});
-    else worldRaidZone(boss,'charge',{length:480,width:110,delay:72,duration:24,damage:.28});
+    if(pattern===0)worldRaidZone(boss,'cone',{r:300,arc:1.55,delay:72,duration:14,damage:damage.cone});
+    else worldRaidZone(boss,'charge',{length:480,width:110,delay:72,duration:24,damage:damage.charge});
   } else if(type==='glass-thrower') {
     if(pattern===0)worldRaidZone(boss,'cone',{r:630,arc:1.02,delay:65,duration:60,action:'glassVolley',damage:0});
     else for(let n=0;n<5;n++) {
       const a=n*Math.PI*2/5,d=n?150:0;
-      worldRaidZone(boss,'rain',{x:player.x+Math.cos(a)*d,y:player.y+Math.sin(a)*d,r:72,delay:54+n*5,duration:14,damage:.23});
+      worldRaidZone(boss,'rain',{x:player.x+Math.cos(a)*d,y:player.y+Math.sin(a)*d,r:72,delay:54+n*5,duration:14,damage:damage.rain});
     }
   } else if(type==='alarm-infected') {
-    if(pattern===0)worldRaidZone(boss,'ring',{r:0,maxR:520,width:18,delay:65,duration:90,damage:.20});
-    else worldRaidZone(boss,'summon',{r:150,delay:65,duration:12,count:4});
+    if(pattern===0)worldRaidZone(boss,'ring',{r:0,maxR:520,width:18,delay:65,duration:90,damage:damage.ring});
+    else worldRaidZone(boss,'summon',{r:150,delay:65,duration:12,count:balance.summon.count});
   } else if(type==='rift-hunter') {
     if(pattern===0) {
       for(let n=0;n<3;n++) {
         const a=boss.worldRaidAim+(n-1)*1.15;
         worldRaidZone(boss,'rift',{x:Math.max(110,Math.min(WORLD.width-110,player.x+Math.cos(a)*150)),
-          y:Math.max(110,Math.min(WORLD.height-110,player.y+Math.sin(a)*150)),r:105,delay:48+n*50,duration:14,damage:.22,teleport:true});
+          y:Math.max(110,Math.min(WORLD.height-110,player.y+Math.sin(a)*150)),r:105,delay:48+n*50,duration:14,damage:damage.rift,teleport:true});
       }
     } else {
       // One slash launches one wave. Both previews appear when the cast begins,
       // and share a hit record so remaining in the path cannot take both hits.
       const hitGroup={hit:false};
-      worldRaidZone(boss,'cone',{r:380,arc:1.8,delay:65,duration:14,damage:.25,hitGroup});
-      worldRaidZone(boss,'shockwave',{minR:380,r:380,maxR:620,width:32,arc:1.8,delay:79,duration:40,damage:.25,hitGroup});
+      worldRaidZone(boss,'cone',{r:380,arc:1.8,delay:65,duration:14,damage:damage.cone,hitGroup});
+      worldRaidZone(boss,'shockwave',{minR:380,r:380,maxR:620,width:32,arc:1.8,delay:79,duration:40,damage:damage.shockwave,hitGroup});
     }
   } else if(type==='stitcher') {
-    if(pattern===0)worldRaidZone(boss,'summon',{r:150,delay:65,duration:12,count:4});
-    else worldRaidZone(boss,'beam',{length:640,width:18,baseAngle:boss.worldRaidAim-.35,angle:boss.worldRaidAim-.35,arc:.7,delay:80,duration:85,damage:.18});
+    if(pattern===0)worldRaidZone(boss,'summon',{r:150,delay:65,duration:12,count:balance.summon.count});
+    else worldRaidZone(boss,'beam',{length:640,width:18,baseAngle:boss.worldRaidAim-.35,angle:boss.worldRaidAim-.35,arc:.7,delay:80,duration:85,damage:damage.beam});
   } else if(type==='abyss-eye') {
-    if(pattern===0)worldRaidZone(boss,'beam',{length:760,width:22,baseAngle:boss.worldRaidAim-.475,angle:boss.worldRaidAim-.475,arc:.95,delay:90,duration:110,damage:.24});
+    if(pattern===0)worldRaidZone(boss,'beam',{length:760,width:22,baseAngle:boss.worldRaidAim-.475,angle:boss.worldRaidAim-.475,arc:.95,delay:90,duration:110,damage:damage.beam});
     else worldRaidZone(boss,'ring',{r:0,maxR:440,width:0,delay:72,duration:62,action:'orbVolley',damage:0});
   }
   const zones=worldRaidZones.filter(z=>z.owner===boss);
@@ -222,8 +274,8 @@ function updateWorldRaidHazards(boss) {
         if(z.type!=='shockwave')worldRaidEmit('impact',z.x,z.y,z.r||70,z.color,26,{worldRaidType:z.owner.worldRaidType,zoneType:z.type,angle:z.angle,arc:z.arc});
       }
       if(z.type==='summon') {if(!z.fired){z.fired=true;worldRaidSummon(boss,z.count);}}
-      else if(z.action==='glassVolley') {if(elapsed===0||elapsed===20||elapsed===40)worldRaidVolley(boss,5,1.02,6.5,.18);}
-      else if(z.action==='orbVolley') {if(elapsed===0||elapsed===30){boss.worldRaidAim+=.12;worldRaidVolley(boss,12,Math.PI*2,4.8,.25,true);}}
+      else if(z.action==='glassVolley') {if(elapsed===0||elapsed===20||elapsed===40)worldRaidVolley(boss,5,1.02,6.5,getWorldRaidBossBalance(boss).damage.glass);}
+      else if(z.action==='orbVolley') {if(elapsed===0||elapsed===30){boss.worldRaidAim+=.12;worldRaidVolley(boss,12,Math.PI*2,4.8,getWorldRaidBossBalance(boss).damage.orb,true);}}
       else if(z.type==='cone') {
         if(!z.hit&&!z.hitGroup?.hit&&worldRaidPointInCone(z,player.x,player.y,player.r)){
           z.hit=true;if(z.hitGroup)z.hitGroup.hit=true;worldRaidDamage(boss,z.damage);

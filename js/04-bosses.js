@@ -26,11 +26,18 @@ function getRaidBossBalance() {
 }
 
 function getRaidBossDamageRatio(attack, bossIndex = activeRaidBoss?.raidIndex ?? 0) {
+  if(attack==='contact'&&activeRaidBoss?.isWorldRaidBoss&&bossIndex===activeRaidBoss.raidIndex&&typeof getWorldRaidBossBalance==='function') {
+    const balance=getWorldRaidBossBalance(activeRaidBoss);if(balance)return balance.damage.contact;
+  }
   const ratio = getRaidBossBalance().damage[attack];
   return Array.isArray(ratio) ? ratio[bossIndex] : ratio;
 }
 
-function getRaidBossMinionDamage() {
+function getRaidBossMinionDamage(minion=null) {
+  if(minion?.worldRaidMinion&&typeof getWorldRaidBossBalance==='function') {
+    const balance=getWorldRaidBossBalance(minion.owner);
+    if(balance?.summon)return Math.max(balance.summon.minimum,player.maxHp*balance.damage.minion);
+  }
   return Math.max(getRaidBossBalance().minionMinimum, player.maxHp * getRaidBossDamageRatio("minion"));
 }
 const RAID_BOSS_PERCENT_FLAT_PER_POINT = [25, 50, 90];

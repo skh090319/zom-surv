@@ -43,14 +43,14 @@ test('boss health matches the revised table while movement stays unchanged', () 
   }
 });
 
-test('new-world stages keep the full easy boss profile, including hard-labelled third stages',()=>{
+test('new-world bosses use the selected stage tier while ordinary and reward profiles remain Easy',()=>{
   const game=bossGame('hard');
+  game.run(fs.readFileSync(path.join(root,'js','04-world-bosses.js'),'utf8'));
+  const hp={1:{easy:[27500,100000,150000],medium:[40500,130000,180000],hard:[57500,150000,200000]},3:{easy:[67500,250000,30000000],medium:[117500,500000,60000000],hard:[187500,800000,100300000]}};
   for(const world of [1,3])for(const tier of ['easy','medium','hard']){
     game.run(`selectWorldStage(${world},'${tier}')`);
-    for(const [index,hp] of [37500,150000,600000].entries()){game.run(`startRaidBoss(${index})`);assert.equal(game.run('activeRaidBoss.maxHp'),hp);}
-    game.run('startRaidBoss(0);raidBossProjectiles.length=0;firePoisonVolley(activeRaidBoss)');assert.equal(game.run('raidBossProjectiles.length'),3);
-    game.run('startRaidBoss(1);summonReaperMinions(activeRaidBoss)');assert.equal(game.run('zombies.filter(z=>z.isBossMinion).length'),5);
-    assert.equal(game.run("getRaidBossDamageRatio('lightning')"),.8);
+    for(const [index,value]of hp[world][tier].entries()){game.run(`startRaidBoss(${index})`);assert.equal(game.run('activeRaidBoss.maxHp'),value);assert.equal(game.run('activeRaidBoss.worldRaidDifficulty'),tier);}
+    assert.equal(game.run('selectedDifficulty'),'easy');
   }
 });
 
@@ -161,7 +161,7 @@ test('boss attacks still respect invincibility, dodge and shields', () => {
 
 test('normal enemy scaling is unchanged and boss minions use the table', () => {
   const source = fs.readFileSync(path.join(root, 'js', '06-entities-update.js'), 'utf8');
-  assert.match(source, /z\.isBossMinion\s*\? getRaidBossMinionDamage\(\)/);
+  assert.match(source, /z\.isBossMinion\s*\? getRaidBossMinionDamage\(z\)/);
   assert.match(source, /\(player\.crownLevel > 0 \? 20 : 10\) \* getZombieDifficultyDamageMultiplier\(\)/);
 });
 
